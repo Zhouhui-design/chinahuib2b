@@ -1,65 +1,157 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
+  const dict = {
+    home: {
+      hero: {
+        title: "Global Expo Network",
+        subtitle: "Your Gateway to B2B Trade Exhibitions",
+        searchPlaceholder: "Search products, exhibitors...",
+        searchButton: "Search"
+      },
+      featured: {
+        title: "Featured Products",
+        viewDetails: "View Details"
+      },
+      why: {
+        title: "Why Choose Us",
+        verified: {
+          title: "Verified Suppliers",
+          description: "All exhibitors are verified for quality and reliability"
+        },
+        competitive: {
+          title: "Competitive Pricing",
+          description: "Direct from manufacturers, no middlemen"
+        },
+        global: {
+          title: "Global Reach",
+          description: "Connect with buyers and sellers worldwide"
+        }
+      },
+      exhibitors: {
+        title: "Featured Exhibitors",
+        viewAll: "View All Exhibitors"
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            {dict.home.hero.title}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl md:text-2xl mb-8 text-blue-100">
+            {dict.home.hero.subtitle}
           </p>
+          
+          {/* Search Box */}
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-2 flex gap-2">
+              <input
+                type="text"
+                placeholder={dict.home.hero.searchPlaceholder}
+                className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
+              />
+              <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-md font-semibold transition-colors">
+                {dict.home.hero.searchButton}
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Featured Products */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">{dict.home.featured.title}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="h-48 bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-400">Product Image</span>
+              </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-lg mb-2">Sample Product {item}</h3>
+                <p className="text-gray-600 text-sm mb-3">High-quality product from verified manufacturer</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-blue-600 font-bold">Contact for Price</span>
+                  <Link 
+                    href="/products/1" 
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    {dict.home.featured.viewDetails}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-12">{dict.home.why.title}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{dict.home.why.verified.title}</h3>
+              <p className="text-gray-600">{dict.home.why.verified.description}</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{dict.home.why.competitive.title}</h3>
+              <p className="text-gray-600">{dict.home.why.competitive.description}</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">{dict.home.why.global.title}</h3>
+              <p className="text-gray-600">{dict.home.why.global.description}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Exhibitors Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">{dict.home.exhibitors.title}</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[1, 2, 3, 4].map((item) => (
+            <Link key={item} href="/store/1" className="group">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
+                <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-gray-400 text-sm">Logo</span>
+                </div>
+                <h3 className="font-semibold group-hover:text-blue-600 transition-colors">Exhibitor {item}</h3>
+                <p className="text-gray-600 text-sm mt-1">Verified Supplier</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div className="text-center mt-8">
+          <Link 
+            href="/stores" 
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-semibold transition-colors"
+          >
+            {dict.home.exhibitors.viewAll}
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
