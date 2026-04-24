@@ -1,22 +1,39 @@
-import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
+import { languages, defaultLanguage } from "@/lib/languages"
 
-export default auth((req: any) => {
-  const isLoggedIn = !!req.auth
-  const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-  const isProtectedRoute = req.nextUrl.pathname.startsWith('/dashboard')
+// List of supported language codes
+const supportedLanguages = languages.map(lang => lang.code)
+
+export function middleware(request: any) {
+  const pathname = request.nextUrl.pathname
   
-  if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/auth/login', req.url))
+  // Check if pathname has a language prefix
+  const pathnameHasLocale = supportedLanguages.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  )
+
+  // If no locale in pathname, redirect to default locale
+  if (!pathnameHasLocale) {
+    // Skip redirect for static files, API routes, and uploads
+    if (
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/uploads') ||
+      pathname.includes('.')
+    ) {
+      return NextResponse.next()
+    }
+
+    const newUrl = new URL(`/${defaultLanguage}${pathname}`, request.url)
+    return NextResponse.redirect(newUrl)
   }
-  
-  if (isAuthPage && isLoggedIn) {
-    return NextResponse.redirect(new URL('/', req.url))
-  }
-  
+
   return NextResponse.next()
-})
+}
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/auth/:path*']
+  matcher: [
+    // Match all paths except static files, API routes, and uploads
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|.*\\..*).*)',
+  ]
 }
