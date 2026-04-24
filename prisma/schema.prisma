@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User accounts (buyers and sellers)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String
+  role          UserRole  @default(BUYER)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  sellerProfile SellerProfile?
+  inquiries     Inquiry[]
+  brochuresDownloaded BrochureDownload[]
+  contactViews  ContactView[]
+  
+  @@index([email])
+  @@index([lastLoginAt])
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+// Seller/Store profiles
+model SellerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  companyName     String
+  companyType     CompanyType
+  country         String
+  city            String
+  address         String?
+  phone           String?
+  email           String?
+  website         String?
+  description     String?  // Rich text (stored as HTML)
+  logoUrl         String?
+  bannerUrl       String?
+  certifications  String[] // Array of certification names
+  
+  subscriptionStatus SubscriptionStatus @default(FREE_TRIAL)
+  subscriptionExpiry DateTime?
+  
+  isVerified      Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  products        Product[]
+  storeBrochures  StoreBrochure[]
+  inquiries       Inquiry[]
+  contactViews    ContactView[]
+  
+  @@index([companyName])
+  @@index([country])
+}
+
+enum CompanyType {
+  MANUFACTURER
+  TRADER
+  BOTH
+}
+
+enum SubscriptionStatus {
+  FREE_TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+// Product categories (3-level hierarchy)
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  nameEn    String?
+  slug      String    @unique
+  level     Int       // 1, 2, or 3
+  parentId  String?
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+  
+  products  Product[]
+  
+  @@index([slug])
+  @@index([parentId])
+}
+
+// Products (exhibition items)
+model Product {
+  id            String   @id @default(cuid())
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  
+  title         String
+  titleEn       String?
+  description   String?  // Rich text
+  specifications Json?   // JSON object for specs
+  
+  minOrderQty   Int?
+  supplyCapacity String?
+  
+  mainImageUrl  String
+  images        String[] // Array of image URLs
+  
+  hasBrochure   Boolean  @default(false)
+  
+  viewCount     Int      @default(0)
+  inquiryCount  Int      @default(0)
+  
+  isActive      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  brochure      ProductBrochure?
+  inquiries     Inquiry[]
+  
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// Product-level brochures
+model ProductBrochure {
+  id            String   @id @default(cuid())
+  productId     String   @unique
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  fileUrl       String
+  fileName      String
+  fileSize      Int      // in bytes
+  downloadCount Int      @default(0)
+  
+  uploadedAt    DateTime @default(now())
+  
+  @@index([productId])
+}
+
+// Store-level brochures
+model StoreBrochure {
+  id            String   @id @default(cuid())
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  title         String
+  fileUrl       String
+  fileName      String
+  fileSize      Int
+  
+  sortOrder     Int      @default(0)
+  downloadCount Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([sellerId])
+}
+
+// Brochure download tracking
+model BrochureDownload {
+  id            String   @id @default(cuid())
+  userId        String?  // Nullable for guest downloads
+  user          User?    @relation(fields: [userId], references: [id])
+  
+  brochureType  BrochureType
+  brochureId    String   // productId or storeBrochureId
+  
+  downloadedAt  DateTime @default(now())
+  ipAddress     String?
+  
+  @@index([userId])
+  @@index([downloadedAt])
+}
+
+enum BrochureType {
+  PRODUCT
+  STORE
+}
+
+// Inquiries (traditional form-based)
+model Inquiry {
+  id            String   @id @default(cuid())
+  buyerId       String
+  buyer         User     @relation(fields: [buyerId], references: [id])
+  
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id])
+  
+  productId     String?
+  product       Product? @relation(fields: [productId], references: [id])
+  
+  message       String
+  contactInfo   String   // Buyer's contact info
+  
+  status        InquiryStatus @default(PENDING)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+enum InquiryStatus {
+  PENDING
+  REPLIED
+  CLOSED
+}
+
+// Contact view tracking (business card collection)
+model ContactView {
+  id            String   @id @default(cuid())
+  viewerId      String
+  viewer        User     @relation(fields: [viewerId], references: [id])
+  
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id])
+  
+  viewedAt      DateTime @default(now())
+  
+  @@unique([viewerId, sellerId])
+  @@index([sellerId])
+}
