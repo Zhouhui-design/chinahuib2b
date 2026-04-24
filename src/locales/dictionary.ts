@@ -111,7 +111,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         searchButton: "Search",
       },
       featured: {
-        title: "Featured Products",
+        title: "Exhibition Zones",
         viewDetails: "View Details",
       },
       why: {
@@ -211,7 +211,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         searchButton: "搜索",
       },
       featured: {
-        title: "精选产品",
+        title: "展区",
         viewDetails: "查看详情",
       },
       why: {
