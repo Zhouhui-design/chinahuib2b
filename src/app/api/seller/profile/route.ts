@@ -76,16 +76,16 @@ export async function PUT(request: NextRequest) {
       where: { id: seller.id },
       data: {
         companyName: data.companyName,
-        description: data.description || null,
-        country: data.country || null,
-        city: data.city || null,
-        address: data.address || null,
-        phone: data.phone || null,
-        email: data.email || null,
-        website: data.website || null,
+        ...(data.description && { description: data.description }),
+        ...(data.country && { country: data.country }),
+        ...(data.city && { city: data.city }),
+        ...(data.address && { address: data.address }),
+        ...(data.phone && { phone: data.phone }),
+        ...(data.email && { email: data.email }),
+        ...(data.website && { website: data.website }),
         logoUrl: data.logoUrl,
         bannerUrl: data.bannerUrl,
-        certifications: data.certifications,
+        ...(data.certifications && { certifications: data.certifications }),
       }
     })
 
