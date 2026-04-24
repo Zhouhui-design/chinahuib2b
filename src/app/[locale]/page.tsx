@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getDictionary } from "@/locales/dictionary";
 import type { LanguageCode } from "@/lib/languages";
+import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -40,7 +41,9 @@ export default async function Home({ params }: PageProps) {
 
             {/* Right side - Language Switcher & Auth */}
             <div className="flex items-center space-x-4">
-              {/* Language Switcher will be added as client component */}
+              {/* Language Switcher */}
+              <LanguageSwitcher currentLocale={locale} />
+              
               <div className="flex items-center space-x-3">
                 <Link
                   href={`/${locale}/auth/login`}
