@@ -53,6 +53,11 @@ model SellerProfile {
   bannerUrl       String?
   certifications  String[] // Array of certification names
   
+  // Booth customization
+  boothName       String?  // Custom exhibitor booth name
+  boothCategories String[] // Product categories (multi-select)
+  isCustomizable  Boolean  @default(false) // Whether products can be customized
+  
   subscriptionStatus SubscriptionStatus @default(FREE_TRIAL)
   subscriptionExpiry DateTime?
   

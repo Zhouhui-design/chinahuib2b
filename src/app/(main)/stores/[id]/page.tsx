@@ -153,6 +153,42 @@ export default async function StorePage({ params }: StorePageProps) {
               )}
             </div>
 
+            {/* Booth Customization Info */}
+            {(seller.boothName || seller.boothCategories.length > 0 || seller.isCustomizable) && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <Building2 className="w-4 h-4 mr-1" />
+                  Exhibition Booth Information
+                </h3>
+                <div className="space-y-3 text-sm">
+                  {seller.boothName && (
+                    <div>
+                      <p className="font-medium text-gray-700">Booth Name (展位名称):</p>
+                      <p className="text-gray-900 mt-1">{seller.boothName}</p>
+                    </div>
+                  )}
+                  {seller.boothCategories.length > 0 && (
+                    <div>
+                      <p className="font-medium text-gray-700">Product Categories (产品类别):</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {seller.boothCategories.map((category: string, idx: number) => (
+                          <span key={idx} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {seller.isCustomizable && (
+                    <div>
+                      <p className="font-medium text-gray-700">Customization (定制):</p>
+                      <p className="text-green-600 mt-1">✓ Yes - Custom products available</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Contact Information */}
             {session ? (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">

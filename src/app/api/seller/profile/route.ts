@@ -15,6 +15,9 @@ const profileUpdateSchema = z.object({
   logoUrl: z.string().url().nullable().optional(),
   bannerUrl: z.string().url().nullable().optional(),
   certifications: z.array(z.string()).nullable().optional(),
+  boothName: z.string().nullable().optional(),
+  boothCategories: z.array(z.string()).optional(),
+  isCustomizable: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -86,6 +89,9 @@ export async function PUT(request: NextRequest) {
         logoUrl: data.logoUrl,
         bannerUrl: data.bannerUrl,
         ...(data.certifications && { certifications: data.certifications }),
+        boothName: data.boothName,
+        boothCategories: data.boothCategories,
+        isCustomizable: data.isCustomizable,
       }
     })
 

@@ -98,17 +98,21 @@ export default async function Home({ params }: PageProps) {
                 <span className="text-gray-400">Product Image</span>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2">Sample Product {item}</h3>
-                <p className="text-gray-600 text-sm mb-3">High-quality product from verified manufacturer</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-600 font-bold">Contact for Price</span>
-                  <Link 
-                    href="/products/1" 
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    {dict.home.featured.viewDetails}
-                  </Link>
+                <h3 className="font-semibold text-lg mb-2">Booth Name {item}</h3>
+                <div className="space-y-2 mb-3">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Product Category:</span> Electronics, Home Appliances
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Customization:</span> Yes
+                  </p>
                 </div>
+                <Link 
+                  href={`/${locale}/stores/1`} 
+                  className="w-full block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Enter Booth to View
+                </Link>
               </div>
             </div>
           ))}

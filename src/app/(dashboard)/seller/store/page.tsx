@@ -24,6 +24,11 @@ export default function StoreProfilePage() {
   const [logoUrl, setLogoUrl] = useState('')
   const [bannerUrl, setBannerUrl] = useState('')
   const [certifications, setCertifications] = useState<string>('')
+  
+  // Booth customization
+  const [boothName, setBoothName] = useState('')
+  const [boothCategories, setBoothCategories] = useState<string>('')
+  const [isCustomizable, setIsCustomizable] = useState(false)
 
   // Country list
   const countries = [
@@ -61,6 +66,9 @@ export default function StoreProfilePage() {
       setLogoUrl(profile.logoUrl || '')
       setBannerUrl(profile.bannerUrl || '')
       setCertifications(profile.certifications?.join(', ') || '')
+      setBoothName(profile.boothName || '')
+      setBoothCategories(profile.boothCategories?.join(', ') || '')
+      setIsCustomizable(profile.isCustomizable || false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile')
     } finally {
@@ -109,6 +117,9 @@ export default function StoreProfilePage() {
         logoUrl: logoUrl || null,
         bannerUrl: bannerUrl || null,
         certifications: certsArray.length > 0 ? certsArray : null,
+        boothName: boothName.trim() || null,
+        boothCategories: boothCategories.split(',').map(c => c.trim()).filter(c => c),
+        isCustomizable: isCustomizable,
       }
 
       const response = await fetch('/api/seller/profile', {
@@ -366,6 +377,60 @@ export default function StoreProfilePage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Booth Customization */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-gray-500" />
+            Exhibition Booth Customization
+          </h2>
+          
+          {/* Booth Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Booth Name (展位名称)
+            </label>
+            <input
+              type="text"
+              value={boothName}
+              onChange={(e) => setBoothName(e.target.value)}
+              placeholder="e.g., Premium Electronics Booth, Luxury Furniture Showcase"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Custom name displayed on your exhibition booth</p>
+          </div>
+
+          {/* Product Categories */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Categories (产品类别 - 可多选)
+            </label>
+            <input
+              type="text"
+              value={boothCategories}
+              onChange={(e) => setBoothCategories(e.target.value)}
+              placeholder="e.g., Electronics, Home Appliances, Kitchen Supplies (comma separated)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Enter multiple categories separated by commas</p>
+          </div>
+
+          {/* Customization Option */}
+          <div>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCustomizable}
+                onChange={(e) => setIsCustomizable(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Customization Available (定制：是/否)
+              </span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1 ml-6">Check if you offer product customization services</p>
           </div>
         </div>
 
