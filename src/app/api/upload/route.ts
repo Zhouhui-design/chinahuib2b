@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { s3Client, spacesBucket, getPublicUrl, validateFileType, FILE_LIMITS } from "@/lib/s3"
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
+import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
+
+// Upload directory configuration
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public/uploads')
+const PUBLIC_URL_PREFIX = '/uploads'
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,128 +31,80 @@ export async function POST(request: NextRequest) {
     // Parse form data
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const type = formData.get('type') as string // 'product_image', 'brochure', 'store_brochure', 'logo', 'banner'
+    const type = formData.get('type') as string || 'product_image'
     const productId = formData.get('productId') as string | null
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    if (!type) {
-      return NextResponse.json({ error: 'Upload type not specified' }, { status: 400 })
-    }
-
-    // Validate file size
+    // Validate file size (20MB max)
     const fileSize = file.size
-    let maxSize: number
-    
-    switch (type) {
-      case 'product_image':
-      case 'logo':
-      case 'banner':
-        maxSize = FILE_LIMITS.IMAGE
-        break
-      case 'brochure':
-      case 'store_brochure':
-        maxSize = FILE_LIMITS.PDF
-        break
-      default:
-        maxSize = FILE_LIMITS.DOCUMENT
+    if (fileSize > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 })
     }
 
-    if (fileSize > maxSize) {
-      return NextResponse.json({ 
-        error: `File too large. Max size: ${maxSize / 1024 / 1024}MB` 
-      }, { status: 400 })
-    }
+    // Determine subdirectory based on type
+    let subDir = 'others'
+    if (type === 'product_image') subDir = 'products'
+    else if (type === 'logo') subDir = 'logos'
+    else if (type === 'banner') subDir = 'banners'
+    else if (type === 'brochure' || type === 'store_brochure') subDir = 'brochures'
 
-    // Validate file type
-    const mimeType = file.type
-    let allowedTypes: string[]
-    
-    switch (type) {
-      case 'product_image':
-      case 'logo':
-      case 'banner':
-        allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-        break
-      case 'brochure':
-      case 'store_brochure':
-        allowedTypes = ['application/pdf']
-        break
-      default:
-        return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 })
-    }
-
-    if (!validateFileType(mimeType, allowedTypes)) {
-      return NextResponse.json({ 
-        error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` 
-      }, { status: 400 })
-    }
+    const targetDir = path.join(UPLOAD_DIR, subDir)
+    await mkdir(targetDir, { recursive: true })
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
     let buffer = Buffer.from(bytes)
-    let finalMimeType = mimeType
-    let fileExtension = ''
+    let ext = ''
+    let finalMimeType = file.type
 
     // Process images with Sharp for optimization
-    if (['product_image', 'logo', 'banner'].includes(type)) {
+    const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    if (isImage) {
       try {
-        // Determine output format
-        const image = sharp(buffer)
-        const metadata = await image.metadata()
-        
         // Convert to WebP for better compression
-        const optimizedBuffer = await image
+        const optimizedBuffer = await sharp(buffer)
           .webp({ quality: 80, effort: 6 })
           .toBuffer()
         
         buffer = Buffer.from(optimizedBuffer)
         finalMimeType = 'image/webp'
-        fileExtension = '.webp'
+        ext = '.webp'
       } catch (error) {
         console.error('Image processing error:', error)
-        // If processing fails, use original file
-        fileExtension = getFileExtension(mimeType)
+        // If processing fails, use original extension
+        ext = getFileExtension(file.name)
       }
+    } else if (file.type === 'application/pdf') {
+      ext = '.pdf'
     } else {
-      fileExtension = getFileExtension(mimeType)
+      ext = getFileExtension(file.name)
     }
 
     // Generate unique filename
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(7)
-    const fileName = `${user.sellerProfile.id}/${type}/${timestamp}-${randomString}${fileExtension}`
+    const uniqueName = `${uuidv4()}${ext}`
+    const filePath = path.join(targetDir, uniqueName)
+    
+    // Write file to disk
+    await writeFile(filePath, buffer)
 
-    // Upload to DigitalOcean Spaces
-    const uploadParams = {
-      Bucket: spacesBucket,
-      Key: fileName,
-      Body: buffer,
-      ContentType: finalMimeType,
-      ACL: 'public-read' as const,
-    }
-
-    await s3Client.send(new PutObjectCommand(uploadParams))
-
-    // Get public URL
-    const fileUrl = getPublicUrl(fileName)
+    // Generate public URL
+    const publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
 
     // Create database record based on type
-    let result: any = { url: fileUrl, fileName, size: fileSize }
+    let result: any = { url: publicUrl, fileName: file.name, size: fileSize }
 
     if (type === 'brochure' && productId) {
       // Create product brochure record
       const brochure = await prisma.productBrochure.create({
         data: {
           productId,
-          title: formData.get('title') as string || file.name,
           fileName: file.name,
-          fileUrl,
-          fileType: 'PDF',
+          fileUrl: publicUrl,
           fileSize,
-          sortOrder: 0,
+          downloadCount: 0,
         }
       })
       result.brochureId = brochure.id
@@ -162,9 +119,12 @@ export async function POST(request: NextRequest) {
       const brochure = await prisma.storeBrochure.create({
         data: {
           sellerId: user.sellerProfile.id,
-          title: formData.get('title') as string || file.name,
-          fileUrl,
+          title: file.name.replace(/\.pdf$/i, ''),
+          fileName: file.name,
+          fileUrl: publicUrl,
+          fileSize,
           downloadCount: 0,
+          sortOrder: 0,
         }
       })
       result.brochureId = brochure.id
@@ -177,14 +137,14 @@ export async function POST(request: NextRequest) {
       
       if (product) {
         const currentImages = product.images || []
-        const updatedImages = [...currentImages, fileUrl]
+        const updatedImages = [...currentImages, publicUrl]
         
         await prisma.product.update({
           where: { id: productId },
           data: {
             images: updatedImages,
             // Set main image if it's the first one
-            ...(currentImages.length === 0 && { mainImageUrl: fileUrl })
+            ...(currentImages.length === 0 && { mainImageUrl: publicUrl })
           }
         })
         
@@ -194,14 +154,14 @@ export async function POST(request: NextRequest) {
       // Update seller logo
       await prisma.sellerProfile.update({
         where: { id: user.sellerProfile.id },
-        data: { logoUrl: fileUrl }
+        data: { logoUrl: publicUrl }
       })
       result.sellerId = user.sellerProfile.id
     } else if (type === 'banner') {
       // Update seller banner
       await prisma.sellerProfile.update({
         where: { id: user.sellerProfile.id },
-        data: { bannerUrl: fileUrl }
+        data: { bannerUrl: publicUrl }
       })
       result.sellerId = user.sellerProfile.id
     }
