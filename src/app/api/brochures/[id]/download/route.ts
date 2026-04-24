@@ -4,12 +4,14 @@ import { prisma } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+    
     const session = await auth()
     const brochure = await prisma.productBrochure.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { product: true }
     })
 
@@ -29,7 +31,7 @@ export async function GET(
 
     // Increment download count
     await prisma.productBrochure.update({
-      where: { id: params.id },
+      where: { id },
       data: { downloadCount: { increment: 1 } }
     })
 

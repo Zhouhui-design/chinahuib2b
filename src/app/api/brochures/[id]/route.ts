@@ -4,9 +4,10 @@ import { prisma } from "@/lib/db"
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const session = await auth()
     
     if (!session?.user?.id) {
@@ -24,7 +25,7 @@ export async function DELETE(
     // Find brochure and verify ownership
     const brochure = await prisma.storeBrochure.findFirst({
       where: {
-        id: params.id,
+        id,
         sellerId: seller.id
       }
     })
@@ -35,7 +36,7 @@ export async function DELETE(
 
     // Delete from database (file remains in storage - could add cleanup later)
     await prisma.storeBrochure.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({
