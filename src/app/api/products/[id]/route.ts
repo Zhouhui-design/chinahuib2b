@@ -66,7 +66,6 @@ export async function GET(
   }
 }
 
-export const dynamic = 'force-dynamic'
 
 export async function PUT(
   request: NextRequest,
@@ -138,7 +137,6 @@ export async function PUT(
   }
 }
 
-export const dynamic = 'force-dynamic'
 
 export async function DELETE(
   request: NextRequest,
