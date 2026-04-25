@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { writeFile, mkdir } from 'fs/promises'
+
+export const dynamic = 'force-dynamic'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'

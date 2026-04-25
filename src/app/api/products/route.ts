@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 
+export const dynamic = 'force-dynamic'
+
 // Validation schema for product creation/update
 const productSchema = z.object({
   title: z.string().min(3).max(200),
