@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 
-export const dynamic = 'force-dynamic'
 
 // Validation schema for product creation/update
 const productSchema = z.object({
@@ -17,6 +16,8 @@ const productSchema = z.object({
   mainImageUrl: z.string().url().optional(),
   isFeatured: z.boolean().optional().default(false),
 })
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,6 +83,8 @@ export async function POST(request: NextRequest) {
     }, { status: 500 })
   }
 }
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {

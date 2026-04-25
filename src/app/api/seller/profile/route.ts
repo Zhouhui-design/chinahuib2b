@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 
-export const dynamic = 'force-dynamic'
 
 const profileUpdateSchema = z.object({
   companyName: z.string().min(2).max(200),
@@ -21,6 +20,8 @@ const profileUpdateSchema = z.object({
   boothCategories: z.array(z.string()).optional(),
   isCustomizable: z.boolean().optional(),
 })
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -47,6 +48,8 @@ export async function GET() {
     }, { status: 500 })
   }
 }
+
+export const dynamic = 'force-dynamic'
 
 export async function PUT(request: NextRequest) {
   try {

@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 
-export const dynamic = 'force-dynamic'
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -11,6 +10,8 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["BUYER", "SELLER"]).optional().default("BUYER"),
 })
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {

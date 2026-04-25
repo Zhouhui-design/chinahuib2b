@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 
-export const dynamic = 'force-dynamic'
 
 const productUpdateSchema = z.object({
   title: z.string().min(3).max(200).optional(),
@@ -17,6 +16,8 @@ const productUpdateSchema = z.object({
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
 })
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
@@ -64,6 +65,8 @@ export async function GET(
     }, { status: 500 })
   }
 }
+
+export const dynamic = 'force-dynamic'
 
 export async function PUT(
   request: NextRequest,
@@ -134,6 +137,8 @@ export async function PUT(
     }, { status: 500 })
   }
 }
+
+export const dynamic = 'force-dynamic'
 
 export async function DELETE(
   request: NextRequest,

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 // 获取完整的分类树结构（支持无限级）
 
 export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // 获取所有顶级分类（level 1）
