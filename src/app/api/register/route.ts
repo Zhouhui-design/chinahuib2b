@@ -11,7 +11,6 @@ const registerSchema = z.object({
   role: z.enum(["BUYER", "SELLER"]).optional().default("BUYER"),
 })
 
-export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {

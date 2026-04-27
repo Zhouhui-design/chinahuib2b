@@ -17,7 +17,6 @@ const productSchema = z.object({
   isFeatured: z.boolean().optional().default(false),
 })
 
-export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {

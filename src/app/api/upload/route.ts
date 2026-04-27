@@ -11,7 +11,6 @@ import sharp from 'sharp'
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public/uploads')
 const PUBLIC_URL_PREFIX = '/uploads'
 
-export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {

@@ -21,7 +21,6 @@ const profileUpdateSchema = z.object({
   isCustomizable: z.boolean().optional(),
 })
 
-export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
