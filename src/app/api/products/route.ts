@@ -17,7 +17,6 @@ const productSchema = z.object({
   isFeatured: z.boolean().optional().default(false),
 })
 
-
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
