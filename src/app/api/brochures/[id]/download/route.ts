@@ -6,10 +6,10 @@ import { prisma } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     
     const session = await auth()
     const brochure = await prisma.productBrochure.findUnique({

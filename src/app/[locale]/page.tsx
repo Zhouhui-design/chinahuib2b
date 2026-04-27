@@ -95,23 +95,23 @@ export default async function Home({ params }: PageProps) {
           {[1, 2, 3, 4].map((item) => (
             <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
               <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">Product Image</span>
+                <span className="text-gray-400">{dict.home.featured.productImage}</span>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2">Booth Name {item}</h3>
+                <h3 className="font-semibold text-lg mb-2">{dict.home.featured.boothName} {item}</h3>
                 <div className="space-y-2 mb-3">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Product Category:</span> Electronics, Home Appliances
+                    <span className="font-medium">{dict.home.featured.productCategory}:</span> {dict.home.featured.sampleCategories}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Customization:</span> Yes
+                    <span className="font-medium">{dict.home.featured.customization}:</span> {dict.home.featured.yes}
                   </p>
                 </div>
                 <Link 
                   href={`/${locale}/stores/1`} 
                   className="w-full block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
-                  Enter Booth to View
+                  {dict.home.featured.enterBooth}
                 </Link>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default async function Home({ params }: PageProps) {
         <h2 className="text-3xl font-bold text-center mb-12">{dict.home.exhibitors.title}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {[1, 2, 3, 4].map((item) => (
-            <Link key={item} href="/store/1" className="group">
+            <Link key={item} href={`/${locale}/stores/${item}`} className="group">
               <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
                 <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <span className="text-gray-400 text-sm">Logo</span>
@@ -173,7 +173,7 @@ export default async function Home({ params }: PageProps) {
         </div>
         <div className="text-center mt-8">
           <Link 
-            href="/stores" 
+            href={`/${locale}/stores`} 
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-semibold transition-colors"
           >
             {dict.home.exhibitors.viewAll}

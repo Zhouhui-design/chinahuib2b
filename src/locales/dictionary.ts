@@ -11,6 +11,14 @@ export type Dictionary = {
     featured: {
       title: string;
       viewDetails: string;
+      boothName: string;
+      productCategory: string;
+      customization: string;
+      yes: string;
+      no: string;
+      enterBooth: string;
+      productImage: string;
+      sampleCategories: string;
     };
     why: {
       title: string;
@@ -99,6 +107,18 @@ export type Dictionary = {
     addImage: string;
     submit: string;
   };
+  stores: {
+    title: string;
+    subtitle: string;
+    verified: string;
+    products: string;
+    noExhibitors: string;
+    noExhibitorsDesc: string;
+  };
+  pagination: {
+    previous: string;
+    next: string;
+  };
 };
 
 const dictionaries: Record<LanguageCode, Dictionary> = {
@@ -113,6 +133,14 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       featured: {
         title: "Exhibition Zones",
         viewDetails: "View Details",
+        boothName: "Booth Name",
+        productCategory: "Product Category",
+        customization: "Customization",
+        yes: "Yes",
+        no: "No",
+        enterBooth: "Enter Booth to View",
+        productImage: "Product Image",
+        sampleCategories: "Electronics, Home Appliances",
       },
       why: {
         title: "Why Choose Us",
@@ -201,6 +229,18 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       addImage: "Add Image",
       submit: "Submit",
     },
+    stores: {
+      title: "All Exhibitors",
+      subtitle: "Browse all verified exhibitors and their products",
+      verified: "Verified",
+      products: "Products",
+      noExhibitors: "No Exhibitors Found",
+      noExhibitorsDesc: "There are no active exhibitors at the moment.",
+    },
+    pagination: {
+      previous: "Previous",
+      next: "Next",
+    },
   },
   zh: {
     home: {
@@ -213,6 +253,14 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       featured: {
         title: "展区",
         viewDetails: "查看详情",
+        boothName: "展位名称",
+        productCategory: "产品类别",
+        customization: "定制服务",
+        yes: "是",
+        no: "否",
+        enterBooth: "进入展位查看",
+        productImage: "产品图片",
+        sampleCategories: "电子产品，家用电器",
       },
       why: {
         title: "为什么选择我们",
@@ -301,6 +349,18 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       addImage: "添加图片",
       submit: "提交",
     },
+    stores: {
+      title: "所有参展商",
+      subtitle: "浏览所有已认证的参展商及其产品",
+      verified: "已认证",
+      products: "产品",
+      noExhibitors: "未找到参展商",
+      noExhibitorsDesc: "目前没有活跃的参展商。",
+    },
+    pagination: {
+      previous: "上一页",
+      next: "下一页",
+    },
   },
   es: {
     home: {
@@ -311,8 +371,16 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         searchButton: "Buscar",
       },
       featured: {
-        title: "Productos Destacados",
+        title: "Zonas de Exposición",
         viewDetails: "Ver Detalles",
+        boothName: "Nombre del Stand",
+        productCategory: "Categoría de Producto",
+        customization: "Personalización",
+        yes: "Sí",
+        no: "No",
+        enterBooth: "Entrar al Stand para Ver",
+        productImage: "Imagen del Producto",
+        sampleCategories: "Electrónica, Electrodomésticos",
       },
       why: {
         title: "Por Qué Elegirnos",
@@ -401,6 +469,18 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       addImage: "Agregar Imagen",
       submit: "Enviar",
     },
+    stores: {
+      title: "Todos los Expositores",
+      subtitle: "Explore todos los expositores verificados y sus productos",
+      verified: "Verificado",
+      products: "Productos",
+      noExhibitors: "No se Encontraron Expositores",
+      noExhibitorsDesc: "No hay expositores activos en este momento.",
+    },
+    pagination: {
+      previous: "Anterior",
+      next: "Siguiente",
+    },
   },
   // Add more languages as needed
   fr: {
@@ -411,7 +491,18 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         searchPlaceholder: "Rechercher produits, exposants...",
         searchButton: "Rechercher",
       },
-      featured: { title: "Produits en Vedette", viewDetails: "Voir Détails" },
+      featured: { 
+        title: "Zones d'Exposition", 
+        viewDetails: "Voir Détails",
+        boothName: "Nom du Stand",
+        productCategory: "Catégorie de Produit",
+        customization: "Personnalisation",
+        yes: "Oui",
+        no: "Non",
+        enterBooth: "Entrer dans le Stand pour Voir",
+        productImage: "Image du Produit",
+        sampleCategories: "Électronique, Appareils Ménagers",
+      },
       why: {
         title: "Pourquoi Nous Choisir",
         verified: { title: "Fournisseurs Vérifiés", description: "Tous les exposants sont vérifiés" },
@@ -428,11 +519,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "Tableau de Bord", profile: "Profil", products: "Produits", addProduct: "Ajouter Produit", editProduct: "Modifier Produit", brochures: "Brochures", settings: "Paramètres", companyInfo: "Infos Entreprise", saveChanges: "Sauvegarder" },
     product: { name: "Nom du Produit", description: "Description", category: "Catégorie", price: "Prix", minOrder: "Commande Min", images: "Images", specifications: "Spécifications", addImage: "Ajouter Image", submit: "Soumettre" },
+    stores: { title: "Tous les Exposants", subtitle: "Parcourez tous les exposants vérifiés et leurs produits", verified: "Vérifié", products: "Produits", noExhibitors: "Aucun Exposant Trouvé", noExhibitorsDesc: "Il n'y a pas d'exposants actifs pour le moment." },
+    pagination: { previous: "Précédent", next: "Suivant" },
   },
   de: {
     home: {
       hero: { title: "Globales Messenetzwerk", subtitle: "Ihr Tor zu B2B-Handelsmessen", searchPlaceholder: "Produkte, Aussteller suchen...", searchButton: "Suchen" },
-      featured: { title: "Empfohlene Produkte", viewDetails: "Details Ansehen" },
+      featured: { 
+        title: "Ausstellungszonen", 
+        viewDetails: "Details Ansehen",
+        boothName: "Standname",
+        productCategory: "Produktkategorie",
+        customization: "Anpassung",
+        yes: "Ja",
+        no: "Nein",
+        enterBooth: "Stand Betreten zum Ansehen",
+        productImage: "Produktbild",
+        sampleCategories: "Elektronik, Haushaltsgeräte",
+      },
       why: {
         title: "Warum Uns Wählen",
         verified: { title: "Verifizierte Anbieter", description: "Alle Aussteller sind verifiziert" },
@@ -449,11 +553,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "Dashboard", profile: "Profil", products: "Produkte", addProduct: "Produkt Hinzufügen", editProduct: "Produkt Bearbeiten", brochures: "Broschüren", settings: "Einstellungen", companyInfo: "Firmeninfo", saveChanges: "Änderungen Speichern" },
     product: { name: "Produktname", description: "Beschreibung", category: "Kategorie", price: "Preis", minOrder: "Mindestbestellung", images: "Bilder", specifications: "Spezifikationen", addImage: "Bild Hinzufügen", submit: "Absenden" },
+    stores: { title: "Alle Aussteller", subtitle: "Durchsuchen Sie alle verifizierten Aussteller und ihre Produkte", verified: "Verifiziert", products: "Produkte", noExhibitors: "Keine Aussteller Gefunden", noExhibitorsDesc: "Derzeit gibt es keine aktiven Aussteller." },
+    pagination: { previous: "Zurück", next: "Weiter" },
   },
   ja: {
     home: {
       hero: { title: "グローバルエキスポネットワーク", subtitle: "B2B貿易見本市への玄関口", searchPlaceholder: "製品、出展者を検索...", searchButton: "検索" },
-      featured: { title: "注目製品", viewDetails: "詳細を見る" },
+      featured: { 
+        title: "注目製品", 
+        viewDetails: "詳細を見る",
+        boothName: "ブース名",
+        productCategory: "製品カテゴリ",
+        customization: "カスタマイズ",
+        yes: "はい",
+        no: "いいえ",
+        enterBooth: "ブースに入って見る",
+        productImage: "製品画像",
+        sampleCategories: "電子機器、家電",
+      },
       why: {
         title: "選ばれる理由",
         verified: { title: "認証済みサプライヤー", description: "すべての出展者は品質と信頼性を検証済み" },
@@ -470,11 +587,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "ダッシュボード", profile: "プロフィール", products: "製品", addProduct: "製品追加", editProduct: "製品編集", brochures: "パンフレット", settings: "設定", companyInfo: "会社情報", saveChanges: "変更を保存" },
     product: { name: "製品名", description: "説明", category: "カテゴリ", price: "価格", minOrder: "最小注文数", images: "画像", specifications: "仕様", addImage: "画像追加", submit: "送信" },
+    stores: { title: "すべての出展者", subtitle: "認証済み出展者とその製品を閲覧", verified: "認証済み", products: "製品", noExhibitors: "出展者が見つかりません", noExhibitorsDesc: "現在アクティブな出展者はありません。" },
+    pagination: { previous: "前へ", next: "次へ" },
   },
   ko: {
     home: {
       hero: { title: "글로벌 엑스포 네트워크", subtitle: "B2B 무역 박람회 관문", searchPlaceholder: "제품, 참가업체 검색...", searchButton: "검색" },
-      featured: { title: "추천 제품", viewDetails: "자세히 보기" },
+      featured: { 
+        title: "전시 구역", 
+        viewDetails: "자세히 보기",
+        boothName: "부스 이름",
+        productCategory: "제품 카테고리",
+        customization: "맞춤 제작",
+        yes: "예",
+        no: "아니오",
+        enterBooth: "부스 입장하여 보기",
+        productImage: "제품 이미지",
+        sampleCategories: "전자제품, 가전제품",
+      },
       why: {
         title: "왜 우리를 선택해야 하는가",
         verified: { title: "검증된 공급업체", description: "모든 참가업체는 품질과 신뢰성 검증 완료" },
@@ -491,11 +621,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "대시보드", profile: "프로필", products: "제품", addProduct: "제품 추가", editProduct: "제품 편집", brochures: "브로슈어", settings: "설정", companyInfo: "회사 정보", saveChanges: "변경 사항 저장" },
     product: { name: "제품명", description: "설명", category: "카테고리", price: "가격", minOrder: "최소 주문량", images: "이미지", specifications: "사양", addImage: "이미지 추가", submit: "제출" },
+    stores: { title: "모든 참가업체", subtitle: "검증된 참가업체와 제품 둘러보기", verified: "검증됨", products: "제품", noExhibitors: "참가업체를 찾을 수 없음", noExhibitorsDesc: "현재 활성 참가업체가 없습니다." },
+    pagination: { previous: "이전", next: "다음" },
   },
   ar: {
     home: {
       hero: { title: "شبكة المعارض العالمية", subtitle: "بوابتك إلى معارض التجارة B2B", searchPlaceholder: "البحث عن المنتجات، العارضين...", searchButton: "بحث" },
-      featured: { title: "المنتجات المميزة", viewDetails: "عرض التفاصيل" },
+      featured: { 
+        title: "مناطق المعرض", 
+        viewDetails: "عرض التفاصيل",
+        boothName: "اسم الجناح",
+        productCategory: "فئة المنتج",
+        customization: "التخصيص",
+        yes: "نعم",
+        no: "لا",
+        enterBooth: "ادخل الجناح للمشاهدة",
+        productImage: "صورة المنتج",
+        sampleCategories: "إلكترونيات، أجهزة منزلية",
+      },
       why: {
         title: "لماذا تختارنا",
         verified: { title: "موردون موثوقون", description: "جميع العارضين موثقون للجودة والموثوقية" },
@@ -512,11 +655,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "لوحة التحكم", profile: "الملف الشخصي", products: "المنتجات", addProduct: "إضافة منتج", editProduct: "تحرير المنتج", brochures: "النشرات", settings: "الإعدادات", companyInfo: "معلومات الشركة", saveChanges: "حفظ التغييرات" },
     product: { name: "اسم المنتج", description: "الوصف", category: "الفئة", price: "السعر", minOrder: "الحد الأدنى للطلب", images: "الصور", specifications: "المواصفات", addImage: "إضافة صورة", submit: "إرسال" },
+    stores: { title: "جميع العارضين", subtitle: "تصفح جميع العارضين الموثقين ومنتجاتهم", verified: "موثق", products: "المنتجات", noExhibitors: "لم يتم العثور على عارضين", noExhibitorsDesc: "لا يوجد عارضون نشطون في الوقت الحالي." },
+    pagination: { previous: "السابق", next: "التالي" },
   },
   ru: {
     home: {
       hero: { title: "Глобальная Сеть Выставок", subtitle: "Ваш путь к B2B торговым выставкам", searchPlaceholder: "Поиск продуктов, участников...", searchButton: "Поиск" },
-      featured: { title: "Рекомендуемые Продукты", viewDetails: "Подробнее" },
+      featured: { 
+        title: "Выставочные Зоны", 
+        viewDetails: "Подробнее",
+        boothName: "Название Стенда",
+        productCategory: "Категория Продукта",
+        customization: "Настройка",
+        yes: "Да",
+        no: "Нет",
+        enterBooth: "Войти в Стенд для Просмотра",
+        productImage: "Изображение Продукта",
+        sampleCategories: "Электроника, Бытовая Техника",
+      },
       why: {
         title: "Почему Выбирают Нас",
         verified: { title: "Проверенные Поставщики", description: "Все участники проверены на качество и надежность" },
@@ -533,11 +689,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "Панель", profile: "Профиль", products: "Продукты", addProduct: "Добавить Продукт", editProduct: "Редактировать", brochures: "Буклеты", settings: "Настройки", companyInfo: "Информация о Компании", saveChanges: "Сохранить Изменения" },
     product: { name: "Название Продукта", description: "Описание", category: "Категория", price: "Цена", minOrder: "Мин. Заказ", images: "Изображения", specifications: "Характеристики", addImage: "Добавить Фото", submit: "Отправить" },
+    stores: { title: "Все Участники", subtitle: "Просмотрите всех проверенных участников и их продукты", verified: "Проверено", products: "Продукты", noExhibitors: "Участники не найдены", noExhibitorsDesc: "В настоящее время нет активных участников." },
+    pagination: { previous: "Назад", next: "Далее" },
   },
   pt: {
     home: {
       hero: { title: "Rede Global de Exposições", subtitle: "Sua porta de entrada para feiras B2B", searchPlaceholder: "Pesquisar produtos, expositores...", searchButton: "Pesquisar" },
-      featured: { title: "Produtos em Destaque", viewDetails: "Ver Detalhes" },
+      featured: { 
+        title: "Zonas de Exposição", 
+        viewDetails: "Ver Detalhes",
+        boothName: "Nome do Estande",
+        productCategory: "Categoria do Produto",
+        customization: "Personalização",
+        yes: "Sim",
+        no: "Não",
+        enterBooth: "Entrar no Estande para Ver",
+        productImage: "Imagem do Produto",
+        sampleCategories: "Eletrônicos, Eletrodomésticos",
+      },
       why: {
         title: "Por Que Nos Escolher",
         verified: { title: "Fornecedores Verificados", description: "Todos os expositores são verificados" },
@@ -554,11 +723,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "Painel", profile: "Perfil", products: "Produtos", addProduct: "Adicionar Produto", editProduct: "Editar Produto", brochures: "Folhetos", settings: "Configurações", companyInfo: "Informações da Empresa", saveChanges: "Salvar Alterações" },
     product: { name: "Nome do Produto", description: "Descrição", category: "Categoria", price: "Preço", minOrder: "Pedido Mínimo", images: "Imagens", specifications: "Especificações", addImage: "Adicionar Imagem", submit: "Enviar" },
+    stores: { title: "Todos os Expositores", subtitle: "Navegue por todos os expositores verificados e seus produtos", verified: "Verificado", products: "Produtos", noExhibitors: "Nenhum Expositor Encontrado", noExhibitorsDesc: "Não há expositores ativos no momento." },
+    pagination: { previous: "Anterior", next: "Próximo" },
   },
   hi: {
     home: {
       hero: { title: "ग्लोबल एक्सपो नेटवर्क", subtitle: "B2B व्यापार प्रदर्शनियों का द्वार", searchPlaceholder: "उत्पाद, प्रदर्शक खोजें...", searchButton: "खोजें" },
-      featured: { title: "विशेष उत्पाद", viewDetails: "विवरण देखें" },
+      featured: { 
+        title: "प्रदर्शनी क्षेत्र", 
+        viewDetails: "विवरण देखें",
+        boothName: "बूथ का नाम",
+        productCategory: "उत्पाद श्रेणी",
+        customization: "अनुकूलन",
+        yes: "हाँ",
+        no: "नहीं",
+        enterBooth: "देखने के लिए बूथ में जाएं",
+        productImage: "उत्पाद छवि",
+        sampleCategories: "इलेक्ट्रॉनिक्स, घरेलू उपकरण",
+      },
       why: {
         title: "हमें क्यों चुनें",
         verified: { title: "सत्यापित आपूर्तिकर्ता", description: "सभी प्रदर्शक गुणवत्ता के लिए सत्यापित हैं" },
@@ -575,11 +757,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "डैशबोर्ड", profile: "प्रोफ़ाइल", products: "उत्पाद", addProduct: "उत्पाद जोड़ें", editProduct: "उत्पाद संपादित", brochures: "ब्रोशर", settings: "सेटिंग्स", companyInfo: "कंपनी जानकारी", saveChanges: "बदलाव सेव" },
     product: { name: "उत्पाद नाम", description: "विवरण", category: "श्रेणी", price: "मूल्य", minOrder: "न्यूनतम ऑर्डर", images: "छवियां", specifications: "विशेषताएं", addImage: "छवि जोड़ें", submit: "जमा करें" },
+    stores: { title: "सभी प्रदर्शक", subtitle: "सभी सत्यापित प्रदर्शकों और उनके उत्पादों को ब्राउज़ करें", verified: "सत्यापित", products: "उत्पाद", noExhibitors: "कोई प्रदर्शक नहीं मिला", noExhibitorsDesc: "वर्तमान में कोई सक्रिय प्रदर्शक नहीं हैं।" },
+    pagination: { previous: "पिछला", next: "अगला" },
   },
   th: {
     home: {
       hero: { title: "เครือข่ายนิทรรศการทั่วโลก", subtitle: "ประตูสู่การแสดงสินค้า B2B", searchPlaceholder: "ค้นหาสินค้า, ผู้แสดงสินค้า...", searchButton: "ค้นหา" },
-      featured: { title: "สินค้าแนะนำ", viewDetails: "ดูรายละเอียด" },
+      featured: { 
+        title: "พื้นที่จัดแสดง", 
+        viewDetails: "ดูรายละเอียด",
+        boothName: "ชื่อบูธ",
+        productCategory: "หมวดหมู่สินค้า",
+        customization: "การปรับแต่ง",
+        yes: "ใช่",
+        no: "ไม่",
+        enterBooth: "เข้าสู่บูธเพื่อดู",
+        productImage: "รูปภาพสินค้า",
+        sampleCategories: "อิเล็กทรอนิกส์, เครื่องใช้ในบ้าน",
+      },
       why: {
         title: "ทำไมต้องเลือกเรา",
         verified: { title: "ซัพพลายเออร์ที่ตรวจสอบแล้ว", description: "ผู้แสดงสินค้าทั้งหมดได้รับการตรวจสอบ" },
@@ -596,11 +791,24 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "แดชบอร์ด", profile: "โปรไฟล์", products: "สินค้า", addProduct: "เพิ่มสินค้า", editProduct: "แก้ไขสินค้า", brochures: "โบรชัวร์", settings: "ตั้งค่า", companyInfo: "ข้อมูลบริษัท", saveChanges: "บันทึกการเปลี่ยนแปลง" },
     product: { name: "ชื่อสินค้า", description: "คำอธิบาย", category: "หมวดหมู่", price: "ราคา", minOrder: "ขั้นต่ำ", images: "รูปภาพ", specifications: "สเปค", addImage: "เพิ่มรูปภาพ", submit: "ส่ง" },
+    stores: { title: "ผู้แสดงสินค้าทั้งหมด", subtitle: "เรียกดูผู้แสดงสินค้าที่ตรวจสอบแล้วและผลิตภัณฑ์ของพวกเขา", verified: "ตรวจสอบแล้ว", products: "สินค้า", noExhibitors: "ไม่พบผู้แสดงสินค้า", noExhibitorsDesc: "ขณะนี้ไม่มีผู้แสดงสินค้าที่ใช้งานอยู่" },
+    pagination: { previous: "ก่อนหน้า", next: "ถัดไป" },
   },
   vi: {
     home: {
       hero: { title: "Mạng Lưới Triển Lãm Toàn Cầu", subtitle: "Cổng thông tin triển lãm thương mại B2B", searchPlaceholder: "Tìm kiếm sản phẩm, nhà triển lãm...", searchButton: "Tìm kiếm" },
-      featured: { title: "Sản Phẩm Nổi Bật", viewDetails: "Xem Chi Tiết" },
+      featured: { 
+        title: "Khu Vực Triển Lãm", 
+        viewDetails: "Xem Chi Tiết",
+        boothName: "Tên Gian Hàng",
+        productCategory: "Danh Mục Sản Phẩm",
+        customization: "Tùy Chỉnh",
+        yes: "Có",
+        no: "Không",
+        enterBooth: "Vào Gian Hàng để Xem",
+        productImage: "Hình Ảnh Sản Phẩm",
+        sampleCategories: "Điện Tử, Đồ Gia Dụng",
+      },
       why: {
         title: "Tại Sao Chọn Chúng Tôi",
         verified: { title: "Nhà Cung Cấp Đã Xác Minh", description: "Tất cả nhà triển lãm đều được xác minh" },
@@ -617,6 +825,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
     },
     seller: { dashboard: "Bảng Điều Khiển", profile: "Hồ Sơ", products: "Sản Phẩm", addProduct: "Thêm Sản Phẩm", editProduct: "Sửa Sản Phẩm", brochures: "Tài Liệu", settings: "Cài Đặt", companyInfo: "Thông Tin Công Ty", saveChanges: "Lưu Thay Đổi" },
     product: { name: "Tên Sản Phẩm", description: "Mô Tả", category: "Danh Mục", price: "Giá", minOrder: "Đơn Hàng Tối Thiểu", images: "Hình Ảnh", specifications: "Thông Số", addImage: "Thêm Ảnh", submit: "Gửi" },
+    stores: { title: "Tất Cả Nhà Triển Lãm", subtitle: "Duyệt qua tất cả các nhà triển lãm đã được xác minh và sản phẩm của họ", verified: "Đã xác minh", products: "Sản Phẩm", noExhibitors: "Không Tìm Thấy Nhà Triển Lãm", noExhibitorsDesc: "Hiện tại không có nhà triển lãm nào hoạt động." },
+    pagination: { previous: "Trước", next: "Tiếp" },
   },
 };
 
