@@ -23,6 +23,7 @@ model User {
   inquiries     Inquiry[]
   brochuresDownloaded BrochureDownload[]
   contactViews  ContactView[]
+  paymentProofs PaymentProof[]
   
   @@index([email])
   @@index([lastLoginAt])
@@ -74,6 +75,7 @@ model SellerProfile {
   storeBrochures  StoreBrochure[]
   inquiries       Inquiry[]
   contactViews    ContactView[]
+  paymentProofs   PaymentProof[]
   
   @@index([companyName])
   @@index([country])
@@ -250,4 +252,37 @@ model ContactView {
   
   @@unique([viewerId, sellerId])
   @@index([sellerId])
+}
+
+// Payment proof submission
+model PaymentProof {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  sellerProfileId String?
+  sellerProfile   SellerProfile? @relation(fields: [sellerProfileId], references: [id])
+  
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("USD")
+  transactionId   String?
+  paymentMethod   String        @default("ALIPAY")
+  screenshotUrl   String?
+  notes           String?
+  
+  status          PaymentStatus @default(PENDING)
+  adminNotes      String?
+  
+  submittedAt     DateTime      @default(now())
+  reviewedAt      DateTime?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
