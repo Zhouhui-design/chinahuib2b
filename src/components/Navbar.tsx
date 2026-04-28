@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import { getDictionary } from '@/locales/dictionary';
 import type { LanguageCode } from '@/lib/languages';
+import { useState, useEffect } from 'react';
+import { User, LogOut, Settings } from 'lucide-react';
 
 type NavbarProps = {
   locale: LanguageCode;
@@ -12,6 +14,20 @@ type NavbarProps = {
 
 export default function Navbar({ locale }: NavbarProps) {
   const pathname = usePathname();
+  const [user, setUser] = useState<any>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  // Fetch user session on mount
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.user) {
+          setUser(data.user);
+        }
+      })
+      .catch(err => console.error('Failed to fetch session:', err));
+  }, []);
   
   // Get dict on client side using a simpler approach
   const dict = {
@@ -76,22 +92,69 @@ export default function Navbar({ locale }: NavbarProps) {
 
           {/* Right side - Language Switcher & Auth */}
           <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
+            <LanguageSwitcher currentLocale={locale} />
             
-            <div className="hidden sm:flex items-center space-x-3">
-              <Link
-                href={`/${locale}/auth/login`}
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                {dict.nav.login}
-              </Link>
-              <Link
-                href={`/${locale}/auth/register`}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                {dict.nav.register}
-              </Link>
-            </div>
+            {user ? (
+              // Logged in user menu
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:block">{user.name || user.email}</span>
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    {user.role === 'SELLER' && (
+                      <Link
+                        href="/seller"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Seller Dashboard
+                      </Link>
+                    )}
+                    {user.role === 'ADMIN' && (
+                      <Link
+                        href="/admin"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={async () => {
+                        await fetch('/api/auth/signout', { method: 'POST' });
+                        window.location.href = `/${locale}`;
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Not logged in - show login/register buttons
+              <div className="hidden sm:flex items-center space-x-3">
+                <Link
+                  href={`/${locale}/auth/login`}
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  {dict.nav.login}
+                </Link>
+                <Link
+                  href={`/${locale}/auth/register`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  {dict.nav.register}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
