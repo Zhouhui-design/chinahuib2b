@@ -149,6 +149,110 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
                 language === 'th' ? 'ยังไม่มีสินค้า เริ่มด้วยการเพิ่มสินค้าชิ้นแรกของคุณ!' :
                 language === 'vi' ? 'Chưa có sản phẩm. Hãy bắt đầu bằng cách thêm sản phẩm đầu tiên của bạn!' :
                 'No products yet. Start by adding your first product!',
+    allTimeViews: language === 'zh' ? '历史总浏览' :
+                  language === 'ja' ? '歴代総閲覧数' :
+                  language === 'ar' ? 'إجمالي المشاهدات عبر التاريخ' :
+                  language === 'es' ? 'Vistas de todos los tiempos' :
+                  language === 'fr' ? 'Vues de tous les temps' :
+                  language === 'de' ? 'Allezeit-Ansichten' :
+                  language === 'ko' ? '전체 기간 조회수' :
+                  language === 'ru' ? 'Просмотры за все время' :
+                  language === 'pt' ? 'Visualizações de todos os tempos' :
+                  language === 'hi' ? 'सभी समय के दृश्य' :
+                  language === 'th' ? 'ยอดดูตลอดกาล' :
+                  language === 'vi' ? 'Lượt xem mọi thời đại' :
+                  'All time views',
+    brochureDownloads: language === 'zh' ? '宣传册下载' :
+                       language === 'ja' ? 'パンフレットダウンロード' :
+                       language === 'ar' ? 'تنزيلات الكتيبات' :
+                       language === 'es' ? 'Descargas de folletos' :
+                       language === 'fr' ? 'Téléchargements de brochures' :
+                       language === 'de' ? 'Broschüren-Downloads' :
+                       language === 'ko' ? '브로셔 다운로드' :
+                       language === 'ru' ? 'Загрузки брошюр' :
+                       language === 'pt' ? 'Downloads de folhetos' :
+                       language === 'hi' ? 'ब्रोशर डाउनलोड' :
+                       language === 'th' ? 'ดาวน์โหลดโบรชัวร์' :
+                       language === 'vi' ? 'Tải xuống tài liệu' :
+                       'Brochure Downloads',
+    totalDownloadsText: language === 'zh' ? '总下载量' :
+                        language === 'ja' ? '総ダウンロード数' :
+                        language === 'ar' ? 'إجمالي التنزيلات' :
+                        language === 'es' ? 'Descargas totales' :
+                        language === 'fr' ? 'Téléchargements totaux' :
+                        language === 'de' ? 'Gesamtdownloads' :
+                        language === 'ko' ? '총 다운로드' :
+                        language === 'ru' ? 'Всего загрузок' :
+                        language === 'pt' ? 'Downloads totais' :
+                        language === 'hi' ? 'कुल डाउनलोड' :
+                        language === 'th' ? 'ดาวน์โหลดทั้งหมด' :
+                        language === 'vi' ? 'Tổng lượt tải xuống' :
+                        'Total downloads',
+    viewAllArrow: language === 'zh' ? '查看全部 →' :
+                  language === 'ja' ? 'すべて表示 →' :
+                  language === 'ar' ? 'عرض الكل →' :
+                  language === 'es' ? 'Ver todo →' :
+                  language === 'fr' ? 'Voir tout →' :
+                  language === 'de' ? 'Alle anzeigen →' :
+                  language === 'ko' ? '모두 보기 →' :
+                  language === 'ru' ? 'Показать все →' :
+                  language === 'pt' ? 'Ver tudo →' :
+                  language === 'hi' ? 'सभी देखें →' :
+                  language === 'th' ? 'ดูทั้งหมด →' :
+                  language === 'vi' ? 'Xem tất cả →' :
+                  'View all →',
+    noImage: language === 'zh' ? '无图片' :
+             language === 'ja' ? '画像なし' :
+             language === 'ar' ? 'لا توجد صورة' :
+             language === 'es' ? 'Sin imagen' :
+             language === 'fr' ? 'Pas d\'image' :
+             language === 'de' ? 'Kein Bild' :
+             language === 'ko' ? '이미지 없음' :
+             language === 'ru' ? 'Нет изображения' :
+             language === 'pt' ? 'Sem imagem' :
+             language === 'hi' ? 'कोई छवि नहीं' :
+             language === 'th' ? 'ไม่มีรูปภาพ' :
+             language === 'vi' ? 'Không có hình ảnh' :
+             'No image',
+    viewsCreated: language === 'zh' ? '浏览 • 创建于' :
+                  language === 'ja' ? '閲覧数 • 作成日' :
+                  language === 'ar' ? 'مشاهدات • تم الإنشاء' :
+                  language === 'es' ? 'vistas • Creado' :
+                  language === 'fr' ? 'vues • Créé le' :
+                  language === 'de' ? 'Ansichten • Erstellt am' :
+                  language === 'ko' ? '조회수 • 생성일' :
+                  language === 'ru' ? 'просмотров • Создано' :
+                  language === 'pt' ? 'visualizações • Criado em' :
+                  language === 'hi' ? 'दृश्य • बनाया गया' :
+                  language === 'th' ? 'การดู • สร้างเมื่อ' :
+                  language === 'vi' ? 'lượt xem • Tạo ngày' :
+                  'views • Created',
+    view: language === 'zh' ? '查看' :
+          language === 'ja' ? '表示' :
+          language === 'ar' ? 'عرض' :
+          language === 'es' ? 'Ver' :
+          language === 'fr' ? 'Voir' :
+          language === 'de' ? 'Ansehen' :
+          language === 'ko' ? '보기' :
+          language === 'ru' ? 'Просмотр' :
+          language === 'pt' ? 'Ver' :
+          language === 'hi' ? 'देखें' :
+          language === 'th' ? 'ดู' :
+          language === 'vi' ? 'Xem' :
+          'View',
+    edit: language === 'zh' ? '编辑' :
+          language === 'ja' ? '編集' :
+          language === 'ar' ? 'تحرير' :
+          language === 'es' ? 'Editar' :
+          language === 'fr' ? 'Modifier' :
+          language === 'de' ? 'Bearbeiten' :
+          language === 'ko' ? '편집' :
+          language === 'ru' ? 'Редактировать' :
+          language === 'pt' ? 'Editar' :
+          language === 'hi' ? 'संपादित करें' :
+          language === 'th' ? 'แก้ไข' :
+          language === 'vi' ? 'Chỉnh sửa' :
+          'Edit',
   }
 
   return (
@@ -204,14 +308,14 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
           </div>
           <div className="flex items-center mt-4 text-sm text-green-600">
             <TrendingUp className="w-4 h-4 mr-1" />
-            <span>All time views</span>
+            <span>{t.allTimeViews}</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Brochure Downloads</p>
+              <p className="text-sm font-medium text-gray-600">{t.brochureDownloads}</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {totalDownloads._sum.downloadCount || 0}
               </p>
@@ -222,7 +326,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
           </div>
           <div className="flex items-center mt-4 text-sm text-purple-600">
             <TrendingUp className="w-4 h-4 mr-1" />
-            <span>Total downloads</span>
+            <span>{t.totalDownloadsText}</span>
           </div>
         </div>
       </div>
@@ -235,7 +339,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
             href="/seller/products"
             className="text-sm text-blue-600 hover:text-blue-700"
           >
-            View all →
+            {t.viewAllArrow}
           </Link>
         </div>
         
@@ -254,7 +358,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                          No image
+                          {t.noImage}
                         </div>
                       )}
                     </div>
@@ -262,7 +366,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
                       <h3 className="font-medium text-gray-900">{product.title}</h3>
                       <p className="text-sm text-gray-500">{product.category.name}</p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {product.viewCount} views • Created {new Date(product.createdAt).toLocaleDateString()}
+                        {product.viewCount} {t.viewsCreated} {new Date(product.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -272,13 +376,13 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
                       target="_blank"
                       className="text-sm text-blue-600 hover:text-blue-700"
                     >
-                      View
+                      {t.view}
                     </Link>
                     <Link
                       href={`/seller/products/${product.id}/edit`}
                       className="text-sm text-gray-600 hover:text-gray-700"
                     >
-                      Edit
+                      {t.edit}
                     </Link>
                   </div>
                 </div>
