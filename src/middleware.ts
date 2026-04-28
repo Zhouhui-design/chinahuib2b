@@ -7,6 +7,16 @@ const supportedLanguages = languages.map(lang => lang.code)
 export function middleware(request: any) {
   const pathname = request.nextUrl.pathname
   
+  // Skip middleware for dashboard routes (seller, admin)
+  // These routes don't need language prefix
+  if (
+    pathname.startsWith('/seller') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth')
+  ) {
+    return NextResponse.next()
+  }
+  
   // Check if pathname has a language prefix
   const pathnameHasLocale = supportedLanguages.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
