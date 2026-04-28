@@ -3,10 +3,19 @@ import Link from "next/link";
 import { getDictionary } from "@/locales/dictionary";
 import type { LanguageCode } from "@/lib/languages";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
+import { getSEOConfig } from '@/lib/seo'
+import type { Metadata } from 'next'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
 };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params
+  const pagePath = locale === 'en' ? '/en' : `/${locale}`
+  const seo = await getSEOConfig(pagePath)
+  return seo || {}
+}
 
 export default async function Home({ params }: PageProps) {
   const { locale } = await params;
