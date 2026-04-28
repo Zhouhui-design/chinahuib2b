@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { auth } from '@/lib/auth'
-import { User, Mail, Phone, Building, Globe, Bell, Shield, Save } from 'lucide-react'
+import { User, Mail, Phone, Building, Globe, Bell, Shield, Save, Upload, FileText, Image as ImageIcon, CreditCard, Video, CheckCircle } from 'lucide-react'
 
 export default function SellerSettingsPage() {
   const [language, setLanguage] = useState('en')

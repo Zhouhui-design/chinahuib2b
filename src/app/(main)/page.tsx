@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import AnnouncementBar from '@/components/AnnouncementBar'
+import DisclaimerModal from '@/components/DisclaimerModal'
 
 export default async function HomePage() {
   const session = await auth()
@@ -30,6 +32,12 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Announcement Bar */}
+      <AnnouncementBar />
+      
+      {/* Disclaimer Modal */}
+      <DisclaimerModal />
+      
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
