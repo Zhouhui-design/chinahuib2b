@@ -1,9 +1,16 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { getSEOConfig } from '@/lib/seo'
+import type { Metadata } from 'next'
 import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import DisclaimerTicker from '@/components/DisclaimerTicker'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEOConfig('/')
+  return seo || {}
+}
 
 export default async function HomePage() {
   const session = await auth()
