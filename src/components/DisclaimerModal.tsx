@@ -8,9 +8,9 @@ export default function DisclaimerModal() {
   const language = useSellerLanguage()
   const [isVisible, setIsVisible] = useState(false)
   
-  // Check if user has seen the disclaimer
+  // Check if user has seen the disclaimer in this session
   useEffect(() => {
-    const hasSeenDisclaimer = localStorage.getItem('has_seen_disclaimer')
+    const hasSeenDisclaimer = sessionStorage.getItem('has_seen_disclaimer_session')
     if (!hasSeenDisclaimer) {
       setIsVisible(true)
     }
@@ -18,7 +18,7 @@ export default function DisclaimerModal() {
   
   const handleClose = () => {
     setIsVisible(false)
-    localStorage.setItem('has_seen_disclaimer', 'true')
+    sessionStorage.setItem('has_seen_disclaimer_session', 'true')
   }
   
   // Translations

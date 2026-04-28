@@ -38,3 +38,17 @@ body {
 .animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+/* Ticker animation for disclaimer (left to right) */
+@keyframes ticker {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker 40s linear infinite;
+}

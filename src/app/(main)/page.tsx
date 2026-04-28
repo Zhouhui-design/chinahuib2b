@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
+import DisclaimerTicker from '@/components/DisclaimerTicker'
 
 export default async function HomePage() {
   const session = await auth()
@@ -32,10 +33,10 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Announcement Bar */}
+      {/* Announcement Bar - Top */}
       <AnnouncementBar />
       
-      {/* Disclaimer Modal */}
+      {/* Disclaimer Modal - Popup on first visit per session */}
       <DisclaimerModal />
       
       {/* Header */}
@@ -81,6 +82,9 @@ export default async function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Disclaimer Ticker - Below Header */}
+      <DisclaimerTicker />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
