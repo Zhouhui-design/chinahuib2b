@@ -215,7 +215,7 @@ export default async function SubscriptionRequiredPage({ params }: PageProps) {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
-            href={`/${locale}/seller/dashboard`}
+            href="/seller"
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg text-center transition-colors"
           >
             {locale === 'zh' ? '返回仪表板' : 'Back to Dashboard'}

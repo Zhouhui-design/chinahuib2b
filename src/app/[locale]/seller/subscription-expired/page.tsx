@@ -212,7 +212,7 @@ export default async function SubscriptionExpiredPage({ params, searchParams }: 
         <div className="flex flex-col sm:flex-row gap-3">
           {!isGracePeriodExpired && (
             <Link
-              href={`/${locale}/seller/dashboard`}
+              href="/seller"
               className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors"
             >
               {locale === 'zh' ? '前往仪表板' : 'Go to Dashboard'}

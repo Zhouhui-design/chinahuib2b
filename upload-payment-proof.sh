@@ -5,8 +5,8 @@
 
 # 配置信息
 SERVER_USER="root"
-SERVER_HOST="108.62.199.221"
-SERVER_PATH="/home/sardenesy/projects/chinahuib2b/public/payment-proofs"
+SERVER_HOST="139.59.108.156"
+SERVER_PATH="/var/www/chinahuib2b/public/payment-proofs"
 
 # 颜色输出
 GREEN='\033[0;32m'

@@ -107,7 +107,7 @@ export default function SubscriptionExpiredPage() {
           </Link>
           {!gracePeriodExpired && (
             <Link
-              href={`/${language}/seller/dashboard`}
+              href="/seller"
               className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg text-center transition-colors"
             >
               {language === 'zh' ? '进入仪表板' : 'Access Dashboard'}
