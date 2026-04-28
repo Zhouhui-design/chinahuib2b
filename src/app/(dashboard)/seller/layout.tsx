@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { Package, Store, FileText, Settings, BarChart3, LogOut } from 'lucide-react'
 import { signOut } from '@/lib/auth'
@@ -12,7 +13,10 @@ export default async function SellerDashboardLayout({
   const session = await auth()
   
   if (!session) {
-    redirect('/auth/login')
+    // Get language from cookie or use default 'en'
+    const cookieStore = await cookies()
+    const language = cookieStore.get('language')?.value || 'en'
+    redirect(`/${language}/auth/login`)
   }
 
   return (

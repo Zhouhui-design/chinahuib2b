@@ -11,8 +11,7 @@ export function middleware(request: any) {
   // These routes don't need language prefix
   if (
     pathname.startsWith('/seller') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/auth')
+    pathname.startsWith('/admin')
   ) {
     return NextResponse.next()
   }
