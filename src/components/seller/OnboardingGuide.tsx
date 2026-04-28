@@ -165,72 +165,38 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
     },
   }
   
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 'complete_profile',
-      title: taskTranslations.complete_profile.title,
-      description: taskTranslations.complete_profile.description,
-      completed: false,
-    },
-    {
-      id: 'add_first_product',
-      title: taskTranslations.add_first_product.title,
-      description: taskTranslations.add_first_product.description,
-      completed: false,
-    },
-    {
-      id: 'upload_brochure',
-      title: taskTranslations.upload_brochure.title,
-      description: taskTranslations.upload_brochure.description,
-      completed: false,
-    },
-    {
-      id: 'customize_store',
-      title: taskTranslations.customize_store.title,
-      description: taskTranslations.customize_store.description,
-      completed: false,
-    },
-    {
-      id: 'publish_products',
-      title: taskTranslations.publish_products.title,
-      description: taskTranslations.publish_products.description,
-      completed: false,
-    },
-  ])
+  // Task definitions with completion status only
+  const [taskStatus, setTaskStatus] = useState<Record<string, boolean>>({
+    complete_profile: false,
+    add_first_product: false,
+    upload_brochure: false,
+    customize_store: false,
+    publish_products: false,
+  })
 
   // Load progress from localStorage
   useEffect(() => {
     const savedProgress = localStorage.getItem('seller_onboarding_progress')
     if (savedProgress) {
       const progress = JSON.parse(savedProgress)
-      setTasks(prevTasks => 
-        prevTasks.map(task => ({
-          ...task,
-          completed: progress[task.id] || false
-        }))
-      )
+      setTaskStatus(progress)
     }
   }, [])
 
   // Save progress to localStorage
   useEffect(() => {
-    const progress = tasks.reduce((acc, task) => {
-      acc[task.id] = task.completed
-      return acc
-    }, {} as Record<string, boolean>)
-    localStorage.setItem('seller_onboarding_progress', JSON.stringify(progress))
-  }, [tasks])
+    localStorage.setItem('seller_onboarding_progress', JSON.stringify(taskStatus))
+  }, [taskStatus])
 
   const markTaskComplete = (taskId: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: true } : task
-      )
-    )
+    setTaskStatus(prev => ({
+      ...prev,
+      [taskId]: true
+    }))
   }
 
   const handleNext = () => {
-    if (currentTaskIndex < tasks.length - 1) {
+    if (currentTaskIndex < 4) { // 5 tasks total (0-4)
       setCurrentTaskIndex(currentTaskIndex + 1)
     }
   }
@@ -240,6 +206,15 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
       setCurrentTaskIndex(currentTaskIndex - 1)
     }
   }
+
+  // Create dynamic tasks array based on current language
+  const taskIds = ['complete_profile', 'add_first_product', 'upload_brochure', 'customize_store', 'publish_products']
+  const tasks = taskIds.map(id => ({
+    id,
+    title: taskTranslations[id as keyof typeof taskTranslations].title,
+    description: taskTranslations[id as keyof typeof taskTranslations].description,
+    completed: taskStatus[id] || false,
+  }))
 
   const currentTask = tasks[currentTaskIndex]
   const completedCount = tasks.filter(t => t.completed).length
