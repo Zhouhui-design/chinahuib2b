@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import ImageCarousel from '@/components/exhibition/ImageCarousel'
 import ChatButton from '@/components/chat/ChatButton'
+import ProductSchema from '@/components/seo/ProductSchema'
 import Link from 'next/link'
 import { MapPin, Building2, Download, Phone, Mail, Globe, ArrowLeft } from 'lucide-react'
 
@@ -246,6 +247,25 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
         )}
       </main>
+
+      {/* Schema.org Structured Data */}
+      <ProductSchema 
+        product={{
+          id: product.id,
+          title: product.title,
+          titleEn: product.titleEn || undefined,
+          description: product.description || undefined,
+          mainImageUrl: product.mainImageUrl,
+          images: product.images,
+          minOrderQty: product.minOrderQty || undefined,
+          supplyCapacity: product.supplyCapacity || undefined,
+          seller: {
+            companyName: product.seller.companyName,
+            country: product.seller.country,
+            city: product.seller.city,
+          }
+        }}
+      />
     </div>
   )
 }

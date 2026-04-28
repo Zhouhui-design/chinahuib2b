@@ -324,3 +324,53 @@ enum VerificationFileType {
   VIDEO                 // 视频
   OTHER                 // 其他
 }
+
+// SEO - TDK (Title/Description/Keywords) configuration
+model SEOConfig {
+  id            String   @id @default(cuid())
+  pagePath      String   @unique // e.g., "/", "/en", "/products/[id]"
+  
+  title         String?  // Page title
+  titleEn       String?
+  description   String?  // Meta description
+  descriptionEn String?
+  keywords      String?  // Meta keywords (comma-separated)
+  keywordsEn    String?
+  
+  // Page type for easier management
+  pageType      PageType @default(STATIC)
+  
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([pageType])
+  @@index([isActive])
+}
+
+enum PageType {
+  STATIC        // Static pages (home, about, etc.)
+  PRODUCT       // Product detail pages
+  STORE         // Store pages
+  CATEGORY      // Category pages
+  CUSTOM        // Custom pages
+}
+
+// Dead link tracking
+model DeadLink {
+  id            String   @id @default(cuid())
+  url           String   @unique
+  
+  sourceUrl     String?  // Where the dead link was found
+  statusCode    Int      // 404, 500, etc.
+  
+  isResolved    Boolean  @default(false)
+  resolvedAt    DateTime?
+  
+  detectedAt    DateTime @default(now())
+  lastCheckedAt DateTime @default(now())
+  
+  @@index([isResolved])
+  @@index([detectedAt])
+}
