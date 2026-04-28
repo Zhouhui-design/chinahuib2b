@@ -76,6 +76,7 @@ model SellerProfile {
   inquiries       Inquiry[]
   contactViews    ContactView[]
   paymentProofs   PaymentProof[]
+  verificationFiles SellerVerificationFile[]
   
   @@index([companyName])
   @@index([country])
@@ -285,4 +286,41 @@ enum PaymentStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// Seller verification files (business license, ID, etc.)
+model SellerVerificationFile {
+  id            String              @id @default(cuid())
+  sellerId      String
+  seller        SellerProfile       @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  fileType      VerificationFileType
+  fileUrl       String
+  fileName      String
+  fileSize      Int                  // in bytes
+  mimeType      String?              // e.g., image/jpeg, application/pdf
+  
+  isVerified    Boolean             @default(false)
+  verifiedAt    DateTime?
+  verifiedBy    String?              // Admin user ID who verified
+  
+  sortOrder     Int                 @default(0)
+  description   String?              // Optional description
+  
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  
+  @@index([sellerId])
+  @@index([fileType])
+  @@index([isVerified])
+}
+
+enum VerificationFileType {
+  BUSINESS_LICENSE      // 营业执照
+  ID_CARD               // 身份证
+  DRIVER_LICENSE        // 驾驶证
+  CREDIT_CARD           // 信用卡（脱敏）
+  PHOTO                 // 照片
+  VIDEO                 // 视频
+  OTHER                 // 其他
 }
