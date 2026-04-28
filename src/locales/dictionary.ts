@@ -44,6 +44,7 @@ export type Dictionary = {
     home: string;
     products: string;
     exhibitors: string;
+    sellerPortal: string; // 商家后台入口
     login: string;
     register: string;
     dashboard: string;
@@ -166,6 +167,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       home: "Home",
       products: "Products",
       exhibitors: "Exhibitors",
+      sellerPortal: "Seller Portal",
       login: "Login",
       register: "Register",
       dashboard: "Dashboard",
@@ -286,6 +288,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       home: "首页",
       products: "产品",
       exhibitors: "参展商",
+      sellerPortal: "商家后台",
       login: "登录",
       register: "注册",
       dashboard: "仪表板",
@@ -511,7 +514,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "Exposants en Vedette", viewAll: "Voir Tous les Exposants" },
     },
-    nav: { home: "Accueil", products: "Produits", exhibitors: "Exposants", login: "Connexion", register: "Inscription", dashboard: "Tableau de Bord", logout: "Déconnexion" },
+    nav: { home: "Accueil", products: "Produits", exhibitors: "Exposants", sellerPortal: "Portail Vendeur", login: "Connexion", register: "Inscription", dashboard: "Tableau de Bord", logout: "Déconnexion" },
     common: { loading: "Chargement...", error: "Erreur", save: "Sauvegarder", cancel: "Annuler", delete: "Supprimer", edit: "Modifier", search: "Rechercher", noResults: "Aucun résultat", contact: "Contact", verified: "Vérifié", viewAll: "Voir Tout", back: "Retour", next: "Suivant", previous: "Précédent" },
     auth: {
       login: { title: "Connexion", email: "Email", password: "Mot de passe", submit: "Connexion", noAccount: "Pas de compte?", registerLink: "S'inscrire" },
@@ -545,7 +548,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "Empfohlene Aussteller", viewAll: "Alle Aussteller Ansehen" },
     },
-    nav: { home: "Startseite", products: "Produkte", exhibitors: "Aussteller", login: "Anmelden", register: "Registrieren", dashboard: "Dashboard", logout: "Abmelden" },
+    nav: { home: "Startseite", products: "Produkte", exhibitors: "Aussteller", sellerPortal: "Verkäuferportal", login: "Anmelden", register: "Registrieren", dashboard: "Dashboard", logout: "Abmelden" },
     common: { loading: "Laden...", error: "Fehler", save: "Speichern", cancel: "Abbrechen", delete: "Löschen", edit: "Bearbeiten", search: "Suchen", noResults: "Keine Ergebnisse", contact: "Kontakt", verified: "Verifiziert", viewAll: "Alle Ansehen", back: "Zurück", next: "Weiter", previous: "Zurück" },
     auth: {
       login: { title: "Anmelden", email: "E-Mail", password: "Passwort", submit: "Anmelden", noAccount: "Kein Konto?", registerLink: "Registrieren" },
@@ -579,7 +582,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "注目の出展者", viewAll: "すべての出展者を見る" },
     },
-    nav: { home: "ホーム", products: "製品", exhibitors: "出展者", login: "ログイン", register: "登録", dashboard: "ダッシュボード", logout: "ログアウト" },
+    nav: { home: "ホーム", products: "製品", exhibitors: "出展者", sellerPortal: "販売者ポータル", login: "ログイン", register: "登録", dashboard: "ダッシュボード", logout: "ログアウト" },
     common: { loading: "読み込み中...", error: "エラー", save: "保存", cancel: "キャンセル", delete: "削除", edit: "編集", search: "検索", noResults: "結果なし", contact: "お問い合わせ", verified: "認証済み", viewAll: "すべて表示", back: "戻る", next: "次へ", previous: "前へ" },
     auth: {
       login: { title: "サインイン", email: "メール", password: "パスワード", submit: "サインイン", noAccount: "アカウントをお持ちでないですか？", registerLink: "新規登録" },
@@ -613,7 +616,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "추천 참가업체", viewAll: "모든 참가업체 보기" },
     },
-    nav: { home: "홈", products: "제품", exhibitors: "참가업체", login: "로그인", register: "회원가입", dashboard: "대시보드", logout: "로그아웃" },
+    nav: { home: "홈", products: "제품", exhibitors: "참가업체", sellerPortal: "판매자 포털", login: "로그인", register: "회원가입", dashboard: "대시보드", logout: "로그아웃" },
     common: { loading: "로딩 중...", error: "오류", save: "저장", cancel: "취소", delete: "삭제", edit: "편집", search: "검색", noResults: "결과 없음", contact: "연락처", verified: "검증됨", viewAll: "모두 보기", back: "뒤로", next: "다음", previous: "이전" },
     auth: {
       login: { title: "로그인", email: "이메일", password: "비밀번호", submit: "로그인", noAccount: "계정이 없으신가요?", registerLink: "회원가입" },
@@ -647,7 +650,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "العارضون المميزون", viewAll: "عرض جميع العارضين" },
     },
-    nav: { home: "الرئيسية", products: "المنتجات", exhibitors: "العارضون", login: "تسجيل الدخول", register: "التسجيل", dashboard: "لوحة التحكم", logout: "تسجيل الخروج" },
+    nav: { home: "الرئيسية", products: "المنتجات", exhibitors: "العارضون", sellerPortal: "بوابة البائع", login: "تسجيل الدخول", register: "التسجيل", dashboard: "لوحة التحكم", logout: "تسجيل الخروج" },
     common: { loading: "جاري التحميل...", error: "خطأ", save: "حفظ", cancel: "إلغاء", delete: "حذف", edit: "تحرير", search: "بحث", noResults: "لا توجد نتائج", contact: "اتصل", verified: "موثق", viewAll: "عرض الكل", back: "رجوع", next: "التالي", previous: "السابق" },
     auth: {
       login: { title: "تسجيل الدخول", email: "البريد الإلكتروني", password: "كلمة المرور", submit: "تسجيل الدخول", noAccount: "ليس لديك حساب؟", registerLink: "سجل الآن" },
@@ -681,7 +684,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "Рекомендуемые Участники", viewAll: "Все Участники" },
     },
-    nav: { home: "Главная", products: "Продукты", exhibitors: "Участники", login: "Вход", register: "Регистрация", dashboard: "Панель", logout: "Выход" },
+    nav: { home: "Главная", products: "Продукты", exhibitors: "Участники", sellerPortal: "Портал Продавца", login: "Вход", register: "Регистрация", dashboard: "Панель", logout: "Выход" },
     common: { loading: "Загрузка...", error: "Ошибка", save: "Сохранить", cancel: "Отмена", delete: "Удалить", edit: "Редактировать", search: "Поиск", noResults: "Результатов нет", contact: "Контакт", verified: "Проверено", viewAll: "Все", back: "Назад", next: "Далее", previous: "Назад" },
     auth: {
       login: { title: "Вход", email: "Email", password: "Пароль", submit: "Войти", noAccount: "Нет аккаунта?", registerLink: "Регистрация" },
@@ -715,7 +718,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "Expositores em Destaque", viewAll: "Ver Todos" },
     },
-    nav: { home: "Início", products: "Produtos", exhibitors: "Expositores", login: "Entrar", register: "Registrar", dashboard: "Painel", logout: "Sair" },
+    nav: { home: "Início", products: "Produtos", exhibitors: "Expositores", sellerPortal: "Portal do Vendedor", login: "Entrar", register: "Registrar", dashboard: "Painel", logout: "Sair" },
     common: { loading: "Carregando...", error: "Erro", save: "Salvar", cancel: "Cancelar", delete: "Excluir", edit: "Editar", search: "Pesquisar", noResults: "Sem resultados", contact: "Contato", verified: "Verificado", viewAll: "Ver Tudo", back: "Voltar", next: "Próximo", previous: "Anterior" },
     auth: {
       login: { title: "Entrar", email: "Email", password: "Senha", submit: "Entrar", noAccount: "Não tem conta?", registerLink: "Registre-se" },
@@ -749,7 +752,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "विशेष प्रदर्शक", viewAll: "सभी प्रदर्शक देखें" },
     },
-    nav: { home: "होम", products: "उत्पाद", exhibitors: "प्रदर्शक", login: "लॉगिन", register: "रजिस्टर", dashboard: "डैशबोर्ड", logout: "लॉगआउट" },
+    nav: { home: "होम", products: "उत्पाद", exhibitors: "प्रदर्शक", sellerPortal: "विक्रेता पोर्टल", login: "लॉगिन", register: "रजिस्टर", dashboard: "डैशबोर्ड", logout: "लॉगआउट" },
     common: { loading: "लोड हो रहा है...", error: "त्रुटि", save: "सेव", cancel: "रद्द", delete: "हटाएं", edit: "संपादित", search: "खोज", noResults: "कोई परिणाम नहीं", contact: "संपर्क", verified: "सत्यापित", viewAll: "सभी देखें", back: "वापस", next: "अगला", previous: "पिछला" },
     auth: {
       login: { title: "लॉगिन", email: "ईमेल", password: "पासवर्ड", submit: "लॉगिन", noAccount: "खाता नहीं है?", registerLink: "रजिस्टर करें" },
@@ -783,7 +786,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "ผู้แสดงสินค้าแนะนำ", viewAll: "ดูทั้งหมด" },
     },
-    nav: { home: "หน้าแรก", products: "สินค้า", exhibitors: "ผู้แสดงสินค้า", login: "เข้าสู่ระบบ", register: "ลงทะเบียน", dashboard: "แดชบอร์ด", logout: "ออกจากระบบ" },
+    nav: { home: "หน้าแรก", products: "สินค้า", exhibitors: "ผู้แสดงสินค้า", sellerPortal: "พอร์ตอลผู้ขาย", login: "เข้าสู่ระบบ", register: "ลงทะเบียน", dashboard: "แดชบอร์ด", logout: "ออกจากระบบ" },
     common: { loading: "กำลังโหลด...", error: "ข้อผิดพลาด", save: "บันทึก", cancel: "ยกเลิก", delete: "ลบ", edit: "แก้ไข", search: "ค้นหา", noResults: "ไม่พบผลลัพธ์", contact: "ติดต่อ", verified: "ตรวจสอบแล้ว", viewAll: "ดูทั้งหมด", back: "กลับ", next: "ถัดไป", previous: "ก่อนหน้า" },
     auth: {
       login: { title: "เข้าสู่ระบบ", email: "อีเมล", password: "รหัสผ่าน", submit: "เข้าสู่ระบบ", noAccount: "ยังไม่มีบัญชี?", registerLink: "ลงทะเบียน" },
@@ -817,7 +820,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       },
       exhibitors: { title: "Nhà Triển Lãm Nổi Bật", viewAll: "Xem Tất Cả" },
     },
-    nav: { home: "Trang Chủ", products: "Sản Phẩm", exhibitors: "Nhà Triển Lãm", login: "Đăng Nhập", register: "Đăng Ký", dashboard: "Bảng Điều Khiển", logout: "Đăng Xuất" },
+    nav: { home: "Trang Chủ", products: "Sản Phẩm", exhibitors: "Nhà Triển Lãm", sellerPortal: "Cổng Người Bán", login: "Đăng Nhập", register: "Đăng Ký", dashboard: "Bảng Điều Khiển", logout: "Đăng Xuất" },
     common: { loading: "Đang tải...", error: "Lỗi", save: "Lưu", cancel: "Hủy", delete: "Xóa", edit: "Sửa", search: "Tìm kiếm", noResults: "Không có kết quả", contact: "Liên hệ", verified: "Đã xác minh", viewAll: "Xem Tất Cả", back: "Quay lại", next: "Tiếp", previous: "Trước" },
     auth: {
       login: { title: "Đăng Nhập", email: "Email", password: "Mật khẩu", submit: "Đăng Nhập", noAccount: "Chưa có tài khoản?", registerLink: "Đăng Ký" },

@@ -60,6 +60,8 @@ model SellerProfile {
   
   subscriptionStatus SubscriptionStatus @default(FREE_TRIAL)
   subscriptionExpiry DateTime?
+  subscriptionAmount Decimal? @db.Decimal(10, 2) // Amount paid in USD
+  lastPaymentAt DateTime?
   
   isVerified      Boolean  @default(false)
   isActive        Boolean  @default(true)
