@@ -13,10 +13,21 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
   const currentLanguage = languages.find(lang => lang.code === currentLocale);
 
   const switchLanguage = (locale: LanguageCode) => {
-    // Replace current locale in pathname with new locale
-    const newPathname = pathname.replace(/^\/[a-z]{2}/, `/${locale}`);
-    router.push(newPathname);
-    setIsOpen(false);
+    // Check if current path is a dashboard route (no locale prefix)
+    const isDashboardRoute = pathname.startsWith('/seller') || pathname.startsWith('/admin')
+      
+    if (isDashboardRoute) {
+      // For dashboard routes, just set the language cookie
+      document.cookie = `language=${locale}; path=/; max-age=31536000`
+      // Reload the page to apply the new language
+      window.location.reload()
+    } else {
+      // For public routes, replace locale in pathname
+      const newPathname = pathname.replace(/^\/[a-z]{2}/, `/${locale}`)
+      router.push(newPathname)
+    }
+      
+    setIsOpen(false)
   };
 
   return (

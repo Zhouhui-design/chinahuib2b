@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Package, Eye, Download, TrendingUp, Plus } from 'lucide-react'
+import { Package, Eye, Download, TrendingUp, Plus, HelpCircle } from 'lucide-react'
+import OnboardingGuide from '@/components/seller/OnboardingGuide'
 
 type SellerDashboardProps = {
   initialData: {
@@ -16,6 +17,7 @@ type SellerDashboardProps = {
 
 export default function SellerDashboardPage({ initialData }: SellerDashboardProps) {
   const [language, setLanguage] = useState('en')
+  const [showOnboarding, setShowOnboarding] = useState(false)
   
   // Get language from cookie
   useEffect(() => {
@@ -23,6 +25,12 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
     const langCookie = cookies.find(c => c.trim().startsWith('language='))
     if (langCookie) {
       setLanguage(langCookie.split('=')[1])
+    }
+    
+    // Check if user is new (first time visiting dashboard)
+    const hasSeenOnboarding = localStorage.getItem('seller_has_seen_onboarding')
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true)
     }
   }, [])
   
@@ -326,6 +334,25 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
           </Link>
         </div>
       </div>
+      
+      {/* Onboarding Guide */}
+      {showOnboarding && (
+        <OnboardingGuide onClose={() => {
+          setShowOnboarding(false)
+          localStorage.setItem('seller_has_seen_onboarding', 'true')
+        }} />
+      )}
+      
+      {/* Floating Help Button */}
+      {!showOnboarding && (
+        <button
+          onClick={() => setShowOnboarding(true)}
+          className="fixed left-4 bottom-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all flex items-center space-x-2"
+        >
+          <HelpCircle className="w-6 h-6" />
+          <span className="text-sm font-medium">Getting Started</span>
+        </button>
+      )}
     </div>
   )
 }

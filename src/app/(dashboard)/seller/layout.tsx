@@ -2,8 +2,9 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { Package, Store, FileText, Settings, BarChart3, LogOut } from 'lucide-react'
+import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle } from 'lucide-react'
 import { signOut } from '@/lib/auth'
+import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 
 export default async function SellerDashboardLayout({
   children,
@@ -32,6 +33,18 @@ export default async function SellerDashboardLayout({
               <span className="ml-4 text-sm text-gray-500">Seller Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Language Switcher */}
+              <LanguageSwitcher currentLocale="en" />
+              
+              {/* Help Guide Link */}
+              <Link
+                href="/seller/guide"
+                className="flex items-center text-sm text-gray-600 hover:text-blue-600"
+              >
+                <HelpCircle className="w-4 h-4 mr-1" />
+                Help Guide
+              </Link>
+              
               <Link
                 href="/"
                 className="text-sm text-gray-600 hover:text-blue-600"
