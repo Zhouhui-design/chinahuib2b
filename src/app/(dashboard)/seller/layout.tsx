@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import SellerDashboardClientLayout from './SellerDashboardClientLayout'
+import { signOut } from '@/lib/auth'
 
 export default async function SellerDashboardLayout({
   children,
@@ -21,8 +22,14 @@ export default async function SellerDashboardLayout({
   const cookieStore = await cookies()
   const currentLanguage = cookieStore.get('language')?.value || 'en'
   
+  // Create sign out action
+  const handleSignOut = async () => {
+    'use server'
+    await signOut({ redirectTo: '/' })
+  }
+  
   return (
-    <SellerDashboardClientLayout currentLanguage={currentLanguage}>
+    <SellerDashboardClientLayout currentLanguage={currentLanguage} onSignOut={handleSignOut}>
       {children}
     </SellerDashboardClientLayout>
   )

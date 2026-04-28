@@ -6,16 +6,17 @@ import { usePathname } from 'next/navigation'
 import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
-import { signOut } from '@/lib/auth'
 
 type SellerDashboardClientLayoutProps = {
   children: React.ReactNode
   currentLanguage: string
+  onSignOut: () => Promise<void>
 }
 
 export default function SellerDashboardClientLayout({ 
   children, 
-  currentLanguage 
+  currentLanguage,
+  onSignOut
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
@@ -182,12 +183,7 @@ export default function SellerDashboardClientLayout({
               >
                 {t.viewPublicSite}
               </Link>
-              <form
-                action={async () => {
-                  'use server'
-                  await signOut({ redirectTo: '/' })
-                }}
-              >
+              <form action={onSignOut}>
                 <button
                   type="submit"
                   className="flex items-center text-sm text-gray-600 hover:text-red-600"
