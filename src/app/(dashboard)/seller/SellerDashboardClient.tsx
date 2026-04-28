@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Package, Eye, Download, TrendingUp, Plus, HelpCircle } from 'lucide-react'
 import OnboardingGuide from '@/components/seller/OnboardingGuide'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 type SellerDashboardProps = {
   initialData: {
@@ -16,18 +17,11 @@ type SellerDashboardProps = {
 }
 
 export default function SellerDashboardPage({ initialData }: SellerDashboardProps) {
-  const [language, setLanguage] = useState('en')
+  const language = useSellerLanguage()
   const [showOnboarding, setShowOnboarding] = useState(false)
   
-  // Get language from cookie
+  // Check if user is new (first time visiting dashboard)
   useEffect(() => {
-    const cookies = document.cookie.split(';')
-    const langCookie = cookies.find(c => c.trim().startsWith('language='))
-    if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
-    }
-    
-    // Check if user is new (first time visiting dashboard)
     const hasSeenOnboarding = localStorage.getItem('seller_has_seen_onboarding')
     if (!hasSeenOnboarding) {
       setShowOnboarding(true)

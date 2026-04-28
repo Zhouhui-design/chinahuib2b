@@ -19,6 +19,10 @@ export default async function SellerDashboardLayout({
     const language = cookieStore.get('language')?.value || 'en'
     redirect(`/${language}/auth/login`)
   }
+  
+  // Get current language from cookie for LanguageSwitcher
+  const cookieStore = await cookies()
+  const currentLanguage = cookieStore.get('language')?.value || 'en'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,7 +38,7 @@ export default async function SellerDashboardLayout({
             </div>
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}
-              <LanguageSwitcher currentLocale="en" />
+              <LanguageSwitcher currentLocale={currentLanguage as any} />
               
               {/* Help Guide Link */}
               <Link
