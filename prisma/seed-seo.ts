@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../src/lib/db'
 
 async function seedSEOConfigs() {
   console.log('🌱 Seeding SEO configurations...')
