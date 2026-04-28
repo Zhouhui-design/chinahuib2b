@@ -160,9 +160,35 @@ export default function SellerDashboardClientLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="text-xl font-bold text-blue-600">
-                Global Expo Network
+                {language === 'zh' ? '全球博览网络' :
+                 language === 'ja' ? 'グローバルエキスポネットワーク' :
+                 language === 'ar' ? 'شبكة المعرض العالمية' :
+                 language === 'es' ? 'Red Global de Exposiciones' :
+                 language === 'fr' ? 'Réseau Mondial d\'Expositions' :
+                 language === 'de' ? 'Globales Messenetzwerk' :
+                 language === 'ko' ? '글로벌 엑스포 네트워크' :
+                 language === 'ru' ? 'Глобальная выставочная сеть' :
+                 language === 'pt' ? 'Rede Global de Exposições' :
+                 language === 'hi' ? 'वैश्विक एक्सपो नेटवर्क' :
+                 language === 'th' ? 'เครือข่ายงานแสดงสินค้าทั่วโลก' :
+                 language === 'vi' ? 'Mạng lưới Triển lãm Toàn cầu' :
+                 'Global Expo Network'}
               </Link>
-              <span className="ml-4 text-sm text-gray-500">Seller Dashboard</span>
+              <span className="ml-4 text-sm text-gray-500">
+                {language === 'zh' ? '卖家仪表板' :
+                 language === 'ja' ? '販売者ダッシュボード' :
+                 language === 'ar' ? 'لوحة تحكم البائع' :
+                 language === 'es' ? 'Panel del Vendedor' :
+                 language === 'fr' ? 'Tableau de Bord du Vendeur' :
+                 language === 'de' ? 'Verkäufer-Dashboard' :
+                 language === 'ko' ? '판매자 대시보드' :
+                 language === 'ru' ? 'Панель продавца' :
+                 language === 'pt' ? 'Painel do Vendedor' :
+                 language === 'hi' ? 'विक्रेता डैशबोर्ड' :
+                 language === 'th' ? 'แผงควบคุมผู้ขาย' :
+                 language === 'vi' ? 'Bảng điều khiển Người bán' :
+                 'Seller Dashboard'}
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}

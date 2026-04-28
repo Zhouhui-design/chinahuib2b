@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { ChevronRight, CheckCircle, Circle, X, HelpCircle, ArrowRight } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
@@ -209,11 +210,22 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
 
   // Create dynamic tasks array based on current language
   const taskIds = ['complete_profile', 'add_first_product', 'upload_brochure', 'customize_store', 'publish_products']
+  
+  // Define navigation links for each task
+  const taskLinks: Record<string, string> = {
+    complete_profile: '/seller/settings',
+    add_first_product: '/seller/products/new',
+    upload_brochure: '/seller/brochures',
+    customize_store: '/seller/store',
+    publish_products: '/seller/products',
+  }
+  
   const tasks = taskIds.map(id => ({
     id,
     title: taskTranslations[id as keyof typeof taskTranslations].title,
     description: taskTranslations[id as keyof typeof taskTranslations].description,
     completed: taskStatus[id] || false,
+    link: taskLinks[id],
   }))
 
   const currentTask = tasks[currentTaskIndex]
@@ -368,16 +380,16 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
       {/* Task List */}
       <div className="p-4 space-y-3">
         {tasks.map((task, index) => (
-          <div
+          <Link
             key={task.id}
-            className={`p-3 rounded-lg border transition-all cursor-pointer ${
+            href={task.link}
+            className={`block p-3 rounded-lg border transition-all ${
               index === currentTaskIndex
                 ? 'border-blue-500 bg-blue-50'
                 : task.completed
-                ? 'border-green-200 bg-green-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-green-200 bg-green-50 hover:bg-green-100'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
             }`}
-            onClick={() => setCurrentTaskIndex(index)}
           >
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0 mt-0.5">
@@ -402,7 +414,7 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
                 )}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

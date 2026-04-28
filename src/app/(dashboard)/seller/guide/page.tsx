@@ -3,18 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Book, Package, Store, Image, FileText, Settings, CheckCircle } from 'lucide-react'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 export default function SellerGuidePage() {
-  const [language, setLanguage] = useState('en')
-  
-  // Get language from cookie
-  useEffect(() => {
-    const cookies = document.cookie.split(';')
-    const langCookie = cookies.find(c => c.trim().startsWith('language='))
-    if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
-    }
-  }, [])
+  const language = useSellerLanguage()
   
   // Translations
   const t = {
