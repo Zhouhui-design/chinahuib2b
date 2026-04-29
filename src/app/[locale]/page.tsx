@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getDictionary } from "@/locales/dictionary";
 import type { LanguageCode } from "@/lib/languages";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
+import AnnouncementBar from '@/components/AnnouncementBar'
+import DisclaimerModal from '@/components/DisclaimerModal'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 
@@ -23,6 +25,12 @@ export default async function Home({ params }: PageProps) {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Announcement Bar - Top */}
+      <AnnouncementBar />
+      
+      {/* Disclaimer Modal - Popup on first visit per session */}
+      <DisclaimerModal />
+      
       {/* Navigation Bar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

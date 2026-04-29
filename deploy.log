@@ -78,3 +78,4 @@ Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 [0;31m✗ 构建失败[0m
 [1;33m查看构建日志:[0m
 [TAILING] Tailing last 50 lines for [nextjs-app] process (change the value with --lines option)
+client_loop: send disconnect: Broken pipe
