@@ -17,17 +17,36 @@ export default function Navbar({ locale }: NavbarProps) {
   const [user, setUser] = useState<any>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
-  // Fetch user session on mount
+  // Fetch user session on mount and when page becomes visible
   useEffect(() => {
-    fetch('/api/auth/session')
-      .then(res => res.json())
-      .then(data => {
-        if (data?.user) {
-          setUser(data.user);
-        }
-      })
-      .catch(err => console.error('Failed to fetch session:', err));
-  }, []);
+    const fetchSession = () => {
+      fetch('/api/auth/session')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.user) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        })
+        .catch(err => console.error('Failed to fetch session:', err));
+    }
+    
+    // Initial fetch
+    fetchSession()
+    
+    // Refetch when window gains focus (after login redirect)
+    const handleFocus = () => fetchSession()
+    window.addEventListener('focus', handleFocus)
+    
+    // Also refetch every 30 seconds as a fallback
+    const interval = setInterval(fetchSession, 30000)
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      clearInterval(interval)
+    }
+  }, [])
   
   // Get dict on client side using a simpler approach
   const dict = {
