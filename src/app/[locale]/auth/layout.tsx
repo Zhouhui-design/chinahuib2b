@@ -7,13 +7,14 @@ export default async function AuthLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { locale: LanguageCode }
+  params: Promise<{ locale: LanguageCode }>
 }) {
-  const dict = await getDictionary(params.locale)
+  const { locale } = await params
+  const dict = await getDictionary(locale)
   
   return (
     <>
-      <Navbar locale={params.locale} />
+      <Navbar locale={locale} />
       <main className="flex-1">
         {children}
       </main>
