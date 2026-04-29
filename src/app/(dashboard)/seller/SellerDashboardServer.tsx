@@ -20,7 +20,8 @@ export default async function SellerDashboardServer() {
   })
 
   if (!seller) {
-    redirect('/become-seller')
+    // Redirect to settings page to create profile
+    redirect('/seller/settings')
   }
 
   // Get statistics
