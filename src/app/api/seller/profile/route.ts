@@ -40,10 +40,12 @@ export async function GET() {
         data: {
           userId: session.user.id,
           companyName: 'My Company',
-          companyType: 'manufacturer',
+          companyType: 'MANUFACTURER',
+          country: 'China',
+          city: 'Beijing',
           isActive: true,
           isVerified: false,
-          subscriptionStatus: 'free'
+          subscriptionStatus: 'FREE_TRIAL'
         }
       })
     }
@@ -77,10 +79,12 @@ export async function PUT(request: NextRequest) {
         data: {
           userId: session.user.id,
           companyName: 'My Company',
-          companyType: 'manufacturer',
+          companyType: 'MANUFACTURER',
+          country: 'China',
+          city: 'Beijing',
           isActive: true,
           isVerified: false,
-          subscriptionStatus: 'free'
+          subscriptionStatus: 'FREE_TRIAL'
         }
       })
     }
