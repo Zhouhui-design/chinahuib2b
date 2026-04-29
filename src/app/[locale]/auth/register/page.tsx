@@ -30,6 +30,11 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
+        // Show detailed validation errors if available
+        if (data.details && Array.isArray(data.details)) {
+          const errorMessages = data.details.map((d: any) => d.message).join(', ')
+          throw new Error(errorMessages)
+        }
         throw new Error(data.error || 'Registration failed')
       }
 

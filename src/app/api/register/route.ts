@@ -18,9 +18,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Registration attempt:', { email: body.email, username: body.username, role: body.role })
+    
     const validation = registerSchema.safeParse(body)
     
     if (!validation.success) {
+      console.log('Validation failed:', validation.error.issues)
       return NextResponse.json(
         { error: "Validation failed", details: validation.error.issues },
         { status: 400 }
