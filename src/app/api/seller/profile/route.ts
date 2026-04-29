@@ -30,12 +30,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const seller = await prisma.sellerProfile.findUnique({
+    let seller = await prisma.sellerProfile.findUnique({
       where: { userId: session.user.id }
     })
 
+    // If seller profile doesn't exist, create one automatically
     if (!seller) {
-      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+      seller = await prisma.sellerProfile.create({
+        data: {
+          userId: session.user.id,
+          companyName: 'My Company',
+          companyType: 'manufacturer',
+          isActive: true,
+          isVerified: false,
+          subscriptionStatus: 'free'
+        }
+      })
     }
 
     return NextResponse.json({ profile: seller })
@@ -57,12 +67,22 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const seller = await prisma.sellerProfile.findUnique({
+    let seller = await prisma.sellerProfile.findUnique({
       where: { userId: session.user.id }
     })
 
+    // If seller profile doesn't exist, create one first
     if (!seller) {
-      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+      seller = await prisma.sellerProfile.create({
+        data: {
+          userId: session.user.id,
+          companyName: 'My Company',
+          companyType: 'manufacturer',
+          isActive: true,
+          isVerified: false,
+          subscriptionStatus: 'free'
+        }
+      })
     }
 
     const body = await request.json()
