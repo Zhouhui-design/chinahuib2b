@@ -40,6 +40,34 @@ export default function SellerSettingsPage() {
   const [verificationFiles, setVerificationFiles] = useState<any[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   
+  // Load profile data on mount
+  useEffect(() => {
+    loadProfileData()
+  }, [])
+  
+  const loadProfileData = async () => {
+    try {
+      const response = await fetch('/api/seller/profile')
+      const data = await response.json()
+      if (data.success || data.profile) {
+        const profile = data.profile
+        setProfileData({
+          companyName: profile.companyName || '',
+          contactName: '', // Not stored in database yet
+          email: profile.email || '',
+          phone: profile.phone || '',
+          website: profile.website || '',
+          address: profile.address || '',
+          city: profile.city || '',
+          country: profile.country || '',
+          description: profile.description || ''
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+    }
+  }
+  
   // Get language from cookie
   useEffect(() => {
     const cookies = document.cookie.split(';')
@@ -182,15 +210,32 @@ export default function SellerSettingsPage() {
     setMessage('')
     
     try {
-      // TODO: Implement API call to save profile
-      // await fetch('/api/seller/profile', { method: 'PUT', body: JSON.stringify(profileData) })
+      const response = await fetch('/api/seller/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: profileData.companyName,
+          description: profileData.description,
+          country: profileData.country,
+          city: profileData.city,
+          address: profileData.address,
+          phone: profileData.phone,
+          email: profileData.email,
+          website: profileData.website
+        })
+      })
       
-      setTimeout(() => {
+      const data = await response.json()
+      
+      if (data.success) {
         setMessage(t.messages.saved)
-        setLoading(false)
-      }, 1000)
+      } else {
+        setMessage(data.error || t.messages.error)
+      }
     } catch (error) {
+      console.error('Save error:', error)
       setMessage(t.messages.error)
+    } finally {
       setLoading(false)
     }
   }
