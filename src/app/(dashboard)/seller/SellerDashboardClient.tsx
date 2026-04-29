@@ -253,6 +253,84 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
           language === 'th' ? 'แก้ไข' :
           language === 'vi' ? 'Chỉnh sửa' :
           'Edit',
+    manageStore: language === 'zh' ? '管理您的店铺' :
+                 language === 'ja' ? 'ストアを管理' :
+                 language === 'ar' ? 'إدارة متجرك' :
+                 language === 'es' ? 'Administrar tu tienda' :
+                 language === 'fr' ? 'Gérer votre boutique' :
+                 language === 'de' ? 'Verwalten Sie Ihren Shop' :
+                 language === 'ko' ? '스토어 관리' :
+                 language === 'ru' ? 'Управление магазином' :
+                 language === 'pt' ? 'Gerenciar sua loja' :
+                 language === 'hi' ? 'अपनी दुकान प्रबंधित करें' :
+                 language === 'th' ? 'จัดการร้านค้าของคุณ' :
+                 language === 'vi' ? 'Quản lý cửa hàng của bạn' :
+                 'Manage Your Store',
+    updateProfile: language === 'zh' ? '更新公司资料、Logo 和横幅' :
+                   language === 'ja' ? '会社プロフィール、ロゴ、バナーを更新' :
+                   language === 'ar' ? 'تحديث ملف الشركة والشعار واللافتة' :
+                   language === 'es' ? 'Actualiza el perfil de tu empresa, logo y banner' :
+                   language === 'fr' ? 'Mettez à jour le profil de l\'entreprise, le logo et la bannière' :
+                   language === 'de' ? 'Aktualisieren Sie Firmenprofil, Logo und Banner' :
+                   language === 'ko' ? '회사 프로필, 로고 및 배너 업데이트' :
+                   language === 'ru' ? 'Обновите профиль компании, логотип и баннер' :
+                   language === 'pt' ? 'Atualize o perfil da empresa, logotipo e banner' :
+                   language === 'hi' ? 'कंपनी प्रोफ़ाइल, लोगो और बैनर अपडेट करें' :
+                   language === 'th' ? 'อัปเดตโปรไฟล์บริษัท โลโก้ และแบนเนอร์' :
+                   language === 'vi' ? 'Cập nhật hồ sơ công ty, logo và biểu ngữ' :
+                   'Update your company profile, logo, and banner',
+    goToSettings: language === 'zh' ? '前往店铺设置' :
+                  language === 'ja' ? 'ストア設定へ' :
+                  language === 'ar' ? 'الانتقال إلى إعدادات المتجر' :
+                  language === 'es' ? 'Ir a configuración de la tienda' :
+                  language === 'fr' ? 'Aller aux paramètres de la boutique' :
+                  language === 'de' ? 'Zu den Shop-Einstellungen' :
+                  language === 'ko' ? '스토어 설정으로 이동' :
+                  language === 'ru' ? 'Перейти к настройкам магазина' :
+                  language === 'pt' ? 'Ir para configurações da loja' :
+                  language === 'hi' ? 'स्टोर सेटिंग्स पर जाएं' :
+                  language === 'th' ? 'ไปที่การตั้งค่าร้านค้า' :
+                  language === 'vi' ? 'Đi đến cài đặt cửa hàng' :
+                  'Go to Store Settings',
+    uploadBrochures: language === 'zh' ? '上传宣传册' :
+                     language === 'ja' ? 'パンフレットをアップロード' :
+                     language === 'ar' ? 'تحميل الكتيبات' :
+                     language === 'es' ? 'Subir folletos' :
+                     language === 'fr' ? 'Télécharger des brochures' :
+                     language === 'de' ? 'Broschüren hochladen' :
+                     language === 'ko' ? '브로셔 업로드' :
+                     language === 'ru' ? 'Загрузить брошюры' :
+                     language === 'pt' ? 'Carregar folhetos' :
+                     language === 'hi' ? 'ब्रोशर अपलोड करें' :
+                     language === 'th' ? 'อัปโหลดโบรชัวร์' :
+                     language === 'vi' ? 'Tải lên tài liệu' :
+                     'Upload Brochures',
+    addCatalogs: language === 'zh' ? '添加产品目录和公司宣传册' :
+                 language === 'ja' ? '製品カタログと会社パンフレットを追加' :
+                 language === 'ar' ? 'إضافة كتالوجات المنتجات وكتيبات الشركة' :
+                 language === 'es' ? 'Agrega catálogos de productos y folletos de la empresa' :
+                 language === 'fr' ? 'Ajoutez des catalogues de produits et des brochures d\'entreprise' :
+                 language === 'de' ? 'Produktkataloge und Firmenbroschüren hinzufügen' :
+                 language === 'ko' ? '제품 카탈로그 및 회사 브로셔 추가' :
+                 language === 'ru' ? 'Добавьте каталоги продукции и корпоративные брошюры' :
+                 language === 'pt' ? 'Adicione catálogos de produtos e folhetos da empresa' :
+                 language === 'hi' ? 'उत्पाद कैटलॉग और कंपनी ब्रोशर जोड़ें' :
+                 language === 'th' ? 'เพิ่มแคตตาล็อกสินค้าและโบรชัวร์ของบริษัท' :
+                 language === 'vi' ? 'Thêm danh mục sản phẩm và tài liệu công ty' :
+                 'Add product catalogs and company brochures',
+    manageBrochures: language === 'zh' ? '管理宣传册' :
+                     language === 'ja' ? 'パンフレットを管理' :
+                     language === 'ar' ? 'إدارة الكتيبات' :
+                     language === 'es' ? 'Administrar folletos' :
+                     language === 'fr' ? 'Gérer les brochures' :
+                     language === 'de' ? 'Broschüren verwalten' :
+                     language === 'ko' ? '브로셔 관리' :
+                     language === 'ru' ? 'Управление брошюрами' :
+                     language === 'pt' ? 'Gerenciar folhetos' :
+                     language === 'hi' ? 'ब्रोशर प्रबंधित करें' :
+                     language === 'th' ? 'จัดการโบรชัวร์' :
+                     language === 'vi' ? 'Quản lý tài liệu' :
+                     'Manage Brochures',
   }
 
   return (
@@ -407,28 +485,28 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-          <h3 className="text-lg font-semibold mb-2">Manage Your Store</h3>
+          <h3 className="text-lg font-semibold mb-2">{t.manageStore}</h3>
           <p className="text-blue-100 text-sm mb-4">
-            Update your company profile, logo, and banner
+            {t.updateProfile}
           </p>
           <Link
             href="/seller/store"
             className="inline-block bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
           >
-            Go to Store Settings
+            {t.goToSettings}
           </Link>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-          <h3 className="text-lg font-semibold mb-2">Upload Brochures</h3>
+          <h3 className="text-lg font-semibold mb-2">{t.uploadBrochures}</h3>
           <p className="text-purple-100 text-sm mb-4">
-            Add product catalogs and company brochures
+            {t.addCatalogs}
           </p>
           <Link
             href="/seller/brochures"
             className="inline-block bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium"
           >
-            Manage Brochures
+            {t.manageBrochures}
           </Link>
         </div>
       </div>
