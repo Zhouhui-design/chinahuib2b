@@ -57,8 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const sellers = await prisma.sellerProfile.findMany({
       where: { 
-        storePublished: true,
-        companyName: { not: null }
+        isActive: true
       },
       select: { 
         id: true,
@@ -84,6 +83,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: currentDate,
       changeFrequency: 'daily' as const,
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/stores`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/login`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/register`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.3,
     },
   ]
 
