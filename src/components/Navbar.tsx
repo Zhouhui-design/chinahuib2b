@@ -146,8 +146,8 @@ export default function Navbar({ locale }: NavbarProps) {
                     )}
                     <button
                       onClick={async () => {
-                        await fetch('/api/auth/signout', { method: 'POST' });
-                        window.location.href = `/${locale}`;
+                        // Use NextAuth signout with redirect
+                        window.location.href = `/api/auth/signout?callbackUrl=/${locale}`;
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
                     >
