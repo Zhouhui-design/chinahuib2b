@@ -40,10 +40,6 @@ export default function SEOManagerPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadConfigs()
-  }, [])
-
   const loadConfigs = async () => {
     setLoading(true)
     try {
@@ -58,6 +54,10 @@ export default function SEOManagerPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadConfigs()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -206,7 +206,7 @@ export default function SEOManagerPage() {
                   </label>
                   <select
                     value={formData.pageType}
-                    onChange={(e) => setFormData({ ...formData, pageType: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, pageType: e.target.value as 'STATIC' | 'PRODUCT' | 'STORE' | 'CATEGORY' | 'CUSTOM' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     {Object.entries(pageTypeLabels).map(([value, label]) => (

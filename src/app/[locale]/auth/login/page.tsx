@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getDictionary } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
 
-export default function LoginPage() {
+function LoginForm() {
   const params = useParams()
   const locale = params.locale as LanguageCode
   const router = useRouter()
@@ -138,5 +138,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }

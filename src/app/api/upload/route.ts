@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { writeFile, mkdir } from 'fs/promises'
-
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
+import { uploadToSpaces, isSpacesConfigured } from '@/lib/spaces'
 
 // Upload directory configuration
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public/uploads')
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
     let buffer = Buffer.from(bytes)
     let ext = ''
     let finalMimeType = file.type
+    let publicUrl = ''
 
     // Process images with Sharp for optimization
     const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
@@ -88,15 +89,27 @@ export async function POST(request: NextRequest) {
       ext = getFileExtension(file.name)
     }
 
-    // Generate unique filename
-    const uniqueName = `${uuidv4()}${ext}`
-    const filePath = path.join(targetDir, uniqueName)
-    
-    // Write file to disk
-    await writeFile(filePath, buffer)
-
-    // Generate public URL
-    const publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
+    // Upload to DigitalOcean Spaces if configured, otherwise use local storage
+    if (isSpacesConfigured()) {
+      try {
+        const uploadResult = await uploadToSpaces(buffer, file.name, finalMimeType, subDir)
+        publicUrl = uploadResult.url
+        console.log('File uploaded to DigitalOcean Spaces:', publicUrl)
+      } catch (error) {
+        console.error('Spaces upload failed, falling back to local storage:', error)
+        // Fallback to local storage
+        const uniqueName = `${uuidv4()}${ext}`
+        const filePath = path.join(targetDir, uniqueName)
+        await writeFile(filePath, buffer)
+        publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
+      }
+    } else {
+      // Use local storage
+      const uniqueName = `${uuidv4()}${ext}`
+      const filePath = path.join(targetDir, uniqueName)
+      await writeFile(filePath, buffer)
+      publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
+    }
 
     // Create database record based on type
     let result: any = { url: publicUrl, fileName: file.name, size: fileSize }

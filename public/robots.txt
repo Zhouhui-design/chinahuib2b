@@ -1,0 +1,99 @@
+# Global Expo Network - chinahuib2b.top
+# Allow all crawlers including AI bots
+
+# Standard crawlers
+User-agent: *
+Allow: /
+Allow: /products/
+Allow: /stores/
+Allow: /en/
+Allow: /zh/
+Allow: /ar/
+Allow: /es/
+Allow: /fr/
+Allow: /de/
+Allow: /ru/
+Allow: /ja/
+Allow: /ko/
+Allow: /pt/
+Allow: /hi/
+Allow: /tr/
+Allow: /th/
+Allow: /id/
+Allow: /vi/
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /seller/
+Disallow: /buyer/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /*?*
+
+# AI-Specific Crawlers (Explicitly Allow)
+
+# OpenAI GPTBot
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 1
+
+# OpenAI ChatGPT-User
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 1
+
+# Google Bard / Gemini
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 1
+
+# Anthropic Claude
+User-agent: ClaudeBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 1
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+# Microsoft Copilot / Bing
+User-agent: BingBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: msnbot
+Allow: /
+Crawl-delay: 1
+
+# You.com
+User-agent: YouBot
+Allow: /
+Crawl-delay: 1
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+Crawl-delay: 2
+
+# AI21 Labs
+User-agent: AI21Bot
+Allow: /
+Crawl-delay: 1
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+Crawl-delay: 1
+
+# Hugging Face
+User-agent: HuggingFaceBot
+Allow: /
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://chinahuib2b.top/sitemap.xml

@@ -2,8 +2,59 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 
-export async function GET() {
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params
+    
+    // Try to find in product brochures first
+    let brochure = await prisma.productBrochure.findUnique({
+      where: { id },
+      include: { product: true }
+    })
+    
+    if (brochure) {
+      return NextResponse.json({
+        type: 'PRODUCT',
+        brochure: {
+          id: brochure.id,
+          fileName: brochure.fileName,
+          fileSize: brochure.fileSize,
+          downloadCount: brochure.downloadCount,
+          productId: brochure.productId,
+          productTitle: brochure.product.title
+        }
+      })
+    }
+    
+    // Try store brochures
+    const storeBrochure = await prisma.storeBrochure.findUnique({
+      where: { id },
+      include: { seller: true }
+    })
+    
+    if (storeBrochure) {
+      return NextResponse.json({
+        type: 'STORE',
+        brochure: {
+          id: storeBrochure.id,
+          title: storeBrochure.title,
+          fileName: storeBrochure.fileName,
+          fileSize: storeBrochure.fileSize,
+          downloadCount: storeBrochure.downloadCount,
+          sellerId: storeBrochure.sellerId,
+          companyName: storeBrochure.seller.companyName
+        }
+      })
+    }
+    
+    return NextResponse.json({ error: 'Brochure not found' }, { status: 404 })
+  } catch (error) {
+    console.error('Get brochure error:', error)
+    return NextResponse.json({ error: 'Failed to fetch brochure' }, { status: 500 })
+  }
 }
 
 export async function DELETE(

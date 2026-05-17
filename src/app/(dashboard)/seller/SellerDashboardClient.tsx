@@ -8,11 +8,27 @@ import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 type SellerDashboardProps = {
   initialData: {
-    seller: any
+    seller: {
+      id: string
+      companyName: string
+      companyType: string
+      country: string
+      city: string
+      subscriptionStatus: string
+      isVerified: boolean
+      createdAt: string
+    }
     productCount: number
-    totalViews: any
-    totalDownloads: any
-    recentProducts: any[]
+    totalViews: number
+    totalDownloads: number
+    recentProducts: Array<{
+      id: string
+      title: string
+      mainImageUrl: string
+      viewCount: number
+      inquiryCount: number
+      createdAt: string
+    }>
   }
 }
 
@@ -377,7 +393,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
             <div>
               <p className="text-sm font-medium text-gray-600">{t.totalViews}</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {totalViews._sum.viewCount || 0}
+                {totalViews || 0}
               </p>
             </div>
             <div className="bg-green-100 p-3 rounded-full">
@@ -395,7 +411,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
             <div>
               <p className="text-sm font-medium text-gray-600">{t.brochureDownloads}</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
-                {totalDownloads._sum.downloadCount || 0}
+                {totalDownloads || 0}
               </p>
             </div>
             <div className="bg-purple-100 p-3 rounded-full">

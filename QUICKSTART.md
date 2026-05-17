@@ -1,208 +1,232 @@
-# Quick Start Guide - Global Expo Network
+# 🚀 Quick Start Guide - Chinahuib2b.top
 
-## 🎯 What's Been Built
+## 快速开始
 
-A fully functional B2B exhibition platform foundation with:
-- ✅ User authentication (register/login)
-- ✅ Database with complete schema
-- ✅ Exhibition-style home page
-- ✅ Test data (3 sellers, 15 products, categories)
-- ✅ Role-based access (Buyer/Seller)
-
-## 🚀 Running Locally
-
-### The server is already running!
-
-**Open your browser**: http://localhost:3000
-
-### Test Accounts
-
-**Sellers** (can manage stores):
-```
-Email: seller1@test.com
-Password: password123
-
-Email: seller2@test.com  
-Password: password123
-
-Email: seller3@test.com
-Password: password123
-```
-
-**Buyer** (can browse and contact):
-```
-Email: buyer@test.com
-Password: password123
-```
-
-## 📱 What You Can Do Right Now
-
-### As a Visitor (No Login)
-1. Browse the home page
-2. View product listings
-3. See company information
-4. Navigate by category
-
-### As a Buyer (Login Required)
-1. Register or login as buyer
-2. View seller contact information
-3. Download product brochures (when available)
-4. Prepare to chat with sellers (integration pending)
-
-### As a Seller (Login Required)
-1. Register or login as seller
-2. Access seller dashboard (pending implementation)
-3. Manage products (pending implementation)
-4. View inquiries (pending implementation)
-
-## 🏗️ Project Structure
-
-```
-chinahuib2b/
-├── src/
-│   ├── app/
-│   │   ├── (auth)/          # Login & Register pages
-│   │   ├── (main)/          # Home page
-│   │   └── api/             # API routes
-│   ├── components/          # UI components
-│   ├── lib/                 # Utilities (auth, db, redis)
-│   └── types/               # TypeScript types
-├── prisma/
-│   ├── schema.prisma        # Database schema
-│   └── seed.ts              # Test data generator
-├── .env.local               # Environment variables
-└── package.json
-```
-
-## 🔧 Available Commands
+### 1️⃣ 本地开发环境
 
 ```bash
-# Development
-npm run dev          # Start development server (already running)
+# 克隆仓库
+git clone https://github.com/yourusername/chinahuib2b.git
+cd chinahuib2b
 
-# Database
-npm run seed         # Populate test data
-npx prisma studio    # Open database GUI
+# 安装依赖
+npm install
 
-# Production
-npm run build        # Build for production
-npm start            # Start production server
+# 配置环境变量
+cp .env.example .env.local
+# 编辑 .env.local，填入你的配置
+
+# 初始化数据库
+npx prisma migrate dev
+npx prisma db seed  # 可选：填充测试数据
+
+# 启动开发服务器
+npm run dev
+
+# 访问 http://localhost:3000
 ```
 
-## 📋 Next Steps to Complete MVP
+### 2️⃣ Docker 部署
 
-### High Priority (Core Features)
-1. **Product Management**
-   - Create product detail page
-   - Add image upload functionality
-   - Implement product CRUD for sellers
-
-2. **Store Pages**
-   - Create store/exhibitor profile pages
-   - Add store customization options
-   - Display all products from a seller
-
-3. **File Upload**
-   - Integrate DigitalOcean Spaces
-   - Enable brochure uploads
-   - Enable product image uploads
-
-4. **Chat Integration**
-   - Connect to existing chat system
-   - Add chat widget to product pages
-   - Implement real-time messaging
-
-### Medium Priority
-5. **Product Listing Page**
-   - Add filters (category, country, etc.)
-   - Add sorting options
-   - Add pagination
-
-6. **Seller Dashboard**
-   - Product management interface
-   - Inquiry management
-   - Analytics dashboard
-
-7. **Subscription System**
-   - Integrate Stripe payments
-   - Implement subscription logic
-   - Handle expired subscriptions
-
-### Low Priority
-8. **Additional Features**
-   - Multi-language support
-   - Advanced search
-   - Email notifications
-   - Mobile optimization
-
-## 🐛 Known Limitations
-
-Current version is an MVP foundation:
-- ❌ No product detail pages yet
-- ❌ No file upload working
-- ❌ No chat integration yet
-- ❌ No seller dashboard UI
-- ❌ No payment processing
-- ❌ Limited product filtering
-
-But the foundation is solid and ready for expansion!
-
-## 📚 Documentation
-
-- **README.md** - Complete project overview
-- **DEPLOYMENT.md** - Production deployment guide
-- **Plan Document** - Detailed technical specifications
-
-## 🔗 Useful Links
-
-- **Local App**: http://localhost:3000
-- **Database GUI**: Run `npx prisma studio`
-- **Prisma Docs**: https://www.prisma.io/docs
-- **Next.js Docs**: https://nextjs.org/docs
-- **Tailwind CSS**: https://tailwindcss.com/docs
-
-## 💡 Tips
-
-### Viewing the Database
 ```bash
-npx prisma studio
-```
-Opens a web interface at http://localhost:5555
+# 使用 Docker Compose 一键启动
+docker-compose up -d
 
-### Adding More Test Data
+# 查看日志
+docker-compose logs -f app
+
+# 停止服务
+docker-compose down
+```
+
+### 3️⃣ 生产部署
+
+**方式 A: 手动部署**
 ```bash
-npm run seed
+# SSH 到服务器
+ssh user@your-server.com
+
+# 进入项目目录
+cd /opt/chinahuib2b
+
+# 拉取最新代码
+git pull origin main
+
+# 安装依赖
+npm ci --production
+
+# 运行迁移
+npx prisma migrate deploy
+
+# 构建应用
+npm run build
+
+# 重启 PM2
+pm2 restart chinahuib2b
 ```
-Resets and repopulates the database
 
-### Checking Server Logs
-The development server is running in the background. Check terminal output for errors.
+**方式 B: GitHub Actions 自动部署**
+```bash
+# Push 到 main 分支会自动触发部署
+git push origin main
 
-### Modifying Styles
-All styling uses Tailwind CSS. Modify className attributes in components.
-
-## 🆘 Need Help?
-
-1. Check the error message in the terminal
-2. Review the component code
-3. Check database connection: `npx prisma studio`
-4. Verify environment variables in `.env.local`
-
-## 🎉 Success Metrics
-
-You've successfully built:
-- ✅ Modern Next.js 14 application
-- ✅ PostgreSQL database with Prisma ORM
-- ✅ Authentication system with NextAuth
-- ✅ Responsive UI with Tailwind CSS
-- ✅ Exhibition-style design
-- ✅ Seed data for testing
-- ✅ Deployment-ready configuration
-
-**Ready to expand into a full-featured platform!**
+# 查看部署状态
+# https://github.com/yourusername/chinahuib2b/actions
+```
 
 ---
 
-**Current Status**: MVP Foundation Complete  
-**Development Server**: Running on http://localhost:3000  
-**Next Task**: Implement product detail pages and file uploads
+## 🔧 环境变量配置
+
+创建 `.env.local` 文件：
+
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/chinahuib2b"
+
+# Redis
+REDIS_URL="redis://localhost:6379"
+
+# NextAuth
+NEXTAUTH_SECRET="your-super-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+
+# DigitalOcean Spaces (optional)
+DO_SPACES_ACCESS_KEY="your-access-key"
+DO_SPACES_SECRET_KEY="your-secret-key"
+DO_SPACES_ENDPOINT="https://sgp1.digitaloceanspaces.com"
+DO_SPACES_BUCKET="global-expo-storage"
+
+# Error Webhook (optional)
+ERROR_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK"
+```
+
+---
+
+## 📊 管理后台
+
+### 创建管理员账户
+
+```bash
+# 运行脚本创建 admin 用户
+./create-admin.sh
+
+# 或手动创建
+npx prisma studio
+```
+
+### 访问监控仪表板
+
+```bash
+# 健康检查
+curl http://localhost:3000/api/health
+
+# 监控概览（需要 admin 权限）
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:3000/api/admin/monitoring?action=overview
+
+# 错误统计
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:3000/api/admin/monitoring?action=error-stats
+```
+
+---
+
+## 🧪 测试
+
+```bash
+# 运行 linter
+npm run lint
+
+# 类型检查
+npx tsc --noEmit
+
+# 运行测试
+npm test
+
+# 构建生产版本
+npm run build
+```
+
+---
+
+## 📚 文档
+
+| 文档 | 说明 |
+|------|------|
+| [FINAL_COMPLETION_REPORT.md](./FINAL_COMPLETION_REPORT.md) | 完整优化报告 |
+| [SECURITY_GUIDE.md](./SECURITY_GUIDE.md) | 安全防护指南 |
+| [RATE_LIMITING_GUIDE.md](./RATE_LIMITING_GUIDE.md) | 速率限制指南 |
+| [CICD_GUIDE.md](./CICD_GUIDE.md) | CI/CD 流水线指南 |
+| [MONITORING_GUIDE.md](./MONITORING_GUIDE.md) | 监控告警指南 |
+| [DATABASE_OPTIMIZATION_GUIDE.md](./DATABASE_OPTIMIZATION_GUIDE.md) | 数据库优化指南 |
+
+---
+
+## 🆘 常见问题
+
+### 构建失败
+
+```bash
+# 清理缓存
+rm -rf .next node_modules
+npm install
+npm run build
+```
+
+### 数据库连接错误
+
+```bash
+# 检查 PostgreSQL 是否运行
+pg_isready
+
+# 检查环境变量
+echo $DATABASE_URL
+
+# 运行迁移
+npx prisma migrate deploy
+```
+
+### Redis 连接错误
+
+```bash
+# 检查 Redis 是否运行
+redis-cli ping
+
+# 检查环境变量
+echo $REDIS_URL
+```
+
+### PM2 进程崩溃
+
+```bash
+# 查看日志
+pm2 logs chinahuib2b --lines 100
+
+# 重启进程
+pm2 restart chinahuib2b
+
+# 查看状态
+pm2 status
+```
+
+---
+
+## 📞 支持
+
+- **GitHub Issues**: https://github.com/yourusername/chinahuib2b/issues
+- **Email**: admin@chinahuib2b.top
+- **Documentation**: See docs folder
+
+---
+
+## 🎯 下一步
+
+1. ✅ 完成西班牙语翻译补全（6/102 键）
+2. ⏳ 创建前端监控仪表板 UI
+3. ⏳ 添加单元测试（目标 80% 覆盖率）
+4. ⏳ 集成 A/B 测试框架
+
+---
+
+**Happy Coding! 🚀**

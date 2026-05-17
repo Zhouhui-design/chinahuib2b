@@ -35,10 +35,6 @@ export default function AdminPaymentProofsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetchPaymentProofs();
-  }, [filter]);
-
   const fetchPaymentProofs = async () => {
     setLoading(true);
     try {
@@ -50,11 +46,16 @@ export default function AdminPaymentProofsPage() {
         setError(data.error || 'Failed to load payment proofs');
       }
     } catch (err) {
+      console.error('Fetch payment proofs error:', err);
       setError('Failed to load payment proofs');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPaymentProofs();
+  }, [filter]);
 
   const handleApprove = async (proofId: string) => {
     setProcessing(true);

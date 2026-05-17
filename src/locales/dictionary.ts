@@ -409,6 +409,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       home: "Inicio",
       products: "Productos",
       exhibitors: "Expositores",
+      sellerPortal: "Portal de Vendedor",
       login: "Iniciar Sesión",
       register: "Registrarse",
       dashboard: "Panel",

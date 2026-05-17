@@ -18,6 +18,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
+  // Contact information for buyers
+  displayName   String?   // Display name
+  company       String?   // Company name
+  phone         String?   // Phone number
+  website       String?   // Personal/Business website
+  location      String?   // City, Country
+  bio           String?   // Short bio/description
+  avatarUrl     String?   // Profile picture
+  
   // Relations
   sellerProfile SellerProfile?
   inquiries     Inquiry[]
@@ -49,6 +58,12 @@ model SellerProfile {
   phone           String?
   email           String?
   website         String?
+  whatsapp        String?   // WhatsApp number
+  wechat          String?   // WeChat ID
+  telegram        String?   // Telegram username
+  linkedin        String?   // LinkedIn profile URL
+  facebook        String?   // Facebook page URL
+  instagram       String?   // Instagram profile
   description     String?  // Rich text (stored as HTML)
   logoUrl         String?
   bannerUrl       String?

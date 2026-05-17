@@ -1,117 +1,132 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import chatClient, { ChatMessage } from '@/lib/chat-client'
+import { MessageCircle, X, Send, Minimize2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { X, Send, MessageCircle, User } from 'lucide-react'
 
 interface ChatWidgetProps {
   sellerId: string
   productId?: string
-  isOpen: boolean
-  onClose: () => void
 }
 
-export default function ChatWidget({ sellerId, productId, isOpen, onClose }: ChatWidgetProps) {
+interface Message {
+  id: string
+  content: string
+  senderId: string
+  timestamp: Date
+  isOwn: boolean
+}
+
+export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
   const { data: session } = useSession()
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [ws, setWs] = useState<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  // Connect to chat when widget opens
-  useEffect(() => {
-    if (isOpen && session?.user?.id) {
-      connectToChat()
-    }
-
-    return () => {
-      // Don't disconnect on unmount, keep connection alive
-    }
-  }, [isOpen, session?.user?.id])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Focus input when widget opens
+  // Initialize WebSocket connection
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100)
-    }
-  }, [isOpen])
+    if (!session?.user || !isOpen) return
 
-  const connectToChat = async () => {
-    if (!session?.user?.id) return
+    const token = generateJWT(session.user.id, session.user.email || '')
+    const wsUrl = process.env.NEXT_PUBLIC_CHAT_WS_URL || 'ws://localhost:5001/ws'
+    
+    const websocket = new WebSocket(`${wsUrl}?token=${token}`)
 
-    try {
-      // Get JWT token from session
-      const token = await getAuthToken()
-      
-      await chatClient.connect(session.user.id, token)
+    websocket.onopen = () => {
+      console.log('Chat connected')
       setIsConnected(true)
-      setError(null)
-
+      
       // Join conversation with seller
-      const conversationId = generateConversationId(session.user.id, sellerId)
-      chatClient.joinConversation(conversationId)
-
-      // Subscribe to messages
-      const unsubscribe = chatClient.onMessage((message) => {
-        setMessages(prev => [...prev, message])
-      })
-
-      // Subscribe to connection changes
-      const unsubscribeConnection = chatClient.onConnectionChange((connected) => {
-        setIsConnected(connected)
-        if (!connected) {
-          setError('Disconnected. Attempting to reconnect...')
-        } else {
-          setError(null)
-        }
-      })
-
-      // Subscribe to errors
-      const unsubscribeError = chatClient.onError((err) => {
-        setError(err.message)
-      })
-
-      return () => {
-        unsubscribe()
-        unsubscribeConnection()
-        unsubscribeError()
-      }
-    } catch (err) {
-      console.error('Failed to connect to chat:', err)
-      setError('Failed to connect to chat server')
+      websocket.send(JSON.stringify({
+        type: 'join',
+        conversationId: `${session.user.id}_${sellerId}`,
+      }))
     }
+
+    websocket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        
+        if (data.type === 'message') {
+          setMessages(prev => [...prev, {
+            id: data.id || Date.now().toString(),
+            content: data.content,
+            senderId: data.senderId,
+            timestamp: new Date(data.timestamp),
+            isOwn: data.senderId === session.user.id,
+          }])
+        }
+      } catch (error) {
+        console.error('Failed to parse message:', error)
+      }
+    }
+
+    websocket.onerror = (error) => {
+      console.error('WebSocket error:', error)
+      setIsConnected(false)
+    }
+
+    websocket.onclose = () => {
+      console.log('Chat disconnected')
+      setIsConnected(false)
+    }
+
+    setWs(websocket)
+
+    return () => {
+      websocket.close()
+    }
+  }, [session, sellerId, isOpen])
+
+  // Generate simple JWT for chat authentication
+  const generateJWT = (userId: string, email: string): string => {
+    // In production, this should be generated server-side
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+    const payload = btoa(JSON.stringify({ 
+      userId, 
+      email,
+      exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour
+    }))
+    const secret = process.env.NEXT_PUBLIC_CHAT_JWT_SECRET || 'chat-secret-key'
+    const signature = btoa(secret) // Simplified - use proper HMAC in production
+    
+    return `${header}.${payload}.${signature}`
   }
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !session?.user?.id || !isConnected) return
+    if (!newMessage.trim() || !ws || !isConnected) return
 
-    const conversationId = generateConversationId(session.user.id, sellerId)
-    const success = chatClient.sendMessage(conversationId, newMessage, sellerId)
-
-    if (success) {
-      // Add message to local state immediately for better UX
-      const optimisticMessage: ChatMessage = {
-        conversationId,
-        senderId: session.user.id,
-        receiverId: sellerId,
-        content: newMessage,
-        timestamp: new Date(),
-        type: 'text',
-      }
-      
-      setMessages(prev => [...prev, optimisticMessage])
-      setNewMessage('')
-    } else {
-      setError('Failed to send message')
+    const messageData = {
+      type: 'message',
+      conversationId: `${session?.user.id}_${sellerId}`,
+      senderId: session?.user.id,
+      receiverId: sellerId,
+      content: newMessage.trim(),
+      productId: productId,
+      timestamp: new Date().toISOString(),
     }
+
+    ws.send(JSON.stringify(messageData))
+
+    // Optimistically add to UI
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      content: newMessage.trim(),
+      senderId: session?.user.id || '',
+      timestamp: new Date(),
+      isOwn: true,
+    }])
+
+    setNewMessage('')
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -121,120 +136,129 @@ export default function ChatWidget({ sellerId, productId, isOpen, onClose }: Cha
     }
   }
 
-  const generateConversationId = (buyerId: string, sellerId: string): string => {
-    // Create consistent conversation ID regardless of order
-    const ids = [buyerId, sellerId].sort()
-    return `conv_${ids[0]}_${ids[1]}`
+  if (!session) {
+    return (
+      <button
+        onClick={() => window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
+        title="Login to chat"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </button>
+    )
   }
-
-  const getAuthToken = async (): Promise<string> => {
-    // In production, this would get the JWT token from NextAuth session
-    // For now, we'll use a placeholder - you need to implement proper token extraction
-    return session?.user?.id || ''
-  }
-
-  if (!isOpen) return null
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50">
-      {/* Header */}
-      <div className="bg-blue-600 text-white px-4 py-3 rounded-t-lg flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <MessageCircle className="w-5 h-5" />
-          <div>
-            <h3 className="font-semibold text-sm">Chat with Exhibitor</h3>
-            <div className="flex items-center space-x-1 text-xs text-blue-100">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
-              <span>{isConnected ? 'Connected' : 'Connecting...'}</span>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Chat Toggle Button */}
+      {!isOpen && (
         <button
-          onClick={onClose}
-          className="text-white hover:text-blue-200 transition-colors"
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
         >
-          <X className="w-5 h-5" />
+          <MessageCircle className="w-6 h-6" />
+          {!isConnected && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+          )}
         </button>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2">
-          <p className="text-xs text-red-600">{error}</p>
-        </div>
       )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-        {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No messages yet</p>
-              <p className="text-xs mt-1">Start the conversation!</p>
+      {/* Chat Window */}
+      {isOpen && (
+        <div className={`fixed right-6 bg-white rounded-lg shadow-2xl z-50 transition-all ${
+          isMinimized ? 'bottom-6 w-80 h-16' : 'bottom-6 w-96 h-[500px]'
+        }`}>
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+              <span className="font-semibold">Chat with Seller</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="hover:bg-blue-700 p-1 rounded transition-colors"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="hover:bg-blue-700 p-1 rounded transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        ) : (
-          messages.map((msg, index) => {
-            const isOwnMessage = msg.senderId === session?.user?.id
-            return (
-              <div
-                key={index}
-                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-lg px-3 py-2 ${
-                    isOwnMessage
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white border border-gray-200 text-gray-900'
-                  }`}
-                >
-                  {!isOwnMessage && (
-                    <div className="flex items-center space-x-1 mb-1">
-                      <User className="w-3 h-3" />
-                      <span className="text-xs font-medium">Exhibitor</span>
-                    </div>
-                  )}
-                  <p className="text-sm">{msg.content}</p>
-                  <p className={`text-xs mt-1 ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {new Date(msg.timestamp).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </p>
-                </div>
-              </div>
-            )
-          })
-        )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 p-3 bg-white rounded-b-lg">
-        <div className="flex space-x-2">
-          <input
-            ref={inputRef}
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            disabled={!isConnected}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!isConnected || !newMessage.trim()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {!isMinimized && (
+            <>
+              {/* Messages Area */}
+              <div className="h-[380px] overflow-y-auto p-4 space-y-3 bg-gray-50">
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No messages yet</p>
+                    <p className="text-sm">Start a conversation!</p>
+                  </div>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] px-4 py-2 rounded-lg ${
+                          msg.isOwn
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-200'
+                        }`}
+                      >
+                        <p className="text-sm">{msg.content}</p>
+                        <p className={`text-xs mt-1 ${
+                          msg.isOwn ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
+                          {new Date(msg.timestamp).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Area */}
+              <div className="border-t border-gray-200 p-4">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type a message..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={!isConnected}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!newMessage.trim() || !isConnected}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded-lg transition-colors"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
+                {!isConnected && (
+                  <p className="text-xs text-red-500 mt-2 text-center">
+                    Connecting... Please wait
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-center">
-          Press Enter to send
-        </p>
-      </div>
-    </div>
+      )}
+    </>
   )
 }

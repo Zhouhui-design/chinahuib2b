@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { languages, defaultLanguage } from "@/lib/languages"
+import { addSecurityHeaders, generateCSRFToken } from "@/lib/security"
 
 // List of supported language codes
 const supportedLanguages = languages.map(lang => lang.code)
@@ -13,7 +14,8 @@ export function middleware(request: any) {
     pathname.startsWith('/seller') ||
     pathname.startsWith('/admin')
   ) {
-    return NextResponse.next()
+    const response = NextResponse.next()
+    return addSecurityHeaders(response)
   }
   
   // Check if pathname has a language prefix
@@ -30,14 +32,30 @@ export function middleware(request: any) {
       pathname.startsWith('/uploads') ||
       pathname.includes('.')
     ) {
-      return NextResponse.next()
+      const response = NextResponse.next()
+      return addSecurityHeaders(response)
     }
 
     const newUrl = new URL(`/${defaultLanguage}${pathname}`, request.url)
-    return NextResponse.redirect(newUrl)
+    const response = NextResponse.redirect(newUrl)
+    return addSecurityHeaders(response)
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+  
+  // Set CSRF token cookie if not present
+  if (!request.cookies.get('csrf-token')) {
+    const csrfToken = generateCSRFToken()
+    response.cookies.set('csrf-token', csrfToken, {
+      httpOnly: false, // Accessible from JavaScript for API calls
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24, // 24 hours
+      path: '/',
+    })
+  }
+  
+  return addSecurityHeaders(response)
 }
 
 export const config = {

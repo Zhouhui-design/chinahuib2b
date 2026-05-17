@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { auth } from '@/lib/auth'
-import { User, Mail, Phone, Building, Globe, Bell, Shield, Save, Upload, FileText, Image as ImageIcon, CreditCard, Video, CheckCircle, ShieldCheck } from 'lucide-react'
+import { User, Mail, Phone, Building, Globe, Bell, Shield, Save, Upload, FileText, Image as ImageIcon, CreditCard, Video, CheckCircle, ShieldCheck, MessageCircle, Link as LinkIcon } from 'lucide-react'
 import VerificationFileUpload from '@/components/seller/VerificationFileUpload'
 
 export default function SellerSettingsPage() {
@@ -18,6 +18,12 @@ export default function SellerSettingsPage() {
     email: '',
     phone: '',
     website: '',
+    whatsapp: '',
+    wechat: '',
+    telegram: '',
+    linkedin: '',
+    facebook: '',
+    instagram: '',
     address: '',
     city: '',
     country: '',
@@ -57,6 +63,12 @@ export default function SellerSettingsPage() {
           email: profile.email || '',
           phone: profile.phone || '',
           website: profile.website || '',
+          whatsapp: profile.whatsapp || '',
+          wechat: profile.wechat || '',
+          telegram: profile.telegram || '',
+          linkedin: profile.linkedin || '',
+          facebook: profile.facebook || '',
+          instagram: profile.instagram || '',
           address: profile.address || '',
           city: profile.city || '',
           country: profile.country || '',
@@ -221,7 +233,13 @@ export default function SellerSettingsPage() {
           address: profileData.address,
           phone: profileData.phone,
           email: profileData.email,
-          website: profileData.website
+          website: profileData.website,
+          whatsapp: profileData.whatsapp,
+          wechat: profileData.wechat,
+          telegram: profileData.telegram,
+          linkedin: profileData.linkedin,
+          facebook: profileData.facebook,
+          instagram: profileData.instagram
         })
       })
       
@@ -422,6 +440,93 @@ export default function SellerSettingsPage() {
                         onChange={(e) => setProfileData({...profileData, website: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="https://www.example.com"
+                      />
+                    </div>
+                    
+                    {/* Social Media & Messaging */}
+                    <div className="md:col-span-2">
+                      <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4" />
+                        Social Media & Messaging
+                      </h3>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        WhatsApp
+                      </label>
+                      <input
+                        type="tel"
+                        value={profileData.whatsapp}
+                        onChange={(e) => setProfileData({...profileData, whatsapp: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="+1 234 567 8900"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        WeChat
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.wechat}
+                        onChange={(e) => setProfileData({...profileData, wechat: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        placeholder="WeChat ID"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Telegram
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.telegram}
+                        onChange={(e) => setProfileData({...profileData, telegram: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="@username"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <LinkIcon className="w-4 h-4 inline mr-1 text-blue-700" />
+                        LinkedIn
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.linkedin}
+                        onChange={(e) => setProfileData({...profileData, linkedin: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-transparent"
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Facebook
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.facebook}
+                        onChange={(e) => setProfileData({...profileData, facebook: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        placeholder="https://facebook.com/page"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Instagram
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.instagram}
+                        onChange={(e) => setProfileData({...profileData, instagram: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-600 focus:border-transparent"
+                        placeholder="https://instagram.com/username"
                       />
                     </div>
                     
