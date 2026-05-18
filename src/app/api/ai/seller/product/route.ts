@@ -123,7 +123,7 @@ export async function POST(req: Request) {
 
     // 添加到店铺产品列表
     const storeProductsKey = `ai:store:${seller.storeId}:products`
-    await redis.lpush(storeProductsKey, productId)
+    await redis.lPush(storeProductsKey, productId)
 
     // 更新卖家统计
     seller.stats.totalProducts = (seller.stats.totalProducts || 0) + 1
@@ -346,7 +346,7 @@ async function logAIEvent(event: {
 }): Promise<void> {
   const key = `ai:events:${event.aiId}`
   
-  await redis.lpush(
+  await redis.lPush(
     key,
     JSON.stringify({
       ...event,
@@ -354,6 +354,6 @@ async function logAIEvent(event: {
     })
   )
   
-  await redis.ltrim(key, 0, 999)
+  await redis.lTrim(key, 0, 999)
   await redis.expire(key, 30 * 24 * 60 * 60)
 }

@@ -286,7 +286,7 @@ async function logAIEvent(event: {
 }): Promise<void> {
   const key = `ai:events:${event.aiId}`
   
-  await redis.lpush(
+  await redis.lPush(
     key,
     JSON.stringify({
       ...event,
@@ -295,7 +295,7 @@ async function logAIEvent(event: {
   )
   
   // 只保留最近1000条事件
-  await redis.ltrim(key, 0, 999)
+  await redis.lTrim(key, 0, 999)
   await redis.expire(key, 30 * 24 * 60 * 60) // 30天
 }
 
