@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AI 爬虫活动监控脚本
+# AI 爬虫活动监控脚本（简化版）
 # 用法: ./monitor-ai-crawlers.sh [days]
 
 DAYS=${1:-7}  # 默认查看最近7天
@@ -36,68 +36,32 @@ echo "=== AI 爬虫访问量统计 ==="
 echo ""
 
 for bot in GPTBot ChatGPT-User Google-Extended ClaudeBot PerplexityBot BingBot YouBot CCBot; do
-    COUNT=$(echo "$LOG_FILES" | xargs grep -c "$bot" 2>/dev/null || echo "0")
-    if [ "$COUNT" -gt 0 ]; then
+    COUNT=$(echo "$LOG_FILES" | xargs zgrep -c "$bot" 2>/dev/null || echo "0")
+    if [ "$COUNT" -gt 0 ] 2>/dev/null; then
         printf "%-20s %d 次访问\n" "$bot" "$COUNT"
     fi
 done
 
 echo ""
-echo "=== 详细访问记录（最近50条）==="
+echo "=== 详细访问记录（最近20条）==="
 echo ""
 
-echo "$LOG_FILES" | xargs grep -E "$AI_PATTERNS" 2>/dev/null | tail -50 | while IFS= read -r line; do
-    # 提取关键信息
-    IP=$(echo "$line" | awk '{print $1}')
-    DATE=$(echo "$line" | grep -oP '\[.*?\]' | head -1)
-    METHOD=$(echo "$line" | grep -oP '"(GET|POST|PUT|DELETE)' | tr -d '"')
-    PATH=$(echo "$line" | grep -oP '"(GET|POST|PUT|DELETE) \K[^ ]*')
-    STATUS=$(echo "$line" | awk '{print $9}')
-    BOT=$(echo "$line" | grep -oP "$AI_PATTERNS" | head -1)
-    
-    printf "%-15s %-25s %-6s %-40s %s [%s]\n" "$IP" "$DATE" "$STATUS" "$PATH" "$METHOD" "$BOT"
-done
+echo "$LOG_FILES" | xargs zgrep -E "$AI_PATTERNS" 2>/dev/null | tail -20
 
 echo ""
 echo "=== 热门访问路径 Top 10 ==="
 echo ""
 
-echo "$LOG_FILES" | xargs grep -E "$AI_PATTERNS" 2>/dev/null | \
-    grep -oP '"(GET|POST|PUT|DELETE) \K[^ ]*' | \
-    sort | uniq -c | sort -rn | head -10 | \
-    while read count path; do
-        printf "%-5d %s\n" "$count" "$path"
-    done
-
-echo ""
-echo "=== 按小时分布 ==="
-echo ""
-
-echo "$LOG_FILES" | xargs grep -E "$AI_PATTERNS" 2>/dev/null | \
-    grep -oP '\[\d{2}/\w+/\d{4}:\K\d{2}' | \
-    sort | uniq -c | sort -k2 | \
-    while read count hour; do
-        BAR=$(printf '%0.s█' $(seq 1 $((count / 5 + 1))))
-        printf "%s:00  %-4d %s\n" "$hour" "$count" "$BAR"
-    done
+echo "$LOG_FILES" | xargs zgrep -E "$AI_PATTERNS" 2>/dev/null | \
+    grep -oP '"(GET|POST) \K[^ ]*' 2>/dev/null | \
+    sort | uniq -c | sort -rn | head -10
 
 echo ""
 echo "=== 响应状态码分布 ==="
 echo ""
 
-echo "$LOG_FILES" | xargs grep -E "$AI_PATTERNS" 2>/dev/null | \
-    awk '{print $9}' | sort | uniq -c | sort -rn | \
-    while read count status; do
-        case $status in
-            200) ICON="✅" ;;
-            301|302|307) ICON="↩️" ;;
-            403) ICON="🚫" ;;
-            404) ICON="❌" ;;
-            500|502|503) ICON="⚠️" ;;
-            *) ICON="❓" ;;
-        esac
-        printf "%s %-4s %d 次\n" "$ICON" "$status" "$count"
-    done
+echo "$LOG_FILES" | xargs zgrep -E "$AI_PATTERNS" 2>/dev/null | \
+    awk '{print $9}' 2>/dev/null | sort | uniq -c | sort -rn
 
 # 生成详细报告文件
 REPORT_FILE="$REPORT_DIR/ai-crawler-report-$(date '+%Y%m%d-%H%M%S').txt"
@@ -111,7 +75,7 @@ echo "📄 详细报告已保存到: $REPORT_FILE"
     echo "Period: Last ${DAYS} days"
     echo ""
     echo "=== Raw Data ==="
-    echo "$LOG_FILES" | xargs grep -E "$AI_PATTERNS" 2>/dev/null
+    echo "$LOG_FILES" | xargs zgrep -E "$AI_PATTERNS" 2>/dev/null
 } > "$REPORT_FILE"
 
 echo ""
