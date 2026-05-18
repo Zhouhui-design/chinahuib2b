@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowLeft, Download, MessageCircle, Eye, Calendar, Package, Globe, Building2 } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import ChatWidget from '@/components/chat/ChatWidget'
+import { ProductDetailSkeleton } from '@/components/skeletons'
 
 interface Product {
   id: string
@@ -111,14 +112,7 @@ export default function ProductDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
+    return <ProductDetailSkeleton />
   }
 
   if (error || !product) {
@@ -166,6 +160,10 @@ export default function ProductDetailPage() {
                 width={800}
                 height={800}
                 className="w-full h-full object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority={true} // 主图优先加载
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjgwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI0OCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlByb2R1Y3QgSW1hZ2U8L3RleHQ+Cjwvc3ZnPg=="
               />
             </div>
             
@@ -185,6 +183,10 @@ export default function ProductDetailPage() {
                       width={200}
                       height={200}
                       className="w-full h-full object-cover"
+                      sizes="200px"
+                      loading="lazy" // 缩略图懒加载
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+Cjwvc3ZnPg=="
                     />
                   </button>
                 ))}
