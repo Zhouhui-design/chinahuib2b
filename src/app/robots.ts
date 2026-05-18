@@ -24,6 +24,8 @@ export default function robots(): MetadataRoute.Robots {
           '/th/',
           '/id/',
           '/vi/',
+          '/chat/public/',       // 允许公开频道
+          '/chat/community/',    // 允许社区讨论
         ],
         disallow: [
           '/admin/',
@@ -31,89 +33,88 @@ export default function robots(): MetadataRoute.Robots {
           '/buyer/',
           '/api/',
           '/_next/',
-          '/chat/',           // Chat system - STRICTLY PRIVATE
-          '/chat-system/',    // Chat system alternative path
-          '/*/chat/',         // All language versions of chat
-          '/*/chat-system/',  // All language versions of chat-system
+          '/chat/private/',      // 禁止私人对话
+          '/chat-system/private/', // 禁止私人对话系统
+          '/*/chat/private/',     // 所有语言的私人对话
         ],
       },
-      // AI-Specific Crawlers - EXCLUDE CHAT SYSTEM
+      // AI-Specific Crawlers - ALLOW PUBLIC CHAT, BLOCK PRIVATE CHAT
       {
         userAgent: 'GPTBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'ChatGPT-User',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'Google-Extended',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'ClaudeBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'Claude-Web',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'PerplexityBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'BingBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'msnbot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'YouBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'CCBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 2,
       },
       {
         userAgent: 'AI21Bot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'cohere-ai',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
       {
         userAgent: 'HuggingFaceBot',
-        allow: ['/', '/products/', '/stores/'],
-        disallow: ['/chat/', '/chat-system/', '/admin/', '/seller/', '/buyer/', '/api/'],
+        allow: ['/', '/products/', '/stores/', '/chat/public/', '/chat/community/'],
+        disallow: ['/chat/private/', '/chat-system/private/', '/admin/', '/seller/', '/buyer/', '/api/'],
         crawlDelay: 1,
       },
     ],
