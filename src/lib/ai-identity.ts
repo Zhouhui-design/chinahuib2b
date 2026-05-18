@@ -115,11 +115,11 @@ export async function registerAIIdentity(
   
   // 存储到 Redis
   const key = `ai:identity:${id}`
-  await redis.setex(key, 365 * 24 * 60 * 60, JSON.stringify(identity)) // 1年过期
+  await redis.setEx(key, 365 * 24 * 60 * 60, JSON.stringify(identity)) // 1年过期
   
   // 同时通过 API Key 索引，方便快速查找
   const apiKeyIndex = `ai:apikey:${apiKey}`
-  await redis.setex(apiKeyIndex, 365 * 24 * 60 * 60, id)
+  await redis.setEx(apiKeyIndex, 365 * 24 * 60 * 60, id)
   
   // 记录注册事件
   await logAIEvent({
@@ -163,7 +163,7 @@ export async function verifyAIApiKey(apiKey: string): Promise<AIIdentity | null>
     
     // 更新最后活动时间
     identity.lastActive = new Date()
-    await redis.setex(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
+    await redis.setEx(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
     
     return identity
   } catch (error) {
@@ -200,7 +200,7 @@ export async function updateAICapabilities(
   }
   
   const key = `ai:identity:${aiId}`
-  await redis.setex(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
+  await redis.setEx(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
   
   return identity
 }
@@ -218,7 +218,7 @@ export async function toggleAIStatus(
   identity.status = status
   
   const key = `ai:identity:${aiId}`
-  await redis.setex(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
+  await redis.setEx(key, 365 * 24 * 60 * 60, JSON.stringify(identity))
   
   await logAIEvent({
     aiId,
