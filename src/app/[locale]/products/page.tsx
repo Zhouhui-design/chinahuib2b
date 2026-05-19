@@ -4,6 +4,10 @@ import type { LanguageCode } from "@/lib/languages";
 import { prisma } from "@/lib/db";
 import CategorySidebar from "@/components/category/CategorySidebar";
 import ProductGrid from "@/components/product/ProductGrid";
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
+
+// ISR Configuration - Revalidate every 30 minutes
+export const revalidate = 1800;
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -91,9 +95,18 @@ async function ProductList({ searchParams }: { searchParams: Promise<any> }) {
 export default async function ProductsPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+  
+  // Prepare breadcrumb schema
+  const breadcrumbs = [
+    { name: locale === 'zh' ? '首页' : 'Home', url: `/${locale}` },
+    { name: locale === 'zh' ? '产品' : 'Products', url: undefined as any }
+  ];
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Schema.org Structured Data */}
+      <BreadcrumbSchema items={breadcrumbs} />
+      
       {/* Navigation Bar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
