@@ -1,423 +1,312 @@
-'use client'
+/**
+ * Store Detail Page - Server-Side Rendering with ISR
+ */
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Globe, MapPin, Phone, Mail, Package, Download, MessageCircle, Eye, Calendar } from 'lucide-react'
-import { useLanguage } from '@/contexts/LanguageContext'
+import { ArrowLeft, Globe, MapPin, Phone, Mail, Package, Download, MessageCircle, Eye, Calendar, Building2 } from 'lucide-react'
+import { getSellerById } from '@/lib/api/sellers'
 import ChatWidget from '@/components/chat/ChatWidget'
+import { StoreSchema, BreadcrumbSchema } from '@/components/seo/StructuredData'
 
-interface Seller {
-  id: string
-  companyName: string
-  companyType: string
-  country: string
-  city: string
-  address?: string
-  phone?: string
-  email?: string
-  website?: string
-  description?: string
-  logoUrl?: string
-  bannerUrl?: string
-  certifications: string[]
-  boothName?: string
-  isVerified: boolean
-  createdAt: string
-  products: Array<{
-    id: string
-    title: string
-    titleEn?: string
-    mainImageUrl: string
-    viewCount: number
-    inquiryCount: number
-    category: {
-      name: string
-      nameEn?: string
-    }
-  }>
-  storeBrochures: Array<{
-    id: string
-    title: string
-    fileName: string
-    fileSize: number
-    downloadCount: number
-  }>
+interface Props {
+  params: Promise<{ id: string; locale: string }>
 }
 
-export default function StoreDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { language } = useLanguage()
-  const sellerId = params.id as string
+// ISR Configuration - Revalidate every hour
+export const revalidate = 3600
+
+export default async function StoreDetailPage({ params }: Props) {
+  const { id, locale } = await params
   
-  const [seller, setSeller] = useState<Seller | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState<'products' | 'about' | 'brochures'>('products')
-
-  useEffect(() => {
-    fetchSeller()
-  }, [sellerId])
-
-  const fetchSeller = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/sellers/${sellerId}/public`)
-      const data = await response.json()
-      
-      if (response.ok && data.success) {
-        setSeller(data.seller)
-      } else {
-        setError(data.error || 'Failed to load store')
-      }
-    } catch (err) {
-      console.error('Fetch seller error:', err)
-      setError('Failed to load store')
-    } finally {
-      setLoading(false)
-    }
+  // Fetch seller data on server
+  const seller = await getSellerById(id)
+  
+  if (!seller) {
+    notFound()
   }
-
-  const handleDownloadBrochure = async (brochureId: string) => {
-    try {
-      const response = await fetch(`/api/brochures/${brochureId}/download`)
-      const data = await response.json()
-      
-      if (response.ok && data.fileUrl) {
-        window.open(data.fileUrl, '_blank')
-      } else {
-        alert(data.message || 'Download will be available soon')
-      }
-    } catch (err) {
-      console.error('Download error:', err)
-    }
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !seller) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Store not found'}</p>
-          <Link
-            href={`/${language}`}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  
+  // Prepare breadcrumb schema
+  const breadcrumbs = [
+    { name: locale === 'zh' ? '首页' : 'Home', url: `/${locale}` },
+    { name: locale === 'zh' ? '店铺' : 'Stores', url: `/${locale}/stores` },
+    { name: seller.companyName, url: undefined as any }
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Schema.org Structured Data */}
+      <StoreSchema store={seller} />
+      <BreadcrumbSchema items={breadcrumbs} />
+      
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link
-            href={`/${language}`}
-            className="inline-flex items-center text-gray-600 hover:text-gray-900"
+          <Link 
+            href={`/${locale}/stores`}
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Exhibition Hall
+            {locale === 'zh' ? '返回店铺列表' : 'Back to Stores'}
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* Banner */}
-      {seller.bannerUrl ? (
-        <div className="h-64 bg-gray-200 relative">
-          <Image
-            src={seller.bannerUrl}
-            alt={seller.companyName}
-            fill
-            className="object-cover"
-          />
-        </div>
-      ) : (
-        <div className="h-64 bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-          <h1 className="text-4xl font-bold text-white">{seller.companyName}</h1>
-        </div>
-      )}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Store Banner */}
+        {seller.bannerUrl && (
+          <div className="relative h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
+            <Image
+              src={seller.bannerUrl}
+              alt={seller.companyName}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority={true}
+            />
+          </div>
+        )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Sidebar - Company Info */}
-          <div className="space-y-6">
-            {/* Company Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              {seller.logoUrl && (
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gray-100">
-                  <Image
-                    src={seller.logoUrl}
-                    alt={seller.companyName}
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-                {seller.companyName}
-              </h2>
-              
-              {seller.isVerified && (
-                <div className="flex items-center justify-center mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    ✓ Verified Exhibitor
-                  </span>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
+          {/* Store Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Company Name & Verification */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  {seller.logoUrl && (
+                    <div className="w-20 h-20 relative rounded-lg overflow-hidden">
+                      <Image
+                        src={seller.logoUrl}
+                        alt={seller.companyName}
+                        fill
+                        className="object-cover"
+                        sizes="80px"
+                      />
+                    </div>
+                  )}
                   <div>
-                    <p className="text-sm text-gray-600">Location</p>
-                    <p className="font-medium text-gray-900">
-                      {seller.city}, {seller.country}
-                    </p>
-                    {seller.address && (
-                      <p className="text-sm text-gray-600 mt-1">{seller.address}</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                      {seller.companyName}
+                    </h1>
+                    {seller.isVerified && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        ✓ {locale === 'zh' ? '已认证' : 'Verified'}
+                      </span>
                     )}
                   </div>
                 </div>
+              </div>
 
+              {/* Company Details */}
+              <div className="space-y-3 text-gray-700">
+                <div className="flex items-center">
+                  <Building2 className="w-5 h-5 mr-2 text-gray-400" />
+                  <span>{seller.companyType}</span>
+                </div>
+                <div className="flex items-center">
+                  <MapPin className="w-5 h-5 mr-2 text-gray-400" />
+                  <span>{seller.city}, {seller.country}</span>
+                </div>
+                {seller.address && (
+                  <div className="flex items-start">
+                    <MapPin className="w-5 h-5 mr-2 text-gray-400 mt-1" />
+                    <span>{seller.address}</span>
+                  </div>
+                )}
                 {seller.phone && (
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Phone</p>
-                      <p className="font-medium text-gray-900">{seller.phone}</p>
-                    </div>
+                  <div className="flex items-center">
+                    <Phone className="w-5 h-5 mr-2 text-gray-400" />
+                    <a href={`tel:${seller.phone}`} className="text-blue-600 hover:text-blue-700">
+                      {seller.phone}
+                    </a>
                   </div>
                 )}
-
                 {seller.email && (
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-gray-900">{seller.email}</p>
-                    </div>
+                  <div className="flex items-center">
+                    <Mail className="w-5 h-5 mr-2 text-gray-400" />
+                    <a href={`mailto:${seller.email}`} className="text-blue-600 hover:text-blue-700">
+                      {seller.email}
+                    </a>
                   </div>
                 )}
-
                 {seller.website && (
-                  <div className="flex items-center space-x-3">
-                    <Globe className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Website</p>
-                      <a 
-                        href={seller.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        {seller.website.replace(/^https?:\/\//, '')}
-                      </a>
-                    </div>
+                  <div className="flex items-center">
+                    <Globe className="w-5 h-5 mr-2 text-gray-400" />
+                    <a 
+                      href={seller.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      {seller.website}
+                    </a>
                   </div>
                 )}
               </div>
 
-              <button
-                onClick={() => router.push(`/${language}/auth/login?redirect=/stores/${sellerId}`)}
-                className="w-full mt-6 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Contact Exhibitor
-              </button>
+              {/* Description */}
+              {seller.description && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                    {locale === 'zh' ? '公司简介' : 'About Us'}
+                  </h2>
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {seller.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Certifications */}
+              {seller.certifications.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                    {locale === 'zh' ? '认证资质' : 'Certifications'}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {seller.certifications.map((cert, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                      >
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Certifications */}
-            {seller.certifications.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Certifications</h3>
-                <div className="space-y-2">
-                  {seller.certifications.map((cert, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      <span className="text-sm text-gray-700">{cert}</span>
-                    </div>
+            {/* Products */}
+            {seller.products.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  <Package className="w-6 h-6 mr-2" />
+                  {locale === 'zh' ? '产品展示' : 'Products'} 
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    ({seller.products.length})
+                  </span>
+                </h2>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {seller.products.slice(0, 6).map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/${locale}/products/${product.id}`}
+                      className="block border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                    >
+                      <div className="aspect-square bg-gray-100 relative">
+                        <Image
+                          src={product.mainImageUrl}
+                          alt={locale === 'zh' ? product.title : (product.titleEn || product.title)}
+                          fill
+                          className="object-cover"
+                          sizes="300px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-medium text-gray-900 line-clamp-2 mb-1">
+                          {locale === 'zh' ? product.title : (product.titleEn || product.title)}
+                        </h3>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span className="flex items-center">
+                            <Eye className="w-3 h-3 mr-1" />
+                            {product.viewCount}
+                          </span>
+                          <span className="flex items-center">
+                            <MessageCircle className="w-3 h-3 mr-1" />
+                            {product.inquiryCount}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Tabs */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-8 px-6" aria-label="Tabs">
-                  <button
-                    onClick={() => setActiveTab('products')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'products'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Products ({seller.products.length})
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('about')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'about'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    About
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('brochures')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'brochures'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Brochures ({seller.storeBrochures.length})
-                  </button>
-                </nav>
-              </div>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Card */}
+            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+              <h3 className="font-semibold text-gray-900 mb-4">
+                {locale === 'zh' ? '联系卖家' : 'Contact Seller'}
+              </h3>
+              
+              <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center mb-3">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                {locale === 'zh' ? '发送消息' : 'Send Message'}
+              </button>
+              
+              {seller.boothName && (
+                <div className="text-center text-sm text-gray-600 mt-4 pt-4 border-t border-gray-200">
+                  {locale === 'zh' ? '展位号' : 'Booth'}: 
+                  <span className="font-semibold ml-1">{seller.boothName}</span>
+                </div>
+              )}
+            </div>
 
-              {/* Tab Content */}
-              <div className="p-6">
-                {activeTab === 'products' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {seller.products.map((product) => (
-                      <Link
-                        key={product.id}
-                        href={`/${language}/products/${product.id}`}
-                        className="group block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-                      >
-                        <div className="aspect-square bg-gray-100 relative">
-                          <Image
-                            src={product.mainImageUrl}
-                            alt={language === 'zh' && product.title ? product.title : product.titleEn || product.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {language === 'zh' && product.title ? product.title : product.titleEn || product.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-3">
-                            {language === 'zh' && product.category.name ? product.category.name : product.category.nameEn || product.category.name}
-                          </p>
-                          <div className="flex items-center justify-between text-sm text-gray-500">
-                            <span className="flex items-center">
-                              <Eye className="w-4 h-4 mr-1" />
-                              {product.viewCount}
-                            </span>
-                            <span className="flex items-center">
-                              <MessageCircle className="w-4 h-4 mr-1" />
-                              {product.inquiryCount}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === 'about' && (
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Company Description</h3>
-                    {seller.description ? (
-                      <div 
-                        className="prose max-w-none"
-                        dangerouslySetInnerHTML={{ __html: seller.description }}
-                      />
-                    ) : (
-                      <p className="text-gray-600">No description available.</p>
-                    )}
-                    
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-3">Company Details</h4>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Company Type</p>
-                          <p className="font-medium text-gray-900 capitalize">{seller.companyType.toLowerCase()}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Member Since</p>
-                          <p className="font-medium text-gray-900">
-                            {new Date(seller.createdAt).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
-                              year: 'numeric',
-                              month: 'long'
-                            })}
-                          </p>
-                        </div>
+            {/* Store Brochures */}
+            {seller.storeBrochures.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <Download className="w-5 h-5 mr-2" />
+                  {locale === 'zh' ? '店铺画册' : 'Brochures'}
+                </h3>
+                
+                <div className="space-y-3">
+                  {seller.storeBrochures.map((brochure) => (
+                    <a
+                      key={brochure.id}
+                      href={brochure.fileName}
+                      download
+                      className="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 mb-1 line-clamp-1">
+                        {brochure.title}
                       </div>
-                    </div>
-                  </div>
-                )}
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{(brochure.fileSize / 1024 / 1024).toFixed(1)} MB</span>
+                        <span className="flex items-center">
+                          <Download className="w-3 h-3 mr-1" />
+                          {brochure.downloadCount}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                {activeTab === 'brochures' && (
-                  <div className="space-y-4">
-                    {seller.storeBrochures.length > 0 ? (
-                      seller.storeBrochures.map((brochure) => (
-                        <div key={brochure.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                              <Download className="w-6 h-6 text-red-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900">{brochure.title}</h4>
-                              <p className="text-sm text-gray-600">
-                                {formatFileSize(brochure.fileSize)} • {brochure.downloadCount} downloads
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleDownloadBrochure(brochure.id)}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-600 text-center py-8">No brochures available.</p>
-                    )}
-                  </div>
-                )}
+            {/* Stats */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">
+                {locale === 'zh' ? '店铺统计' : 'Store Stats'}
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">{locale === 'zh' ? '产品数量' : 'Products'}</span>
+                  <span className="font-semibold text-gray-900">{seller.products.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">{locale === 'zh' ? '加入时间' : 'Joined'}</span>
+                  <span className="font-semibold text-gray-900">
+                    {new Date(seller.createdAt).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Chat Widget */}
-      {seller && <ChatWidget sellerId={seller.id} />}
+      <ChatWidget sellerId={seller.id} />
     </div>
   )
 }
