@@ -25,7 +25,7 @@ export default async function SellerDashboardServer() {
   }
 
   // Get statistics
-  const [productCount, totalViews, totalDownloads] = await Promise.all([
+  const [productCount, totalViewsResult, totalDownloadsResult] = await Promise.all([
     prisma.product.count({
       where: { sellerId: seller.id }
     }),
@@ -39,6 +39,10 @@ export default async function SellerDashboardServer() {
     })
   ])
 
+  // Extract numeric values from aggregate results
+  const totalViews = totalViewsResult._sum.viewCount || 0
+  const totalDownloads = totalDownloadsResult._sum.downloadCount || 0
+
   // Get recent products
   const recentProducts = await prisma.product.findMany({
     where: { sellerId: seller.id },
@@ -49,14 +53,35 @@ export default async function SellerDashboardServer() {
     }
   })
 
+  // Convert data to match client component types
+  const formattedSeller = {
+    id: seller.id,
+    companyName: seller.companyName,
+    companyType: seller.companyType,
+    country: seller.country,
+    city: seller.city,
+    subscriptionStatus: seller.subscriptionStatus,
+    isVerified: seller.isVerified,
+    createdAt: seller.createdAt.toISOString()
+  }
+
+  const formattedProducts = recentProducts.map(product => ({
+    id: product.id,
+    title: product.title,
+    mainImageUrl: product.mainImageUrl || '',
+    viewCount: product.viewCount || 0,
+    inquiryCount: product.inquiryCount || 0,
+    createdAt: product.createdAt.toISOString()
+  }))
+
   return (
     <SellerDashboardPage
       initialData={{
-        seller,
+        seller: formattedSeller,
         productCount,
         totalViews,
         totalDownloads,
-        recentProducts
+        recentProducts: formattedProducts
       }}
     />
   )
