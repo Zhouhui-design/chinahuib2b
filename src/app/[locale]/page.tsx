@@ -7,6 +7,7 @@ import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
+import HomeClientWrapper from '@/components/HomeClientWrapper'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -203,6 +204,9 @@ export default async function Home({ params }: PageProps) {
           </Link>
         </div>
       </section>
+
+      {/* AI Recommendations & Behavior Tracking */}
+      <HomeClientWrapper userId={null} locale={locale} />
     </div>
   );
 }
