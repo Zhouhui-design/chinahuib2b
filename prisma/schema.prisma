@@ -33,6 +33,8 @@ model User {
   brochuresDownloaded BrochureDownload[]
   contactViews  ContactView[]
   paymentProofs PaymentProof[]
+  apiKeys       APIKey[]
+  apiUsageLogs  APIUsageLog[]
   
   @@index([email])
   @@index([lastLoginAt])
@@ -388,4 +390,49 @@ model DeadLink {
   
   @@index([isResolved])
   @@index([detectedAt])
+}
+
+// API Keys for AI Agents
+model APIKey {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String   @unique
+  name        String   @default("AI Agent Key")
+  role        String   // buyer, seller, admin
+  permissions Json     @default("{}")
+  rateLimit   Int      @default(1000) // requests per hour
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageLogs   APIUsageLog[]
+  
+  @@index([userId])
+  @@index([key])
+  @@index([isActive])
+}
+
+// API Usage Logs for audit trail
+model APIUsageLog {
+  id            String   @id @default(cuid())
+  apiKeyId      String
+  userId        String
+  endpoint      String
+  method        String
+  statusCode    Int?
+  responseTime  Int?     // milliseconds
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  
+  apiKey        APIKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([apiKeyId])
+  @@index([createdAt])
+  @@index([endpoint])
 }

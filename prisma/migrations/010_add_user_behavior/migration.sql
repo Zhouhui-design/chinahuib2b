@@ -9,12 +9,7 @@ CREATE TABLE IF NOT EXISTS "UserBehavior" (
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "duration" INTEGER,
     "metadata" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE,
-    FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL,
-    FOREIGN KEY ("sellerId") REFERENCES "Seller"("id") ON DELETE SET NULL,
-    FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for performance
