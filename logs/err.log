@@ -1,0 +1,105 @@
+2026-05-20 22:45:35 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:45:35 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:45:35 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:45:35 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:45:35 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:45:35 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:45:35 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:45:35 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:45:35 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:45:35 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:45:35 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:45:35 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:45:35 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:45:35 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:45:35 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:45:35 +08:00:   digest: '168193216'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:45:35 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:45:35 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:45:35 +08:00:   digest: '2274808587'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:45:35 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:45:35 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:45:35 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:45:35 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:45:35 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:45:35 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:45:35 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:45:35 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:45:35 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:45:35 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:45:35 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:45:35 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:45:35 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:45:35 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:45:35 +08:00:   digest: '168193216'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:45:35 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:45:35 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:45:35 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:45:35 +08:00:   digest: '2274808587'
+2026-05-20 22:45:35 +08:00: }
+2026-05-20 22:46:38 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:46:38 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:46:38 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:46:38 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:46:38 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:46:38 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:46:38 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:46:38 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:46:38 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:46:38 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:46:38 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:46:38 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:46:38 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:46:38 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:46:38 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:46:38 +08:00:   digest: '168193216'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:46:38 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:46:38 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:46:38 +08:00:   digest: '2274808587'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:46:38 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:46:38 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:46:38 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:46:38 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:46:38 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:46:38 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00: [next-auth][error][NO_SECRET] 
+2026-05-20 22:46:38 +08:00: https://next-auth.js.org/errors#no_secret Please define a `secret` in production. Error [MissingSecretError]: Please define a `secret` in production.
+2026-05-20 22:46:38 +08:00:     at b.assertConfig (.next/server/chunks/8858.js:10:68568)
+2026-05-20 22:46:38 +08:00:     at q (.next/server/chunks/8858.js:10:37092)
+2026-05-20 22:46:38 +08:00:     at async h (.next/server/chunks/8858.js:1:2932)
+2026-05-20 22:46:38 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:46:38 +08:00:   code: 'NO_SECRET'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:46:38 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:46:38 +08:00:     at async l (.next/server/chunks/2833.js:3:1589) {
+2026-05-20 22:46:38 +08:00:   digest: '168193216'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:46:38 +08:00:  ⨯ Error: There is a problem with the server configuration. Check the server logs for more information.
+2026-05-20 22:46:38 +08:00:     at h (.next/server/chunks/8858.js:1:3180)
+2026-05-20 22:46:38 +08:00:     at async k (.next/server/app/(dashboard)/seller/page.js:1:834) {
+2026-05-20 22:46:38 +08:00:   digest: '2274808587'
+2026-05-20 22:46:38 +08:00: }
+2026-05-20 22:47:03 +08:00:  ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
