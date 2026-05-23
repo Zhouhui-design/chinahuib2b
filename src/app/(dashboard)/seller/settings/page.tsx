@@ -85,7 +85,8 @@ export default function SellerSettingsPage() {
     const cookies = document.cookie.split(';')
     const langCookie = cookies.find(c => c.trim().startsWith('language='))
     if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
+      const lang = langCookie.split('=')[1]
+      setLanguage(lang || 'en')
     }
   }, [])
   
@@ -290,6 +291,18 @@ export default function SellerSettingsPage() {
     }
   }
   
+  const isNewSeller = !profileData.companyName
+
+  const onboardingSteps = [
+    { id: 1, key: 'company', label: language === 'zh' ? '完善公司信息' : 'Complete Company Info', completed: !!profileData.companyName },
+    { id: 2, key: 'contact', label: language === 'zh' ? '填写联系方式' : 'Add Contact Details', completed: !!profileData.phone || !!profileData.email },
+    { id: 3, key: 'description', label: language === 'zh' ? '编写公司简介' : 'Write Company Description', completed: !!profileData.description },
+    { id: 4, key: 'verification', label: language === 'zh' ? '上传认证文件（可选）' : 'Upload Verification Docs (Optional)', completed: verificationFiles.length > 0 },
+  ]
+
+  const completedSteps = onboardingSteps.filter(s => s.completed).length
+  const progressPercent = Math.round((completedSteps / onboardingSteps.length) * 100)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -298,6 +311,76 @@ export default function SellerSettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
         </div>
       </div>
+
+      {isNewSeller && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  {language === 'zh' ? '👋 欢迎加入 ChinaHui B2B！' : '👋 Welcome to ChinaHui B2B!'}
+                </h2>
+                <p className="mt-1 text-blue-100">
+                  {language === 'zh' ? '完成以下步骤，开始您的销售之旅' : 'Complete the steps below to start selling'}
+                </p>
+              </div>
+              <div className="hidden md:flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm text-blue-100">{language === 'zh' ? '完成进度' : 'Progress'}</p>
+                  <p className="text-2xl font-bold">{completedSteps}/{onboardingSteps.length}</p>
+                </div>
+                <div className="w-32 h-2 bg-white/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {onboardingSteps.map((step) => (
+                <button
+                  key={step.id}
+                  onClick={() => {
+                    if (step.key === 'company' || step.key === 'contact' || step.key === 'description') {
+                      setActiveTab('profile')
+                    } else if (step.key === 'verification') {
+                      setActiveTab('verification')
+                    }
+                  }}
+                  className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                    step.completed
+                      ? 'bg-white/20 text-white'
+                      : 'bg-white/10 text-white/80 hover:bg-white/20'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    step.completed ? 'bg-green-500' : 'bg-white/30'
+                  }`}>
+                    {step.completed ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <span className="text-sm font-bold">{step.id}</span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium">{step.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 flex md:hidden items-center gap-3">
+              <div className="flex-1 h-2 bg-white/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium">{progressPercent}%</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">

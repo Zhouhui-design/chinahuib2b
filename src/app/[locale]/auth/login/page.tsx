@@ -43,6 +43,7 @@ function LoginForm() {
     signIn: locale === 'zh' ? '登录' : 'Sign in',
     signingIn: locale === 'zh' ? '登录中...' : 'Signing in...',
     registrationSuccess: locale === 'zh' ? '注册成功！请登录。' : 'Registration successful! Please sign in.',
+    forgotPassword: locale === 'zh' ? '忘记密码？' : 'Forgot Password?',
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,6 +125,15 @@ function LoginForm() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Link
+              href={`/${locale}/auth/forgot-password`}
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              {t.forgotPassword}
+            </Link>
           </div>
 
           <div>

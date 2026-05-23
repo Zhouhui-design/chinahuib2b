@@ -50,7 +50,7 @@ type AuctionListing = {
 }
 
 export default function AuctionScreenPage() {
-  const { data: session } = useSession()
+  const { data: session } = useSession() ?? { data: null }
   const [activeTab, setActiveTab] = useState<'selling' | 'buying'>('selling')
   const [listings, setListings] = useState<AuctionListing[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -338,7 +338,7 @@ function CreateListingModal({
   onClose: () => void
   onCreated: (listing: AuctionListing) => void
 }) {
-  const { data: session } = useSession()
+  const { data: session } = useSession() ?? { data: null }
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: '',

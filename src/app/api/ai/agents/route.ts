@@ -70,36 +70,88 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const apiKey = request.headers.get('x-api-key')
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'API key required' },
-        { status: 401 }
-      )
-    }
+    const url = new URL(request.url)
+    const ownerId = url.searchParams.get('ownerId')
+    const agentId = url.searchParams.get('agentId')
 
-    const agent = await prisma.aIAgent.findFirst({
-      where: { apiKey, status: 'ACTIVE' }
-    })
+    if (agentId) {
+      const agent = await prisma.aIAgent.findUnique({
+        where: { id: agentId }
+      })
 
-    if (!agent) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid API key' },
-        { status: 401 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        id: agent.id,
-        name: agent.name,
-        capabilities: agent.capabilities,
-        permissions: agent.permissions,
-        status: agent.status,
-        createdAt: agent.createdAt,
+      if (!agent) {
+        return NextResponse.json(
+          { success: false, error: 'Agent not found' },
+          { status: 404 }
+        )
       }
-    })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: agent.id,
+          name: agent.name,
+          description: agent.description,
+          capabilities: agent.capabilities,
+          status: agent.status,
+          createdAt: agent.createdAt,
+          lastActiveAt: agent.lastActiveAt,
+        }
+      })
+    }
+
+    if (ownerId) {
+      const agents = await prisma.aIAgent.findMany({
+        where: { ownerId },
+        orderBy: { createdAt: 'desc' }
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          agents: agents.map(agent => ({
+            id: agent.id,
+            name: agent.name,
+            description: agent.description,
+            capabilities: agent.capabilities,
+            status: agent.status,
+            createdAt: agent.createdAt.toISOString(),
+            lastActiveAt: agent.lastActiveAt?.toISOString() || null,
+          }))
+        }
+      })
+    }
+
+    const apiKey = request.headers.get('x-api-key')
+    if (apiKey) {
+      const agent = await prisma.aIAgent.findFirst({
+        where: { apiKey, status: 'ACTIVE' }
+      })
+
+      if (!agent) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid API key' },
+          { status: 401 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: agent.id,
+          name: agent.name,
+          capabilities: agent.capabilities,
+          permissions: agent.permissions,
+          status: agent.status,
+          createdAt: agent.createdAt,
+        }
+      })
+    }
+
+    return NextResponse.json(
+      { success: false, error: 'ownerId or x-api-key header required' },
+      { status: 400 }
+    )
   } catch (error) {
     console.error('AI Agent fetch error:', error)
     return NextResponse.json(

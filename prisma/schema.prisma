@@ -39,6 +39,10 @@ model User {
   isOnline        Boolean  @default(false) // Online status
   lastSeenAt      DateTime? // Last seen timestamp
   
+  // Password reset
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  
   // Relations
   sellerProfile SellerProfile?
   inquiries     Inquiry[]

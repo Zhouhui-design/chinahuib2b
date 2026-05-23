@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Package, Plus, Edit, Trash2, Eye, AlertCircle } from 'lucide-react'
+import { Package, Plus, Edit, Trash2, Eye, AlertCircle, Bot } from 'lucide-react'
 
 interface Product {
   id: string
@@ -10,10 +10,11 @@ interface Product {
   mainImageUrl: string
   viewCount: number
   isActive: boolean
+  isAIGenerated?: boolean
+  price?: number
+  currency?: string
+  category?: { name: string } | string
   createdAt: string
-  category: {
-    name: string
-  }
 }
 
 interface PaginationInfo {
@@ -21,6 +22,8 @@ interface PaginationInfo {
   limit: number
   total: number
   totalPages: number
+  dbProductsCount?: number
+  aiProductsCount?: number
 }
 
 export default function ProductsPage() {
@@ -34,13 +37,13 @@ export default function ProductsPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/products?page=${page}&limit=20`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch products')
       }
-      
+
       const data = await response.json()
       setProducts(data.products)
       setPagination(data.pagination)
@@ -70,14 +73,18 @@ export default function ProductsPage() {
         throw new Error('Failed to delete product')
       }
 
-      // Remove from local state (optimistic update)
       setProducts(products.filter(p => p.id !== productId))
-      
-      // Show success message
+
       alert('Product deleted successfully')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to delete product')
     }
+  }
+
+  const getCategoryName = (category: { name: string } | string | undefined): string => {
+    if (!category) return 'Uncategorized'
+    if (typeof category === 'string') return category
+    return category.name
   }
 
   if (loading) {
@@ -110,24 +117,36 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
           <p className="text-sm text-gray-600 mt-1">
             Manage your product listings ({pagination?.total || 0} total)
+            {pagination?.aiProductsCount !== undefined && pagination.aiProductsCount > 0 && (
+              <span className="ml-2 text-blue-600">
+                ({pagination.dbProductsCount || 0} manual + {pagination.aiProductsCount} AI)
+              </span>
+            )}
           </p>
         </div>
-        <Link
-          href="/seller/products/new"
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Product
-        </Link>
+        <div className="flex items-center space-x-3">
+          <Link
+            href="/seller/ai-management"
+            className="flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Bot className="w-4 h-4 mr-2" />
+            AI Products
+          </Link>
+          <Link
+            href="/seller/products/new"
+            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Product
+          </Link>
+        </div>
       </div>
 
-      {/* Products Table */}
       {products.length > 0 ? (
         <>
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -139,6 +158,9 @@ export default function ProductsPage() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Views
@@ -173,14 +195,25 @@ export default function ProductsPage() {
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 flex items-center">
                             {product.title}
+                            {product.isAIGenerated && (
+                              <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full flex items-center">
+                                <Bot className="w-3 h-3 mr-1" />
+                                AI
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{product.category.name}</div>
+                      <div className="text-sm text-gray-900">{getCategoryName(product.category)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {product.price ? `${product.currency || 'USD'} ${product.price}` : '-'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 flex items-center">
@@ -210,13 +243,15 @@ export default function ProductsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <Link
-                          href={`/seller/products/${product.id}/edit`}
-                          className="text-indigo-600 hover:text-indigo-900"
-                          title="Edit product"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Link>
+                        {!product.isAIGenerated && (
+                          <Link
+                            href={`/seller/products/${product.id}/edit`}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit product"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                        )}
                         <button
                           onClick={() => handleDelete(product.id, product.title)}
                           className="text-red-600 hover:text-red-900"
@@ -232,7 +267,6 @@ export default function ProductsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between bg-white px-4 py-3 border border-gray-200 sm:px-6 rounded-lg">
               <div className="flex-1 flex justify-between sm:hidden">
@@ -301,13 +335,22 @@ export default function ProductsPage() {
           <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
           <p className="text-gray-600 mb-6">Start by adding your first product to showcase to buyers.</p>
-          <Link
-            href="/seller/products/new"
-            className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Your First Product
-          </Link>
+          <div className="flex justify-center space-x-4">
+            <Link
+              href="/seller/ai-management"
+              className="inline-flex items-center bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Bot className="w-5 h-5 mr-2" />
+              Create with AI
+            </Link>
+            <Link
+              href="/seller/products/new"
+              className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Manually
+            </Link>
+          </div>
         </div>
       )}
     </div>
