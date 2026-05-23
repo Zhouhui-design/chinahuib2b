@@ -28,7 +28,6 @@ export const authOptions: AuthOptions = {
           throw new Error("Account is deactivated due to inactivity")
         }
         
-        // Update last login
         await prisma.user.update({
           where: { id: user.id },
           data: { lastLoginAt: new Date() }
@@ -71,11 +70,3 @@ const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
 export const auth = () => getServerSession(authOptions)
-export const signIn = async (provider: string, options: any) => {
-  // Placeholder - implement as needed
-  return null
-}
-export const signOut = async (options: any) => {
-  // Placeholder - implement as needed
-  return null
-}
