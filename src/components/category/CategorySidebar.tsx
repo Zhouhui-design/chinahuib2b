@@ -12,23 +12,47 @@ type Category = {
   children?: Category[];
 };
 
+function useLanguage() {
+  const [language, setLanguage] = useState('en');
+
+  useEffect(() => {
+    const cookies = document.cookie.split(';');
+    const langCookie = cookies.find(c => c.trim().startsWith('language='));
+    if (langCookie) {
+      setLanguage(langCookie.split('=')[1]);
+    }
+
+    const interval = setInterval(() => {
+      const cookies = document.cookie.split(';');
+      const langCookie = cookies.find(c => c.trim().startsWith('language='));
+      if (langCookie) {
+        setLanguage(langCookie.split('=')[1]);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return language;
+}
+
 export default function CategorySidebar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(true); // 默认显示
+  const [isOpen, setIsOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get('category');
+  const language = useLanguage();
 
-  // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [language]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories/tree');
+      const response = await fetch(`/api/categories/tree?locale=${language}`);
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || []);
@@ -58,7 +82,6 @@ export default function CategorySidebar() {
     setIsOpen(!isOpen);
   };
 
-  // 渲染单个分类项（递归）
   const renderCategory = (category: Category, depth: number = 0) => {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedCategories.has(category.id);
@@ -98,7 +121,6 @@ export default function CategorySidebar() {
           )}
         </div>
 
-        {/* 子分类 */}
         {hasChildren && isExpanded && (
           <div className="mt-1">
             {category.children!.map((child) => renderCategory(child, depth + 1))}
@@ -110,11 +132,10 @@ export default function CategorySidebar() {
 
   return (
     <>
-      {/* 切换按钮 */}
       <button
         onClick={toggleSidebar}
         className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors border border-gray-200"
-        title={isOpen ? '隐藏分类菜单' : '显示分类菜单'}
+        title={isOpen ? 'Hide Categories' : 'Show Categories'}
       >
         {isOpen ? (
           <X className="w-5 h-5 text-gray-600" />
@@ -123,7 +144,6 @@ export default function CategorySidebar() {
         )}
       </button>
 
-      {/* 侧边栏 */}
       <aside
         className={`
           fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 shadow-sm z-30
@@ -133,7 +153,9 @@ export default function CategorySidebar() {
       >
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">📂 产品分类</h2>
+            <h2 className="text-lg font-bold text-gray-900">
+              {language === 'zh' ? '📂 产品分类' : language === 'es' ? '📂 Categorías' : '📂 Categories'}
+            </h2>
             <button
               onClick={toggleSidebar}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -152,13 +174,14 @@ export default function CategorySidebar() {
             </nav>
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p className="text-sm">暂无分类</p>
+              <p className="text-sm">
+                {language === 'zh' ? '暂无分类' : language === 'es' ? 'Sin categorías' : 'No categories available'}
+              </p>
             </div>
           )}
         </div>
       </aside>
 
-      {/* 侧边栏打开时的遮罩（移动端） */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"

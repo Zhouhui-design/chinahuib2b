@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import FileUpload from '@/components/ui/FileUpload'
 import { ArrowLeft, Save, X, Plus, Trash2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface Category {
   id: string
@@ -15,12 +16,13 @@ export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
   const productId = params.id as string
-  
+  const language = useSellerLanguage()
+
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Form state
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState('')
@@ -39,11 +41,11 @@ export default function EditProductPage() {
       fetchCategories(),
       fetchProduct()
     ]).finally(() => setLoading(false))
-  }, [productId])
+  }, [productId, language])
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories')
+      const response = await fetch(`/api/categories?locale=${language}`)
       if (response.ok) {
         const data = await response.json()
         setCategories(data.categories)
@@ -56,14 +58,14 @@ export default function EditProductPage() {
   const fetchProduct = async () => {
     try {
       const response = await fetch(`/api/products/${productId}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch product')
       }
-      
+
       const data = await response.json()
       const product = data.product
-      
+
       // Pre-fill form with existing data
       setTitle(product.title)
       setCategoryId(product.categoryId)
@@ -72,7 +74,7 @@ export default function EditProductPage() {
       setMainImageUrl(product.mainImageUrl || product.images?.[0] || '')
       setMinOrderQty(product.minOrderQty || '')
       setSupplyCapacity(product.supplyCapacity || '')
-      
+
       // Convert specifications object to array
       if (product.specifications && Object.keys(product.specifications).length > 0) {
         const specsArray = Object.entries(product.specifications).map(([key, value]) => ({
@@ -89,7 +91,7 @@ export default function EditProductPage() {
   const handleImageUpload = (data: any) => {
     const newImages = Array.isArray(data) ? data.map((d: any) => d.url) : [data.url]
     setImages(prev => [...prev, ...newImages])
-    
+
     // Set first image as main if not set
     if (!mainImageUrl && newImages.length > 0) {
       setMainImageUrl(newImages[0])
@@ -99,7 +101,7 @@ export default function EditProductPage() {
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
-    
+
     // Update main image if removed
     if (mainImageUrl === images[index]) {
       setMainImageUrl(newImages[0] || '')
@@ -119,7 +121,7 @@ export default function EditProductPage() {
   }
 
   const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
-    const newSpecs = specifications.map((spec, i) => 
+    const newSpecs = specifications.map((spec, i) =>
       i === index ? { ...spec, [field]: value } : spec
     )
     setSpecifications(newSpecs)
@@ -127,12 +129,12 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!title.trim()) {
       setError('Product title is required')
       return
     }
-    
+
     if (!categoryId) {
       setError('Please select a category')
       return
@@ -231,7 +233,7 @@ export default function EditProductPage() {
         {/* Basic Information */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
-          
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -285,7 +287,7 @@ export default function EditProductPage() {
         {/* Product Images */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Product Images</h2>
-          
+
           <FileUpload
             type="product_image"
             multiple={true}
@@ -383,7 +385,7 @@ export default function EditProductPage() {
         {/* Order & Supply Info */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Order & Supply Information</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

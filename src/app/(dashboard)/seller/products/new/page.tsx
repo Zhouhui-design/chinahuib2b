@@ -5,18 +5,21 @@ import { useRouter } from 'next/navigation'
 import FileUpload from '@/components/ui/FileUpload'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface Category {
   id: string
   name: string
+  nameEn?: string
 }
 
 export default function AddProductPage() {
   const router = useRouter()
+  const language = useSellerLanguage()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Form state
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState('')
@@ -29,15 +32,14 @@ export default function AddProductPage() {
     { key: '', value: '' }
   ])
 
-  // Fetch categories on mount
+  // Fetch categories on mount and when language changes
   useEffect(() => {
     fetchCategories()
-  }, [])
+  }, [language])
 
   const fetchCategories = async () => {
     try {
-      // For now, we'll use a simple fetch - in production, create an API endpoint
-      const response = await fetch('/api/categories')
+      const response = await fetch(`/api/categories?locale=${language}`)
       if (response.ok) {
         const data = await response.json()
         setCategories(data.categories)
@@ -50,7 +52,7 @@ export default function AddProductPage() {
   const handleImageUpload = (data: any) => {
     const newImages = Array.isArray(data) ? data.map((d: any) => d.url) : [data.url]
     setImages(prev => [...prev, ...newImages])
-    
+
     // Set first image as main if not set
     if (!mainImageUrl && newImages.length > 0) {
       setMainImageUrl(newImages[0])
@@ -60,7 +62,7 @@ export default function AddProductPage() {
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
-    
+
     // Update main image if removed
     if (mainImageUrl === images[index]) {
       setMainImageUrl(newImages[0] || '')
@@ -80,7 +82,7 @@ export default function AddProductPage() {
   }
 
   const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
-    const newSpecs = specifications.map((spec, i) => 
+    const newSpecs = specifications.map((spec, i) =>
       i === index ? { ...spec, [field]: value } : spec
     )
     setSpecifications(newSpecs)
@@ -88,12 +90,12 @@ export default function AddProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!title.trim()) {
       setError('Product title is required')
       return
     }
-    
+
     if (!categoryId) {
       setError('Please select a category')
       return
@@ -184,7 +186,7 @@ export default function AddProductPage() {
         {/* Basic Information */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
-          
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -238,7 +240,7 @@ export default function AddProductPage() {
         {/* Product Images */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Product Images</h2>
-          
+
           <FileUpload
             type="product_image"
             multiple={true}
@@ -336,7 +338,7 @@ export default function AddProductPage() {
         {/* Order & Supply Info */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Order & Supply Information</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
