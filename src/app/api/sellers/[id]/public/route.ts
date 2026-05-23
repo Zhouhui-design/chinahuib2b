@@ -4,10 +4,10 @@ import { cacheGetOrSet, CACHE_KEYS, CACHE_TTL } from '@/lib/cache'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const cacheKey = CACHE_KEYS.seller(id)
 
     // Use cache or fetch fresh data

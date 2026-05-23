@@ -10,7 +10,9 @@
     "seed": "tsx prisma/seed.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "cli": "node scripts/cli-tool.js",
+    "mcp": "tsx src/app/api/mcp/server.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -19,6 +21,7 @@
     "@auth/prisma-adapter": "^2.11.2",
     "@aws-sdk/client-s3": "^3.1036.0",
     "@aws-sdk/s3-request-presigner": "^3.1036.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",

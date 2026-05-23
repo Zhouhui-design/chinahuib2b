@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from '../src/lib/db'
 import bcrypt from 'bcryptjs'
 

@@ -1,26 +1,30 @@
 module.exports = {
   apps: [
     {
-      name: 'chinahuib2b-next',
-      script: 'node_modules/.bin/next',
+      name: 'chinahuib2b-prod',
+      script: 'npm',
       args: 'start',
-      cwd: '/home/sardenesy/projects/chinahuib2b',
+      cwd: '/var/www/chinahuib2b',
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '600M',
+      max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001,
-        NEXTAUTH_SECRET: 'super-secret-key-change-in-production-12345678',
-        NEXTAUTH_URL: 'https://chinahuib2b.top',
-        DATABASE_URL: 'postgresql://expo_dev:dev123@localhost:5432/global_expo_dev',
-        REDIS_URL: 'redis://localhost:6379'
+        PORT: 3000
       },
-      error_file: '/home/sardenesy/projects/chinahuib2b/logs/err.log',
-      out_file: '/home/sardenesy/projects/chinahuib2b/logs/out.log',
+      error_file: './logs/err.log',
+      out_file: './logs/out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      merge_logs: true
+      merge_logs: true,
+      // Advanced PM2 settings
+      kill_timeout: 5000,
+      listen_timeout: 3000,
+      shutdown_with_message: true,
+      // Auto restart settings
+      exp_backoff_restart_delay: 100,
+      max_restarts: 10,
+      min_uptime: '10s',
     }
   ]
-};
+}

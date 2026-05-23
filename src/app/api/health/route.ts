@@ -1,42 +1,103 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { redis } from '@/lib/redis'
-
 /**
- * Health check endpoint
- * Used by load balancers, monitoring systems, and CI/CD
+ * System Health Check Endpoint
+ * GET /api/health
  */
+
+import { NextResponse } from 'next/server'
+import { checkDatabaseHealth, getPoolStats } from '@/lib/db-optimized'
+import { checkRedisHealth, getRedisInfo } from '@/lib/redis-optimized'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+interface HealthCheckResult {
+  status: 'healthy' | 'unhealthy' | 'degraded'
+  timestamp: string
+  uptime: number
+  version: string
+  services: {
+    api: {
+      status: 'healthy'
+      responseTime: number
+    }
+    database: {
+      status: 'healthy' | 'unhealthy'
+      latency?: number
+      error?: string
+      poolStats?: {
+        total: number
+        idle: number
+        waiting: number
+      }
+    }
+    redis: {
+      status: 'healthy' | 'unhealthy'
+      latency?: number
+      error?: string
+      info?: {
+        connectedClients: string
+        usedMemory: string
+        uptime: string
+        version: string
+      }
+    }
+  }
+  environment: string
+}
+
 export async function GET() {
-  const health = {
-    status: 'healthy',
+  const apiStart = Date.now()
+
+  // Check database
+  const dbHealth = await checkDatabaseHealth()
+  const poolStats = getPoolStats()
+
+  // Check Redis
+  const redisHealth = await checkRedisHealth()
+  const redisInfo = await getRedisInfo()
+
+  // Calculate API response time
+  const apiResponseTime = Date.now() - apiStart
+
+  // Determine overall status
+  let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy'
+
+  if (dbHealth.status === 'unhealthy' || redisHealth.status === 'unhealthy') {
+    overallStatus = 'unhealthy'
+  } else if (
+    (dbHealth.latency && dbHealth.latency > 1000) ||
+    (redisHealth.latency && redisHealth.latency > 500)
+  ) {
+    overallStatus = 'degraded'
+  }
+
+  const result: HealthCheckResult = {
+    status: overallStatus,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    version: '1.0.0',
     services: {
-      database: 'unknown',
-      redis: 'unknown',
+      api: {
+        status: 'healthy',
+        responseTime: apiResponseTime,
+      },
+      database: {
+        status: dbHealth.status,
+        latency: dbHealth.latency,
+        error: dbHealth.error,
+        poolStats,
+      },
+      redis: {
+        status: redisHealth.status,
+        latency: redisHealth.latency,
+        error: redisHealth.error,
+        info: redisInfo || undefined,
+      },
     },
-    version: process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
   }
-  
-  try {
-    // Check database connection
-    await prisma.$queryRaw`SELECT 1`
-    health.services.database = 'ok'
-  } catch (error) {
-    health.services.database = 'error'
-    health.status = 'unhealthy'
-  }
-  
-  try {
-    // Check Redis connection
-    await redis.ping()
-    health.services.redis = 'ok'
-  } catch (error) {
-    health.services.redis = 'error'
-    health.status = 'unhealthy'
-  }
-  
-  const statusCode = health.status === 'healthy' ? 200 : 503
-  
-  return NextResponse.json(health, { status: statusCode })
+
+  const httpStatus = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503
+
+  return NextResponse.json(result, { status: httpStatus })
 }

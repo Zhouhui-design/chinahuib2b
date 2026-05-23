@@ -20,11 +20,11 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png',
 ];
 
-// API endpoints to cache
-const API_CACHE = [
-  '/api/products',
-  '/api/sellers',
-];
+// API endpoints to cache (reserved for future use)
+// const API_CACHE = [
+//   '/api/products',
+//   '/api/sellers',
+// ];
 
 /**
  * Install event - Cache static assets

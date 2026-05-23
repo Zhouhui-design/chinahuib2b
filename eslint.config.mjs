@@ -12,6 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Additional ignores
+    "coverage/**",
+    "node_modules/**",
+    "public/sw.js",
+    "*.test.ts",
+    "*.test.tsx",
+    "*.spec.ts",
+    "*.spec.tsx",
+    "prisma/seed*.ts",
+    "prisma/create-admin.ts",
   ]),
 ]);
 

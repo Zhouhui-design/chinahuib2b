@@ -1,183 +1,142 @@
-'use client'
-
-import { Metadata } from 'next'
-
 /**
- * 为产品页面生成 Schema.org 结构化数据
- * 帮助 AI 搜索引擎更好地理解和索引内容
+ * Schema.org Structured Data for chinahuib2b.top
+ * AI-First B2B Platform - Enhanced for AI Agent Discovery
  */
-export function generateProductSchema(product: {
-  id: string
-  name: string
-  description: string
-  price: number
-  currency: string
-  availability: 'InStock' | 'OutOfStock' | 'PreOrder'
-  brand?: string
-  category?: string
-  images?: string[]
-  rating?: {
-    value: number
-    count: number
-  }
-  seller: {
-    name: string
-    id: string
-  }
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description: product.description,
-    image: product.images?.[0],
-    brand: product.brand ? {
-      '@type': 'Brand',
-      name: product.brand,
-    } : undefined,
-    offers: {
-      '@type': 'Offer',
-      url: `https://chinahuib2b.top/products/${product.id}`,
-      priceCurrency: product.currency,
-      price: product.price,
-      availability: `https://schema.org/${product.availability}`,
-      seller: {
-        '@type': 'Organization',
-        name: product.seller.name,
-      },
+
+export const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "China Hui B2B",
+  "alternateName": [
+    "chinahuib2b.top",
+    "Global Expo Network"
+  ],
+  "url": "https://chinahuib2b.top",
+  "logo": "https://chinahuib2b.top/logo.png",
+  "description": "AI-first global B2B marketplace connecting buyers and sellers worldwide with AI-powered tools",
+  "sameAs": [
+    "https://twitter.com/chinahuib2b",
+    "https://linkedin.com/company/chinahuib2b"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "availableLanguage": ["English", "Chinese", "Spanish", "Arabic", "French", "German", "Russian", "Japanese", "Korean", "Portuguese"]
+  },
+  "areaServed": "Worldwide",
+  "knowsAbout": [
+    "B2B E-commerce",
+    "International Trade",
+    "Wholesale",
+    "Manufacturing",
+    "Supply Chain",
+    "AI-Powered Commerce"
+  ]
+}
+
+export const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "China Hui B2B",
+  "url": "https://chinahuib2b.top",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://chinahuib2b.top/products?search={search_term_string}"
     },
-    aggregateRating: product.rating ? {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating.value,
-      reviewCount: product.rating.count,
-    } : undefined,
+    "query-input": "required name=search_term_string"
+  },
+  "inLanguage": ["en", "zh", "es", "ar", "fr", "de", "ru", "ja", "ko", "pt", "hi", "tr", "th", "id", "vi"],
+  "description": "AI-driven B2B marketplace for global trade with multi-language support"
+}
+
+export const marketplaceSchema = {
+  "@context": "https://schema.org",
+  "@type": "OnlineMarketplace",
+  "name": "China Hui B2B Marketplace",
+  "url": "https://chinahuib2b.top/marketplace",
+  "description": "Task marketplace where anyone or any AI can post and complete business tasks",
+  "provider": {
+    "@type": "Organization",
+    "name": "China Hui B2B",
+    "url": "https://chinahuib2b.top"
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "USD",
+    "lowPrice": "0",
+    "highPrice": "999999",
+    "offerCount": "1000+"
   }
 }
 
-/**
- * 为店铺页面生成 Schema.org 结构化数据
- */
-export function generateStoreSchema(store: {
-  id: string
-  name: string
-  description: string
-  url: string
-  logo?: string
-  address?: {
-    streetAddress: string
-    addressLocality: string
-    addressRegion: string
-    postalCode: string
-    addressCountry: string
+export const productSchema = (product: any) => ({
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": product.title,
+  "description": product.description || "",
+  "image": product.mainImageUrl || "https://chinahuib2b.top/default-product.jpg",
+  "brand": {
+    "@type": "Brand",
+    "name": product.seller?.companyName || "Unknown Seller"
+  },
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": product.currency || "USD",
+    "price": product.price || "0",
+    "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    "seller": {
+      "@type": "Organization",
+      "name": product.seller?.companyName || ""
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": product.rating || "4.5",
+    "reviewCount": product.reviewCount || "0"
   }
-  contactPoint?: {
-    telephone: string
-    contactType: string
-    availableLanguage: string[]
-  }
-  rating?: {
-    value: number
-    count: number
-  }
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Store',
-    name: store.name,
-    description: store.description,
-    url: store.url,
-    logo: store.logo,
-    address: store.address ? {
-      '@type': 'PostalAddress',
-      ...store.address,
-    } : undefined,
-    contactPoint: store.contactPoint ? {
-      '@type': 'ContactPoint',
-      ...store.contactPoint,
-    } : undefined,
-    aggregateRating: store.rating ? {
-      '@type': 'AggregateRating',
-      ratingValue: store.rating.value,
-      reviewCount: store.rating.count,
-    } : undefined,
-  }
+})
+
+export const sellerSchema = (seller: any) => ({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": seller.companyName,
+  "description": seller.companyDescription || "",
+  "url": `https://chinahuib2b.top/stores/${seller.id}`,
+  "logo": seller.logoUrl || "",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": seller.address || "",
+    "addressLocality": seller.city || "",
+    "addressCountry": seller.country || ""
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "sales",
+    "email": seller.email || "",
+    "telephone": seller.phone || ""
+  },
+  "sameAs": seller.website ? [seller.website] : []
+})
+
+export const apiDocumentationSchema = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "China Hui B2B API Documentation",
+  "description": "Complete API documentation for AI agents to integrate with China Hui B2B platform",
+  "url": "https://chinahuib2b.top/api/docs",
+  "author": {
+    "@type": "Organization",
+    "name": "China Hui B2B"
+  },
+  "datePublished": "2026-05-21",
+  "dateModified": "2026-05-21",
+  "articleSection": "API Documentation",
+  "keywords": ["API", "B2B", "AI Integration", "MCP", "REST", "WebSocket"]
 }
 
-/**
- * 为 FAQ 页面生成 Schema.org 结构化数据
- */
-export function generateFAQSchema(faqs: Array<{
-  question: string
-  answer: string
-}>) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs.map(faq => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer,
-      },
-    })),
-  }
+// Helper function to generate JSON-LD script tag
+export const generateJsonLd = (schema: any) => {
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
 }
-
-/**
- * 为 Breadcrumb 生成 Schema.org 结构化数据
- */
-export function generateBreadcrumbSchema(items: Array<{
-  name: string
-  url: string
-  position: number
-}>) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map(item => ({
-      '@type': 'ListItem',
-      position: item.position,
-      name: item.name,
-      item: item.url,
-    })),
-  }
-}
-
-/**
- * 为 Organization 生成 Schema.org 结构化数据
- */
-export function generateOrganizationSchema(org: {
-  name: string
-  url: string
-  logo?: string
-  sameAs?: string[]  // 社交媒体链接
-  contactPoint?: {
-    telephone: string
-    contactType: string
-    email?: string
-  }
-}) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: org.name,
-    url: org.url,
-    logo: org.logo,
-    sameAs: org.sameAs,
-    contactPoint: org.contactPoint ? {
-      '@type': 'ContactPoint',
-      ...org.contactPoint,
-    } : undefined,
-  }
-}
-
-/**
- * 在 React 组件中使用示例
- * 
- * import Script from 'next/script'
- * import { generateProductSchema } from '@/lib/schema-org'
- * 
- * const schema = generateProductSchema(product)
- * <Script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
- */

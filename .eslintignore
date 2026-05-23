@@ -1,0 +1,20 @@
+# Generated files
+.next/
+node_modules/
+coverage/
+public/sw.js
+
+# Build output
+out/
+dist/
+build/
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Seed files (have unused variables by design)
+prisma/seed*.ts
+prisma/create-admin.ts

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { proofId: string } }
+  { params }: { params: Promise<{ proofId: string }> }
 ) {
   try {
     const session = await auth();

@@ -94,16 +94,39 @@ export default async function HomePage() {
       <DisclaimerTicker />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
+      <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Welcome to the Global Exhibition Hall
+            🌍 Welcome to Global B2B Trading Hub
           </h1>
           <p className="text-xl mb-8">
-            Discover quality products from manufacturers worldwide
+            Buy, Sell, Chat & Trade with the World
           </p>
-          <div className="inline-block bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold">
-            Browse Exhibits • Connect with Suppliers • Download Brochures
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <Link
+              href="/chat-hall"
+              className="bg-white/20 hover:bg-white/30 backdrop-blur px-6 py-4 rounded-xl transition"
+            >
+              <div className="text-3xl mb-2">💬</div>
+              <h3 className="font-bold mb-1">Chat Hall</h3>
+              <p className="text-sm opacity-90">Public Chat & Shout Outs</p>
+            </Link>
+            <Link
+              href="/auction-screen"
+              className="bg-white/20 hover:bg-white/30 backdrop-blur px-6 py-4 rounded-xl transition"
+            >
+              <div className="text-3xl mb-2">🏪</div>
+              <h3 className="font-bold mb-1">Auction Screen</h3>
+              <p className="text-sm opacity-90">Buy & Sell Listings</p>
+            </Link>
+            <Link
+              href="/stores"
+              className="bg-white/20 hover:bg-white/30 backdrop-blur px-6 py-4 rounded-xl transition"
+            >
+              <div className="text-3xl mb-2">🏪</div>
+              <h3 className="font-bold mb-1">Exhibitor Booths</h3>
+              <p className="text-sm opacity-90">Visit & Customize Booths</p>
+            </Link>
           </div>
         </div>
       </section>
@@ -213,9 +236,25 @@ export default async function HomePage() {
             </div>
             <div>
               <h3 className="font-bold mb-2">Contact</h3>
-              <p className="text-sm text-gray-400">
-                For support: support@chinahuib2b.top
+              <p className="text-sm text-gray-400 mb-2">
+                Email: support@chinahuib2b.top
               </p>
+              <p className="text-sm text-gray-400 mb-4">
+                Skype: aardenx@outlook.com
+              </p>
+              <div className="flex space-x-3">
+                <a 
+                  href="skype:aardenx@outlook.com?chat"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+                  title="Skype"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.84 13.58c-.28.28-.66.44-1.07.44h-1.29c-.41 0-.79-.16-1.07-.44l-1.41-1.41c-.28-.28-.44-.66-.44-1.07v-1.29c0-.41.16-.79.44-1.07l1.41-1.41c.28-.28.66-.44 1.07-.44h1.29c.41 0 .79.16 1.07.44l1.41 1.41c.28.28.44.66.44 1.07v1.29c0 .41-.16.79-.44 1.07l-1.41 1.41zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">

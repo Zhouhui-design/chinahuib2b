@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 
 // Polyfill for Web APIs in Node.js environment
 global.Request = global.Request || class Request {
-  constructor(input: string | Request, init?: RequestInit) {}
+  constructor(_input: string | Request, _init?: RequestInit) {}
   url = ''
   method = 'GET'
   headers = new Headers()
@@ -10,7 +10,7 @@ global.Request = global.Request || class Request {
 }
 
 global.Response = global.Response || class Response {
-  constructor(body?: BodyInit, init?: ResponseInit) {}
+  constructor(_body?: BodyInit, _init?: ResponseInit) {}
   status = 200
   ok = true
   headers = new Headers()
@@ -20,10 +20,10 @@ global.Response = global.Response || class Response {
 }
 
 global.Headers = global.Headers || class Headers {
-  constructor(init?: HeadersInit) {}
-  get(name: string) { return null }
-  set(name: string, value: string) {}
-  has(name: string) { return false }
+  constructor(_init?: HeadersInit) {}
+  get(_name: string) { return null }
+  set(_name: string, _value: string) {}
+  has(_name: string) { return false }
 }
 
 // Mock Next.js router

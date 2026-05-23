@@ -6,7 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// User accounts (buyers and sellers)
+// User accounts (buyers and sellers, humans and AI agents)
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -27,6 +27,18 @@ model User {
   bio           String?   // Short bio/description
   avatarUrl     String?   // Profile picture
   
+  // AI Agent specific fields
+  aiProvider    String?   // OpenAI, Claude, Gemini, etc.
+  aiModel       String?   // GPT-4, Claude-3, etc.
+  aiCapabilities Json?    // What this AI can do
+  isSystemAI    Boolean   @default(false) // True for platform-owned AI
+  
+  // New features for user vision
+  dailyShoutOuts Int      @default(10) // Daily shout out counter
+  lastShoutOutDate DateTime? // Last shout out date
+  isOnline        Boolean  @default(false) // Online status
+  lastSeenAt      DateTime? // Last seen timestamp
+  
   // Relations
   sellerProfile SellerProfile?
   inquiries     Inquiry[]
@@ -35,15 +47,29 @@ model User {
   paymentProofs PaymentProof[]
   apiKeys       APIKey[]
   apiUsageLogs  APIUsageLog[]
+  marketplaceTasks MarketplaceTask[]
+  taskApplications TaskApplication[]
+  publicMessages PublicMessage[]
+  privateMessages PrivateMessage[]
+  auctionListings AuctionListing[]
+  shoutOuts     ShoutOut[]
+  boothViews    BoothView[]
+  digitalVoucherTransactions DigitalVoucherTransaction[]
   
   @@index([email])
   @@index([lastLoginAt])
+  @@index([role])
+  @@index([isOnline])
+  @@index([dailyShoutOuts])
 }
 
 enum UserRole {
   BUYER
   SELLER
   ADMIN
+  AI_BUYER     // AI buyer agent
+  AI_SELLER    // AI seller agent
+  AI_ASSISTANT // System AI assistant (platform-owned)
 }
 
 // Seller/Store profiles
@@ -71,10 +97,21 @@ model SellerProfile {
   bannerUrl       String?
   certifications  String[] // Array of certification names
   
-  // Booth customization
+  // Booth customization - Enhanced for user vision
   boothName       String?  // Custom exhibitor booth name
   boothCategories String[] // Product categories (multi-select)
   isCustomizable  Boolean  @default(false) // Whether products can be customized
+  
+  // Advanced Booth Customization
+  boothTheme      String?  // Light/Dark/Vibrant/etc
+  boothLayout     String?  // Layout type (modern/classic/grid)
+  boothColor      String?  // Primary color (hex)
+  boothBgImage    String?  // Background image URL
+  boothAccentImage String? // Accent/decorative image
+  boothFont       String?  // Custom font choice
+  boothAnimations Boolean @default(false) // Enable smooth animations
+  booth3DPreview  Boolean @default(false) // 3D booth preview
+  boothTags       String[] // Tags for discoverability
   
   subscriptionStatus SubscriptionStatus @default(FREE_TRIAL)
   subscriptionExpiry DateTime?
@@ -94,6 +131,9 @@ model SellerProfile {
   contactViews    ContactView[]
   paymentProofs   PaymentProof[]
   verificationFiles SellerVerificationFile[]
+  boothCustomizations BoothCustomization[]
+  auctionListings AuctionListing[]
+  digitalVouchers DigitalVoucher[]
   
   @@index([companyName])
   @@index([country])
@@ -435,4 +475,488 @@ model APIUsageLog {
   @@index([apiKeyId])
   @@index([createdAt])
   @@index([endpoint])
+}
+
+// Marketplace Tasks (Task Hall)
+model MarketplaceTask {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  type          TaskType
+  
+  // Pricing
+  budget        Decimal?      @db.Decimal(10, 2)
+  price         Decimal?      @db.Decimal(10, 2)
+  currency      String        @default("USD")
+  unit          String?       // e.g., "per unit", "per hour"
+  minOrderQty   Int?
+  
+  // Timeline
+  deadline      DateTime?
+  
+  // Status
+  status        TaskStatus    @default(OPEN)
+  
+  // Metadata
+  postedById    String        // User ID who posted the task
+  postedBy      User          @relation(fields: [postedById], references: [id])
+  contactInfo   String?       // Contact email/phone
+  applications  Int           @default(0)
+  views         Int           @default(0)
+  rating        Decimal?      @db.Decimal(3, 2) // For service providers
+  
+  // Attachments
+  attachments   Json?         // Array of file URLs
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  taskApplications TaskApplication[]
+  
+  @@index([status])
+  @@index([type])
+  @@index([postedById])
+  @@index([createdAt])
+}
+
+enum TaskType {
+  MANUFACTURING    // Looking for factory/manufacturer
+  PRODUCT_SALE     // Selling products
+  SERVICE          // Offering services
+}
+
+enum TaskStatus {
+  OPEN             // Accepting applications
+  IN_PROGRESS      // Negotiating or working
+  COMPLETED        // Task completed
+  CANCELLED        // Cancelled by poster
+}
+
+// Task Applications
+model TaskApplication {
+  id            String        @id @default(cuid())
+  taskId        String
+  task          MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  applicantId   String        // User ID who applied
+  applicant     User          @relation(fields: [applicantId], references: [id])
+  message       String        // Application message
+  quote         Decimal?      @db.Decimal(10, 2) // Quoted price
+  deliveryTime  String?       // Estimated delivery time
+  
+  status        ApplicationStatus @default(PENDING)
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@index([taskId])
+  @@index([applicantId])
+  @@index([status])
+}
+
+enum ApplicationStatus {
+  PENDING         // Awaiting review
+  ACCEPTED        // Application accepted
+  REJECTED        // Application rejected
+  WITHDRAWN       // Applicant withdrew
+}
+
+// ========================================
+// NEW FEATURES: Public Chat & Task Hall
+// ========================================
+
+// Public Chat Messages - Main public chat area
+model PublicMessage {
+  id        String   @id @default(cuid())
+  content   String   @db.Text // Message content
+  
+  // Sender info
+  senderId  String
+  sender    User     @relation("PublicMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  // Optional booth link - clicking username opens seller's booth
+  linkedSellerId String?
+  linkedSeller   SellerProfile? @relation("LinkedPublicMessages", fields: [linkedSellerId], references: [id], onDelete: Cascade)
+  
+  // Message metadata
+  isSystemMessage Boolean @default(false)
+  isAnnouncement  Boolean @default(false)
+  priority        Int     @default(0) // Higher = more visible
+  
+  // Reactions
+  reactions Json? // { "like": ["userId1", "userId2"], "fire": [...] }
+  
+  createdAt DateTime @default(now())
+  
+  @@index([createdAt])
+  @@index([senderId])
+  @@index([isAnnouncement])
+}
+
+// Private Messages - 1:1 chat
+model PrivateMessage {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  
+  // Participants
+  senderId  String
+  sender    User     @relation("PrivateMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("PrivateMessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  // Read status
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([senderId, receiverId])
+  @@index([receiverId, senderId])
+  @@index([createdAt])
+}
+
+// Public Shout Outs - Public announcements with cost
+model ShoutOut {
+  id           String   @id @default(cuid())
+  content      String   @db.Text
+  senderId     String
+  sender       User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  // Payment info
+  isFree       Boolean  @default(true)
+  cost         Decimal? @db.Decimal(10, 2) // $0.10 per paid shout out
+  paymentId    String?
+  
+  // Display settings
+  priority     Int      @default(1) // Display priority
+  expiresAt    DateTime? // When shout out expires
+  
+  // Engagement
+  viewCount    Int      @default(0)
+  clickCount   Int      @default(0)
+  reactions    Json?
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([priority])
+}
+
+// ========================================
+// Auction Screen - Sell & Buy Listings
+// ========================================
+
+model AuctionListing {
+  id           String           @id @default(cuid())
+  type         AuctionListingType // SELLING or BUYING
+  
+  // Listing details
+  title        String
+  description  String?
+  category     String?
+  tags         String[]
+  
+  // Pricing
+  price        Decimal?         @db.Decimal(10, 2)
+  currency     String           @default("USD")
+  minOrderQty  Int?
+  maxOrderQty  Int?
+  
+  // Media
+  images       String[]
+  videos       String[]
+  documents    String[]
+  
+  // Contact
+  contactEmail String?
+  contactPhone String?
+  contactWeChat String?
+  contactWhatsApp String?
+  
+  // Seller/Buyer info
+  posterId     String
+  poster       User             @relation(fields: [posterId], references: [id], onDelete: Cascade)
+  
+  // Optional seller profile link
+  sellerId     String?
+  seller       SellerProfile?   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  // Listing cost
+  isPaid       Boolean          @default(true)
+  cost         Decimal?         @db.Decimal(10, 2) // $0.10 per listing
+  paymentId    String?
+  
+  // Status
+  status       AuctionStatus    @default(ACTIVE)
+  views        Int              @default(0)
+  inquiries    Int              @default(0)
+  isVerified   Boolean          @default(false)
+  
+  expiresAt    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  
+  // Digital voucher support
+  digitalVoucherId String?
+  digitalVoucher   DigitalVoucher? @relation(fields: [digitalVoucherId], references: [id])
+  
+  @@index([type])
+  @@index([status])
+  @@index([posterId])
+  @@index([category])
+  @@index([createdAt])
+  @@index([isVerified])
+}
+
+enum AuctionListingType {
+  SELLING    // Selling products/services
+  BUYING     // Looking to buy products/services
+}
+
+enum AuctionStatus {
+  ACTIVE     // Currently listed
+  EXPIRED    // Listing expired
+  CLOSED     // Manually closed
+  COMPLETED  // Deal completed
+}
+
+// ========================================
+// Digital Voucher System
+// ========================================
+
+model DigitalVoucher {
+  id           String   @id @default(cuid())
+  sellerId     String
+  seller       SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  // Voucher details
+  title        String
+  description  String?
+  value        Decimal  @db.Decimal(10, 2) // Voucher face value
+  currency     String   @default("USD")
+  
+  // Redemption
+  redemptionCode String  @unique
+  isRedeemed   Boolean  @default(false)
+  redeemedById String?
+  redeemedAt   DateTime?
+  
+  // Validity
+  validFrom    DateTime
+  validUntil   DateTime?
+  
+  // Security
+  isVerified   Boolean  @default(false)
+  securityHash String?
+  
+  // Metadata
+  images       String[]
+  terms        String? // Terms & conditions
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  transactions DigitalVoucherTransaction[]
+  auctionListings AuctionListing[]
+  
+  @@index([sellerId])
+  @@index([redemptionCode])
+  @@index([isRedeemed])
+  @@index([isVerified])
+}
+
+model DigitalVoucherTransaction {
+  id           String   @id @default(cuid())
+  voucherId    String
+  voucher      DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  
+  buyerId      String?
+  buyer        User? @relation(fields: [buyerId], references: [id])
+  
+  // Transaction
+  amount       Decimal  @db.Decimal(10, 2)
+  currency     String   @default("USD")
+  transactionId String?
+  
+  // Verification
+  verifiedBy   String? // Admin/Pawnshop verification
+  verifiedAt   DateTime?
+  
+  // Delivery
+  deliveryInfo Json? // Shipping/delivery info
+  
+  status       VoucherTransactionStatus @default(PENDING)
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([voucherId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+enum VoucherTransactionStatus {
+  PENDING
+  VERIFIED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+// ========================================
+// Booth Customization & Analytics
+// ========================================
+
+model BoothCustomization {
+  id           String   @id @default(cuid())
+  sellerId     String
+  seller       SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  // Customization types
+  type         BoothCustomizationType
+  value        String?
+  config       Json? // Detailed configuration
+  
+  isActive     Boolean @default(true)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([sellerId])
+  @@index([type])
+}
+
+enum BoothCustomizationType {
+  THEME
+  COLOR_SCHEME
+  LAYOUT
+  BANNER
+  DECOR
+  ANIMATION
+  FONT
+  BACKGROUND
+}
+
+model BoothView {
+  id           String   @id @default(cuid())
+  sellerId     String
+  seller       SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  viewerId     String?
+  viewer       User? @relation(fields: [viewerId], references: [id])
+  
+  // Analytics
+  duration     Int? // Time spent in booth (seconds)
+  interactions Json? // Which products were clicked
+  referrer     String? // Where user came from
+  
+  // Device info
+  deviceType   String?
+  country      String?
+  city         String?
+  
+  viewedAt     DateTime @default(now())
+  
+  @@index([sellerId])
+  @@index([viewerId])
+  @@index([viewedAt])
+}
+
+// ========================================
+// AI Agent Permissions & Audit
+// ========================================
+
+model AIPermission {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  permission   String   // What the AI can do
+  isAllowed    Boolean  @default(true)
+  scope        Json?    // Limits/constraints
+  
+  grantedAt    DateTime @default(now())
+  expiresAt    DateTime?
+  
+  @@index([userId])
+  @@index([permission])
+}
+
+model AIAuditLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action       String   // What the AI did
+  target       String?  // What was acted upon
+  result       String?  // Success/failure
+  metadata     Json?    // Additional data
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
+model AIAgent {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+
+  capabilities String[] // What the AI can do
+  status       AIAgentStatus @default(PENDING)
+
+  ownerId      String
+  ownerType    OwnerType // USER, SELLER, SYSTEM
+
+  apiKey       String   @unique
+  secretKey    String
+
+  webhookUrl   String?
+
+  permissions  Json // AIPermission data
+
+  lastActiveAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auditLogs    AIAgentAuditLog[]
+
+  @@index([apiKey])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model AIAgentAuditLog {
+  id           String   @id @default(cuid())
+  agentId      String
+  agent        AIAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  action       String
+  status       String // SUCCESS, DENIED, ERROR
+  reason       String?
+  details      String?
+
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+enum AIAgentStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum OwnerType {
+  USER
+  SELLER
+  SYSTEM
 }

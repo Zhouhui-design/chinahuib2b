@@ -76,7 +76,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Failed to fetch sellers for sitemap:', error)
   }
 
-  // 4. 其他重要页面
+  // 4. Marketplace pages
+  const marketplacePages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/marketplace`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+  ]
+
+  // 5. Other important pages
   const otherPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/products`,
@@ -104,9 +114,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // 合并所有页面
+  // Merge all pages
   return [
     ...staticPages,
+    ...marketplacePages,
     ...otherPages,
     ...productPages,
     ...storePages,

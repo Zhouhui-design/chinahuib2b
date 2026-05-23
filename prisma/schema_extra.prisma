@@ -1,0 +1,61 @@
+model AIAgent {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+
+  capabilities String[] // What the AI can do
+  status       AIAgentStatus @default(PENDING)
+
+  ownerId      String
+  ownerType    OwnerType // USER, SELLER, SYSTEM
+
+  apiKey       String   @unique
+  secretKey    String
+
+  webhookUrl   String?
+
+  permissions  Json // AIPermission data
+
+  lastActiveAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auditLogs    AIAgentAuditLog[]
+
+  @@index([apiKey])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model AIAgentAuditLog {
+  id           String   @id @default(cuid())
+  agentId      String
+  agent        AIAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  action       String
+  status       String // SUCCESS, DENIED, ERROR
+  reason       String?
+  details      String?
+
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+enum AIAgentStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REVOKED
+}
+
+enum OwnerType {
+  USER
+  SELLER
+  SYSTEM
+}
