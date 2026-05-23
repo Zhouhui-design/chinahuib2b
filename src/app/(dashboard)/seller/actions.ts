@@ -1,7 +1,7 @@
 'use server'
 
-import { signOut } from 'next-auth'
+import { redirect } from 'next/navigation'
 
 export async function signOutAction() {
-  await signOut({ redirectTo: '/en' })
+  redirect('/api/auth/signout?callbackUrl=/en')
 }
