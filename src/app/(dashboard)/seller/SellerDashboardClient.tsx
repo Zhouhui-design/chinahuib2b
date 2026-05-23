@@ -28,6 +28,7 @@ type SellerDashboardProps = {
       viewCount: number
       inquiryCount: number
       createdAt: string
+      category?: { name?: string }
     }>
   }
 }
@@ -458,7 +459,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{product.title}</h3>
-                      <p className="text-sm text-gray-500">{product.category.name}</p>
+                      <p className="text-sm text-gray-500">{product.category?.name || ''}</p>
                       <p className="text-xs text-gray-400 mt-1">
                         {product.viewCount} {t.viewsCreated} {new Date(product.createdAt).toLocaleDateString()}
                       </p>

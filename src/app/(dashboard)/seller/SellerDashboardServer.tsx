@@ -71,7 +71,8 @@ export default async function SellerDashboardServer() {
     mainImageUrl: product.mainImageUrl || '',
     viewCount: product.viewCount || 0,
     inquiryCount: product.inquiryCount || 0,
-    createdAt: product.createdAt.toISOString()
+    createdAt: product.createdAt.toISOString(),
+    category: { name: product.category?.name || '' }
   }))
 
   return (
