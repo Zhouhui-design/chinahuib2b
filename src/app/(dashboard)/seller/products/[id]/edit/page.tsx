@@ -109,7 +109,10 @@ export default function EditProductPage() {
   }
 
   const setAsMainImage = (index: number) => {
-    setMainImageUrl(images[index])
+    const image = images[index]
+    if (image) {
+      setMainImageUrl(image)
+    }
   }
 
   const addSpecification = () => {

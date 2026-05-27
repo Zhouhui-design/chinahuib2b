@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create database record based on type
-    let result: any = { url: publicUrl, fileName: file.name, size: fileSize }
+    const result: any = { url: publicUrl, fileName: file.name, size: fileSize }
 
     if (type === 'brochure' && productId) {
       // Create product brochure record

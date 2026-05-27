@@ -48,7 +48,8 @@ export default function BuyerProfilePage() {
     const cookies = document.cookie.split(';')
     const langCookie = cookies.find(c => c.trim().startsWith('language='))
     if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
+      const lang = langCookie.split('=')[1]
+      setLanguage(lang || 'en')
     }
   }, [])
   

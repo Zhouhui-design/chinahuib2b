@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 // Get private messages with a user - GET /api/chat/private/[userId]
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -92,7 +92,7 @@ export async function GET(
 // Send private message - POST /api/chat/private/[userId]
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)

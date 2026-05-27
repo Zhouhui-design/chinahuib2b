@@ -10,7 +10,7 @@ export async function GET(
     const { id } = await params
     
     // Try to find in product brochures first
-    let brochure = await prisma.productBrochure.findUnique({
+    const brochure = await prisma.productBrochure.findUnique({
       where: { id },
       include: { product: true }
     })

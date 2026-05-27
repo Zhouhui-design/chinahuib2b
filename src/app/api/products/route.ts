@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       })
     ])
 
-    let aiProducts: any[] = []
+    const aiProducts: any[] = []
     let aiTotal = 0
 
     if (includeAI) {

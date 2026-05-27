@@ -9,11 +9,24 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+interface FormDataType {
+  title: string
+  description: string
+  type: string
+  budget: string
+  price: string
+  currency: string
+  unit: string
+  minOrderQty: string
+  deadline: string
+  contactInfo: string
+}
+
 export default function PostTaskPage() {
   const router = useRouter()
-  
+
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     title: '',
     description: '',
     type: 'MANUFACTURING',
