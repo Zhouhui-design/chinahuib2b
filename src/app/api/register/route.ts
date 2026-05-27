@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
+import { checkPasswordBreach, getPasswordStrength } from "@/lib/password-security"
 
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   role: z.enum(["BUYER", "SELLER"]).optional().default("BUYER"),
 })
 
@@ -48,7 +49,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
+    // Check password breach
+    const breachCheck = await checkPasswordBreach(password)
+    if (breachCheck.isBreached) {
+      return NextResponse.json(
+        {
+          error: "Password security issue detected",
+          details: breachCheck.message,
+          warning: "Please choose a different password that hasn't been exposed in data breaches."
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check password strength
+    const strength = getPasswordStrength(password)
+    if (strength.score < 40) {
+      return NextResponse.json(
+        {
+          error: "Password is too weak",
+          details: strength.feedback,
+          strength: strength.level
+        },
+        { status: 400 }
+      )
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
     
