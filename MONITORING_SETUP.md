@@ -1,44 +1,41 @@
 # 监控完善指南
 
 **日期**: 2026-05-28
-**状态**: 待实施
+**状态**: ⚡ 代码已部署，等待 API 凭据
 
 ---
 
 ## 推荐的监控工具
 
-### 1. 错误追踪 - Sentry
+### 1. 错误追踪 - Sentry ✅ 已集成
 
 Sentry 是最流行的错误追踪工具，可以实时捕获和报告生产环境的错误。
 
-#### 安装步骤
+#### 状态: 代码已完成 (2026-05-28)
 
-```bash
-# 安装 Sentry SDK
-npm install @sentry/nextjs
-```
+| 文件 | 说明 |
+|------|------|
+| `src/instrumentation-client.ts` | 客户端 SDK 初始化 + Session Replay |
+| `src/sentry.server.config.ts` | 服务端 SDK 初始化 |
+| `src/sentry.edge.config.ts` | Edge Runtime SDK 初始化 |
+| `src/instrumentation.ts` | Next.js Instrumentation Hook |
+| `next.config.ts` | withSentryConfig 包裹 |
+| `.env.local` | `NEXT_PUBLIC_SENTRY_DSN` 占位符 |
 
-#### 配置
+#### ⚠️ 待完成: 获取 DSN
 
-创建 `sentry.client.config.ts`:
+1. 用 `sardenesy@gmail.com` 注册 https://sentry.io/signup/
+2. 创建项目名 `chinahuib2b`，选择 Next.js 平台
+3. 复制 DSN (格式: `https://xxx@xxx.ingest.sentry.io/xxx`)
+4. 填入 `.env.local` 的 `NEXT_PUBLIC_SENTRY_DSN`
+5. 重新构建并部署
 
-```typescript
-import * as Sentry from '@sentry/nextjs';
-
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0,
-  replaysOnErrorSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
-});
-```
-
-#### 环境变量
-
-```bash
-# 在 .env.local 中添加
-NEXT_PUBLIC_SENTRY_DSN=您的Sentry DSN
-```
+#### 已配置特性
+- ✅ Error Monitoring
+- ✅ Tracing (dev: 100%, prod: 10%)
+- ✅ Session Replay (10% sessions, 100% on error)
+- ✅ Logs 集成
+- ✅ Router Transition Tracking
 
 ---
 
@@ -67,24 +64,26 @@ export default function RootLayout({ children }) {
 
 ---
 
-### 3. Uptime 监控 - UptimeRobot
+### 3. Uptime 监控 - UptimeRobot ⚡ 脚本已就绪
 
-免费的 uptime 监控服务，可以监控网站可用性。
+#### 状态: 自动化脚本完成 (2026-05-28)
 
-#### 设置步骤
+脚本位置: `scripts/setup-uptimerobot.sh`
 
-1. 注册 UptimeRobot: https://uptimerobot.com/
-2. 添加监控:
-   - 监控类型: HTTP(s)
-   - 监控间隔: 每 5 分钟
-   - 告警通道: 邮箱、Webhook
+#### ⚠️ 待完成: 获取 API Key
 
-#### 推荐监控端点
+1. 用 `sardenesy@gmail.com` 注册 https://uptimerobot.com/signup
+2. Dashboard → My Settings → API Keys → 创建 Read-Write API Key
+3. 运行: `bash scripts/setup-uptimerobot.sh YOUR_API_KEY`
 
+#### 监控端点
 ```
-https://chinahuib2b.top/api/health
 https://chinahuib2b.top/
+https://chinahuib2b.top/api/health
 ```
+- 检查间隔: 5 分钟
+- 超时: 30 秒
+- 告警: 需在 Dashboard 手动配置邮箱通知
 
 ---
 
@@ -124,9 +123,10 @@ if (typeof window !== 'undefined') {
 
 ## 快速部署清单
 
-- [ ] 注册 Sentry 账号并获取 DSN
-- [ ] 安装和配置 @sentry/nextjs
-- [ ] 设置 UptimeRobot 监控
+- [x] 安装和配置 @sentry/nextjs
+- [ ] 注册 Sentry 账号并获取 DSN (需 sardenesy@gmail.com)
+- [x] UptimeRobot 自动化脚本
+- [ ] 注册 UptimeRobot 获取 API Key (需 sardenesy@gmail.com)
 - [ ] 配置告警通道（邮件、Slack 等）
 - [ ] 测试告警是否正常工作
 
