@@ -2,28 +2,34 @@
 
 import { useState, useEffect } from 'react'
 
-export function useSellerLanguage() {
-  const [language, setLanguage] = useState('en')
-  
-  useEffect(() => {
-    // Get language from cookie
+function getLanguageFromCookie(): string {
+  if (typeof document !== 'undefined') {
     const cookies = document.cookie.split(';')
     const langCookie = cookies.find(c => c.trim().startsWith('language='))
     if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
+      return langCookie.split('=')[1] || 'en'
     }
+  }
+  return 'en'
+}
+
+export function useSellerLanguage() {
+  const [language, setLanguage] = useState<string>('en')
+  
+  useEffect(() => {
+    // Initial load
+    setLanguage(getLanguageFromCookie())
     
-    // Listen for language changes
-    const handleStorageChange = () => {
-      const cookies = document.cookie.split(';')
-      const langCookie = cookies.find(c => c.trim().startsWith('language='))
-      if (langCookie) {
-        setLanguage(langCookie.split('=')[1])
-      }
-    }
-    
-    // Check for language changes every second (since cookie changes don't trigger storage events)
-    const interval = setInterval(handleStorageChange, 1000)
+    // Poll for language changes every 100ms
+    const interval = setInterval(() => {
+      const currentLang = getLanguageFromCookie()
+      setLanguage(prev => {
+        if (prev !== currentLang) {
+          return currentLang
+        }
+        return prev
+      })
+    }, 100)
     
     return () => clearInterval(interval)
   }, [])

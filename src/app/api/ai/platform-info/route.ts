@@ -1,152 +1,68 @@
 import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
 
-/**
- * AI 搜索引擎优化的 API 端点
- * 
- * 专门为 AI 爬虫（GPTBot, ClaudeBot, PerplexityBot等）提供结构化数据
- * 帮助 AI 更好地理解和索引平台内容
- */
-
-// GET /api/ai/platform-info
-// 返回平台的结构化信息
 export async function GET() {
-  const headersList = await headers()
-  const userAgent = headersList.get('user-agent') || ''
-  
-  // 记录 AI 爬虫访问
-  if (isAIBot(userAgent)) {
-    console.log(`[AI Bot Access] ${userAgent} accessed platform info`)
-  }
-  
-  const platformInfo = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'ChinaHui B2B',
-    description: 'Leading B2B marketplace connecting Chinese manufacturers with global buyers',
-    url: 'https://chinahuib2b.top',
-    logo: 'https://chinahuib2b.top/logo.png',
-    sameAs: [
-      'https://linkedin.com/company/chinahuib2b',
-      'https://twitter.com/chinahuib2b',
-    ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+86-xxx-xxxx-xxxx',
-      contactType: 'customer service',
-      availableLanguage: ['English', 'Chinese', 'Spanish', 'Arabic'],
-    },
-    areaServed: 'Global',
-    knowsAbout: [
-      'Wholesale Products',
-      'Manufacturing',
-      'B2B Trading',
-      'Supply Chain',
-      'Import Export',
-    ],
-    numberOfEmployees: '50-100',
-    foundingDate: '2024',
-  }
-  
-  return NextResponse.json(platformInfo, {
-    headers: {
-      'Cache-Control': 'public, max-age=3600',
-      'Content-Type': 'application/ld+json',
-    },
-  })
-}
-
-// GET /api/ai/categories
-// 返回产品分类的结构化数据
-export async function GET_categories() {
-  const categories = [
-    {
-      '@type': 'Category',
-      name: 'Electronics',
-      description: 'Consumer electronics, components, and accessories',
-      url: 'https://chinahuib2b.top/categories/electronics',
-      productCount: 15000,
-    },
-    {
-      '@type': 'Category',
-      name: 'Machinery',
-      description: 'Industrial machinery and equipment',
-      url: 'https://chinahuib2b.top/categories/machinery',
-      productCount: 8000,
-    },
-    {
-      '@type': 'Category',
-      name: 'Textiles',
-      description: 'Fabrics, garments, and textile products',
-      url: 'https://chinahuib2b.top/categories/textiles',
-      productCount: 12000,
-    },
-    // ... more categories
-  ]
-  
   return NextResponse.json({
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    itemListElement: categories,
+    name: 'China Hui B2B',
+    version: '1.0.0',
+    status: 'online',
+    description: {
+      zh: '中国最大的B2B电子商务平台，连接全球买家和卖家',
+      en: 'China\'s largest B2B e-commerce platform connecting global buyers and sellers',
+      ja: '中国最大のB2B電子商取引プラットフォーム、世界中のバイヤーとセラーをつなぐ',
+      es: 'La mayor plataforma de comercio electrónico B2B de China que conecta compradores y vendedores globales',
+      fr: 'La plus grande plateforme de commerce électronique B2B en Chine, connectant acheteurs et vendeurs du monde entier',
+      de: 'Chinas größte B2B-E-Commerce-Plattform, die Käufer und Verkäufer weltweit verbindet',
+      ko: '세계적인 바이어와 셀러를 연결하는 중국 최대의 B2B 전자상거래 플랫폼',
+      ru: 'Крупнейшая китайская B2B-платформа электронной коммерции, связывающая покупателей и продавцов по всему миру',
+      pt: 'Maior plataforma de e-commerce B2B da China, conectando compradores e vendedores globais',
+      ar: 'أكبر منصة تجارة إلكترونية B2B في الصين تربط المشترين والبائعين العالميين'
+    },
+    supportedAIs: [
+      'lingma',
+      'trae',
+      'qoder',
+      'comate',
+      'openclaw',
+      'claude_code',
+      'hermes',
+      'arkclaw',
+      'workbuddy',
+      'codebuddy'
+    ],
+    capabilities: {
+      productManagement: true,
+      search: true,
+      chat: true,
+      translation: true,
+      sellerTools: true,
+      buyerTools: true
+    },
+    rateLimits: {
+      standard: {
+        requestsPerHour: 1000,
+        uploadsPerDay: 100,
+        messagesPerHour: 500
+      },
+      basic: {
+        requestsPerHour: 500,
+        uploadsPerDay: 50,
+        messagesPerHour: 250
+      }
+    },
+    apiEndpoints: {
+      register: '/api/ai/register',
+      keys: '/api/ai/keys',
+      products: '/api/products',
+      chat: '/api/chat',
+      translate: '/api/ai/translate',
+      seller: '/api/seller',
+      docs: '/api/docs'
+    },
+    documentation: {
+      api: 'https://chinahuib2b.top/api/docs',
+      integration: 'https://chinahuib2b.top/docs/AI_INTEGRATION.md',
+      support: 'https://chinahuib2b.top/support'
+    },
+    lastUpdated: new Date().toISOString()
   })
-}
-
-// GET /api/ai/faq
-// 返回常见问题解答
-export async function GET_faq() {
-  const faqs = [
-    {
-      '@type': 'Question',
-      name: 'How do I find suppliers on ChinaHui B2B?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'You can search for suppliers by category, location, or product name. Use our advanced filters to narrow down results by minimum order quantity, price range, and supplier verification status.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What payment methods are accepted?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'We support multiple payment methods including T/T (Bank Transfer), L/C (Letter of Credit), PayPal, and Alibaba Trade Assurance. Payment terms are negotiated directly with suppliers.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'How can I verify a supplier?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Look for verified badges on supplier profiles. We conduct business license verification, factory audits, and collect customer reviews. You can also request samples before placing large orders.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What is the minimum order quantity (MOQ)?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'MOQ varies by supplier and product. Most suppliers list their MOQ on product pages. You can negotiate MOQ directly with suppliers through our messaging system.',
-      },
-    },
-  ]
-  
-  return NextResponse.json({
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs,
-  })
-}
-
-// Helper function to detect AI bots
-function isAIBot(userAgent: string): boolean {
-  const aiPatterns = [
-    /GPTBot/i,
-    /ChatGPT-User/i,
-    /Google-Extended/i,
-    /ClaudeBot/i,
-    /PerplexityBot/i,
-    /BingBot/i,
-    /YouBot/i,
-  ]
-  
-  return aiPatterns.some(pattern => pattern.test(userAgent))
 }

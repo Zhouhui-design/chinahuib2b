@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface FileUploadProps {
   type: 'product_image' | 'brochure' | 'store_brochure' | 'logo' | 'banner'
@@ -24,6 +25,7 @@ export default function FileUpload({
   maxSizeMB,
   multiple = false
 }: FileUploadProps) {
+  const language = useSellerLanguage()
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +38,176 @@ export default function FileUpload({
   
   const fileAccept = accept || defaultAccept
   const maxFileSize = maxSizeMB || defaultMaxSize
+
+  const t = {
+    uploadPDFBrochure: language === 'zh' ? '上传PDF手册' :
+                       language === 'ja' ? 'PDFパンフレットをアップロード' :
+                       language === 'ar' ? 'رفع كتيب PDF' :
+                       language === 'es' ? 'Subir folleto PDF' :
+                       language === 'fr' ? 'Télécharger le brochure PDF' :
+                       language === 'de' ? 'PDF-Broschüre hochladen' :
+                       language === 'ko' ? 'PDF 브로셔 업로드' :
+                       language === 'ru' ? 'Загрузить PDF-буклет' :
+                       language === 'pt' ? 'Enviar folheto PDF' :
+                       language === 'hi' ? 'PDF ब्रोशर अपलोड करें' :
+                       language === 'th' ? 'อัปโหลดโบรชัวร์ PDF' :
+                       language === 'vi' ? 'Tải lên Sách tay PDF' :
+                       'Upload PDF Brochure',
+    
+    uploadCompanyLogo: language === 'zh' ? '上传公司Logo' :
+                       language === 'ja' ? '会社ロゴをアップロード' :
+                       language === 'ar' ? 'رفع شعار الشركة' :
+                       language === 'es' ? 'Subir logotipo de empresa' :
+                       language === 'fr' ? 'Télécharger le logo de l\'entreprise' :
+                       language === 'de' ? 'Firmensymbol hochladen' :
+                       language === 'ko' ? '회사 로고 업로드' :
+                       language === 'ru' ? 'Загрузить логотип компании' :
+                       language === 'pt' ? 'Enviar logotipo da empresa' :
+                       language === 'hi' ? 'कंपनी लोगो अपलोड करें' :
+                       language === 'th' ? 'อัปโหลดโลโก้บริษัท' :
+                       language === 'vi' ? 'Tải lên Logo công ty' :
+                       'Upload Company Logo',
+    
+    uploadStoreBanner: language === 'zh' ? '上传店铺横幅' :
+                       language === 'ja' ? 'ストアバナーをアップロード' :
+                       language === 'ar' ? 'رفع لافتة المتجر' :
+                       language === 'es' ? 'Subir banner de la tienda' :
+                       language === 'fr' ? 'Télécharger la bannière de la boutique' :
+                       language === 'de' ? 'Store-Banner hochladen' :
+                       language === 'ko' ? '스토어 배너 업로드' :
+                       language === 'ru' ? 'Загрузить баннер магазина' :
+                       language === 'pt' ? 'Enviar banner da loja' :
+                       language === 'hi' ? 'स्टोर बैनर अपलोड करें' :
+                       language === 'th' ? 'อัปโหลดแบนเนอร์ร้าน' :
+                       language === 'vi' ? 'Tải lên Banner cửa hàng' :
+                       'Upload Store Banner',
+    
+    uploadProductImage: language === 'zh' ? '上传产品图片' :
+                        language === 'ja' ? '製品画像をアップロード' :
+                        language === 'ar' ? 'رفع صورة المنتج' :
+                        language === 'es' ? 'Subir imagen del producto' :
+                        language === 'fr' ? 'Télécharger l\'image du produit' :
+                        language === 'de' ? 'Produktbild hochladen' :
+                        language === 'ko' ? '제품 이미지 업로드' :
+                        language === 'ru' ? 'Загрузить изображение товара' :
+                        language === 'pt' ? 'Enviar imagem do produto' :
+                        language === 'hi' ? 'उत्पाद छवि अपलोड करें' :
+                        language === 'th' ? 'อัปโหลดรูปสินค้า' :
+                        language === 'vi' ? 'Tải lên Hình ảnh sản phẩm' :
+                        'Upload Product Image',
+    
+    uploadProductImages: language === 'zh' ? '上传产品图片' :
+                         language === 'ja' ? '製品画像をアップロード' :
+                         language === 'ar' ? 'رفع صور المنتج' :
+                         language === 'es' ? 'Subir imágenes del producto' :
+                         language === 'fr' ? 'Télécharger les images du produit' :
+                         language === 'de' ? 'Produktbilder hochladen' :
+                         language === 'ko' ? '제품 이미지 업로드' :
+                         language === 'ru' ? 'Загрузить изображения товара' :
+                         language === 'pt' ? 'Enviar imagens do produto' :
+                         language === 'hi' ? 'उत्पाद छवियां अपलोड करें' :
+                         language === 'th' ? 'อัปโหลดรูปสินค้า' :
+                         language === 'vi' ? 'Tải lên Hình ảnh sản phẩm' :
+                         'Upload Product Images',
+    
+    uploadFile: language === 'zh' ? '上传文件' :
+                language === 'ja' ? 'ファイルをアップロード' :
+                language === 'ar' ? 'رفع ملف' :
+                language === 'es' ? 'Subir archivo' :
+                language === 'fr' ? 'Télécharger un fichier' :
+                language === 'de' ? 'Datei hochladen' :
+                language === 'ko' ? '파일 업로드' :
+                language === 'ru' ? 'Загрузить файл' :
+                language === 'pt' ? 'Enviar arquivo' :
+                language === 'hi' ? 'फ़ाइल अपलोड करें' :
+                language === 'th' ? 'อัปโหลดไฟล์' :
+                language === 'vi' ? 'Tải lên Tệp' :
+                'Upload File',
+    
+    uploading: language === 'zh' ? '上传中...' :
+               language === 'ja' ? 'アップロード中...' :
+               language === 'ar' ? 'جارٍ الرفع...' :
+               language === 'es' ? 'Subiendo...' :
+               language === 'fr' ? 'Téléchargement...' :
+               language === 'de' ? 'Hochladen...' :
+               language === 'ko' ? '업로드 중...' :
+               language === 'ru' ? 'Загрузка...' :
+               language === 'pt' ? 'Enviando...' :
+               language === 'hi' ? 'अपलोड हो रहा है...' :
+               language === 'th' ? 'กำลังอัปโหลด...' :
+               language === 'vi' ? 'Đang tải lên...' :
+               'Uploading...',
+    
+    pdfOnly: language === 'zh' ? '仅支持PDF文件' :
+             language === 'ja' ? 'PDFファイルのみ' :
+             language === 'ar' ? 'ملفات PDF فقط' :
+             language === 'es' ? 'Solo archivos PDF' :
+             language === 'fr' ? 'Seuls les fichiers PDF' :
+             language === 'de' ? 'Nur PDF-Dateien' :
+             language === 'ko' ? 'PDF 파일만' :
+             language === 'ru' ? 'Только PDF-файлы' :
+             language === 'pt' ? 'Apenas arquivos PDF' :
+             language === 'hi' ? 'केवल PDF फाइलें' :
+             language === 'th' ? 'ไฟล์ PDF เท่านั้น' :
+             language === 'vi' ? 'Chỉ tệp PDF' :
+             'PDF files only',
+    
+    imageTypes: language === 'zh' ? 'JPG, PNG, WebP' :
+                language === 'ja' ? 'JPG、PNG、WebP' :
+                language === 'ar' ? 'JPG، PNG، WebP' :
+                language === 'es' ? 'JPG, PNG, WebP' :
+                language === 'fr' ? 'JPG, PNG, WebP' :
+                language === 'de' ? 'JPG, PNG, WebP' :
+                language === 'ko' ? 'JPG, PNG, WebP' :
+                language === 'ru' ? 'JPG, PNG, WebP' :
+                language === 'pt' ? 'JPG, PNG, WebP' :
+                language === 'hi' ? 'JPG, PNG, WebP' :
+                language === 'th' ? 'JPG, PNG, WebP' :
+                language === 'vi' ? 'JPG, PNG, WebP' :
+                'JPG, PNG, WebP',
+    
+    maxSize: (size: number) => language === 'zh' ? `最大${size}MB` :
+                               language === 'ja' ? `最大${size}MB` :
+                               language === 'ar' ? `الأقصى ${size} ميجابايت` :
+                               language === 'es' ? `Max ${size}MB` :
+                               language === 'fr' ? `Max ${size}Mo` :
+                               language === 'de' ? `Max ${size}MB` :
+                               language === 'ko' ? `최대 ${size}MB` :
+                               language === 'ru' ? `Макс ${size}МБ` :
+                               language === 'pt' ? `Max ${size}MB` :
+                               language === 'hi' ? `अधिकतम ${size}MB` :
+                               language === 'th' ? `สูงสุด ${size}MB` :
+                               language === 'vi' ? `Tối đa ${size}MB` :
+                               `Max ${size}MB`,
+    
+    multipleAllowed: language === 'zh' ? '• 支持多文件上传' :
+                     language === 'ja' ? '• 複数ファイル可' :
+                     language === 'ar' ? '• يمكن رفع ملفات متعددة' :
+                     language === 'es' ? '• Se permiten varios archivos' :
+                     language === 'fr' ? '• Plusieurs fichiers autorisés' :
+                     language === 'de' ? '• Mehrere Dateien erlaubt' :
+                     language === 'ko' ? '• 여러 파일 허용' :
+                     language === 'ru' ? '• Разрешено несколько файлов' :
+                     language === 'pt' ? '• Vários arquivos permitidos' :
+                     language === 'hi' ? '• कई फाइलें अनुमत' :
+                     language === 'th' ? '• อัปโหลดหลายไฟล์ได้' :
+                     language === 'vi' ? '• Cho phép nhiều tệp' :
+                     '• Multiple files allowed',
+    
+    successfullyUploaded: (count: number) => language === 'zh' ? `成功上传 ${count} 个文件` :
+                                            language === 'ja' ? `${count}個のファイルを正常にアップロードしました` :
+                                            language === 'ar' ? `تم رفع ${count} ملف بنجاح` :
+                                            language === 'es' ? `Se subieron ${count} archivo(s) correctamente` :
+                                            language === 'fr' ? `${count} fichier(s) téléchargé(s) avec succès` :
+                                            language === 'de' ? `${count} Datei(en) erfolgreich hochgeladen` :
+                                            language === 'ko' ? `${count}개의 파일이 성공적으로 업로드되었습니다` :
+                                            language === 'ru' ? `${count} файл(а/ов) успешно загружено` :
+                                            language === 'pt' ? `${count} arquivo(s) enviado(s) com sucesso` :
+                                            language === 'hi' ? `${count} फ़ाइलें सफलतापूर्वक अपलोड हुईं` :
+                                            language === 'th' ? `อัปโหลดไฟล์ ${count} ไฟล์สำเร็จ` :
+                                            language === 'vi' ? `Tải thành công ${count} tệp` :
+                                            `Successfully uploaded ${count} file(s)`,
+  }
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
@@ -98,7 +270,7 @@ export default function FileUpload({
         results.push(data)
       }
 
-      setSuccess(`Successfully uploaded ${files.length} file(s)`)
+      setSuccess(t.successfullyUploaded(files.length))
       setUploading(false)
       setProgress(0)
 
@@ -136,15 +308,15 @@ export default function FileUpload({
   const getLabel = () => {
     switch (type) {
       case 'brochure':
-        return 'Upload PDF Brochure'
+        return t.uploadPDFBrochure
       case 'logo':
-        return 'Upload Company Logo'
+        return t.uploadCompanyLogo
       case 'banner':
-        return 'Upload Store Banner'
+        return t.uploadStoreBanner
       case 'product_image':
-        return multiple ? 'Upload Product Images' : 'Upload Product Image'
+        return multiple ? t.uploadProductImages : t.uploadProductImage
       default:
-        return 'Upload File'
+        return t.uploadFile
     }
   }
 
@@ -181,11 +353,11 @@ export default function FileUpload({
 
           <div>
             <p className="text-sm font-medium text-gray-700">
-              {uploading ? 'Uploading...' : getLabel()}
+              {uploading ? t.uploading : getLabel()}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {fileAccept.includes('pdf') ? 'PDF files only' : 'JPG, PNG, WebP'} • Max {maxFileSize}MB
-              {multiple && ' • Multiple files allowed'}
+              {fileAccept.includes('pdf') ? t.pdfOnly : t.imageTypes} • {t.maxSize(maxFileSize)}
+              {multiple && ' ' + t.multipleAllowed}
             </p>
           </div>
         </div>

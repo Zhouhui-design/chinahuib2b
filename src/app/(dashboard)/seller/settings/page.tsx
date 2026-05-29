@@ -30,6 +30,26 @@ export default function SellerSettingsPage() {
     description: ''
   })
   
+  // Multi-language descriptions
+  const [descriptions, setDescriptions] = useState<Record<string, string>>({})
+  const [activeLangTab, setActiveLangTab] = useState('zh')
+  
+  const supportedLanguages = [
+    { code: 'zh', name: '中文', flag: 'CN' },
+    { code: 'en', name: 'English', flag: 'US' },
+    { code: 'ja', name: '日本語', flag: 'JP' },
+    { code: 'ko', name: '한국어', flag: 'KR' },
+    { code: 'es', name: 'Español', flag: 'ES' },
+    { code: 'fr', name: 'Français', flag: 'FR' },
+    { code: 'de', name: 'Deutsch', flag: 'DE' },
+    { code: 'ar', name: 'العربية', flag: 'SA' },
+    { code: 'ru', name: 'Русский', flag: 'RU' },
+    { code: 'pt', name: 'Português', flag: 'PT' },
+    { code: 'hi', name: 'हिंदी', flag: 'IN' },
+    { code: 'th', name: 'ไทย', flag: 'TH' },
+    { code: 'vi', name: 'Tiếng Việt', flag: 'VN' },
+  ]
+  
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     orderUpdates: true,
@@ -74,6 +94,10 @@ export default function SellerSettingsPage() {
           country: profile.country || '',
           description: profile.description || ''
         })
+        // Load multi-language descriptions
+        if (profile.descriptions) {
+          setDescriptions(typeof profile.descriptions === 'object' ? profile.descriptions : {})
+        }
       }
     } catch (error) {
       console.error('Failed to load profile:', error)
@@ -128,7 +152,7 @@ export default function SellerSettingsPage() {
     }
   }
   
-  // Translations
+  // Translations - Full multi-language support
   const t = {
     title: language === 'zh' ? '账户设置' :
            language === 'ja' ? 'アカウント設定' :
@@ -144,24 +168,338 @@ export default function SellerSettingsPage() {
            language === 'vi' ? 'Cài đặt tài khoản' :
            'Account Settings',
     
+    // Stats message on dashboard
+    statsMessage: language === 'zh' ? '统计数据将显示在仪表板页面上' :
+                  language === 'ja' ? '統計データはダッシュボードページに表示されます' :
+                  language === 'ar' ? 'ستظهر الإحصائيات على صفحة لوحة التحكم' :
+                  language === 'es' ? 'Las estadísticas aparecerán en la página del panel' :
+                  language === 'fr' ? 'Les statistiques apparaîtront sur la page du tableau de bord' :
+                  language === 'de' ? 'Statistiken werden auf der Dashboard-Seite angezeigt' :
+                  language === 'ko' ? '통계 데이터가 대시보드 페이지에 표시됩니다' :
+                  language === 'ru' ? 'Статистика будет отображена на странице панели управления' :
+                  language === 'pt' ? 'Estatísticas aparecerão na página do painel' :
+                  language === 'hi' ? 'डैशबोर्ड पेज पर आंकड़े दिखाई देंगे' :
+                  language === 'th' ? 'สถิติจะปรากฏบนหน้าดัชบอร์ด' :
+                  language === 'vi' ? 'Thống kê sẽ xuất hiện trên trang bảng điều khiển' :
+                  'Stats will appear on dashboard page',
+    
     tabs: {
-      profile: language === 'zh' ? '个人资料' : 'Profile',
-      notifications: language === 'zh' ? '通知设置' : 'Notifications',
-      security: language === 'zh' ? '安全设置' : 'Security',
+      profile: language === 'zh' ? '个人资料' :
+               language === 'ja' ? 'プロフィール' :
+               language === 'ar' ? 'الملف الشخصي' :
+               language === 'es' ? 'Perfil' :
+               language === 'fr' ? 'Profil' :
+               language === 'de' ? 'Profil' :
+               language === 'ko' ? '프로필' :
+               language === 'ru' ? 'Профиль' :
+               language === 'pt' ? 'Perfil' :
+               language === 'hi' ? 'प्रोफाइल' :
+               language === 'th' ? 'โปรไฟล์' :
+               language === 'vi' ? 'Hồ sơ' :
+               'Profile',
+      notifications: language === 'zh' ? '通知设置' :
+                     language === 'ja' ? '通知設定' :
+                     language === 'ar' ? 'إعدادات الإشعارات' :
+                     language === 'es' ? 'Notificaciones' :
+                     language === 'fr' ? 'Notifications' :
+                     language === 'de' ? 'Benachrichtigungen' :
+                     language === 'ko' ? '알림 설정' :
+                     language === 'ru' ? 'Уведомления' :
+                     language === 'pt' ? 'Notificações' :
+                     language === 'hi' ? 'सूचनाएं' :
+                     language === 'th' ? 'การแจ้งเตือน' :
+                     language === 'vi' ? 'Thông báo' :
+                     'Notifications',
+      security: language === 'zh' ? '安全设置' :
+                language === 'ja' ? 'セキュリティ設定' :
+                language === 'ar' ? 'إعدادات الأمان' :
+                language === 'es' ? 'Seguridad' :
+                language === 'fr' ? 'Sécurité' :
+                language === 'de' ? 'Sicherheit' :
+                language === 'ko' ? '보안 설정' :
+                language === 'ru' ? 'Безопасность' :
+                language === 'pt' ? 'Segurança' :
+                language === 'hi' ? 'सुरक्षा' :
+                language === 'th' ? 'ความปลอดภัย' :
+                language === 'vi' ? 'Bảo mật' :
+                'Security',
     },
     
     profile: {
-      companyName: language === 'zh' ? '公司名称' : 'Company Name',
-      contactName: language === 'zh' ? '联系人姓名' : 'Contact Name',
-      email: language === 'zh' ? '邮箱地址' : 'Email Address',
-      phone: language === 'zh' ? '电话号码' : 'Phone Number',
-      website: language === 'zh' ? '网站' : 'Website',
-      address: language === 'zh' ? '地址' : 'Address',
-      city: language === 'zh' ? '城市' : 'City',
-      country: language === 'zh' ? '国家' : 'Country',
-      description: language === 'zh' ? '公司简介' : 'Company Description',
-      saveChanges: language === 'zh' ? '保存更改' : 'Save Changes',
-      saving: language === 'zh' ? '保存中...' : 'Saving...',
+      companyName: language === 'zh' ? '公司名称' :
+                   language === 'ja' ? '会社名' :
+                   language === 'ar' ? 'اسم الشركة' :
+                   language === 'es' ? 'Nombre de la empresa' :
+                   language === 'fr' ? 'Nom de l\'entreprise' :
+                   language === 'de' ? 'Firmenname' :
+                   language === 'ko' ? '회사명' :
+                   language === 'ru' ? 'Название компании' :
+                   language === 'pt' ? 'Nome da empresa' :
+                   language === 'hi' ? 'कंपनी का नाम' :
+                   language === 'th' ? 'ชื่อบริษัท' :
+                   language === 'vi' ? 'Tên công ty' :
+                   'Company Name',
+      contactName: language === 'zh' ? '联系人姓名' :
+                   language === 'ja' ? '連絡先名' :
+                   language === 'ar' ? 'اسم المتصل' :
+                   language === 'es' ? 'Nombre del contacto' :
+                   language === 'fr' ? 'Nom du contact' :
+                   language === 'de' ? 'Kontaktname' :
+                   language === 'ko' ? '연락처 이름' :
+                   language === 'ru' ? 'Имя контактного лица' :
+                   language === 'pt' ? 'Nome do contato' :
+                   language === 'hi' ? 'संपर्क व्यक्ति का नाम' :
+                   language === 'th' ? 'ชื่อผู้ติดต่อ' :
+                   language === 'vi' ? 'Tên người liên hệ' :
+                   'Contact Name',
+      email: language === 'zh' ? '邮箱地址' :
+             language === 'ja' ? 'メールアドレス' :
+             language === 'ar' ? 'عنوان البريد الإلكتروني' :
+             language === 'es' ? 'Dirección de correo electrónico' :
+             language === 'fr' ? 'Adresse e-mail' :
+             language === 'de' ? 'E-Mail-Adresse' :
+             language === 'ko' ? '이메일 주소' :
+             language === 'ru' ? 'Адрес электронной почты' :
+             language === 'pt' ? 'Endereço de e-mail' :
+             language === 'hi' ? 'ईमेल पता' :
+             language === 'th' ? 'ที่อยู่อีเมล' :
+             language === 'vi' ? 'Địa chỉ email' :
+             'Email Address',
+      phone: language === 'zh' ? '电话号码' :
+             language === 'ja' ? '電話番号' :
+             language === 'ar' ? 'رقم الهاتف' :
+             language === 'es' ? 'Número de teléfono' :
+             language === 'fr' ? 'Numéro de téléphone' :
+             language === 'de' ? 'Telefonnummer' :
+             language === 'ko' ? '전화번호' :
+             language === 'ru' ? 'Номер телефона' :
+             language === 'pt' ? 'Número de telefone' :
+             language === 'hi' ? 'फोन नंबर' :
+             language === 'th' ? 'หมายเลขโทรศัพท์' :
+             language === 'vi' ? 'Số điện thoại' :
+             'Phone Number',
+      website: language === 'zh' ? '网站' :
+               language === 'ja' ? 'ウェブサイト' :
+               language === 'ar' ? 'الموقع الإلكتروني' :
+               language === 'es' ? 'Sitio web' :
+               language === 'fr' ? 'Site web' :
+               language === 'de' ? 'Website' :
+               language === 'ko' ? '웹사이트' :
+               language === 'ru' ? 'Веб-сайт' :
+               language === 'pt' ? 'Site web' :
+               language === 'hi' ? 'वेबसाइट' :
+               language === 'th' ? 'เว็บไซต์' :
+               language === 'vi' ? 'Trang web' :
+               'Website',
+      address: language === 'zh' ? '地址' :
+               language === 'ja' ? '住所' :
+               language === 'ar' ? 'العنوان' :
+               language === 'es' ? 'Dirección' :
+               language === 'fr' ? 'Adresse' :
+               language === 'de' ? 'Adresse' :
+               language === 'ko' ? '주소' :
+               language === 'ru' ? 'Адрес' :
+               language === 'pt' ? 'Endereço' :
+               language === 'hi' ? 'पता' :
+               language === 'th' ? 'ที่อยู่' :
+               language === 'vi' ? 'Địa chỉ' :
+               'Address',
+      city: language === 'zh' ? '城市' :
+            language === 'ja' ? '都市' :
+            language === 'ar' ? 'المدينة' :
+            language === 'es' ? 'Ciudad' :
+            language === 'fr' ? 'Ville' :
+            language === 'de' ? 'Stadt' :
+            language === 'ko' ? '도시' :
+            language === 'ru' ? 'Город' :
+            language === 'pt' ? 'Cidade' :
+            language === 'hi' ? 'शहर' :
+            language === 'th' ? 'เมือง' :
+            language === 'vi' ? 'Thành phố' :
+            'City',
+      country: language === 'zh' ? '国家' :
+               language === 'ja' ? '国' :
+               language === 'ar' ? 'الدولة' :
+               language === 'es' ? 'País' :
+               language === 'fr' ? 'Pays' :
+               language === 'de' ? 'Land' :
+               language === 'ko' ? '국가' :
+               language === 'ru' ? 'Страна' :
+               language === 'pt' ? 'País' :
+               language === 'hi' ? 'देश' :
+               language === 'th' ? 'ประเทศ' :
+               language === 'vi' ? 'Quốc gia' :
+               'Country',
+      description: language === 'zh' ? '公司简介' :
+                   language === 'ja' ? '会社紹介' :
+                   language === 'ar' ? 'وصف الشركة' :
+                   language === 'es' ? 'Descripción de la empresa' :
+                   language === 'fr' ? 'Description de l\'entreprise' :
+                   language === 'de' ? 'Unternehmensbeschreibung' :
+                   language === 'ko' ? '회사 소개' :
+                   language === 'ru' ? 'Описание компании' :
+                   language === 'pt' ? 'Descrição da empresa' :
+                   language === 'hi' ? 'कंपनी का विवरण' :
+                   language === 'th' ? 'คำอธิบายบริษัท' :
+                   language === 'vi' ? 'Mô tả công ty' :
+                   'Company Description',
+      saveChanges: language === 'zh' ? '保存更改' :
+                   language === 'ja' ? '変更を保存' :
+                   language === 'ar' ? 'حفظ التغييرات' :
+                   language === 'es' ? 'Guardar cambios' :
+                   language === 'fr' ? 'Enregistrer les modifications' :
+                   language === 'de' ? 'Änderungen speichern' :
+                   language === 'ko' ? '변경 사항 저장' :
+                   language === 'ru' ? 'Сохранить изменения' :
+                   language === 'pt' ? 'Salvar alterações' :
+                   language === 'hi' ? 'परिवर्तन सहेजें' :
+                   language === 'th' ? 'บันทึกการเปลี่ยนแปลง' :
+                   language === 'vi' ? 'Lưu thay đổi' :
+                   'Save Changes',
+      saving: language === 'zh' ? '保存中...' :
+              language === 'ja' ? '保存中...' :
+              language === 'ar' ? 'جاري الحفظ...' :
+              language === 'es' ? 'Guardando...' :
+              language === 'fr' ? 'Enregistrement...' :
+              language === 'de' ? 'Speichern...' :
+              language === 'ko' ? '저장 중...' :
+              language === 'ru' ? 'Сохранение...' :
+              language === 'pt' ? 'Salvando...' :
+              language === 'hi' ? 'सहेज रहा है...' :
+              language === 'th' ? 'กำลังบันทึก...' :
+              language === 'vi' ? 'Đang lưu...' :
+              'Saving...',
+      socialMedia: language === 'zh' ? '社交媒体与消息' :
+                   language === 'ja' ? 'ソーシャルメディアとメッセージ' :
+                   language === 'ar' ? 'وسائل التواصل الاجتماعي والرسائل' :
+                   language === 'es' ? 'Redes sociales y mensajería' :
+                   language === 'fr' ? 'Réseaux sociaux et messagerie' :
+                   language === 'de' ? 'Soziale Medien und Messaging' :
+                   language === 'ko' ? '소셜 미디어 및 메시징' :
+                   language === 'ru' ? 'Социальные сети и мессенджеры' :
+                   language === 'pt' ? 'Redes sociais e mensagens' :
+                   language === 'hi' ? 'सोशल मीडिया और संदेश' :
+                   language === 'th' ? 'โซเชียลมีเดียและข้อความ' :
+                   language === 'vi' ? 'Mạng xã hội và nhắn tin' :
+                   'Social Media & Messaging',
+      // Placeholder texts
+      companyNamePlaceholder: language === 'zh' ? '您的公司名称' :
+                              language === 'ja' ? 'あなたの会社名' :
+                              language === 'ar' ? 'اسم شركتك' :
+                              language === 'es' ? 'Nombre de su empresa' :
+                              language === 'fr' ? 'Nom de votre entreprise' :
+                              language === 'de' ? 'Ihr Firmenname' :
+                              language === 'ko' ? '귀사의 회사명' :
+                              language === 'ru' ? 'Название вашей компании' :
+                              language === 'pt' ? 'Nome da sua empresa' :
+                              language === 'hi' ? 'आपकी कंपनी का नाम' :
+                              language === 'th' ? 'ชื่อบริษัทของคุณ' :
+                              language === 'vi' ? 'Tên công ty của bạn' :
+                              'Your Company Name',
+      contactNamePlaceholder: language === 'zh' ? '联系人姓名' :
+                              language === 'ja' ? '連絡先の名前' :
+                              language === 'ar' ? 'اسم المتصل' :
+                              language === 'es' ? 'Nombre del contacto' :
+                              language === 'fr' ? 'Nom du contact' :
+                              language === 'de' ? 'Kontaktperson' :
+                              language === 'ko' ? '연락처 이름' :
+                              language === 'ru' ? 'Имя контактного лица' :
+                              language === 'pt' ? 'Nome do contato' :
+                              language === 'hi' ? 'संपर्क व्यक्ति का नाम' :
+                              language === 'th' ? 'ชื่อผู้ติดต่อ' :
+                              language === 'vi' ? 'Tên người liên hệ' :
+                              'Contact Person Name',
+      emailPlaceholder: language === 'zh' ? 'company@example.com' :
+                        language === 'ja' ? 'company@example.com' :
+                        language === 'ar' ? 'company@example.com' :
+                        language === 'es' ? 'empresa@ejemplo.com' :
+                        language === 'fr' ? 'entreprise@exemple.com' :
+                        language === 'de' ? 'firma@beispiel.de' :
+                        language === 'ko' ? 'company@example.com' :
+                        language === 'ru' ? 'company@example.com' :
+                        language === 'pt' ? 'empresa@exemplo.com' :
+                        language === 'hi' ? 'company@example.com' :
+                        language === 'th' ? 'company@example.com' :
+                        language === 'vi' ? 'company@example.com' :
+                        'company@example.com',
+      phonePlaceholder: language === 'zh' ? '+86 123 4567 8900' :
+                        language === 'ja' ? '+81 3 1234 5678' :
+                        language === 'ar' ? '+966 12 345 6789' :
+                        language === 'es' ? '+34 123 456 789' :
+                        language === 'fr' ? '+33 1 23 45 67 89' :
+                        language === 'de' ? '+49 123 4567890' :
+                        language === 'ko' ? '+82 2 1234 5678' :
+                        language === 'ru' ? '+7 123 456 7890' :
+                        language === 'pt' ? '+55 11 1234 5678' :
+                        language === 'hi' ? '+91 123 456 7890' :
+                        language === 'th' ? '+66 2 123 4567' :
+                        language === 'vi' ? '+84 123 456 789' :
+                        '+1 234 567 8900',
+      websitePlaceholder: language === 'zh' ? 'https://www.example.com' :
+                          language === 'ja' ? 'https://www.example.com' :
+                          language === 'ar' ? 'https://www.example.com' :
+                          language === 'es' ? 'https://www.ejemplo.com' :
+                          language === 'fr' ? 'https://www.exemple.com' :
+                          language === 'de' ? 'https://www.beispiel.de' :
+                          language === 'ko' ? 'https://www.example.com' :
+                          language === 'ru' ? 'https://www.example.com' :
+                          language === 'pt' ? 'https://www.exemplo.com' :
+                          language === 'hi' ? 'https://www.example.com' :
+                          language === 'th' ? 'https://www.example.com' :
+                          language === 'vi' ? 'https://www.example.com' :
+                          'https://www.example.com',
+      countryPlaceholder: language === 'zh' ? '国家' :
+                          language === 'ja' ? '国' :
+                          language === 'ar' ? 'الدولة' :
+                          language === 'es' ? 'País' :
+                          language === 'fr' ? 'Pays' :
+                          language === 'de' ? 'Land' :
+                          language === 'ko' ? '국가' :
+                          language === 'ru' ? 'Страна' :
+                          language === 'pt' ? 'País' :
+                          language === 'hi' ? 'देश' :
+                          language === 'th' ? 'ประเทศ' :
+                          language === 'vi' ? 'Quốc gia' :
+                          'Country',
+      addressPlaceholder: language === 'zh' ? '街道地址' :
+                          language === 'ja' ? '通りの住所' :
+                          language === 'ar' ? 'عنوان الشارع' :
+                          language === 'es' ? 'Dirección de la calle' :
+                          language === 'fr' ? 'Adresse de la rue' :
+                          language === 'de' ? 'Straßenadresse' :
+                          language === 'ko' ? '거리 주소' :
+                          language === 'ru' ? 'Улица' :
+                          language === 'pt' ? 'Endereço da rua' :
+                          language === 'hi' ? 'स्ट्रीट पता' :
+                          language === 'th' ? 'ที่อยู่ถนน' :
+                          language === 'vi' ? 'Địa chỉ đường phố' :
+                          'Street Address',
+      cityPlaceholder: language === 'zh' ? '城市' :
+                       language === 'ja' ? '都市' :
+                       language === 'ar' ? 'المدينة' :
+                       language === 'es' ? 'Ciudad' :
+                       language === 'fr' ? 'Ville' :
+                       language === 'de' ? 'Stadt' :
+                       language === 'ko' ? '도시' :
+                       language === 'ru' ? 'Город' :
+                       language === 'pt' ? 'Cidade' :
+                       language === 'hi' ? 'शहर' :
+                       language === 'th' ? 'เมือง' :
+                       language === 'vi' ? 'Thành phố' :
+                       'City',
+      descriptionPlaceholder: language === 'zh' ? '告诉买家关于您公司的信息...' :
+                              language === 'ja' ? 'バイヤーにあなたの会社について知らせてください...' :
+                              language === 'ar' ? 'أخبر المشترين عن شركتك...' :
+                              language === 'es' ? 'Cuéntale a los compradores sobre tu empresa...' :
+                              language === 'fr' ? 'Parlez aux acheteurs de votre entreprise...' :
+                              language === 'de' ? 'Erzählen Sie den Käufern von Ihrem Unternehmen...' :
+                              language === 'ko' ? '구매자에게 회사 소개...' :
+                              language === 'ru' ? 'Расскажите покупателям о вашей компании...' :
+                              language === 'pt' ? 'Conte aos compradores sobre sua empresa...' :
+                              language === 'hi' ? 'खरीदारों को अपनी कंपनी के बारे में बताएं...' :
+                              language === 'th' ? 'บอกให้ผู้ซื้อทราบเกี่ยวกับบริษัทของคุณ...' :
+                              language === 'vi' ? 'Chia sẻ thông tin về công ty của bạn với người mua...' :
+                              'Tell buyers about your company...',
     },
     
     notifications: {
@@ -229,6 +567,7 @@ export default function SellerSettingsPage() {
         body: JSON.stringify({
           companyName: profileData.companyName,
           description: profileData.description,
+          descriptions: descriptions,
           country: profileData.country,
           city: profileData.city,
           address: profileData.address,
@@ -466,7 +805,7 @@ export default function SellerSettingsPage() {
                         value={profileData.companyName}
                         onChange={(e) => setProfileData({...profileData, companyName: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Your Company Name"
+                        placeholder={t.profile.companyNamePlaceholder}
                       />
                     </div>
                     
@@ -480,7 +819,7 @@ export default function SellerSettingsPage() {
                         value={profileData.contactName}
                         onChange={(e) => setProfileData({...profileData, contactName: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Contact Person Name"
+                        placeholder={t.profile.contactNamePlaceholder}
                       />
                     </div>
                     
@@ -494,7 +833,7 @@ export default function SellerSettingsPage() {
                         value={profileData.email}
                         onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="company@example.com"
+                        placeholder={t.profile.emailPlaceholder}
                       />
                     </div>
                     
@@ -508,7 +847,7 @@ export default function SellerSettingsPage() {
                         value={profileData.phone}
                         onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+1 234 567 8900"
+                        placeholder={t.profile.phonePlaceholder}
                       />
                     </div>
                     
@@ -522,7 +861,7 @@ export default function SellerSettingsPage() {
                         value={profileData.website}
                         onChange={(e) => setProfileData({...profileData, website: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="https://www.example.com"
+                        placeholder={t.profile.websitePlaceholder}
                       />
                     </div>
                     
@@ -530,7 +869,7 @@ export default function SellerSettingsPage() {
                     <div className="md:col-span-2">
                       <h3 className="text-md font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <MessageCircle className="w-4 h-4" />
-                        Social Media & Messaging
+                        {t.profile.socialMedia}
                       </h3>
                     </div>
                     
@@ -622,7 +961,7 @@ export default function SellerSettingsPage() {
                         value={profileData.country}
                         onChange={(e) => setProfileData({...profileData, country: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Country"
+                        placeholder={t.profile.countryPlaceholder}
                       />
                     </div>
                   </div>
@@ -636,7 +975,7 @@ export default function SellerSettingsPage() {
                       value={profileData.address}
                       onChange={(e) => setProfileData({...profileData, address: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Street Address"
+                      placeholder={t.profile.addressPlaceholder}
                     />
                   </div>
                   
@@ -649,7 +988,7 @@ export default function SellerSettingsPage() {
                       value={profileData.city}
                       onChange={(e) => setProfileData({...profileData, city: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="City"
+                      placeholder={t.profile.cityPlaceholder}
                     />
                   </div>
                   
@@ -657,13 +996,58 @@ export default function SellerSettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t.profile.description}
                     </label>
+                    <p className="text-sm text-gray-500 mb-3">
+                      {language === 'zh' ? '为不同语言的客户提供公司描述' :
+                       language === 'ja' ? '異なる言語の顧客向けに会社の説明を提供' :
+                       language === 'ar' ? 'قدم وصف الشركة لعملاء متعدد اللغات' :
+                       language === 'es' ? 'Proporcione una descripción de la empresa para clientes de diferentes idiomas' :
+                       language === 'fr' ? 'Fournissez une description de l\'entreprise pour des clients de différentes langues' :
+                       language === 'de' ? 'Bieten Sie eine Unternehmensbeschreibung für Kunden verschiedener Sprachen an' :
+                       language === 'ko' ? '다양한 언어의 고객을 위한 회사 설명 제공' :
+                       language === 'ru' ? 'Предоставьте описание компании для клиентов разных языков' :
+                       language === 'pt' ? 'Forneça uma descrição da empresa para clientes de diferentes idiomas' :
+                       language === 'hi' ? 'विभिन्न भाषाओं के ग्राहकों के लिए कंपनी का विवरण प्रदान करें' :
+                       language === 'th' ? 'ให้คำอธิบายบริษัทสำหรับลูกค้าที่ใช้ภาษาต่างๆ' :
+                       language === 'vi' ? 'Cung cấp mô tả công ty cho khách hàng nói các ngôn ngữ khác nhau' :
+                       'Provide company description for different language audiences'}
+                    </p>
+                    
+                    {/* Language tabs */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {supportedLanguages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => setActiveLangTab(lang.code)}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                            activeLangTab === lang.code
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {lang.name}
+                        </button>
+                      ))}
+                    </div>
+                    
                     <textarea
-                      value={profileData.description}
-                      onChange={(e) => setProfileData({...profileData, description: e.target.value})}
+                      value={descriptions[activeLangTab] || ''}
+                      onChange={(e) => setDescriptions({...descriptions, [activeLangTab]: e.target.value})}
                       rows={4}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Tell buyers about your company..."
+                      placeholder={t.profile.descriptionPlaceholder}
                     />
+                    
+                    {/* Show which languages have content */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {Object.keys(descriptions).filter(key => descriptions[key]?.trim()).map((langCode) => {
+                        const lang = supportedLanguages.find(l => l.code === langCode)
+                        return (
+                          <span key={langCode} className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full">
+                            ✓ {lang?.name}
+                          </span>
+                        )
+                      })}
+                    </div>
                   </div>
                   
                   <div className="flex justify-end">

@@ -12,7 +12,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "cli": "node scripts/cli-tool.js",
-    "mcp": "tsx src/app/api/mcp/server.ts"
+    "mcp": "tsx src/app/api/mcp/server.ts",
+    "version:patch": "node scripts/update-version.js patch",
+    "version:minor": "node scripts/update-version.js minor",
+    "version:major": "node scripts/update-version.js major"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -40,6 +43,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.73.1",
+    "recharts": "^3.8.1",
     "redis": "^5.12.1",
     "schema-dts": "^2.0.0",
     "sharp": "^0.34.5",

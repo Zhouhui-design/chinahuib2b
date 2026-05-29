@@ -7,6 +7,7 @@ import { z } from "zod"
 const profileUpdateSchema = z.object({
   companyName: z.string().min(2).max(200),
   description: z.string().optional(),
+  descriptions: z.record(z.string(), z.string()).optional(), // Multi-language descriptions
   country: z.string().optional(),
   city: z.string().optional(),
   address: z.string().optional(),
@@ -113,6 +114,7 @@ export async function PUT(request: NextRequest) {
       data: {
         companyName: data.companyName,
         ...(data.description && { description: data.description }),
+        ...(data.descriptions && { descriptions: data.descriptions as any }),
         ...(data.country && { country: data.country }),
         ...(data.city && { city: data.city }),
         ...(data.address && { address: data.address }),

@@ -18,7 +18,8 @@ export type Dictionary = {
       no: string;
       enterBooth: string;
       productImage: string;
-      sampleCategories: string;
+      noProducts: string;
+      noProductsDescription: string;
     };
     why: {
       title: string;
@@ -38,6 +39,8 @@ export type Dictionary = {
     exhibitors: {
       title: string;
       viewAll: string;
+      noExhibitors: string;
+      noExhibitorsDescription: string;
     };
   };
   nav: {
@@ -141,7 +144,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "No",
         enterBooth: "Enter Booth to View",
         productImage: "Product Image",
-        sampleCategories: "Electronics, Home Appliances",
+        noProducts: "No Products Yet",
+        noProductsDescription: "No products have been published yet. Be the first to showcase your products!",
       },
       why: {
         title: "Why Choose Us",
@@ -161,6 +165,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       exhibitors: {
         title: "Featured Exhibitors",
         viewAll: "View All Exhibitors",
+        noExhibitors: "No Exhibitors Yet",
+        noExhibitorsDescription: "No sellers have joined yet. Register now to become an exhibitor!",
       },
     },
     nav: {
@@ -262,7 +268,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "否",
         enterBooth: "进入展位查看",
         productImage: "产品图片",
-        sampleCategories: "电子产品，家用电器",
+        noProducts: "暂无产品",
+        noProductsDescription: "还没有卖家发布产品，快来成为第一个发布产品的卖家吧！",
       },
       why: {
         title: "为什么选择我们",
@@ -282,6 +289,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       exhibitors: {
         title: "精选参展商",
         viewAll: "查看所有参展商",
+        noExhibitors: "暂无参展商",
+        noExhibitorsDescription: "还没有卖家入驻，快来注册成为我们的参展商吧！",
       },
     },
     nav: {
@@ -383,7 +392,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "No",
         enterBooth: "Entrar al Stand para Ver",
         productImage: "Imagen del Producto",
-        sampleCategories: "Electrónica, Electrodomésticos",
+        noProducts: "Todavía no hay productos",
+        noProductsDescription: "Aún no hay productos publicados. ¡Sea el primero en mostrar sus productos!",
       },
       why: {
         title: "Por Qué Elegirnos",
@@ -403,6 +413,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       exhibitors: {
         title: "Expositores Destacados",
         viewAll: "Ver Todos los Expositores",
+        noExhibitors: "Todavía no hay expositores",
+        noExhibitorsDescription: "Aún no hay vendedores inscritos. ¡Regístrese ahora para convertirse en expositor!",
       },
     },
     nav: {
@@ -505,7 +517,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "Non",
         enterBooth: "Entrer dans le Stand pour Voir",
         productImage: "Image du Produit",
-        sampleCategories: "Électronique, Appareils Ménagers",
+        noProducts: "Aucun produit pour l'instant",
+        noProductsDescription: "Aucun produit n'a été publié encore. Soyez le premier à présenter vos produits !",
       },
       why: {
         title: "Pourquoi Nous Choisir",
@@ -513,7 +526,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "Prix Compétitifs", description: "Direct des fabricants" },
         global: { title: "Portée Mondiale", description: "Connectez-vous avec acheteurs et vendeurs" },
       },
-      exhibitors: { title: "Exposants en Vedette", viewAll: "Voir Tous les Exposants" },
+      exhibitors: { title: "Exposants en Vedette", viewAll: "Voir Tous les Exposants", noExhibitors: "Aucun exposant pour l'instant", noExhibitorsDescription: "Aucun vendeur ne s'est inscrit encore. Inscrivez-vous maintenant pour devenir exposant !" },
     },
     nav: { home: "Accueil", products: "Produits", exhibitors: "Exposants", sellerPortal: "Portail Vendeur", login: "Connexion", register: "Inscription", dashboard: "Tableau de Bord", logout: "Déconnexion" },
     common: { loading: "Chargement...", error: "Erreur", save: "Sauvegarder", cancel: "Annuler", delete: "Supprimer", edit: "Modifier", search: "Rechercher", noResults: "Aucun résultat", contact: "Contact", verified: "Vérifié", viewAll: "Voir Tout", back: "Retour", next: "Suivant", previous: "Précédent" },
@@ -539,7 +552,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "Nein",
         enterBooth: "Stand Betreten zum Ansehen",
         productImage: "Produktbild",
-        sampleCategories: "Elektronik, Haushaltsgeräte",
+        noProducts: "Noch keine Produkte",
+        noProductsDescription: "Es wurden noch keine Produkte veröffentlicht. Seien Sie der Erste, der Ihre Produkte vorstellt!",
       },
       why: {
         title: "Warum Uns Wählen",
@@ -547,7 +561,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "Wettbewerbsfähige Preise", description: "Direkt vom Hersteller" },
         global: { title: "Globale Reichweite", description: "Verbinden Sie sich weltweit" },
       },
-      exhibitors: { title: "Empfohlene Aussteller", viewAll: "Alle Aussteller Ansehen" },
+      exhibitors: { title: "Empfohlene Aussteller", viewAll: "Alle Aussteller Ansehen", noExhibitors: "Noch keine Aussteller", noExhibitorsDescription: "Es haben noch keine Verkäufer registriert. Registrieren Sie sich jetzt, um Aussteller zu werden!" },
     },
     nav: { home: "Startseite", products: "Produkte", exhibitors: "Aussteller", sellerPortal: "Verkäuferportal", login: "Anmelden", register: "Registrieren", dashboard: "Dashboard", logout: "Abmelden" },
     common: { loading: "Laden...", error: "Fehler", save: "Speichern", cancel: "Abbrechen", delete: "Löschen", edit: "Bearbeiten", search: "Suchen", noResults: "Keine Ergebnisse", contact: "Kontakt", verified: "Verifiziert", viewAll: "Alle Ansehen", back: "Zurück", next: "Weiter", previous: "Zurück" },
@@ -573,7 +587,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "いいえ",
         enterBooth: "ブースに入って見る",
         productImage: "製品画像",
-        sampleCategories: "電子機器、家電",
+        noProducts: "まだ製品がありません",
+        noProductsDescription: "まだ製品が掲載されていません。最初に製品を紹介しましょう！",
       },
       why: {
         title: "選ばれる理由",
@@ -581,7 +596,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "競争力のある価格", description: "メーカー直販、仲介業者なし" },
         global: { title: "グローバル展開", description: "世界中の買い手と売り手をつなぐ" },
       },
-      exhibitors: { title: "注目の出展者", viewAll: "すべての出展者を見る" },
+      exhibitors: { title: "注目の出展者", viewAll: "すべての出展者を見る", noExhibitors: "まだ出展者がいません", noExhibitorsDescription: "まだ販売者が参加していません。今すぐ登録して出展者になりましょう！" },
     },
     nav: { home: "ホーム", products: "製品", exhibitors: "出展者", sellerPortal: "販売者ポータル", login: "ログイン", register: "登録", dashboard: "ダッシュボード", logout: "ログアウト" },
     common: { loading: "読み込み中...", error: "エラー", save: "保存", cancel: "キャンセル", delete: "削除", edit: "編集", search: "検索", noResults: "結果なし", contact: "お問い合わせ", verified: "認証済み", viewAll: "すべて表示", back: "戻る", next: "次へ", previous: "前へ" },
@@ -607,7 +622,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "아니오",
         enterBooth: "부스 입장하여 보기",
         productImage: "제품 이미지",
-        sampleCategories: "전자제품, 가전제품",
+        noProducts: "아직 제품이 없습니다",
+        noProductsDescription: "아직 제품이 게시되지 않았습니다. 첫 번째로 제품을 소개하세요!",
       },
       why: {
         title: "왜 우리를 선택해야 하는가",
@@ -615,7 +631,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "경쟁력 있는 가격", description: "제조업체 직거래, 중간상인 없음" },
         global: { title: "글로벌 도달", description: "전 세계 구매자 및 판매자와 연결" },
       },
-      exhibitors: { title: "추천 참가업체", viewAll: "모든 참가업체 보기" },
+      exhibitors: { title: "추천 참가업체", viewAll: "모든 참가업체 보기", noExhibitors: "아직 참가업체가 없습니다", noExhibitorsDescription: "아직 판매자가 참여하지 않았습니다. 지금 등록하여 참가업체가 되세요!" },
     },
     nav: { home: "홈", products: "제품", exhibitors: "참가업체", sellerPortal: "판매자 포털", login: "로그인", register: "회원가입", dashboard: "대시보드", logout: "로그아웃" },
     common: { loading: "로딩 중...", error: "오류", save: "저장", cancel: "취소", delete: "삭제", edit: "편집", search: "검색", noResults: "결과 없음", contact: "연락처", verified: "검증됨", viewAll: "모두 보기", back: "뒤로", next: "다음", previous: "이전" },
@@ -641,7 +657,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "لا",
         enterBooth: "ادخل الجناح للمشاهدة",
         productImage: "صورة المنتج",
-        sampleCategories: "إلكترونيات، أجهزة منزلية",
+        noProducts: "لا يوجد منتجات بعد",
+        noProductsDescription: "لم يتم نشر أي منتجات بعد. كن أول من يعرض منتجاتك!",
       },
       why: {
         title: "لماذا تختارنا",
@@ -649,7 +666,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "أسعار تنافسية", description: "مباشرة من المصنعين، بدون وسطاء" },
         global: { title: "انتشار عالمي", description: "تواصل مع المشترين والبائعين في جميع أنحاء العالم" },
       },
-      exhibitors: { title: "العارضون المميزون", viewAll: "عرض جميع العارضين" },
+      exhibitors: { title: "العارضون المميزون", viewAll: "عرض جميع العارضين", noExhibitors: "لا يوجد عارضون بعد", noExhibitorsDescription: "لم يسجل أي بائع بعد. سجل الآن ليصبح عارضا!" },
     },
     nav: { home: "الرئيسية", products: "المنتجات", exhibitors: "العارضون", sellerPortal: "بوابة البائع", login: "تسجيل الدخول", register: "التسجيل", dashboard: "لوحة التحكم", logout: "تسجيل الخروج" },
     common: { loading: "جاري التحميل...", error: "خطأ", save: "حفظ", cancel: "إلغاء", delete: "حذف", edit: "تحرير", search: "بحث", noResults: "لا توجد نتائج", contact: "اتصل", verified: "موثق", viewAll: "عرض الكل", back: "رجوع", next: "التالي", previous: "السابق" },
@@ -675,7 +692,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "Нет",
         enterBooth: "Войти в Стенд для Просмотра",
         productImage: "Изображение Продукта",
-        sampleCategories: "Электроника, Бытовая Техника",
+        noProducts: "Продукты еще нет",
+        noProductsDescription: "Продукты еще не опубликованы. Будьте первым, кто представит свои продукты!",
       },
       why: {
         title: "Почему Выбирают Нас",
@@ -683,7 +701,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "Конкурентные Цены", description: "Напрямую от производителей, без посредников" },
         global: { title: "Глобальный Охват", description: "Связывайтесь с покупателями и продавцами по всему миру" },
       },
-      exhibitors: { title: "Рекомендуемые Участники", viewAll: "Все Участники" },
+      exhibitors: { title: "Рекомендуемые Участники", viewAll: "Все Участники", noExhibitors: "Участники еще нет", noExhibitorsDescription: "Продавцы еще не зарегистрировались. Зарегистрируйтесь сейчас, чтобы стать участником!" },
     },
     nav: { home: "Главная", products: "Продукты", exhibitors: "Участники", sellerPortal: "Портал Продавца", login: "Вход", register: "Регистрация", dashboard: "Панель", logout: "Выход" },
     common: { loading: "Загрузка...", error: "Ошибка", save: "Сохранить", cancel: "Отмена", delete: "Удалить", edit: "Редактировать", search: "Поиск", noResults: "Результатов нет", contact: "Контакт", verified: "Проверено", viewAll: "Все", back: "Назад", next: "Далее", previous: "Назад" },
@@ -709,7 +727,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "Não",
         enterBooth: "Entrar no Estande para Ver",
         productImage: "Imagem do Produto",
-        sampleCategories: "Eletrônicos, Eletrodomésticos",
+        noProducts: "Ainda não há produtos",
+        noProductsDescription: "Nenhum produto foi publicado ainda. Seja o primeiro a mostrar seus produtos!",
       },
       why: {
         title: "Por Que Nos Escolher",
@@ -717,7 +736,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "Preços Competitivos", description: "Direto dos fabricantes" },
         global: { title: "Alcance Global", description: "Conecte-se com compradores e vendedores" },
       },
-      exhibitors: { title: "Expositores em Destaque", viewAll: "Ver Todos" },
+      exhibitors: { title: "Expositores em Destaque", viewAll: "Ver Todos", noExhibitors: "Ainda não há expositores", noExhibitorsDescription: "Nenhum vendedor se registrou ainda. Registre-se agora para se tornar um expositor!" },
     },
     nav: { home: "Início", products: "Produtos", exhibitors: "Expositores", sellerPortal: "Portal do Vendedor", login: "Entrar", register: "Registrar", dashboard: "Painel", logout: "Sair" },
     common: { loading: "Carregando...", error: "Erro", save: "Salvar", cancel: "Cancelar", delete: "Excluir", edit: "Editar", search: "Pesquisar", noResults: "Sem resultados", contact: "Contato", verified: "Verificado", viewAll: "Ver Tudo", back: "Voltar", next: "Próximo", previous: "Anterior" },
@@ -743,7 +762,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "नहीं",
         enterBooth: "देखने के लिए बूथ में जाएं",
         productImage: "उत्पाद छवि",
-        sampleCategories: "इलेक्ट्रॉनिक्स, घरेलू उपकरण",
+        noProducts: "अभी तक कोई उत्पाद नहीं",
+        noProductsDescription: "अभी तक कोई उत्पाद प्रकाशित नहीं किया गया है। अपने उत्पादों को प्रस्तुत करने वाले पहले व्यक्ति बनें!",
       },
       why: {
         title: "हमें क्यों चुनें",
@@ -751,7 +771,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "प्रतिस्पर्धी मूल्य", description: "निर्माताओं से सीधे" },
         global: { title: "वैश्विक पहुंच", description: "दुनिया भर के खरीदारों से जुड़ें" },
       },
-      exhibitors: { title: "विशेष प्रदर्शक", viewAll: "सभी प्रदर्शक देखें" },
+      exhibitors: { title: "विशेष प्रदर्शक", viewAll: "सभी प्रदर्शक देखें", noExhibitors: "अभी तक कोई प्रदर्शक नहीं", noExhibitorsDescription: "अभी तक कोई विक्रेता पंजीकृत नहीं हुआ है। प्रदर्शक बनने के लिए अभी पंजीकरण करें!" },
     },
     nav: { home: "होम", products: "उत्पाद", exhibitors: "प्रदर्शक", sellerPortal: "विक्रेता पोर्टल", login: "लॉगिन", register: "रजिस्टर", dashboard: "डैशबोर्ड", logout: "लॉगआउट" },
     common: { loading: "लोड हो रहा है...", error: "त्रुटि", save: "सेव", cancel: "रद्द", delete: "हटाएं", edit: "संपादित", search: "खोज", noResults: "कोई परिणाम नहीं", contact: "संपर्क", verified: "सत्यापित", viewAll: "सभी देखें", back: "वापस", next: "अगला", previous: "पिछला" },
@@ -777,7 +797,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "ไม่",
         enterBooth: "เข้าสู่บูธเพื่อดู",
         productImage: "รูปภาพสินค้า",
-        sampleCategories: "อิเล็กทรอนิกส์, เครื่องใช้ในบ้าน",
+        noProducts: "ยังไม่มีสินค้า",
+        noProductsDescription: "ยังไม่มีสินค้าที่เผยแพร่. เป็นคนแรกที่แสดงสินค้าของคุณ!",
       },
       why: {
         title: "ทำไมต้องเลือกเรา",
@@ -785,7 +806,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "ราคาที่แข่งขันได้", description: "直接从ผู้ผลิต" },
         global: { title: "เข้าถึงทั่วโลก", description: "เชื่อมต่อกับผู้ซื้อและผู้ขายทั่วโลก" },
       },
-      exhibitors: { title: "ผู้แสดงสินค้าแนะนำ", viewAll: "ดูทั้งหมด" },
+      exhibitors: { title: "ผู้แสดงสินค้าแนะนำ", viewAll: "ดูทั้งหมด", noExhibitors: "ยังไม่มีผู้แสดงสินค้า", noExhibitorsDescription: "ยังไม่มีผู้ขายลงทะเบียน. ลงทะเบียนตอนนี้เพื่อเป็นผู้แสดงสินค้า!" },
     },
     nav: { home: "หน้าแรก", products: "สินค้า", exhibitors: "ผู้แสดงสินค้า", sellerPortal: "พอร์ตอลผู้ขาย", login: "เข้าสู่ระบบ", register: "ลงทะเบียน", dashboard: "แดชบอร์ด", logout: "ออกจากระบบ" },
     common: { loading: "กำลังโหลด...", error: "ข้อผิดพลาด", save: "บันทึก", cancel: "ยกเลิก", delete: "ลบ", edit: "แก้ไข", search: "ค้นหา", noResults: "ไม่พบผลลัพธ์", contact: "ติดต่อ", verified: "ตรวจสอบแล้ว", viewAll: "ดูทั้งหมด", back: "กลับ", next: "ถัดไป", previous: "ก่อนหน้า" },
@@ -811,7 +832,8 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         no: "Không",
         enterBooth: "Vào Gian Hàng để Xem",
         productImage: "Hình Ảnh Sản Phẩm",
-        sampleCategories: "Điện Tử, Đồ Gia Dụng",
+        noProducts: "Chưa có sản phẩm",
+        noProductsDescription: "Chưa có sản phẩm nào được đăng. Hãy là người đầu tiên giới thiệu sản phẩm của bạn!",
       },
       why: {
         title: "Tại Sao Chọn Chúng Tôi",
@@ -819,7 +841,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
         competitive: { title: "Giá Cả Cạnh Tranh", description: "Trực tiếp từ nhà sản xuất" },
         global: { title: "Phạm Vi Toàn Cầu", description: "Kết nối với người mua và người bán" },
       },
-      exhibitors: { title: "Nhà Triển Lãm Nổi Bật", viewAll: "Xem Tất Cả" },
+      exhibitors: { title: "Nhà Triển Lãm Nổi Bật", viewAll: "Xem Tất Cả", noExhibitors: "Chưa có nhà triển lãm", noExhibitorsDescription: "Chưa có người bán đăng ký. Đăng ký ngay để trở thành nhà triển lãm!" },
     },
     nav: { home: "Trang Chủ", products: "Sản Phẩm", exhibitors: "Nhà Triển Lãm", sellerPortal: "Cổng Người Bán", login: "Đăng Nhập", register: "Đăng Ký", dashboard: "Bảng Điều Khiển", logout: "Đăng Xuất" },
     common: { loading: "Đang tải...", error: "Lỗi", save: "Lưu", cancel: "Hủy", delete: "Xóa", edit: "Sửa", search: "Tìm kiếm", noResults: "Không có kết quả", contact: "Liên hệ", verified: "Đã xác minh", viewAll: "Xem Tất Cả", back: "Quay lại", next: "Tiếp", previous: "Trước" },

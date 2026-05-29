@@ -8,6 +8,7 @@ import DisclaimerModal from '@/components/DisclaimerModal'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
+import { prisma } from '@/lib/db'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -23,6 +24,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Home({ params }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+
+  // Fetch real products from database
+  const featuredProducts = await prisma.product.findMany({
+    where: { isActive: true },
+    include: {
+      seller: { select: { id: true, companyName: true } },
+      category: { select: { name: true } }
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 4
+  })
+
+  // Fetch real sellers from database
+  const exhibitors = await prisma.seller.findMany({
+    where: { isVerified: true },
+    orderBy: { createdAt: 'desc' },
+    take: 4
+  })
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -115,32 +134,44 @@ export default async function Home({ params }: PageProps) {
       {/* Featured Products */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">{dict.home.featured.title}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">{dict.home.featured.productImage}</span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{dict.home.featured.boothName} {item}</h3>
-                <div className="space-y-2 mb-3">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">{dict.home.featured.productCategory}:</span> {dict.home.featured.sampleCategories}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">{dict.home.featured.customization}:</span> {dict.home.featured.yes}
-                  </p>
+        {featuredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+                <div className="h-48 bg-gray-200 flex items-center justify-center">
+                  {product.images && product.images.length > 0 ? (
+                    <img src={product.images[0]} alt={product.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-gray-400">{dict.home.featured.productImage}</span>
+                  )}
                 </div>
-                <Link 
-                  href={`/${locale}/stores/1`} 
-                  className="w-full block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                >
-                  {dict.home.featured.enterBooth}
-                </Link>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.title}</h3>
+                  <div className="space-y-2 mb-3">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">{dict.home.featured.productCategory}:</span> {product.category?.name || 'N/A'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">{dict.home.featured.customization}:</span> {product.customizable ? dict.home.featured.yes : dict.home.featured.no}
+                    </p>
+                  </div>
+                  <Link 
+                    href={`/${locale}/stores/${product.seller.id}`} 
+                    className="w-full block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    {dict.home.featured.enterBooth}
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <div className="text-6xl mb-4">🏪</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{dict.home.featured.noProducts}</h3>
+            <p className="text-gray-600">{dict.home.featured.noProductsDescription}</p>
+          </div>
+        )}
       </section>
 
       {/* Why Choose Us */}
@@ -182,19 +213,31 @@ export default async function Home({ params }: PageProps) {
       {/* Exhibitors Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">{dict.home.exhibitors.title}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[1, 2, 3, 4].map((item) => (
-            <Link key={item} href={`/${locale}/stores/${item}`} className="group">
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
-                <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-gray-400 text-sm">Logo</span>
+        {exhibitors.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {exhibitors.map((seller) => (
+              <Link key={seller.id} href={`/${locale}/stores/${seller.id}`} className="group">
+                <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
+                  <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    {seller.logo ? (
+                      <img src={seller.logo} alt={seller.companyName} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Logo</span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold group-hover:text-blue-600 transition-colors">{seller.companyName}</h3>
+                  <p className="text-gray-600 text-sm mt-1">{seller.country}</p>
                 </div>
-                <h3 className="font-semibold group-hover:text-blue-600 transition-colors">Exhibitor {item}</h3>
-                <p className="text-gray-600 text-sm mt-1">Verified Supplier</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <div className="text-6xl mb-4">👥</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{dict.home.exhibitors.noExhibitors}</h3>
+            <p className="text-gray-600">{dict.home.exhibitors.noExhibitorsDescription}</p>
+          </div>
+        )}
         <div className="text-center mt-8">
           <Link 
             href={`/${locale}/stores`} 

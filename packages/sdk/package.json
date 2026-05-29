@@ -1,0 +1,38 @@
+{
+  "name": "@chinahuib2b/sdk",
+  "version": "1.0.0",
+  "description": "China Hui B2B Platform SDK for AI and Developers",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "b2b",
+    "ecommerce",
+    "api",
+    "sdk",
+    "ai",
+    "lingma",
+    "trae",
+    "qoder",
+    "comate",
+    "openclaw",
+    "claude-code",
+    "hermes"
+  ],
+  "author": "China Hui B2B",
+  "license": "MIT",
+  "peerDependencies": {},
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

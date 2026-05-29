@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
+import UpdateNotification from '@/components/UpdateNotification'
 
 type SellerDashboardClientLayoutProps = {
   children: React.ReactNode
@@ -296,7 +297,19 @@ export default function SellerDashboardClientLayout({
               </h3>
               <div className="space-y-2 text-sm">
                 <p className="text-gray-500 text-xs">
-                  {language === 'zh' ? '统计数据将在仪表板页面显示' : 'Stats will appear on dashboard page'}
+                  {language === 'zh' ? '统计数据将在仪表板页面显示' :
+                   language === 'ja' ? '統計データはダッシュボードページに表示されます' :
+                   language === 'ar' ? 'ستظهر الإحصائيات على صفحة لوحة التحكم' :
+                   language === 'es' ? 'Las estadísticas aparecerán en la página del panel' :
+                   language === 'fr' ? 'Les statistiques apparaîtront sur la page du tableau de bord' :
+                   language === 'de' ? 'Statistiken werden auf der Dashboard-Seite angezeigt' :
+                   language === 'ko' ? '통계 데이터가 대시보드 페이지에 표시됩니다' :
+                   language === 'ru' ? 'Статистика будет отображена на странице панели управления' :
+                   language === 'pt' ? 'Estatísticas aparecerão na página do painel' :
+                   language === 'hi' ? 'डैशबोर्ड पेज पर आंकड़े दिखाई देंगे' :
+                   language === 'th' ? 'สถิติจะปรากฏบนหน้าดัชบอร์ด' :
+                   language === 'vi' ? 'Thống kê sẽ xuất hiện trên trang bảng điều khiển' :
+                   'Stats will appear on dashboard page'}
                 </p>
               </div>
             </div>
@@ -308,6 +321,9 @@ export default function SellerDashboardClientLayout({
           </main>
         </div>
       </div>
+      
+      {/* Update Notification */}
+      <UpdateNotification language={language} />
     </div>
   )
 }

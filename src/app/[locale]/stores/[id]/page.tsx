@@ -17,6 +17,33 @@ interface Props {
 // ISR Configuration - Revalidate every hour
 export const revalidate = 3600
 
+// Helper function to get description based on locale
+function getLocalizedDescription(seller: any, locale: string): string {
+  let displayDescription = ''
+  
+  // Check multi-language descriptions first
+  if (seller.descriptions && typeof seller.descriptions === 'object') {
+    // Priority: current locale > English > Chinese > any available
+    if (seller.descriptions[locale]) {
+      displayDescription = seller.descriptions[locale]
+    } else if (seller.descriptions['en']) {
+      displayDescription = seller.descriptions['en']
+    } else if (seller.descriptions['zh']) {
+      displayDescription = seller.descriptions['zh']
+    } else {
+      const firstLang = Object.keys(seller.descriptions)[0]
+      displayDescription = seller.descriptions[firstLang] || ''
+    }
+  }
+  
+  // Fallback to legacy description field
+  if (!displayDescription && seller.description) {
+    displayDescription = seller.description
+  }
+  
+  return displayDescription
+}
+
 export default async function StoreDetailPage({ params }: Props) {
   const { id, locale } = await params
   
@@ -26,6 +53,9 @@ export default async function StoreDetailPage({ params }: Props) {
   if (!seller) {
     notFound()
   }
+  
+  // Get localized description
+  const description = getLocalizedDescription(seller, locale)
   
   // Prepare breadcrumb schema
   const breadcrumbs = [
@@ -147,14 +177,14 @@ export default async function StoreDetailPage({ params }: Props) {
                 )}
               </div>
 
-              {/* Description */}
-              {seller.description && (
+              {/* Description - Multi-language support */}
+              {description && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-900 mb-3">
                     {locale === 'zh' ? '公司简介' : 'About Us'}
                   </h2>
                   <p className="text-gray-700 whitespace-pre-line">
-                    {seller.description}
+                    {description}
                   </p>
                 </div>
               )}
