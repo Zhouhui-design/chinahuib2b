@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import type { LanguageCode } from '@/lib/languages';
 import { useState, useEffect } from 'react';
-import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle } from 'lucide-react';
+import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
 type NavbarProps = {
   locale: LanguageCode;
@@ -48,6 +48,9 @@ export default function Navbar({ locale }: NavbarProps) {
       home: locale === 'zh' ? '首页' : locale === 'es' ? 'Inicio' : 'Home',
       products: locale === 'zh' ? '产品' : locale === 'es' ? 'Productos' : 'Products',
       exhibitors: locale === 'zh' ? '参展商' : locale === 'es' ? 'Expositores' : 'Exhibitors',
+      chatHall: locale === 'zh' ? '聊天广场' : locale === 'es' ? 'Sala de Chat' : 'Chat Hall',
+      marketplace: locale === 'zh' ? '帖子市场' : locale === 'es' ? 'Mercado' : 'Marketplace',
+      auction: locale === 'zh' ? '拍卖行' : locale === 'es' ? 'Subastas' : 'Auctions',
       login: locale === 'zh' ? '登录' : locale === 'es' ? 'Iniciar Sesión' : 'Login',
       register: locale === 'zh' ? '注册' : locale === 'es' ? 'Registrarse' : 'Register',
       sellerPortal: locale === 'zh' ? '卖家门户' : locale === 'es' ? 'Portal del Vendedor' : 'Seller Portal',
@@ -57,6 +60,11 @@ export default function Navbar({ locale }: NavbarProps) {
       myStore: locale === 'zh' ? '我的店铺' : locale === 'es' ? 'Mi Tienda' : 'My Store',
       chatAccount: locale === 'zh' ? '聊天账号' : locale === 'es' ? 'Cuenta de Chat' : 'Chat Account',
       aiAgents: locale === 'zh' ? 'AI 代理' : locale === 'es' ? 'Agentes AI' : 'AI Agents',
+      aiAudit: locale === 'zh' ? 'AI 审计日志' : locale === 'es' ? 'Auditoría AI' : 'AI Audit Log',
+      apiKeys: locale === 'zh' ? 'API 密钥管理' : locale === 'es' ? 'Claves API' : 'API Keys',
+      apiDocs: locale === 'zh' ? 'API/CLI/MCP 文档' : locale === 'es' ? 'Documentación API' : 'API/CLI/MCP Docs',
+      aiRegister: locale === 'zh' ? 'AI 身份注册' : locale === 'es' ? 'Registro AI' : 'AI Identity Register',
+      teamChat: locale === 'zh' ? '队伍聊天' : locale === 'es' ? 'Chat de Equipo' : 'Team Chat',
       signOut: locale === 'zh' ? '退出登录' : locale === 'es' ? 'Cerrar Sesión' : 'Sign Out',
     }
   };
@@ -81,7 +89,7 @@ export default function Navbar({ locale }: NavbarProps) {
             <span className="text-xl font-bold text-gray-800 hidden sm:block">Global Expo</span>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             <Link
               href={`/${locale}`}
               className={`text-sm font-medium transition-colors ${
@@ -105,6 +113,38 @@ export default function Navbar({ locale }: NavbarProps) {
               }`}
             >
               {dict.nav.exhibitors}
+            </Link>
+            <Link
+              href="/chat-hall"
+              className={`text-sm font-medium transition-colors ${
+                currentPath.startsWith('/chat-hall') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              {dict.nav.chatHall}
+            </Link>
+            <Link
+              href="/marketplace"
+              className={`text-sm font-medium transition-colors ${
+                currentPath.startsWith('/marketplace') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              {dict.nav.marketplace}
+            </Link>
+            <Link
+              href="/auction-screen"
+              className={`text-sm font-medium transition-colors ${
+                currentPath.startsWith('/auction-screen') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              {dict.nav.auction}
+            </Link>
+            <Link
+              href="/api-docs"
+              className={`text-sm font-medium transition-colors ${
+                currentPath.startsWith('/api-docs') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+              }`}
+            >
+              {dict.nav.apiDocs}
             </Link>
           </div>
 
@@ -160,9 +200,39 @@ export default function Navbar({ locale }: NavbarProps) {
                         {dict.nav.finances}
                       </Link>
                       
+                      <div className="border-t border-gray-200 my-1" />
+                      
+                      <Link
+                        href="/chat-hall"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        {dict.nav.chatAccount}
+                      </Link>
+                      
+                      <Link
+                        href="/marketplace"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <ShoppingBag className="w-4 h-4 mr-2" />
+                        {dict.nav.marketplace}
+                      </Link>
+                      
+                      <Link
+                        href="/auction-screen"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <Gavel className="w-4 h-4 mr-2" />
+                        {dict.nav.auction}
+                      </Link>
+                      
+                      <div className="border-t border-gray-200 my-1" />
+                      
                       {user.role === 'SELLER' && (
                         <>
-                          <div className="border-t border-gray-200 my-1" />
                           <Link
                             href="/seller"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -179,16 +249,44 @@ export default function Navbar({ locale }: NavbarProps) {
                             <Bot className="w-4 h-4 mr-2" />
                             {dict.nav.aiAgents}
                           </Link>
+                          <div className="border-t border-gray-200 my-1" />
                         </>
                       )}
                       
                       <Link
-                        href="/chat-hall"
+                        href="/api-keys"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        {dict.nav.chatAccount}
+                        <Key className="w-4 h-4 mr-2" />
+                        {dict.nav.apiKeys}
+                      </Link>
+                      
+                      <Link
+                        href="/ai-audit"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <History className="w-4 h-4 mr-2" />
+                        {dict.nav.aiAudit}
+                      </Link>
+                      
+                      <Link
+                        href="/ai-register"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <Bot className="w-4 h-4 mr-2" />
+                        {dict.nav.aiRegister}
+                      </Link>
+                      
+                      <Link
+                        href="/team-chat"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        {dict.nav.teamChat}
                       </Link>
                       
                       {user.role === 'ADMIN' && (

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle } from 'lucide-react'
+import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
@@ -21,6 +21,7 @@ export default function SellerDashboardClientLayout({
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
+  const [showQuickMenu, setShowQuickMenu] = useState(false)
   
   // Translations for sidebar and common elements
   const t = {
@@ -79,6 +80,20 @@ export default function SellerDashboardClientLayout({
                language === 'th' ? 'โบรชัวร์' :
                language === 'vi' ? 'Tài liệu' :
                'Brochures',
+    
+    booths: language === 'zh' ? '展位管理' :
+            language === 'ja' ? 'ブース管理' :
+            language === 'ar' ? 'إدارة المحطات' :
+            language === 'es' ? 'Gestión de Puestos' :
+            language === 'fr' ? 'Gestion des stands' :
+            language === 'de' ? 'Standverwaltung' :
+            language === 'ko' ? '부스 관리' :
+            language === 'ru' ? 'Управление стендами' :
+            language === 'pt' ? 'Gerenciamento de Cabines' :
+            language === 'hi' ? 'बूथ प्रबंधन' :
+            language === 'th' ? 'การจัดการบูธ' :
+            language === 'vi' ? 'Quản lý gian hàng' :
+            'Booths',
     
     settings: language === 'zh' ? '设置' :
               language === 'ja' ? '設定' :
@@ -149,6 +164,34 @@ export default function SellerDashboardClientLayout({
             language === 'th' ? 'ออกจากระบบ' :
             language === 'vi' ? 'Đăng xuất' :
             'Logout',
+            
+    home: language === 'zh' ? '首页' :
+          language === 'ja' ? 'ホーム' :
+          language === 'ar' ? 'الرئيسية' :
+          language === 'es' ? 'Inicio' :
+          language === 'fr' ? 'Accueil' :
+          language === 'de' ? 'Startseite' :
+          language === 'ko' ? '홈' :
+          language === 'ru' ? 'Главная' :
+          language === 'pt' ? 'Início' :
+          language === 'hi' ? 'होम' :
+          language === 'th' ? 'หน้าแรก' :
+          language === 'vi' ? 'Trang chủ' :
+          'Home',
+          
+    quickMenu: language === 'zh' ? '快捷菜单' :
+               language === 'ja' ? 'クイックメニュー' :
+               language === 'ar' ? 'قائمة سريعة' :
+               language === 'es' ? 'Menú Rápido' :
+               language === 'fr' ? 'Menu Rapide' :
+               language === 'de' ? 'Schnellmenü' :
+               language === 'ko' ? '빠른 메뉴' :
+               language === 'ru' ? 'Быстрое меню' :
+               language === 'pt' ? 'Menu Rápido' :
+               language === 'hi' ? 'द्रुत मेनू' :
+               language === 'th' ? 'เมนูเร็ว' :
+               language === 'vi' ? 'Menu Nhanh' :
+               'Quick Menu',
   }
   
   const isActive = (path: string) => pathname === path
@@ -224,6 +267,77 @@ export default function SellerDashboardClientLayout({
         </div>
       </nav>
 
+      {/* Breadcrumb Navigation */}
+      <nav className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-10">
+            <div className="flex items-center space-x-1 overflow-x-auto">
+              <Link href="/" className="flex items-center text-blue-600 hover:text-blue-700 transition-colors shrink-0">
+                <Home className="w-4 h-4" />
+              </Link>
+              <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+              <Link href="/seller" className="text-gray-600 hover:text-blue-600 text-sm shrink-0">
+                {t.dashboard}
+              </Link>
+              {pathname !== '/seller' && (
+                <>
+                  <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                  <span className="text-gray-800 font-medium text-sm shrink-0">
+                    {pathname.includes('/products') ? t.products :
+                     pathname.includes('/store') ? t.storeProfile :
+                     pathname.includes('/brochures') ? t.brochures :
+                     pathname.includes('/booths') ? t.booths :
+                     pathname.includes('/settings') ? t.settings :
+                     pathname.split('/').pop()}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Quick Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setShowQuickMenu(!showQuickMenu)}
+                className="flex items-center space-x-2 px-3 py-1.5 bg-white hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                title={t.quickMenu}
+              >
+                <Menu className="w-4 h-4 text-gray-600" />
+                <span className="text-sm text-gray-600 hidden sm:inline">{t.quickMenu}</span>
+              </button>
+
+              {showQuickMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowQuickMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
+                    <Link href="/" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <Home className="w-4 h-4 mr-2" />
+                      {t.home}
+                    </Link>
+                    <Link href="/chat-hall" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                      {language === 'zh' ? '聊天广场' : language === 'ja' ? 'チャットホール' : language === 'ar' ? 'ساحة الدردشة' : language === 'es' ? 'Plaza de Chat' : language === 'fr' ? 'Hall de Chat' : language === 'de' ? 'Chat-Halle' : language === 'ko' ? '채팅 홀' : language === 'ru' ? 'Чат-зал' : language === 'pt' ? 'Sala de Chat' : language === 'hi' ? 'चैट हॉल' : language === 'th' ? 'ช่องแชท' : language === 'vi' ? 'Khu vực Chat' : 'Chat Hall'}
+                    </Link>
+                    <Link href="/products" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <Package className="w-4 h-4 mr-2" />
+                      {t.products}
+                    </Link>
+                    <Link href="/stores" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <Store className="w-4 h-4 mr-2" />
+                      {language === 'zh' ? '参展商' : language === 'ja' ? '出展者' : language === 'ar' ? 'المُعرضون' : language === 'es' ? 'Expositores' : language === 'fr' ? 'Exposants' : language === 'de' ? 'Aussteller' : language === 'ko' ? '출展자' : language === 'ru' ? 'Участники' : language === 'pt' ? 'Expositores' : language === 'hi' ? 'प्रदर्शनकर्ता' : language === 'th' ? 'ผู้เข้าร่วมแสดงสินค้า' : language === 'vi' ? 'Nhà triển lãm' : 'Exhibitors'}
+                    </Link>
+                    <div className="border-t border-gray-200 my-1" />
+                    <Link href="/buyer/profile" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      {language === 'zh' ? '买家中心' : language === 'ja' ? 'バイヤーセンター' : language === 'ar' ? 'مركز المشتري' : language === 'es' ? 'Centro de Comprador' : language === 'fr' ? 'Centre de l\'Acheteur' : language === 'de' ? 'Käuferzentrum' : language === 'ko' ? '바이어 센터' : language === 'ru' ? 'Центр покупателя' : language === 'pt' ? 'Centro do Comprador' : language === 'hi' ? 'खरीदार केंद्र' : language === 'th' ? 'ศูนย์ผู้ซื้อ' : language === 'vi' ? 'Trung tâm Người mua' : 'Buyer Center'}
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           {/* Sidebar Navigation */}
@@ -275,6 +389,18 @@ export default function SellerDashboardClientLayout({
               >
                 <FileText className="w-5 h-5 mr-3" />
                 {t.brochures}
+              </Link>
+              
+              <Link
+                href="/seller/booths"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/booths')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Building2 className="w-5 h-5 mr-3" />
+                {t.booths}
               </Link>
               
               <Link

@@ -5,6 +5,7 @@ import type { LanguageCode } from "@/lib/languages";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
+import DisclaimerTicker from '@/components/DisclaimerTicker'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
@@ -49,7 +50,7 @@ export default async function Home({ params }: PageProps) {
       <AnnouncementBar />
       
       {/* Disclaimer Modal - Popup on first visit per session */}
-      <DisclaimerModal />
+      <DisclaimerModal locale={locale} />
       
       {/* Navigation Bar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -105,6 +106,10 @@ export default async function Home({ params }: PageProps) {
           </div>
         </div>
       </nav>
+      
+      {/* Disclaimer Ticker - Below Navigation */}
+      <DisclaimerTicker locale={locale} />
+      
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

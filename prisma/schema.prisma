@@ -38,6 +38,8 @@ model User {
   lastShoutOutDate DateTime? // Last shout out date
   isOnline         Boolean   @default(false) // Online status
   lastSeenAt       DateTime? // Last seen timestamp
+  balance          Decimal?  @db.Decimal(10, 2) // User balance for paid features
+  receiveNotices   Boolean   @default(true) // Whether to receive notices
 
   // Password reset
   resetToken       String?
@@ -58,6 +60,8 @@ model User {
   privateMessagesReceived    PrivateMessage[]            @relation("PrivateMessagesReceived")
   auctionListings            AuctionListing[]
   shoutOuts                  ShoutOut[]
+  worldChatMessages          WorldChatMessage[]
+  notices                    Notice[]
   boothViews                 BoothView[]
   digitalVoucherTransactions DigitalVoucherTransaction[]
   aiPermissions              AIPermission[]
@@ -106,7 +110,8 @@ model SellerProfile {
   certifications String[] // Array of certification names
 
   // Booth customization - Enhanced for user vision
-  boothName       String? // Custom exhibitor booth name
+  boothName       String? // Custom exhibitor booth name (deprecated, use boothNames instead)
+  boothNames      Json?   // Multi-language booth names { "zh": "...", "en": "...", "ja": "..." }
   boothCategories String[] // Product categories (multi-select)
   isCustomizable  Boolean  @default(false) // Whether products can be customized
 
@@ -133,6 +138,7 @@ model SellerProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
+  booths               Booth[]
   products             Product[]
   storeBrochures       StoreBrochure[]
   inquiries            Inquiry[]
@@ -179,18 +185,60 @@ model Category {
   @@index([parentId])
 }
 
+// ========================================
+// Exhibition Booth Models
+// ========================================
+
+model Booth {
+  id          String        @id @default(cuid())
+  sellerId    String
+  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  name        String        // Booth name (e.g., "2024 Spring Fair")
+  names       Json?         // Multi-language booth names
+  
+  // Exhibition info
+  exhibitionName String     // Name of the exhibition/event
+  exhibitionDates Json?     // {"start": "2024-03-01", "end": "2024-03-15"}
+  location       String?    // Physical location or virtual
+  
+  // Booth status
+  isActive     Boolean      @default(true)
+  isPublished  Boolean      @default(false)
+  
+  // Booth customization (embedded for simplicity)
+  theme        String?      // Light/Dark/Vibrant
+  colorScheme  String?      // Primary color hex
+  layout       String?      // modern/classic/grid
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  products    Product[]
+  
+  @@index([sellerId])
+  @@index([isActive])
+  @@index([isPublished])
+}
+
 // Products (exhibition items)
 model Product {
   id       String        @id @default(cuid())
   sellerId String
   seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
+  boothId  String?
+  booth    Booth? @relation(fields: [boothId], references: [id])
+
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
   title          String
-  titleEn        String?
-  description    String? // Rich text
+  titleEn        String? // English title (deprecated, use titles instead)
+  titles         Json?   // Multi-language titles { "zh": "...", "en": "...", "ja": "..." }
+  description    String? // Rich text (deprecated, use descriptions instead)
+  descriptions   Json?   // Multi-language descriptions { "zh": "...", "en": "...", "ja": "..." }
   specifications Json? // JSON object for specs
 
   minOrderQty    Int?
@@ -215,6 +263,7 @@ model Product {
   inquiries Inquiry[]
 
   @@index([sellerId])
+  @@index([boothId])
   @@index([categoryId])
   @@index([isActive])
   @@index([createdAt])
@@ -646,6 +695,49 @@ model ShoutOut {
   viewCount  Int   @default(0)
   clickCount Int   @default(0)
   reactions  Json?
+
+  // Metadata
+  type     String @default("general") // product, service, demand, general
+  tags     String[]
+  location String?
+
+  createdAt DateTime @default(now())
+
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([priority])
+}
+
+// World Chat Messages - Global broadcast messages
+model WorldChatMessage {
+  id       String @id @default(cuid())
+  content  String @db.Text
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  // Payment info
+  isFree    Boolean  @default(true)
+  cost      Decimal? @db.Decimal(10, 2) // $0.10 per paid world message
+
+  createdAt DateTime @default(now())
+
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// Notices - System notices that get pushed to users
+model Notice {
+  id       String @id @default(cuid())
+  title    String
+  content  String @db.Text
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  priority String @default("medium") // low, medium, high, urgent
+  isGlobal Boolean @default(true)
+  expiresAt DateTime?
 
   createdAt DateTime @default(now())
 

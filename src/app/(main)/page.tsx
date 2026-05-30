@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import DisclaimerTicker from '@/components/DisclaimerTicker'
+import Navbar from '@/components/Navbar'
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSEOConfig('/')
@@ -13,8 +13,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const session = await auth()
-  
   // Fetch featured products (latest 6)
   const featuredProducts = await prisma.product.findMany({
     where: { isActive: true },
@@ -46,50 +44,9 @@ export default async function HomePage() {
       {/* Disclaimer Modal - Popup on first visit per session */}
       <DisclaimerModal />
       
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              🌏 Global Expo Network
-            </Link>
-            <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                placeholder="Search exhibits or exhibitors..."
-                className="px-4 py-2 border border-gray-300 rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {session ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-700">Hello, {session.user?.name}</span>
-                  <Link
-                    href="/api/auth/signout"
-                    className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    Sign Out
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-x-2">
-                  <Link
-                    href="/auth/login"
-                    className="text-sm text-gray-700 hover:text-blue-600"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
+      {/* Navigation Bar */}
+      <Navbar locale="en" />
+      
       {/* Disclaimer Ticker - Below Header */}
       <DisclaimerTicker />
 

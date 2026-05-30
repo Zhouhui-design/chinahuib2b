@@ -3,18 +3,23 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { redis } from "@/lib/redis"
 import { z } from "zod"
+import { translateText, autoTranslateToAllLanguages } from "@/lib/translation-service"
 
 
 const productSchema = z.object({
-  title: z.string().min(3).max(200),
+  title: z.string().min(3).max(200).optional(),
+  titles: z.record(z.string(), z.string()).optional(),
   categoryId: z.string(),
   description: z.string().optional(),
+  descriptions: z.record(z.string(), z.string()).optional(),
   specifications: z.record(z.string(), z.any()).optional(),
   minOrderQty: z.number().min(1).optional(),
   supplyCapacity: z.string().optional(),
   images: z.array(z.string()).optional(),
   mainImageUrl: z.string().url().optional(),
   isFeatured: z.boolean().optional().default(false),
+  autoTranslate: z.boolean().optional().default(false),
+  sourceLanguage: z.string().optional().default('en'),
 })
 
 export async function POST(request: NextRequest) {
@@ -45,12 +50,33 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
+    let titles: Record<string, string> = data.titles || {}
+    let descriptions: Record<string, string> = data.descriptions || {}
+
+    if (data.autoTranslate) {
+      if (data.title && Object.keys(titles).length === 0) {
+        titles = await autoTranslateToAllLanguages(data.title, data.sourceLanguage || 'en')
+      }
+      if (data.description && Object.keys(descriptions).length === 0) {
+        descriptions = await autoTranslateToAllLanguages(data.description, data.sourceLanguage || 'en')
+      }
+    } else {
+      if (data.title && !titles[data.sourceLanguage || 'en']) {
+        titles[data.sourceLanguage || 'en'] = data.title
+      }
+      if (data.description && !descriptions[data.sourceLanguage || 'en']) {
+        descriptions[data.sourceLanguage || 'en'] = data.description
+      }
+    }
+
     const product = await prisma.product.create({
       data: {
         sellerId: seller.id,
         categoryId: data.categoryId,
-        title: data.title,
-        description: data.description || '',
+        title: data.title || titles['en'] || Object.values(titles)[0] || 'Untitled Product',
+        titles: Object.keys(titles).length > 0 ? titles : null,
+        description: data.description || descriptions['en'] || Object.values(descriptions)[0] || '',
+        descriptions: Object.keys(descriptions).length > 0 ? descriptions : null,
         specifications: data.specifications || {},
         minOrderQty: data.minOrderQty,
         supplyCapacity: data.supplyCapacity,

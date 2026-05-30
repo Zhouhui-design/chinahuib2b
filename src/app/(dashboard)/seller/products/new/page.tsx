@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import FileUpload from '@/components/ui/FileUpload'
+import MultilingualInput from '@/components/ui/MultilingualInput'
 import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
@@ -21,8 +22,10 @@ export default function AddProductPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
+  const [titles, setTitles] = useState<Record<string, string>>({})
   const [categoryId, setCategoryId] = useState('')
   const [description, setDescription] = useState('')
+  const [descriptions, setDescriptions] = useState<Record<string, string>>({})
   const [minOrderQty, setMinOrderQty] = useState<number | ''>('')
   const [supplyCapacity, setSupplyCapacity] = useState('')
   const [images, setImages] = useState<string[]>([])
@@ -62,6 +65,8 @@ export default function AddProductPage() {
             setTitle(pd.title || '')
             setCategoryId(pd.categoryId || '')
             setDescription(pd.description || '')
+            setTitles(pd.titles || {})
+            setDescriptions(pd.descriptions || {})
             setMinOrderQty(pd.minOrderQty || '')
             setSupplyCapacity(pd.supplyCapacity || '')
             setImages(pd.images || [])
@@ -574,8 +579,10 @@ export default function AddProductPage() {
 
       const productData = {
         title,
+        titles: Object.keys(titles).length > 0 ? titles : undefined,
         categoryId,
         description,
+        descriptions: Object.keys(descriptions).length > 0 ? descriptions : undefined,
         minOrderQty: minOrderQty || undefined,
         supplyCapacity: supplyCapacity || undefined,
         images,
@@ -673,13 +680,27 @@ export default function AddProductPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t.description}
             </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t.descriptionPlaceholder}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            {Object.keys(descriptions).length > 0 ? (
+              <MultilingualInput
+                value={descriptions}
+                onChange={(val) => setDescriptions(val)}
+                label=""
+                rows={4}
+              />
+            ) : (
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t.descriptionPlaceholder}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            )}
+            {Object.keys(descriptions).length === 0 && (
+              <p className="text-xs text-blue-600 mt-1">
+                💡 Tip: Enable multi-language editing for global buyers
+              </p>
+            )}
           </div>
         </div>
 

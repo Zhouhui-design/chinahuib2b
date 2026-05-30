@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import AdminDashboardClientLayout from './AdminDashboardClientLayout'
 
 export default async function AdminLayout({
   children,
@@ -12,10 +13,17 @@ export default async function AdminLayout({
     redirect('/auth/login')
   }
 
-  // Check if user is admin
   if (session.user?.role !== 'ADMIN') {
     redirect('/')
   }
 
-  return <>{children}</>
+  const signOutAction = async () => {
+    window.location.href = '/api/auth/signout?callbackUrl=/'
+  }
+
+  return (
+    <AdminDashboardClientLayout onSignOut={signOutAction}>
+      {children}
+    </AdminDashboardClientLayout>
+  )
 }
