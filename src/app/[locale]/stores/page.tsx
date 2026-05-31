@@ -3,7 +3,6 @@ import Image from 'next/image'
 import { Building2, MapPin, Package } from 'lucide-react'
 import { getDictionary } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
-import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>
@@ -41,55 +40,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
   const { sellers, pagination } = await getSellers(currentPage)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href={`/${locale}`} className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">G</span>
-              </div>
-              <span className="text-xl font-bold text-gray-800 hidden sm:block">Global Expo</span>
-            </Link>
-
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href={`/${locale}`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                {dict.nav.home}
-              </Link>
-              <Link href={`/${locale}/products`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                {dict.nav.products}
-              </Link>
-              <Link href={`/${locale}/stores`} className="text-sm font-medium text-blue-600 transition-colors">
-                {dict.nav.exhibitors}
-              </Link>
-            </div>
-
-            {/* Right side - Language Switcher & Auth */}
-            <div className="flex items-center space-x-4">
-              <LanguageSwitcher currentLocale={locale} />
-              
-              <div className="flex items-center space-x-3">
-                <Link
-                  href={`/${locale}/auth/login`}
-                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  {dict.nav.login}
-                </Link>
-                <Link
-                  href={`/${locale}/auth/register`}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {dict.nav.register}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -260,6 +211,6 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
           </div>
         )}
       </main>
-    </div>
+    </>
   )
 }

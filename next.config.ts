@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['chinahuib2b.top', 'www.chinahuib2b.top', '139.59.108.156'],
   
   // Output standalone for Docker deployment
-  output: 'standalone',
+  // output: 'standalone',
   
   // Disable TypeScript type checking during builds
   typescript: {

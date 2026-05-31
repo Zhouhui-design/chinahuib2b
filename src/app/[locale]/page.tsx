@@ -9,7 +9,8 @@ import DisclaimerTicker from '@/components/DisclaimerTicker'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
-import { prisma } from '@/lib/db'
+
+export const dynamic = 'force-dynamic'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -26,86 +27,40 @@ export default async function Home({ params }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
 
-  // Fetch real products from database
-  const featuredProducts = await prisma.product.findMany({
-    where: { isActive: true },
-    include: {
-      seller: { select: { id: true, companyName: true } },
-      category: { select: { name: true } }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 4
-  })
+  let featuredProducts: any[] = [];
+  let exhibitors: any[] = [];
 
-  // Fetch real sellers from database
-  const exhibitors = await prisma.seller.findMany({
-    where: { isVerified: true },
-    orderBy: { createdAt: 'desc' },
-    take: 4
-  })
+  try {
+    const productsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/products?limit=4`, {
+      cache: 'no-store'
+    });
+    if (productsResponse.ok) {
+      const productsData = await productsResponse.json();
+      featuredProducts = productsData.products || [];
+    }
+  } catch (e) {
+    console.error('Failed to fetch products:', e);
+  }
+
+  try {
+    const sellersResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/sellers?limit=4`, {
+      cache: 'no-store'
+    });
+    if (sellersResponse.ok) {
+      const sellersData = await sellersResponse.json();
+      exhibitors = sellersData.sellers || [];
+    }
+  } catch (e) {
+    console.error('Failed to fetch sellers:', e);
+  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <>
       {/* Announcement Bar - Top */}
       <AnnouncementBar />
       
       {/* Disclaimer Modal - Popup on first visit per session */}
       <DisclaimerModal locale={locale} />
-      
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href={`/${locale}`} className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">G</span>
-              </div>
-              <span className="text-xl font-bold text-gray-800 hidden sm:block">Global Expo</span>
-            </Link>
-
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href={`/${locale}`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                {dict.nav.home}
-              </Link>
-              <Link href={`/${locale}/products`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                {dict.nav.products}
-              </Link>
-              <Link href={`/${locale}/stores`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                {dict.nav.exhibitors}
-              </Link>
-              <Link href="/seller" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                {dict.nav.sellerPortal}
-              </Link>
-            </div>
-
-            {/* Right side - Language Switcher & Auth */}
-            <div className="flex items-center space-x-4">
-              {/* Language Switcher */}
-              <LanguageSwitcher currentLocale={locale} />
-              
-              <div className="flex items-center space-x-3">
-                <Link
-                  href={`/${locale}/auth/login`}
-                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  {dict.nav.login}
-                </Link>
-                <Link
-                  href={`/${locale}/auth/register`}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {dict.nav.register}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
       
       {/* Disclaimer Ticker - Below Navigation */}
       <DisclaimerTicker locale={locale} />

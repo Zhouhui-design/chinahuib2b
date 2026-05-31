@@ -2,8 +2,11 @@
 
 import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Send, Globe, Sparkles, MessageSquare, Users, TrendingUp, Filter, Search, Image, Paperclip, Smile, MapPin, Tag, Clock, Eye, AlertCircle, Bell, BellOff, Volume2, VolumeX, Shield, Zap, Crown } from 'lucide-react'
+import { Send, Globe, Sparkles, MessageSquare, Users, TrendingUp, Filter, Search, Image, Paperclip, Smile, MapPin, Tag, Clock, Eye, AlertCircle, Bell, BellOff, Volume2, VolumeX, Shield, Zap, Crown, ShoppingBag, Auction } from 'lucide-react'
+import type { LanguageCode } from '@/lib/languages'
+import { dictionaries } from '@/locales/dictionary'
 
 const DynamicSessionProvider = dynamic(
   () => import('@/components/providers/SessionProvider').then(mod => mod.SessionProvider),
@@ -72,12 +75,6 @@ type Notice = {
 
 type PostType = 'product' | 'service' | 'demand'
 
-const postTypeConfig = {
-  product: { icon: '📦', label: 'Product', color: 'bg-green-600', bgLight: 'bg-green-50', textColor: 'text-green-700' },
-  service: { icon: '🛠️', label: 'Service', color: 'bg-blue-600', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
-  demand: { icon: '💡', label: 'Demand', color: 'bg-purple-600', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
-}
-
 const priorityConfig = {
   low: { label: 'Low', color: 'bg-gray-600', badge: 'text-gray-400' },
   medium: { label: 'Medium', color: 'bg-yellow-600', badge: 'text-yellow-400' },
@@ -94,6 +91,16 @@ export default function ChatHallPage() {
 }
 
 function ChatHallContent() {
+  const params = useParams()
+  const locale = (params.locale as LanguageCode) || 'en'
+  const dict = dictionaries[locale] || dictionaries.en
+  
+  const postTypeConfig = {
+    product: { icon: '📦', label: dict.chatHall.product, color: 'bg-green-600', bgLight: 'bg-green-50', textColor: 'text-green-700' },
+    service: { icon: '🛠️', label: dict.chatHall.service, color: 'bg-blue-600', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
+    demand: { icon: '💡', label: dict.chatHall.demand, color: 'bg-purple-600', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
+  }
+  
   const [mounted, setMounted] = useState(false)
   const [session, setSession] = useState<any>(null)
   const [status, setStatus] = useState<string>('loading')
@@ -415,10 +422,10 @@ function ChatHallContent() {
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
 
-    if (minutes < 1) return 'just now'
-    if (minutes < 60) return `${minutes}m ago`
-    if (hours < 24) return `${hours}h ago`
-    if (days < 7) return `${days}d ago`
+    if (minutes < 1) return dict.chatHall.justNow
+    if (minutes < 60) return `${minutes}${dict.chatHall.minutesAgo}`
+    if (hours < 24) return `${hours}${dict.chatHall.hoursAgo}`
+    if (days < 7) return `${days}${dict.chatHall.daysAgo}`
     return date.toLocaleDateString()
   }
 
@@ -430,8 +437,8 @@ function ChatHallContent() {
             <div className="absolute inset-0 bg-blue-500/30 blur-3xl animate-pulse"></div>
             <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto mb-6"></div>
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Connecting to Global Chat Hall...</h2>
-          <p className="text-blue-300">Bringing the world together</p>
+          <h2 className="text-xl font-semibold text-white mb-2">{dict.chatHall.connectingToChat}</h2>
+          <p className="text-blue-300">{dict.chatHall.bringingWorldTogether}</p>
         </div>
       </div>
     )
@@ -445,7 +452,7 @@ function ChatHallContent() {
           <div className="max-w-7xl mx-auto flex items-center gap-4">
             <AlertCircle className="w-6 h-6 flex-shrink-0" />
             <marquee behavior="scroll" direction="left" scrollamount="5">
-              <span className="font-bold text-lg">🌍 WORLD ANNOUNCEMENT: </span>
+              <span className="font-bold text-lg">🌍 {dict.chatHall.worldAnnouncement}: </span>
               <span>{currentAnnouncement}</span>
             </marquee>
           </div>
@@ -462,29 +469,29 @@ function ChatHallContent() {
                   <MessageSquare className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">🌍 Global Chat Hall</h1>
-                  <p className="text-xs text-slate-400">Connect with global buyers & sellers</p>
+                  <h1 className="text-xl font-bold text-white">🌍 {dict.chatHall.title}</h1>
+                  <p className="text-xs text-slate-400">{dict.chatHall.subtitle}</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 rounded-lg">
                 <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                <span className="text-sm text-slate-300">{onlineUsers} online</span>
+                <span className="text-sm text-slate-300">{onlineUsers} {dict.chatHall.online}</span>
               </div>
               <Link
-                href="/marketplace"
+                href={`/${locale}/marketplace`}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-all hover:shadow-lg"
               >
-                <ShoppingBagIcon className="w-4 h-4" />
-                Marketplace
+                <ShoppingBag className="w-4 h-4" />
+                {dict.chatHall.marketplace}
               </Link>
               <Link
-                href="/auction-screen"
+                href={`/${locale}/auction-screen`}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-all hover:shadow-lg"
               >
-                <AuctionIcon className="w-4 h-4" />
-                Auctions
+                <Auction className="w-4 h-4" />
+                {dict.chatHall.auctions}
               </Link>
             </div>
           </div>
@@ -501,7 +508,7 @@ function ChatHallContent() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Users className="w-5 h-5 text-green-500" />
-                  Online Users
+                  {dict.chatHall.onlineUsers}
                 </h2>
                 <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
                   {onlineUsers}
@@ -549,33 +556,33 @@ function ChatHallContent() {
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Globe className="w-5 h-5 text-yellow-400" />
-                  World Chat
+                  {dict.chatHall.worldChat}
                 </h2>
                 <div className="flex items-center gap-1 text-yellow-300 text-xs">
                   <Zap className="w-4 h-4" />
-                  {worldChatStats.remainingFree} free
+                  {worldChatStats.remainingFree} {dict.chatHall.freeRemaining}
                 </div>
               </div>
               <form onSubmit={sendWorldChat} className="space-y-3">
                 <textarea
                   value={newWorldChat}
                   onChange={(e) => setNewWorldChat(e.target.value)}
-                  placeholder="Broadcast to the WORLD!"
+                  placeholder={dict.chatHall.broadcastToWorld}
                   maxLength={100}
                   className="w-full p-3 bg-slate-800/80 border border-yellow-500/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
                   rows={2}
                   disabled={!session?.user || sendingWorldChat}
                 />
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-yellow-300">{newWorldChat.length}/100 chars</span>
-                  <span className="text-slate-400">${worldChatStats.costPerMessage}/msg after free</span>
+                  <span className="text-yellow-300">{newWorldChat.length}/100 {dict.chatHall.chars}</span>
+                  <span className="text-slate-400">${worldChatStats.costPerMessage}{dict.chatHall.perMessage}</span>
                 </div>
                 <button
                   type="submit"
                   disabled={!session?.user || sendingWorldChat || !newWorldChat.trim()}
                   className="w-full py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all hover:shadow-lg"
                 >
-                  {sendingWorldChat ? 'Broadcasting...' : '🌍 Broadcast'}
+                  {sendingWorldChat ? dict.chatHall.broadcasting : `🌍 ${dict.chatHall.broadcast}`}
                 </button>
               </form>
             </div>
@@ -584,7 +591,7 @@ function ChatHallContent() {
             <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 backdrop-blur rounded-2xl p-4 border border-blue-500/30">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-400" />
-                Quick Post
+                {dict.chatHall.quickPost}
               </h2>
               
               <div className="flex gap-2 mb-3">
@@ -605,18 +612,18 @@ function ChatHallContent() {
 
               <textarea
                 value={shoutOuts[0]?.content || ''}
-                placeholder={`Post your ${postTypeConfig[selectedPostType].label.toLowerCase()}...`}
+                placeholder={`${dict.chatHall.postProduct}...`}
                 className="w-full p-3 bg-slate-800/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 rows={3}
                 disabled={!session?.user}
               />
               <div className="flex items-center justify-between mt-3">
-                <span className="text-xs text-slate-400">10 free/day • $0.10 after</span>
+                <span className="text-xs text-slate-400">10 {dict.chatHall.freePerDay} • $0.10 after</span>
                 <button
                   disabled={!session?.user}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${postTypeConfig[selectedPostType].color} hover:opacity-90 text-white`}
                 >
-                  📢 Post
+                  📢 {dict.chatHall.posts}
                 </button>
               </div>
             </div>
@@ -635,7 +642,7 @@ function ChatHallContent() {
                 }`}
               >
                 <MessageSquare className="w-5 h-5" />
-                Public Chat
+                {dict.chatHall.publicChat}
               </button>
               <button
                 onClick={() => setActiveTab('world')}
@@ -646,7 +653,7 @@ function ChatHallContent() {
                 }`}
               >
                 <Globe className="w-5 h-5" />
-                World Chat
+                {dict.chatHall.worldChat}
               </button>
               <button
                 onClick={() => setActiveTab('notices')}
@@ -657,7 +664,7 @@ function ChatHallContent() {
                 }`}
               >
                 <Bell className="w-5 h-5" />
-                Notices
+                {dict.chatHall.notices}
               </button>
               <button
                 onClick={() => setActiveTab('posts')}
@@ -668,7 +675,7 @@ function ChatHallContent() {
                 }`}
               >
                 <TrendingUp className="w-5 h-5" />
-                Posts
+                {dict.chatHall.posts}
               </button>
             </div>
 
@@ -677,17 +684,17 @@ function ChatHallContent() {
               <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 flex flex-col h-[calc(100vh-22rem)]">
                 <div className="p-4 border-b border-slate-700 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold text-white">💬 Public Chat</h2>
+                    <h2 className="text-lg font-semibold text-white">💬 {dict.chatHall.publicChat}</h2>
                     <div className={`flex items-center gap-2 px-2 py-1 rounded-full ${
                       isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                     }`}>
                       <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                      <span className="text-xs font-medium">{isConnected ? 'Live' : 'Offline'}</span>
+                      <span className="text-xs font-medium">{isConnected ? dict.chatHall.live : dict.chatHall.offline}</span>
                     </div>
                     {!canSendMessage && (
                       <div className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full">
                         <Shield className="w-4 h-4" />
-                        <span className="text-xs">Wait {messageCooldown}s</span>
+                        <span className="text-xs">{dict.chatHall.wait} {messageCooldown}{dict.chatHall.seconds}</span>
                       </div>
                     )}
                   </div>
@@ -698,7 +705,7 @@ function ChatHallContent() {
                         className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 rounded-lg text-slate-300 hover:bg-slate-600 transition-colors"
                       >
                         <Globe className="w-4 h-4" />
-                        <span className="text-sm">{selectedLanguage === 'auto' ? 'Auto' : selectedLanguage.toUpperCase()}</span>
+                        <span className="text-sm">{selectedLanguage === 'auto' ? dict.chatHall.auto : selectedLanguage.toUpperCase()}</span>
                       </button>
                       {showLanguageSelector && (
                         <div className="absolute right-0 mt-2 w-40 bg-slate-700 rounded-lg py-2 z-10 shadow-xl border border-slate-600">
@@ -713,7 +720,7 @@ function ChatHallContent() {
                                 selectedLanguage === lang ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-600'
                               }`}
                             >
-                              {lang === 'auto' ? 'Auto Detect' : lang.toUpperCase()}
+                              {lang === 'auto' ? dict.chatHall.autoDetect : lang.toUpperCase()}
                             </button>
                           ))}
                         </div>
@@ -726,8 +733,8 @@ function ChatHallContent() {
                   {publicMessages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-slate-500">
                       <MessageSquare className="w-16 h-16 mb-4 opacity-50" />
-                      <p className="text-lg font-medium">No messages yet</p>
-                      <p className="text-sm">Be the first to say hello!</p>
+                      <p className="text-lg font-medium">{dict.chatHall.noMessages}</p>
+                      <p className="text-sm">{dict.chatHall.firstHello}</p>
                     </div>
                   ) : (
                     publicMessages.filter(m => !m.isWorldChat).map((message) => (
@@ -771,7 +778,7 @@ function ChatHallContent() {
                                     href={`/stores/${message.sender.sellerProfile.id}`}
                                     className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full hover:bg-purple-500 transition-colors"
                                   >
-                                    🏪 Visit Store
+                                    🏪 {dict.chatHall.visitStore}
                                   </Link>
                                 )}
                                 <span className="text-slate-500 text-xs">
@@ -810,7 +817,7 @@ function ChatHallContent() {
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={session?.user ? "Type a message..." : "Sign in to chat"}
+                      placeholder={session?.user ? dict.chatHall.typeMessage : dict.chatHall.signInToChat}
                       className="flex-1 px-4 py-3 bg-slate-700/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       disabled={!session?.user || sendingMessage || !canSendMessage}
                     />
@@ -839,16 +846,16 @@ function ChatHallContent() {
                   <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                       <Globe className="w-5 h-5 text-yellow-400" />
-                      World Chat
+                      {dict.chatHall.worldChat}
                     </h2>
                     <div className="flex items-center gap-2 px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full">
                       <Crown className="w-4 h-4" />
-                      <span className="text-xs font-medium">Broadcast to Everyone</span>
+                      <span className="text-xs font-medium">{dict.chatHall.broadcastToWorld}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-yellow-300">
-                      {worldChatStats.remainingFree} free messages today
+                      {worldChatStats.remainingFree} {dict.chatHall.freeRemaining}
                     </span>
                   </div>
                 </div>
@@ -857,8 +864,8 @@ function ChatHallContent() {
                   {worldChatMessages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-slate-500">
                       <Globe className="w-16 h-16 mb-4 opacity-50" />
-                      <p className="text-lg font-medium">No world messages yet</p>
-                      <p className="text-sm">Be the first to broadcast!</p>
+                      <p className="text-lg font-medium">{dict.chatHall.noWorldMessagesYet}</p>
+                      <p className="text-sm">{dict.chatHall.beFirstToBroadcast}</p>
                     </div>
                   ) : (
                     worldChatMessages.map((message) => (
@@ -881,7 +888,7 @@ function ChatHallContent() {
                               </Link>
                               {message.sender.sellerProfile && (
                                 <span className="text-xs bg-yellow-500/30 text-yellow-300 px-2 py-0.5 rounded-full">
-                                  🏪 Verified Seller
+                                  🏪 {dict.chatHall.visitStore}
                                 </span>
                               )}
                               <span className="text-slate-400 text-xs">
@@ -911,7 +918,7 @@ function ChatHallContent() {
                 <div className="flex items-center justify-between bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700">
                   <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                     <Bell className="w-5 h-5 text-red-400" />
-                    Notices
+                    {dict.chatHall.notices}
                   </h2>
                   <button
                     onClick={toggleNoticeReceiving}
@@ -922,32 +929,32 @@ function ChatHallContent() {
                     }`}
                   >
                     {receiveNotices ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-                    <span className="text-sm">{receiveNotices ? 'Receiving' : 'Muted'}</span>
+                    <span className="text-sm">{receiveNotices ? dict.chatHall.receiving : dict.chatHall.muted}</span>
                   </button>
                 </div>
 
                 {/* Post Notice Form */}
                 <div className="bg-gradient-to-r from-red-600/30 to-orange-600/30 backdrop-blur rounded-xl p-4 border border-red-500/30">
-                  <h3 className="text-lg font-semibold text-white mb-4">📢 Post New Notice</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">📢 {dict.chatHall.postNewNotice}</h3>
                   <form onSubmit={sendNotice} className="space-y-4">
                     <input
                       type="text"
                       value={newNotice.title}
                       onChange={(e) => setNewNotice({ ...newNotice, title: e.target.value })}
-                      placeholder="Notice Title"
+                      placeholder={dict.chatHall.noticeTitle}
                       className="w-full px-4 py-3 bg-slate-800/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                       disabled={!session?.user}
                     />
                     <textarea
                       value={newNotice.content}
                       onChange={(e) => setNewNotice({ ...newNotice, content: e.target.value })}
-                      placeholder="Notice content (will be pushed to all users)"
+                      placeholder={dict.chatHall.noticeContent}
                       rows={4}
                       className="w-full px-4 py-3 bg-slate-800/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
                       disabled={!session?.user}
                     />
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-400">Priority:</span>
+                      <span className="text-sm text-slate-400">{dict.chatHall.priority}:</span>
                       {(['low', 'medium', 'high', 'urgent'] as const).map(priority => (
                         <button
                           key={priority}
@@ -968,7 +975,7 @@ function ChatHallContent() {
                       disabled={!session?.user || sendingNotice || !newNotice.title.trim() || !newNotice.content.trim()}
                       className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all hover:shadow-lg"
                     >
-                      {sendingNotice ? 'Posting...' : '📢 Send Notice'}
+                      {sendingNotice ? dict.chatHall.posting : `📢 ${dict.chatHall.sendNotice}`}
                     </button>
                   </form>
                 </div>
@@ -978,7 +985,7 @@ function ChatHallContent() {
                   {notices.length === 0 ? (
                     <div className="text-center py-12 bg-slate-800/60 backdrop-blur rounded-xl">
                       <Bell className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-                      <p className="text-slate-400">No notices yet</p>
+                      <p className="text-slate-400">{dict.chatHall.noNoticesYet}</p>
                     </div>
                   ) : (
                     notices.map((notice) => (
@@ -1030,10 +1037,10 @@ function ChatHallContent() {
                       onChange={(e) => setSelectedFilter(e.target.value as PostType | 'all')}
                       className="px-4 py-3 bg-slate-800/80 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     >
-                      <option value="all">All Posts</option>
-                      <option value="product">Products</option>
-                      <option value="service">Services</option>
-                      <option value="demand">Demands</option>
+                      <option value="all">{dict.chatHall.allPosts}</option>
+                      <option value="product">{dict.chatHall.products}</option>
+                      <option value="service">{dict.chatHall.services}</option>
+                      <option value="demand">{dict.chatHall.demands}</option>
                     </select>
                   </div>
                 </div>
@@ -1042,7 +1049,7 @@ function ChatHallContent() {
                   {filteredShoutOuts.length === 0 ? (
                     <div className="col-span-full text-center py-12">
                       <TrendingUp className="w-16 h-16 mx-auto mb-4 text-slate-600" />
-                      <p className="text-slate-400">No posts found</p>
+                      <p className="text-slate-400">{dict.chatHall.noPostsFound}</p>
                     </div>
                   ) : (
                     filteredShoutOuts.map((shoutOut) => (
@@ -1111,23 +1118,23 @@ function ChatHallContent() {
           {/* Right Sidebar - Stats & Actions */}
           <div className="lg:w-80 space-y-4">
             <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-4 border border-slate-700">
-              <h2 className="text-lg font-semibold text-white mb-4">📊 Hall Stats</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">📊 {dict.chatHall.hallStats}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-700/50 rounded-xl p-3">
                   <p className="text-2xl font-bold text-blue-400">{onlineUsers}</p>
-                  <p className="text-xs text-slate-400">Online Now</p>
+                  <p className="text-xs text-slate-400">{dict.chatHall.onlineNow}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
                   <p className="text-2xl font-bold text-green-400">{publicMessages.length}</p>
-                  <p className="text-xs text-slate-400">Messages</p>
+                  <p className="text-xs text-slate-400">{dict.chatHall.messages}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
                   <p className="text-2xl font-bold text-purple-400">{shoutOuts.length}</p>
-                  <p className="text-xs text-slate-400">Posts</p>
+                  <p className="text-xs text-slate-400">{dict.chatHall.posts}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
                   <p className="text-2xl font-bold text-yellow-400">{notices.length}</p>
-                  <p className="text-xs text-slate-400">Notices</p>
+                  <p className="text-xs text-slate-400">{dict.chatHall.notices}</p>
                 </div>
               </div>
             </div>
@@ -1135,7 +1142,7 @@ function ChatHallContent() {
             <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 backdrop-blur rounded-2xl p-4 border border-purple-500/30">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-purple-400" />
-                Trending Posts
+                {dict.chatHall.trendingPosts}
               </h2>
               <div className="space-y-3">
                 {shoutOuts.slice(0, 5).map((shoutOut, index) => (
@@ -1155,7 +1162,7 @@ function ChatHallContent() {
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm line-clamp-2">{shoutOut.content}</p>
                         <p className="text-slate-400 text-xs mt-1">
-                          {shoutOut.sender.displayName} • {shoutOut.viewCount} views
+                          {shoutOut.sender.displayName} • {shoutOut.viewCount} {dict.chatHall.views}
                         </p>
                       </div>
                     </div>
@@ -1165,28 +1172,28 @@ function ChatHallContent() {
             </div>
 
             <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-4 border border-slate-700">
-              <h2 className="text-lg font-semibold text-white mb-4">🚀 Quick Actions</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">🚀 {dict.chatHall.quickActions}</h2>
               <div className="space-y-2">
                 <Link
-                  href="/marketplace/post"
+                  href={`/${locale}/marketplace/post`}
                   className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                 >
-                  <PackageIcon className="w-5 h-5" />
-                  Post Product
+                  <ShoppingBag className="w-5 h-5" />
+                  {dict.chatHall.postProduct}
                 </Link>
                 <Link
-                  href="/seller/booths"
+                  href={`/${locale}/seller/booths`}
                   className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                 >
                   <BuildingIcon className="w-5 h-5" />
-                  Manage Booths
+                  {dict.chatHall.manageBooths}
                 </Link>
                 <Link
                   href="/marketplace"
                   className="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                 >
                   <Search className="w-5 h-5" />
-                  Browse Market
+                  {dict.chatHall.browseMarket}
                 </Link>
               </div>
             </div>
