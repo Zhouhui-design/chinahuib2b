@@ -116,34 +116,38 @@ export default function Navbar({ locale }: NavbarProps) {
             </Link>
             <Link
               href="/chat-hall"
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/chat-hall') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
             >
+              <MessageCircle className="w-4 h-4 mr-1" />
               {dict.nav.chatHall}
             </Link>
             <Link
               href="/marketplace"
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/marketplace') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
             >
+              <BookOpen className="w-4 h-4 mr-1" />
               {dict.nav.marketplace}
             </Link>
             <Link
               href="/auction-screen"
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/auction-screen') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
             >
+              <Gavel className="w-4 h-4 mr-1" />
               {dict.nav.auction}
             </Link>
             <Link
               href="/api-docs"
-              className={`text-sm font-medium transition-colors ${
+              className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/api-docs') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
             >
+              <Terminal className="w-4 h-4 mr-1" />
               {dict.nav.apiDocs}
             </Link>
           </div>
