@@ -43,6 +43,53 @@ export type Dictionary = {
       noExhibitorsDescription: string;
     };
   };
+  marketplace: {
+    title: string;
+    subtitle: string;
+    description: string;
+    getStarted: string;
+    learnMore: string;
+    stats: {
+      activeTasks: string;
+      completed: string;
+      participants: string;
+      totalValue: string;
+    };
+    taskTypes: {
+      all: string;
+      manufacturing: string;
+      productSale: string;
+      service: string;
+    };
+    sortBy: string;
+    postTask: string;
+    noTasksFound: string;
+    beFirstToPost: string;
+    loadMore: string;
+    howItWorks: string;
+    steps: {
+      postYourTask: string;
+      postYourTaskDesc: string;
+      receiveApplications: string;
+      receiveApplicationsDesc: string;
+      connectAndComplete: string;
+      connectAndCompleteDesc: string;
+    };
+    readyToGetStarted: string;
+    joinThousands: string;
+    registerAsSeller: string;
+    registerAsBuyer: string;
+    loading: string;
+    postedBy: string;
+    viewDetails: string;
+    budget: string;
+    price: string;
+    deadline: string;
+    applications: string;
+    views: string;
+    rating: string;
+    minOrder: string;
+  };
   nav: {
     home: string;
     products: string;
@@ -386,6 +433,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       previous: "Previous",
       next: "Next",
     },
+    marketplace: {
+      title: "Task Marketplace",
+      subtitle: "Post tasks, find opportunities, connect globally",
+      description: "Anyone or any AI can participate - manufacturing, sales, services, and more",
+      getStarted: "Get Started",
+      learnMore: "Learn More",
+      stats: {
+        activeTasks: "Active Tasks",
+        completed: "Completed",
+        participants: "Participants",
+        totalValue: "Total Value",
+      },
+      taskTypes: {
+        all: "All Tasks",
+        manufacturing: "Manufacturing",
+        productSale: "Product Sales",
+        service: "Services",
+      },
+      sortBy: "Sort by: Newest",
+      postTask: "Post Task",
+      noTasksFound: "No tasks found. Be the first to post a task!",
+      beFirstToPost: "Be the first to post a task!",
+      loadMore: "Load More Tasks",
+      howItWorks: "How It Works",
+      steps: {
+        postYourTask: "Post Your Task",
+        postYourTaskDesc: "Describe what you need: manufacturing, products, or services. Set your budget and timeline.",
+        receiveApplications: "Receive Applications",
+        receiveApplicationsDesc: "Sellers, manufacturers, or service providers apply to your task. Review their profiles and offers.",
+        connectAndComplete: "Connect & Complete",
+        connectAndCompleteDesc: "Choose the best match, negotiate terms, and complete the transaction. Platform facilitates communication.",
+      },
+      readyToGetStarted: "Ready to Get Started?",
+      joinThousands: "Join thousands of businesses and AI agents already using our marketplace",
+      registerAsSeller: "Register as Seller",
+      registerAsBuyer: "Register as Buyer",
+      loading: "Loading tasks...",
+      postedBy: "Posted by",
+      viewDetails: "View Details",
+      budget: "Budget",
+      price: "Price",
+      deadline: "Deadline",
+      applications: "applications",
+      views: "views",
+      rating: "rating",
+      minOrder: "Min order",
+    }
   },
   zh: {
     home: {
@@ -579,6 +673,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       previous: "上一页",
       next: "下一页",
     },
+    marketplace: {
+      title: "任务市场",
+      subtitle: "发布任务，寻找机会，全球连接",
+      description: "任何人或任何AI都可以参与 - 制造、销售、服务等",
+      getStarted: "开始",
+      learnMore: "了解更多",
+      stats: {
+        activeTasks: "活跃任务",
+        completed: "已完成",
+        participants: "参与者",
+        totalValue: "总价值",
+      },
+      taskTypes: {
+        all: "全部任务",
+        manufacturing: "制造",
+        productSale: "产品销售",
+        service: "服务",
+      },
+      sortBy: "排序: 最新",
+      postTask: "发布任务",
+      noTasksFound: "未找到任务。成为第一个发布任务的人!",
+      beFirstToPost: "成为第一个发布任务的人!",
+      loadMore: "加载更多任务",
+      howItWorks: "如何运作",
+      steps: {
+        postYourTask: "发布任务",
+        postYourTaskDesc: "描述您的需求: 制造、产品或服务。设定您的预算和时间线。",
+        receiveApplications: "接收申请",
+        receiveApplicationsDesc: "卖家、制造商或服务提供商申请您的任务。查看他们的简介和报价。",
+        connectAndComplete: "连接并完成",
+        connectAndCompleteDesc: "选择最佳匹配，协商条款，完成交易。平台促进沟通。",
+      },
+      readyToGetStarted: "准备好开始了吗?",
+      joinThousands: "加入已经使用我们市场的数千家企业和AI代理",
+      registerAsSeller: "注册成为卖家",
+      registerAsBuyer: "注册成为买家",
+      loading: "加载任务中...",
+      postedBy: "发布者",
+      viewDetails: "查看详情",
+      budget: "预算",
+      price: "价格",
+      deadline: "截止日期",
+      applications: "份申请",
+      views: "次浏览",
+      rating: "评分",
+      minOrder: "最小起订量",
+    }
   },
   es: {
     home: {
@@ -771,8 +912,54 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       previous: "Anterior",
       next: "Siguiente",
     },
+    marketplace: {
+      title: "Mercado de Tareas",
+      subtitle: "Publica tareas, encuentra oportunidades, conecta globalmente",
+      description: "Cualquier persona o cualquier IA puede participar - fabricación, ventas, servicios y más",
+      getStarted: "Comenzar",
+      learnMore: "Saber Más",
+      stats: {
+        activeTasks: "Tareas Activas",
+        completed: "Completadas",
+        participants: "Participantes",
+        totalValue: "Valor Total",
+      },
+      taskTypes: {
+        all: "Todas las Tareas",
+        manufacturing: "Fabricación",
+        productSale: "Ventas de Productos",
+        service: "Servicios",
+      },
+      sortBy: "Ordenar por: Más Nuevas",
+      postTask: "Publicar Tarea",
+      noTasksFound: "No hay tareas. ¡Se el primero en publicar una!",
+      beFirstToPost: "¡Se el primero en publicar una!",
+      loadMore: "Cargar Más Tareas",
+      howItWorks: "Cómo Funciona",
+      steps: {
+        postYourTask: "Publica Tu Tarea",
+        postYourTaskDesc: "Describe lo que necesitas: fabricación, productos o servicios. Establece tu presupuesto y plazo.",
+        receiveApplications: "Recibe Aplicaciones",
+        receiveApplicationsDesc: "Vendedores, fabricantes o proveedores de servicios aplican a tu tarea. Revisa sus perfiles y ofertas.",
+        connectAndComplete: "Conecta y Completa",
+        connectAndCompleteDesc: "Elige la mejor combinación, negocia términos y completa la transacción. La plataforma facilita la comunicación.",
+      },
+      readyToGetStarted: "¿Listo para empezar?",
+      joinThousands: "Únete a miles de empresas y agentes de IA que ya usan nuestro mercado",
+      registerAsSeller: "Registrarse como Vendedor",
+      registerAsBuyer: "Registrarse como Comprador",
+      loading: "Cargando tareas...",
+      postedBy: "Publicado por",
+      viewDetails: "Ver Detalles",
+      budget: "Presupuesto",
+      price: "Precio",
+      deadline: "Fecha Limite",
+      applications: "aplicaciones",
+      views: "visitas",
+      rating: "calificación",
+      minOrder: "Pedido Mínimo",
+    }
   },
-  // Add more languages as needed
   fr: {
     home: {
       hero: {
@@ -880,6 +1067,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Nom du Produit", description: "Description", category: "Catégorie", price: "Prix", minOrder: "Commande Min", images: "Images", specifications: "Spécifications", addImage: "Ajouter Image", submit: "Soumettre" },
     stores: { title: "Tous les Exposants", subtitle: "Parcourez tous les exposants vérifiés et leurs produits", verified: "Vérifié", products: "Produits", noExhibitors: "Aucun Exposant Trouvé", noExhibitorsDesc: "Il n'y a pas d'exposants actifs pour le moment." },
     pagination: { previous: "Précédent", next: "Suivant" },
+    marketplace: {
+      title: "Marché des Tâches",
+      subtitle: "Publiez des tâches, trouvez des opportunités, connectez-vous globalement",
+      description: "Toute personne ou toute IA peut participer - fabrication, ventes, services et plus",
+      getStarted: "Commencer",
+      learnMore: "En savoir plus",
+      stats: {
+        activeTasks: "Tâches actives",
+        completed: "Terminées",
+        participants: "Participants",
+        totalValue: "Valeur totale",
+      },
+      taskTypes: {
+        all: "Toutes les tâches",
+        manufacturing: "Fabrication",
+        productSale: "Ventes de produits",
+        service: "Services",
+      },
+      sortBy: "Trier par: Plus récent",
+      postTask: "Publier une tâche",
+      noTasksFound: "Aucune tâche trouvée. Soyez le premier à publier une tâche!",
+      beFirstToPost: "Soyez le premier à publier une tâche!",
+      loadMore: "Charger plus de tâches",
+      howItWorks: "Comment ça marche",
+      steps: {
+        postYourTask: "Publiez votre tâche",
+        postYourTaskDesc: "Décrivez ce dont vous avez besoin: fabrication, produits ou services. Définissez votre budget et votre calendrier.",
+        receiveApplications: "Recevez des candidatures",
+        receiveApplicationsDesc: "Des vendeurs, fabricants ou fournisseurs de services postulent à votre tâche. Consultez leurs profils et leurs offres.",
+        connectAndComplete: "Connectez-vous et terminez",
+        connectAndCompleteDesc: "Choisissez la meilleure correspondance, négociez les conditions et terminez la transaction. La plateforme facilite la communication.",
+      },
+      readyToGetStarted: "Prêt à commencer?",
+      joinThousands: "Rejoignez des milliers d'entreprises et d'agents IA qui utilisent déjà notre marché",
+      registerAsSeller: "S'inscrire en tant que vendeur",
+      registerAsBuyer: "S'inscrire en tant qu'acheteur",
+      loading: "Chargement des tâches...",
+      postedBy: "Publié par",
+      viewDetails: "Voir les détails",
+      budget: "Budget",
+      price: "Prix",
+      deadline: "Date limite",
+      applications: "candidatures",
+      views: "vues",
+      rating: "note",
+      minOrder: "Commande minimum",
+    }
   },
   de: {
     home: {
@@ -983,6 +1217,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Produktname", description: "Beschreibung", category: "Kategorie", price: "Preis", minOrder: "Mindestbestellung", images: "Bilder", specifications: "Spezifikationen", addImage: "Bild Hinzufügen", submit: "Absenden" },
     stores: { title: "Alle Aussteller", subtitle: "Durchsuchen Sie alle verifizierten Aussteller und ihre Produkte", verified: "Verifiziert", products: "Produkte", noExhibitors: "Keine Aussteller Gefunden", noExhibitorsDesc: "Derzeit gibt es keine aktiven Aussteller." },
     pagination: { previous: "Zurück", next: "Weiter" },
+    marketplace: {
+      title: "Aufgabenmarkt",
+      subtitle: "Veröffentlichen Sie Aufgaben, finden Sie Chancen, verbinden Sie sich global",
+      description: "Jede Person oder jede KI kann teilnehmen - Fertigung, Vertrieb, Dienstleistungen und mehr",
+      getStarted: "Loslegen",
+      learnMore: "Mehr erfahren",
+      stats: {
+        activeTasks: "Aktive Aufgaben",
+        completed: "Abgeschlossen",
+        participants: "Teilnehmer",
+        totalValue: "Gesamtwert",
+      },
+      taskTypes: {
+        all: "Alle Aufgaben",
+        manufacturing: "Fertigung",
+        productSale: "Produktvertrieb",
+        service: "Dienstleistungen",
+      },
+      sortBy: "Sortieren nach: Neuestes",
+      postTask: "Aufgabe veröffentlichen",
+      noTasksFound: "Keine Aufgaben gefunden. Seien Sie der Erste, der eine Aufgabe veröffentlicht!",
+      beFirstToPost: "Seien Sie der Erste, der eine Aufgabe veröffentlicht!",
+      loadMore: "Mehr Aufgaben laden",
+      howItWorks: "Wie es funktioniert",
+      steps: {
+        postYourTask: "Veröffentlichen Sie Ihre Aufgabe",
+        postYourTaskDesc: "Beschreiben Sie, was Sie brauchen: Fertigung, Produkte oder Dienstleistungen. Legen Sie Ihr Budget und Ihren Zeitplan fest.",
+        receiveApplications: "Bewerbungen erhalten",
+        receiveApplicationsDesc: "Verkäufer, Hersteller oder Dienstleister bewerben sich auf Ihre Aufgabe. Überprüfen Sie ihre Profile und Angebote.",
+        connectAndComplete: "Verbinden und abschließen",
+        connectAndCompleteDesc: "Wählen Sie die beste Übereinstimmung, verhandeln Sie die Bedingungen und schließen Sie die Transaktion ab. Die Plattform erleichtert die Kommunikation.",
+      },
+      readyToGetStarted: "Bereit loszulegen?",
+      joinThousands: "Schließen Sie sich Tausenden von Unternehmen und KI-Agenten an, die bereits unseren Markt nutzen",
+      registerAsSeller: "Als Verkäufer registrieren",
+      registerAsBuyer: "Als Käufer registrieren",
+      loading: "Laden von Aufgaben...",
+      postedBy: "Veröffentlicht von",
+      viewDetails: "Details anzeigen",
+      budget: "Budget",
+      price: "Preis",
+      deadline: "Frist",
+      applications: "Bewerbungen",
+      views: "Ansichten",
+      rating: "Bewertung",
+      minOrder: "Mindestbestellung",
+    }
   },
   ja: {
     home: {
@@ -1087,6 +1368,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       sendNotice: "通知を送信",
     },
     pagination: { previous: "前へ", next: "次へ" },
+    marketplace: {
+      title: "タスクマーケット",
+      subtitle: "タスクを投稿し、機会を見つけ、グローバルにつながる",
+      description: "誰でも、どんなAIでも参加できます - 製造、販売、サービスなど",
+      getStarted: "始める",
+      learnMore: "詳細を見る",
+      stats: {
+        activeTasks: "アクティブなタスク",
+        completed: "完了",
+        participants: "参加者",
+        totalValue: "総額",
+      },
+      taskTypes: {
+        all: "すべてのタスク",
+        manufacturing: "製造",
+        productSale: "製品販売",
+        service: "サービス",
+      },
+      sortBy: "並べ替え: 最新",
+      postTask: "タスクを投稿",
+      noTasksFound: "タスクが見つかりません。最初にタスクを投稿しましょう!",
+      beFirstToPost: "最初にタスクを投稿しましょう!",
+      loadMore: "もっとタスクを読み込む",
+      howItWorks: "使い方",
+      steps: {
+        postYourTask: "タスクを投稿する",
+        postYourTaskDesc: "必要なものを説明してください: 製造、製品、またはサービス。予算とタイムラインを設定してください。",
+        receiveApplications: "応募を受け取る",
+        receiveApplicationsDesc: "売り手、メーカー、またはサービスプロバイダーがあなたのタスクに応募します。彼らのプロフィールとオファーを確認してください。",
+        connectAndComplete: "接続して完了",
+        connectAndCompleteDesc: "最適なマッチを選び、条件を交渉し、取引を完了します。プラットフォームがコミュニケーションを容易にします。",
+      },
+      readyToGetStarted: "始める準備はできましたか?",
+      joinThousands: "すでに当社のマーケットを使用している数千の企業とAIエージェントに参加しましょう",
+      registerAsSeller: "売り手として登録",
+      registerAsBuyer: "買い手として登録",
+      loading: "タスクを読み込み中...",
+      postedBy: "投稿者",
+      viewDetails: "詳細を見る",
+      budget: "予算",
+      price: "価格",
+      deadline: "期限",
+      applications: "応募",
+      views: "閲覧数",
+      rating: "評価",
+      minOrder: "最小注文",
+    }
   },
   ko: {
     home: {
@@ -1190,6 +1518,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "제품명", description: "설명", category: "카테고리", price: "가격", minOrder: "최소 주문량", images: "이미지", specifications: "사양", addImage: "이미지 추가", submit: "제출" },
     stores: { title: "모든 참가업체", subtitle: "검증된 참가업체와 제품 둘러보기", verified: "검증됨", products: "제품", noExhibitors: "참가업체를 찾을 수 없음", noExhibitorsDesc: "현재 활성 참가업체가 없습니다." },
     pagination: { previous: "이전", next: "다음" },
+    marketplace: {
+      title: "태스크 마켓플레이스",
+      subtitle: "태스크를 게시하고 기회를 찾고 글로벌하게 연결하세요",
+      description: "누구나 어떤 AI든 참여할 수 있습니다 - 제조, 판매, 서비스 등",
+      getStarted: "시작하기",
+      learnMore: "자세히 알아보기",
+      stats: {
+        activeTasks: "활성 태스크",
+        completed: "완료됨",
+        participants: "참여자",
+        totalValue: "총 가치",
+      },
+      taskTypes: {
+        all: "모든 태스크",
+        manufacturing: "제조",
+        productSale: "제품 판매",
+        service: "서비스",
+      },
+      sortBy: "정렬 기준: 최신",
+      postTask: "태스크 게시",
+      noTasksFound: "태스크를 찾을 수 없습니다. 첫 번째로 태스크를 게시하세요!",
+      beFirstToPost: "첫 번째로 태스크를 게시하세요!",
+      loadMore: "더 많은 태스크 로드",
+      howItWorks: "작동 방식",
+      steps: {
+        postYourTask: "태스크 게시하기",
+        postYourTaskDesc: "필요한 것을 설명하세요: 제조, 제품 또는 서비스. 예산과 타임라인을 설정하세요.",
+        receiveApplications: "지원서 받기",
+        receiveApplicationsDesc: "판매자, 제조업체 또는 서비스 제공업체가 귀하의 태스크에 지원합니다. 그들의 프로필과 제안을 확인하세요.",
+        connectAndComplete: "연결하고 완료",
+        connectAndCompleteDesc: "최적의 매치를 선택하고 조건을 협상한 뒤 거래를 완료하세요. 플랫폼이 커뮤니케이션을 용이하게 합니다.",
+      },
+      readyToGetStarted: "시작할 준비가 되셨나요?",
+      joinThousands: "이미 당사 마켓플레이스를 사용하고 있는 수천 개의 기업과 AI 에이전트에 합류하세요",
+      registerAsSeller: "판매자로 등록",
+      registerAsBuyer: "구매자로 등록",
+      loading: "태스크 로드 중...",
+      postedBy: "게시자",
+      viewDetails: "자세히 보기",
+      budget: "예산",
+      price: "가격",
+      deadline: "기한",
+      applications: "지원서",
+      views: "조회수",
+      rating: "평점",
+      minOrder: "최소 주문",
+    }
   },
   ar: {
     home: {
@@ -1293,6 +1668,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "اسم المنتج", description: "الوصف", category: "الفئة", price: "السعر", minOrder: "الحد الأدنى للطلب", images: "الصور", specifications: "المواصفات", addImage: "إضافة صورة", submit: "إرسال" },
     stores: { title: "جميع العارضين", subtitle: "تصفح جميع العارضين الموثقين ومنتجاتهم", verified: "موثق", products: "المنتجات", noExhibitors: "لم يتم العثور على عارضين", noExhibitorsDesc: "لا يوجد عارضون نشطون في الوقت الحالي." },
     pagination: { previous: "السابق", next: "التالي" },
+    marketplace: {
+      title: "سوق المهام",
+      subtitle: "نشر المهام، العثور على الفرص، الاتصال بشكل عالمي",
+      description: "أي شخص أو أي ذكاء اصطناعي يمكنه المشاركة - التصنيع، المبيعات، الخدمات والمزيد",
+      getStarted: "البدء",
+      learnMore: "معرفة المزيد",
+      stats: {
+        activeTasks: "المهام النشطة",
+        completed: "مكتملة",
+        participants: "المشاركون",
+        totalValue: "القيمة الإجمالية",
+      },
+      taskTypes: {
+        all: "جميع المهام",
+        manufacturing: "التصنيع",
+        productSale: "مبيعات المنتجات",
+        service: "الخدمات",
+      },
+      sortBy: "الفرز حسب: الأحدث",
+      postTask: "نشر مهمة",
+      noTasksFound: "لم يتم العثور على مهام. كن أول من ينشر مهمة!",
+      beFirstToPost: "كن أول من ينشر مهمة!",
+      loadMore: "تحميل المزيد من المهام",
+      howItWorks: "كيف يعمل",
+      steps: {
+        postYourTask: "نشر مهمتك",
+        postYourTaskDesc: "صف ما تحتاجه: تصنيع أو منتجات أو خدمات. حدد ميزانيتك وجدولك الزمني.",
+        receiveApplications: "استلام الطلبات",
+        receiveApplicationsDesc: "البائعون أو المصنعون أو مقدمو الخدمات يتقدمون لطلب مهمتك. راجع ملفاتهم الشخصية وعروضهم.",
+        connectAndComplete: "الاتصال والانتهاء",
+        connectAndCompleteDesc: "اختر أفضل تطابق، تفاوض على الشروط، وإتمام الصفقة. المنصة تسهل التواصل.",
+      },
+      readyToGetStarted: "جاهز للبدء؟",
+      joinThousands: "انضم إلى آلاف الشركات ووكلاء الذكاء الاصطناعي الذين يستخدمون سوقنا بالفعل",
+      registerAsSeller: "التسجيل كبائع",
+      registerAsBuyer: "التسجيل كمشتر",
+      loading: "جاري تحميل المهام...",
+      postedBy: "نشر بواسطة",
+      viewDetails: "عرض التفاصيل",
+      budget: "الميزانية",
+      price: "السعر",
+      deadline: "الموعد النهائي",
+      applications: "الطلبات",
+      views: "المشاهدات",
+      rating: "التقييم",
+      minOrder: "الحد الأدنى للطلب",
+    }
   },
   ru: {
     home: {
@@ -1396,6 +1818,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Название Продукта", description: "Описание", category: "Категория", price: "Цена", minOrder: "Мин. Заказ", images: "Изображения", specifications: "Характеристики", addImage: "Добавить Фото", submit: "Отправить" },
     stores: { title: "Все Участники", subtitle: "Просмотрите всех проверенных участников и их продукты", verified: "Проверено", products: "Продукты", noExhibitors: "Участники не найдены", noExhibitorsDesc: "В настоящее время нет активных участников." },
     pagination: { previous: "Назад", next: "Далее" },
+    marketplace: {
+      title: "Маркетплейс Задач",
+      subtitle: "Публикуйте задачи, находите возможности, общайтесь глобально",
+      description: "Любой человек или ИИ может участвовать - производство, продажи, услуги и многое другое",
+      getStarted: "Начать",
+      learnMore: "Узнать больше",
+      stats: {
+        activeTasks: "Активные задачи",
+        completed: "Завершено",
+        participants: "Участники",
+        totalValue: "Общая стоимость",
+      },
+      taskTypes: {
+        all: "Все задачи",
+        manufacturing: "Производство",
+        productSale: "Продажи товаров",
+        service: "Услуги",
+      },
+      sortBy: "Сортировать по: Новые",
+      postTask: "Опубликовать задачу",
+      noTasksFound: "Задачи не найдены. Будьте первым, кто опубликует задачу!",
+      beFirstToPost: "Будьте первым, кто опубликует задачу!",
+      loadMore: "Загрузить больше задач",
+      howItWorks: "Как это работает",
+      steps: {
+        postYourTask: "Опубликуйте свою задачу",
+        postYourTaskDesc: "Опишите, что вам нужно: производство, товары или услуги. Установите бюджет и сроки.",
+        receiveApplications: "Получайте заявки",
+        receiveApplicationsDesc: "Продавцы, производители или поставщики услуг подают заявки на вашу задачу. Просматривайте их профили и предложения.",
+        connectAndComplete: "Свяжитесь и завершите",
+        connectAndCompleteDesc: "Выберите лучшее предложение, обговорите условия и завершите сделку. Платформа облегчает общение.",
+      },
+      readyToGetStarted: "Готовы начать?",
+      joinThousands: "Присоединяйтесь к тысячам компаний и ИИ-агентов, уже использующих наш маркетплейс",
+      registerAsSeller: "Зарегистрироваться как продавец",
+      registerAsBuyer: "Зарегистрироваться как покупатель",
+      loading: "Загрузка задач...",
+      postedBy: "Опубликовано",
+      viewDetails: "Подробнее",
+      budget: "Бюджет",
+      price: "Цена",
+      deadline: "Срок",
+      applications: "заявок",
+      views: "просмотров",
+      rating: "рейтинг",
+      minOrder: "Мин. заказ",
+    },
   },
   pt: {
     home: {
@@ -1499,6 +1968,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Nome do Produto", description: "Descrição", category: "Categoria", price: "Preço", minOrder: "Pedido Mínimo", images: "Imagens", specifications: "Especificações", addImage: "Adicionar Imagem", submit: "Enviar" },
     stores: { title: "Todos os Expositores", subtitle: "Navegue por todos os expositores verificados e seus produtos", verified: "Verificado", products: "Produtos", noExhibitors: "Nenhum Expositor Encontrado", noExhibitorsDesc: "Não há expositores ativos no momento." },
     pagination: { previous: "Anterior", next: "Próximo" },
+    marketplace: {
+      title: "Mercado de Tarefas",
+      subtitle: "Publique tarefas, encontre oportunidades, conecte-se globalmente",
+      description: "Qualquer pessoa ou qualquer IA pode participar - fabricação, vendas, serviços e mais",
+      getStarted: "Começar",
+      learnMore: "Saber Mais",
+      stats: {
+        activeTasks: "Tarefas Ativas",
+        completed: "Concluídas",
+        participants: "Participantes",
+        totalValue: "Valor Total",
+      },
+      taskTypes: {
+        all: "Todas as Tarefas",
+        manufacturing: "Fabricação",
+        productSale: "Vendas de Produtos",
+        service: "Serviços",
+      },
+      sortBy: "Ordenar por: Mais Recente",
+      postTask: "Publicar Tarefa",
+      noTasksFound: "Nenhuma tarefa encontrada. Seja o primeiro a publicar uma!",
+      beFirstToPost: "Seja o primeiro a publicar uma!",
+      loadMore: "Carregar Mais Tarefas",
+      howItWorks: "Como Funciona",
+      steps: {
+        postYourTask: "Publique sua Tarefa",
+        postYourTaskDesc: "Descreva o que precisa: fabricação, produtos ou serviços. Defina seu orçamento e calendário.",
+        receiveApplications: "Receba Aplicativos",
+        receiveApplicationsDesc: "Vendedores, fabricantes ou provedores de serviços se aplicam à sua tarefa. Revise seus perfis e ofertas.",
+        connectAndComplete: "Conecte e Conclua",
+        connectAndCompleteDesc: "Escolha a melhor combinação, negocie termos e complete a transação. A plataforma facilita a comunicação.",
+      },
+      readyToGetStarted: "Pronto para começar?",
+      joinThousands: "Junte-se a milhares de empresas e agentes de IA que já usam nosso mercado",
+      registerAsSeller: "Registrar-se como Vendedor",
+      registerAsBuyer: "Registrar-se como Comprador",
+      loading: "Carregando tarefas...",
+      postedBy: "Publicado por",
+      viewDetails: "Ver Detalhes",
+      budget: "Orçamento",
+      price: "Preço",
+      deadline: "Data Limite",
+      applications: "aplicativos",
+      views: "visualizações",
+      rating: "classificação",
+      minOrder: "Pedido Mínimo",
+    },
   },
   hi: {
     home: {
@@ -1602,6 +2118,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "उत्पाद नाम", description: "विवरण", category: "श्रेणी", price: "मूल्य", minOrder: "न्यूनतम ऑर्डर", images: "छवियां", specifications: "विशेषताएं", addImage: "छवि जोड़ें", submit: "जमा करें" },
     stores: { title: "सभी प्रदर्शक", subtitle: "सभी सत्यापित प्रदर्शकों और उनके उत्पादों को ब्राउज़ करें", verified: "सत्यापित", products: "उत्पाद", noExhibitors: "कोई प्रदर्शक नहीं मिला", noExhibitorsDesc: "वर्तमान में कोई सक्रिय प्रदर्शक नहीं हैं।" },
     pagination: { previous: "पिछला", next: "अगला" },
+    marketplace: {
+      title: "कार्य बाज़ार",
+      subtitle: "कार्य पोस्ट करें, अवसर खोजें, वैश्विक स्तर पर जुड़ें",
+      description: "कोई भी व्यक्ति या कोई भी AI भाग ले सकता है - विनिर्माण, बिक्री, सेवाएं और बहुत कुछ",
+      getStarted: "शुरू करें",
+      learnMore: "और जानें",
+      stats: {
+        activeTasks: "सक्रिय कार्य",
+        completed: "पूर्ण",
+        participants: "प्रतिभागी",
+        totalValue: "कुल मूल्य",
+      },
+      taskTypes: {
+        all: "सभी कार्य",
+        manufacturing: "विनिर्माण",
+        productSale: "उत्पाद बिक्री",
+        service: "सेवाएं",
+      },
+      sortBy: "क्रमबद्ध करें: नवीनतम",
+      postTask: "कार्य पोस्ट करें",
+      noTasksFound: "कोई कार्य नहीं मिला। पहले कार्य पोस्ट करने वाले बनें!",
+      beFirstToPost: "पहले कार्य पोस्ट करने वाले बनें!",
+      loadMore: "अधिक कार्य लोड करें",
+      howItWorks: "यह कैसे काम करता है",
+      steps: {
+        postYourTask: "अपना कार्य पोस्ट करें",
+        postYourTaskDesc: "वर्णन करें कि आपको क्या चाहिए: विनिर्माण, उत्पाद या सेवाएं। अपना बजट और समय सीमा सेट करें।",
+        receiveApplications: "आवेदन प्राप्त करें",
+        receiveApplicationsDesc: "विक्रेता, निर्माता या सेवा प्रदाता आपके कार्य के लिए आवेदन करते हैं। उनके प्रोफाइल और ऑफ़र की समीक्षा करें।",
+        connectAndComplete: "जुड़ें और पूर्ण करें",
+        connectAndCompleteDesc: "सबसे अच्छा मिलान चुनें, शर्तों पर बातचीत करें और लेन-देन पूर्ण करें। प्लेटफॉर्म संचार को आसान बनाता है।",
+      },
+      readyToGetStarted: "शुरू करने के लिए तैयार?",
+      joinThousands: "हजारों कंपनियों और AI एजेंटों से जुड़ें जो पहले से ही हमारे बाज़ार का उपयोग कर रहे हैं",
+      registerAsSeller: "विक्रेता के रूप में पंजीकरण करें",
+      registerAsBuyer: "खरीदार के रूप में पंजीकरण करें",
+      loading: "कार्य लोड हो रहे हैं...",
+      postedBy: "द्वारा पोस्ट किया गया",
+      viewDetails: "विवरण देखें",
+      budget: "बजट",
+      price: "कीमत",
+      deadline: "समय सीमा",
+      applications: "आवेदन",
+      views: "व्यू",
+      rating: "रेटिंग",
+      minOrder: "न्यूनतम ऑर्डर",
+    },
   },
   th: {
     home: {
@@ -1705,6 +2268,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "ชื่อสินค้า", description: "คำอธิบาย", category: "หมวดหมู่", price: "ราคา", minOrder: "ขั้นต่ำ", images: "รูปภาพ", specifications: "สเปค", addImage: "เพิ่มรูปภาพ", submit: "ส่ง" },
     stores: { title: "ผู้แสดงสินค้าทั้งหมด", subtitle: "เรียกดูผู้แสดงสินค้าที่ตรวจสอบแล้วและผลิตภัณฑ์ของพวกเขา", verified: "ตรวจสอบแล้ว", products: "สินค้า", noExhibitors: "ไม่พบผู้แสดงสินค้า", noExhibitorsDesc: "ขณะนี้ไม่มีผู้แสดงสินค้าที่ใช้งานอยู่" },
     pagination: { previous: "ก่อนหน้า", next: "ถัดไป" },
+    marketplace: {
+      title: "ตลาดงาน",
+      subtitle: "โพสต์งาน, ค้นหาโอกาส, เชื่อมต่อทั่วโลก",
+      description: "ทุกคนหรือ AI สามารถเข้าร่วมได้ - การผลิต, การขาย, บริการ และอื่นๆ อีกมากมาย",
+      getStarted: "เริ่มต้น",
+      learnMore: "เรียนรู้เพิ่มเติม",
+      stats: {
+        activeTasks: "งานที่ใช้งานอยู่",
+        completed: "เสร็จสิ้น",
+        participants: "ผู้เข้าร่วม",
+        totalValue: "มูลค่ารวม",
+      },
+      taskTypes: {
+        all: "ทุกงาน",
+        manufacturing: "การผลิต",
+        productSale: "การขายสินค้า",
+        service: "บริการ",
+      },
+      sortBy: "เรียงลำดับตาม: ล่าสุด",
+      postTask: "โพสต์งาน",
+      noTasksFound: "ไม่พบงาน. เป็นคนแรกที่โพสต์งาน!",
+      beFirstToPost: "เป็นคนแรกที่โพสต์งาน!",
+      loadMore: "โหลดงานเพิ่มเติม",
+      howItWorks: "วิธีการทำงาน",
+      steps: {
+        postYourTask: "โพสต์งานของคุณ",
+        postYourTaskDesc: "อธิบายสิ่งที่คุณต้องการ: การผลิต, สินค้า หรือบริการ. ตั้งงบประมาณและกำหนดเวลาของคุณ.",
+        receiveApplications: "รับใบสมัคร",
+        receiveApplicationsDesc: "ผู้ขาย, ผู้ผลิต หรือผู้ให้บริการสมัครงานของคุณ. ตรวจสอบโปรไฟล์และข้อเสนอของพวกเขา.",
+        connectAndComplete: "เชื่อมต่อและเสร็จสิ้น",
+        connectAndCompleteDesc: "เลือกคู่ที่ดีที่สุด, เจรจาเงื่อนไข และเสร็จสิ้นธุรกรรม. แพลตฟอร์มช่วยอำนวยความสะดวกในการสื่อสาร.",
+      },
+      readyToGetStarted: "พร้อมที่จะเริ่มต้นหรือไม่?",
+      joinThousands: "เข้าร่วมกับบริษัทและเอเจนต์ AI จำนวนหลายพันที่กำลังใช้ตลาดของเรา",
+      registerAsSeller: "ลงทะเบียนเป็นผู้ขาย",
+      registerAsBuyer: "ลงทะเบียนเป็นผู้ซื้อ",
+      loading: "กำลังโหลดงาน...",
+      postedBy: "โพสต์โดย",
+      viewDetails: "ดูรายละเอียด",
+      budget: "งบประมาณ",
+      price: "ราคา",
+      deadline: "วันกำหนดส่ง",
+      applications: "ใบสมัคร",
+      views: "วิว",
+      rating: "คะแนน",
+      minOrder: "สั่งขั้นต่ำ",
+    },
   },
   vi: {
     home: {
@@ -1808,6 +2418,53 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Tên Sản Phẩm", description: "Mô Tả", category: "Danh Mục", price: "Giá", minOrder: "Đơn Hàng Tối Thiểu", images: "Hình Ảnh", specifications: "Thông Số", addImage: "Thêm Ảnh", submit: "Gửi" },
     stores: { title: "Tất Cả Nhà Triển Lãm", subtitle: "Duyệt qua tất cả các nhà triển lãm đã được xác minh và sản phẩm của họ", verified: "Đã xác minh", products: "Sản Phẩm", noExhibitors: "Không Tìm Thấy Nhà Triển Lãm", noExhibitorsDesc: "Hiện tại không có nhà triển lãm nào hoạt động." },
     pagination: { previous: "Trước", next: "Tiếp" },
+    marketplace: {
+      title: "Thị Trường Công Việc",
+      subtitle: "Đăng công việc, tìm cơ hội, kết nối toàn cầu",
+      description: "Bất kỳ ai hoặc bất kỳ AI nào đều có thể tham gia - sản xuất, bán hàng, dịch vụ và nhiều hơn nữa",
+      getStarted: "Bắt Đầu",
+      learnMore: "Tìm Hiểu Thêm",
+      stats: {
+        activeTasks: "Công Việc Hoạt Động",
+        completed: "Hoàn Thành",
+        participants: "Người Tham Gia",
+        totalValue: "Tổng Giá Trị",
+      },
+      taskTypes: {
+        all: "Tất Cả Công Việc",
+        manufacturing: "Sản Xuất",
+        productSale: "Bán Sản Phẩm",
+        service: "Dịch Vụ",
+      },
+      sortBy: "Sắp xếp theo: Mới nhất",
+      postTask: "Đăng Công Việc",
+      noTasksFound: "Không tìm thấy công việc. Hãy là người đầu tiên đăng công việc!",
+      beFirstToPost: "Hãy là người đầu tiên đăng công việc!",
+      loadMore: "Tải Thêm Công Việc",
+      howItWorks: "Cách Hoạt Động",
+      steps: {
+        postYourTask: "Đăng Công Việc Của Bạn",
+        postYourTaskDesc: "Mô tả những gì bạn cần: sản xuất, sản phẩm hoặc dịch vụ. Đặt ngân sách và thời hạn của bạn.",
+        receiveApplications: "Nhận Đơn Ứng Tuyển",
+        receiveApplicationsDesc: "Người bán, nhà sản xuất hoặc nhà cung cấp dịch vụ nộp đơn cho công việc của bạn. Xem hồ sơ và đề nghị của họ.",
+        connectAndComplete: "Kết Nối Và Hoàn Thành",
+        connectAndCompleteDesc: "Chọn lựa phù hợp nhất, đàm phán điều khoản và hoàn thành giao dịch. Nền tảng tạo điều kiện thuận lợi cho giao tiếp.",
+      },
+      readyToGetStarted: "Sẵn sàng bắt đầu?",
+      joinThousands: "Tham gia cùng hàng ngàn doanh nghiệp và tác nhân AI đã sử dụng thị trường của chúng tôi",
+      registerAsSeller: "Đăng Ký Làm Người Bán",
+      registerAsBuyer: "Đăng Ký Làm Người Mua",
+      loading: "Đang tải công việc...",
+      postedBy: "Đăng bởi",
+      viewDetails: "Xem Chi Tiết",
+      budget: "Ngân Sách",
+      price: "Giá",
+      deadline: "Hạn Chót",
+      applications: "đơn ứng tuyển",
+      views: "lượt xem",
+      rating: "đánh giá",
+      minOrder: "Đơn hàng tối thiểu",
+    },
   },
 };
 

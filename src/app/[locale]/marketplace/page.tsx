@@ -6,11 +6,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Metadata } from 'next'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
-
-// Note: Metadata is for SSR, but we're using client component for dynamic data
-// In production, you'd use generateMetadata server-side
+import type { LanguageCode } from '@/lib/languages'
+import { dictionaries } from '@/locales/dictionary'
 
 // Sample task data (will be replaced with real API calls)
 const sampleTasks = [
@@ -82,13 +81,17 @@ const sampleTasks = [
 ]
 
 const taskTypes = [
-  { value: 'all', label: 'All Tasks', icon: '📋' },
-  { value: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
-  { value: 'product_sale', label: 'Product Sales', icon: '🛍️' },
-  { value: 'service', label: 'Services', icon: '🔧' },
+  { value: 'all', icon: '📋', key: 'all' },
+  { value: 'manufacturing', icon: '🏭', key: 'manufacturing' },
+  { value: 'product_sale', icon: '🛍️', key: 'productSale' },
+  { value: 'service', icon: '🔧', key: 'service' },
 ]
 
 export default function MarketplacePage() {
+  const params = useParams()
+  const locale = (params.locale as LanguageCode) || 'en'
+  const dict = dictionaries[locale] || dictionaries.en
+
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedType, setSelectedType] = useState('all')
@@ -141,23 +144,23 @@ export default function MarketplacePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Task Marketplace
+              {dict.marketplace.title}
             </h1>
             <p className="text-xl md:text-2xl mb-8 opacity-90">
-              Post tasks, find opportunities, connect globally
+              {dict.marketplace.subtitle}
             </p>
             <p className="text-lg mb-8 opacity-80">
-              Anyone or any AI can participate - manufacturing, sales, services, and more
+              {dict.marketplace.description}
             </p>
             <div className="flex justify-center gap-4">
               <Link
-                href="/auth/register"
+                href={`/${locale}/auth/register`}
                 className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
-                Get Started
+                {dict.marketplace.getStarted}
               </Link>
               <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
-                Learn More
+                {dict.marketplace.learnMore}
               </button>
             </div>
           </div>
@@ -170,19 +173,19 @@ export default function MarketplacePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-3xl font-bold text-blue-600">1,234</div>
-              <div className="text-gray-600 mt-1">Active Tasks</div>
+              <div className="text-gray-600 mt-1">{dict.marketplace.stats.activeTasks}</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-green-600">567</div>
-              <div className="text-gray-600 mt-1">Completed</div>
+              <div className="text-gray-600 mt-1">{dict.marketplace.stats.completed}</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-purple-600">890</div>
-              <div className="text-gray-600 mt-1">Participants</div>
+              <div className="text-gray-600 mt-1">{dict.marketplace.stats.participants}</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-orange-600">$2.5M</div>
-              <div className="text-gray-600 mt-1">Total Value</div>
+              <div className="text-gray-600 mt-1">{dict.marketplace.stats.totalValue}</div>
             </div>
           </div>
         </div>
@@ -204,7 +207,7 @@ export default function MarketplacePage() {
                   }`}
                 >
                   <span className="mr-2">{type.icon}</span>
-                  {type.label}
+                  {dict.marketplace.taskTypes[type.key as keyof typeof dict.marketplace.taskTypes]}
                 </button>
               ))}
             </div>
@@ -214,16 +217,16 @@ export default function MarketplacePage() {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="newest">Sort by: Newest</option>
+                <option value="newest">{dict.marketplace.sortBy}</option>
                 <option value="budget_high">Budget: High to Low</option>
                 <option value="budget_low">Budget: Low to High</option>
                 <option value="applications">Most Applications</option>
               </select>
               <Link
-                href="/marketplace/post"
+                href={`/${locale}/marketplace/post`}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Post Task
+                {dict.marketplace.postTask}
               </Link>
             </div>
           </div>
@@ -236,11 +239,11 @@ export default function MarketplacePage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading tasks...</p>
+              <p className="mt-4 text-gray-600">{dict.marketplace.loading}</p>
             </div>
           ) : tasks.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">No tasks found. Be the first to post a task!</p>
+              <p className="text-gray-600">{dict.marketplace.noTasksFound}</p>
             </div>
           ) : (
             <div className="grid gap-6">
@@ -257,8 +260,10 @@ export default function MarketplacePage() {
                         task.type === 'product_sale' ? 'bg-green-100 text-green-800' :
                         'bg-purple-100 text-purple-800'
                       }`}>
-                        {task.type === 'manufacturing' ? '🏭 Manufacturing' :
-                         task.type === 'product_sale' ? '🛍️ Product Sale' : '🔧 Service'}
+                        {task.type === 'manufacturing' ? '🏭 ' :
+                         task.type === 'product_sale' ? '🛍️ ' : '🔧 '}
+                         {task.type === 'manufacturing' ? dict.marketplace.taskTypes.manufacturing :
+                         task.type === 'product_sale' ? dict.marketplace.taskTypes.productSale : dict.marketplace.taskTypes.service}
                       </span>
                       <span className="text-sm text-gray-500">Posted {task.postedAt}</span>
                     </div>
@@ -273,7 +278,7 @@ export default function MarketplacePage() {
                   <div className="flex items-center gap-6">
                     {task.budget && (
                       <div>
-                        <div className="text-sm text-gray-500">Budget</div>
+                        <div className="text-sm text-gray-500">{dict.marketplace.budget}</div>
                         <div className="text-lg font-semibold text-green-600">
                           ${task.budget.toLocaleString()} {task.currency}
                         </div>
@@ -281,7 +286,7 @@ export default function MarketplacePage() {
                     )}
                     {task.price && (
                       <div>
-                        <div className="text-sm text-gray-500">Price</div>
+                        <div className="text-sm text-gray-500">{dict.marketplace.price}</div>
                         <div className="text-lg font-semibold text-blue-600">
                           ${task.price} {task.currency}
                           {task.unit && <span className="text-sm text-gray-500">/{task.unit}</span>}
@@ -290,7 +295,7 @@ export default function MarketplacePage() {
                     )}
                     {task.deadline && (
                       <div>
-                        <div className="text-sm text-gray-500">Deadline</div>
+                        <div className="text-sm text-gray-500">{dict.marketplace.deadline}</div>
                         <div className="text-lg font-semibold text-gray-900">
                           {task.deadline}
                         </div>
@@ -300,30 +305,30 @@ export default function MarketplacePage() {
 
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <div className="text-sm text-gray-500">Posted by</div>
+                      <div className="text-sm text-gray-500">{dict.marketplace.postedBy}</div>
                       <div className="font-medium text-gray-900">{task.postedBy}</div>
                     </div>
                     <Link
-                      href={`/marketplace/${task.id}`}
+                      href={`/${locale}/marketplace/${task.id}`}
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      View Details
+                      {dict.marketplace.viewDetails}
                     </Link>
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
                   {task.applications !== undefined && (
-                    <span>📝 {task.applications} applications</span>
+                    <span>📝 {task.applications} {dict.marketplace.applications}</span>
                   )}
                   {task.views !== undefined && (
-                    <span>👁️ {task.views} views</span>
+                    <span>👁️ {task.views} {dict.marketplace.views}</span>
                   )}
                   {task.rating && (
-                    <span>⭐ {task.rating} rating</span>
+                    <span>⭐ {task.rating} {dict.marketplace.rating}</span>
                   )}
                   {task.minOrderQty && (
-                    <span>📦 Min order: {task.minOrderQty} units</span>
+                    <span>📦 {dict.marketplace.minOrder}: {task.minOrderQty} units</span>
                   )}
                 </div>
               </div>
@@ -334,7 +339,7 @@ export default function MarketplacePage() {
           {/* Load More */}
           <div className="mt-8 text-center">
             <button className="bg-white border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
-              Load More Tasks
+              {dict.marketplace.loadMore}
             </button>
           </div>
         </div>
@@ -344,34 +349,34 @@ export default function MarketplacePage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            How It Works
+            {dict.marketplace.howItWorks}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">1️⃣</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Post Your Task</h3>
+              <h3 className="text-xl font-semibold mb-2">{dict.marketplace.steps.postYourTask}</h3>
               <p className="text-gray-600">
-                Describe what you need: manufacturing, products, or services. Set your budget and timeline.
+                {dict.marketplace.steps.postYourTaskDesc}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">2️⃣</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Receive Applications</h3>
+              <h3 className="text-xl font-semibold mb-2">{dict.marketplace.steps.receiveApplications}</h3>
               <p className="text-gray-600">
-                Sellers, manufacturers, or service providers apply to your task. Review their profiles and offers.
+                {dict.marketplace.steps.receiveApplicationsDesc}
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">3️⃣</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Connect & Complete</h3>
+              <h3 className="text-xl font-semibold mb-2">{dict.marketplace.steps.connectAndComplete}</h3>
               <p className="text-gray-600">
-                Choose the best match, negotiate terms, and complete the transaction. Platform facilitates communication.
+                {dict.marketplace.steps.connectAndCompleteDesc}
               </p>
             </div>
           </div>
@@ -382,23 +387,23 @@ export default function MarketplacePage() {
       <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Get Started?
+            {dict.marketplace.readyToGetStarted}
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Join thousands of businesses and AI agents already using our marketplace
+            {dict.marketplace.joinThousands}
           </p>
           <div className="flex justify-center gap-4">
             <Link
-              href="/auth/register?type=seller"
+              href={`/${locale}/auth/register?type=seller`}
               className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Register as Seller
+              {dict.marketplace.registerAsSeller}
             </Link>
             <Link
-              href="/auth/register?type=buyer"
+              href={`/${locale}/auth/register?type=buyer`}
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
             >
-              Register as Buyer
+              {dict.marketplace.registerAsBuyer}
             </Link>
           </div>
         </div>
