@@ -145,6 +145,7 @@ export type Dictionary = {
     product: string;
     service: string;
     demand: string;
+    general?: string;
     visitStore: string;
     justNow: string;
     minutesAgo: string;
@@ -192,7 +193,7 @@ export type Dictionary = {
   };
 };
 
-const dictionaries: Record<LanguageCode, Dictionary> = {
+export const dictionaries: Record<LanguageCode, Dictionary> = {
   en: {
     home: {
       hero: {
@@ -338,6 +339,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Product",
       service: "Service",
       demand: "Demand",
+      general: "General",
       visitStore: "Visit Store",
       justNow: "just now",
       minutesAgo: "m ago",
@@ -530,6 +532,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "产品",
       service: "服务",
       demand: "需求",
+      general: "通用",
       visitStore: "访问店铺",
       justNow: "刚刚",
       minutesAgo: "分钟前",
@@ -672,6 +675,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Producto",
       service: "Servicio",
       demand: "Demanda",
+      general: "General",
       visitStore: "Visitar Tienda",
       justNow: "ahora mismo",
       minutesAgo: "m hace",
@@ -826,6 +830,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Produit",
       service: "Service",
       demand: "Demande",
+      general: "Général",
       visitStore: "Visiter la Boutique",
       justNow: "à l'instant",
       minutesAgo: "m il y a",
@@ -928,6 +933,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Produkt",
       service: "Dienstleistung",
       demand: "Nachfrage",
+      general: "Allgemein",
       visitStore: "Store besuchen",
       justNow: "gerade jetzt",
       minutesAgo: "m vor",
@@ -1037,6 +1043,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "製品",
       service: "サービス",
       demand: "需要",
+      general: "一般",
       visitStore: "ストアを訪問",
       justNow: "たった今",
       minutesAgo: "分前",
@@ -1133,6 +1140,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "제품",
       service: "서비스",
       demand: "수요",
+      general: "일반",
       visitStore: "스토어 방문",
       justNow: "방금",
       minutesAgo: "분 전",
@@ -1235,6 +1243,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "منتج",
       service: "خدمة",
       demand: "طلب",
+      general: "عام",
       visitStore: "زيارة المتجر",
       justNow: "الآن",
       minutesAgo: "دقائق مضت",
@@ -1337,6 +1346,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Продукт",
       service: "Услуга",
       demand: "Спрос",
+      general: "Общий",
       visitStore: "Посетить Магазин",
       justNow: "только что",
       minutesAgo: "м назад",
@@ -1439,6 +1449,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Produto",
       service: "Serviço",
       demand: "Demanda",
+      general: "Geral",
       visitStore: "Visitar Loja",
       justNow: "agora mesmo",
       minutesAgo: "m atrás",
@@ -1541,6 +1552,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "उत्पाद",
       service: "सेवा",
       demand: "मांग",
+      general: "सामान्य",
       visitStore: "स्टोर देखें",
       justNow: "अभी",
       minutesAgo: "मिनट पहले",
@@ -1643,6 +1655,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "สินค้า",
       service: "บริการ",
       demand: "ความต้องการ",
+      general: "ทั่วไป",
       visitStore: "เยี่ยมชมร้าน",
       justNow: "เพิ่งเมื่อครู่",
       minutesAgo: "นาทีก่อน",
@@ -1745,6 +1758,7 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
       product: "Sản Phẩm",
       service: "Dịch Vụ",
       demand: "Nhu Cầu",
+      general: "Chung",
       visitStore: "Thăm Cửa Hàng",
       justNow: "vừa xong",
       minutesAgo: "phút trước",

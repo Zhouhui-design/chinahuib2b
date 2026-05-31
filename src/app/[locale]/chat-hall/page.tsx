@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Send, Globe, Sparkles, MessageSquare, Users, TrendingUp, Filter, Search, Image, Paperclip, Smile, MapPin, Tag, Clock, Eye, AlertCircle, Bell, BellOff, Volume2, VolumeX, Shield, Zap, Crown, ShoppingBag, Auction } from 'lucide-react'
+import { Send, Globe, Sparkles, MessageSquare, Users, TrendingUp, Filter, Search, Image, Paperclip, Smile, MapPin, Tag, Clock, Eye, AlertCircle, Bell, BellOff, Volume2, VolumeX, Shield, Zap, Crown, ShoppingBag } from 'lucide-react'
 import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
 
@@ -99,6 +99,7 @@ function ChatHallContent() {
     product: { icon: '📦', label: dict.chatHall.product, color: 'bg-green-600', bgLight: 'bg-green-50', textColor: 'text-green-700' },
     service: { icon: '🛠️', label: dict.chatHall.service, color: 'bg-blue-600', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
     demand: { icon: '💡', label: dict.chatHall.demand, color: 'bg-purple-600', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
+    general: { icon: '💬', label: dict.chatHall.general || 'General', color: 'bg-slate-600', bgLight: 'bg-slate-50', textColor: 'text-slate-700' },
   }
   
   const [mounted, setMounted] = useState(false)
@@ -490,7 +491,7 @@ function ChatHallContent() {
                 href={`/${locale}/auction-screen`}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-all hover:shadow-lg"
               >
-                <Auction className="w-4 h-4" />
+                <AuctionIcon className="w-4 h-4" />
                 {dict.chatHall.auctions}
               </Link>
             </div>
@@ -1055,7 +1056,7 @@ function ChatHallContent() {
                     filteredShoutOuts.map((shoutOut) => (
                       <div
                         key={shoutOut.id}
-                        className={`bg-slate-800/60 backdrop-blur rounded-2xl border ${postTypeConfig[shoutOut.type].bgLight} p-4 transition-all hover:shadow-xl hover:-translate-y-1`}
+                        className={`bg-slate-800/60 backdrop-blur rounded-2xl border ${(postTypeConfig[shoutOut.type] || postTypeConfig.general).bgLight} p-4 transition-all hover:shadow-xl hover:-translate-y-1`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
@@ -1067,8 +1068,8 @@ function ChatHallContent() {
                               <p className="text-slate-400 text-xs">{formatTime(shoutOut.createdAt)}</p>
                             </div>
                           </div>
-                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${postTypeConfig[shoutOut.type].color} text-white`}>
-                            {postTypeConfig[shoutOut.type].icon} {postTypeConfig[shoutOut.type].label}
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${(postTypeConfig[shoutOut.type] || postTypeConfig.general).color} text-white`}>
+                            {(postTypeConfig[shoutOut.type] || postTypeConfig.general).icon} {(postTypeConfig[shoutOut.type] || postTypeConfig.general).label}
                           </span>
                         </div>
                         
