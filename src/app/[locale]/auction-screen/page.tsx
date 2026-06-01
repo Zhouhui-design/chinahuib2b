@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useParams } from 'next/navigation'
+import type { LanguageCode } from '@/lib/languages'
+import { dictionaries } from '@/locales/dictionary'
 
 type AuctionListing = {
   id: string
@@ -58,6 +61,10 @@ export default function AuctionScreenPage() {
   const [category, setCategory] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
+  const params = useParams()
+  const locale = (params.locale as LanguageCode) || 'en'
+  const dict = dictionaries[locale] || dictionaries.en
+
   const categories = [
     'Electronics',
     'Textiles',
@@ -103,24 +110,24 @@ export default function AuctionScreenPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">🏪 Global Auction Screen</h1>
+              <h1 className="text-2xl font-bold text-white">🏪 {dict.auctionScreen.title}</h1>
               <p className="text-gray-400 text-sm">
-                Buy & Sell with the World • Post for $0.10
+                {dict.auctionScreen.subtitle}
               </p>
             </div>
             <div className="flex gap-3">
               <Link
-                href="/chat-hall"
+                href={`/${locale}/chat-hall`}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
               >
-                💬 Chat Hall
+                💬 {dict.auctionScreen.chatHall}
               </Link>
               <button
                 onClick={() => setShowCreateModal(true)}
                 disabled={!session}
                 className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
               >
-                ➕ Post Listing
+                ➕ {dict.auctionScreen.postListing}
               </button>
             </div>
           </div>
@@ -131,19 +138,19 @@ export default function AuctionScreenPage() {
         {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-4 text-white">
-            <p className="text-green-200 text-sm">Selling</p>
+            <p className="text-green-200 text-sm">{dict.auctionScreen.selling}</p>
             <p className="text-2xl font-bold">{listings.filter(l => l.type === 'SELLING').length}</p>
           </div>
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 text-white">
-            <p className="text-blue-200 text-sm">Buying</p>
+            <p className="text-blue-200 text-sm">{dict.auctionScreen.buying}</p>
             <p className="text-2xl font-bold">{listings.filter(l => l.type === 'BUYING').length}</p>
           </div>
           <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-4 text-white">
-            <p className="text-purple-200 text-sm">Total Views</p>
+            <p className="text-purple-200 text-sm">{dict.auctionScreen.totalViews}</p>
             <p className="text-2xl font-bold">{listings.reduce((sum, l) => sum + l.views, 0)}</p>
           </div>
           <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-xl p-4 text-white">
-            <p className="text-orange-200 text-sm">Inquiries</p>
+            <p className="text-orange-200 text-sm">{dict.auctionScreen.inquiries}</p>
             <p className="text-2xl font-bold">{listings.reduce((sum, l) => sum + l.inquiries, 0)}</p>
           </div>
         </div>
@@ -161,7 +168,7 @@ export default function AuctionScreenPage() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                📦 Selling
+                📦 {dict.auctionScreen.selling}
               </button>
               <button
                 onClick={() => setActiveTab('buying')}
@@ -171,7 +178,7 @@ export default function AuctionScreenPage() {
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
-                🔍 Buying
+                🔍 {dict.auctionScreen.buying}
               </button>
             </div>
 
@@ -180,7 +187,7 @@ export default function AuctionScreenPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab} listings...`}
+              placeholder={dict.auctionScreen.searchPlaceholder}
               className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
@@ -190,7 +197,7 @@ export default function AuctionScreenPage() {
               onChange={(e) => setCategory(e.target.value)}
               className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Categories</option>
+              <option value="">{dict.auctionScreen.allCategories}</option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
@@ -206,14 +213,14 @@ export default function AuctionScreenPage() {
         ) : listings.length === 0 ? (
           <div className="bg-gray-800 rounded-xl p-12 text-center border border-gray-700">
             <p className="text-4xl mb-4">📭</p>
-            <h3 className="text-xl font-bold text-white mb-2">No listings yet</h3>
-            <p className="text-gray-400 mb-4">Be the first to post!</p>
+            <h3 className="text-xl font-bold text-white mb-2">{dict.auctionScreen.noListings}</h3>
+            <p className="text-gray-400 mb-4">{dict.auctionScreen.beFirstToPost}</p>
             <button
               onClick={() => setShowCreateModal(true)}
               disabled={!session}
               className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
             >
-              Post First Listing
+              {dict.auctionScreen.postFirstListing}
             </button>
           </div>
         ) : (
@@ -244,13 +251,13 @@ export default function AuctionScreenPage() {
                         ? 'bg-green-600 text-white'
                         : 'bg-blue-600 text-white'
                     }`}>
-                      {listing.type === 'SELLING' ? 'SELLING' : 'BUYING'}
+                      {listing.type === 'SELLING' ? dict.auctionScreen.selling : dict.auctionScreen.buying}
                     </span>
                   </div>
                   {listing.isVerified && (
                     <div className="absolute top-3 right-3">
                       <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                        ✓ Verified
+                        ✓ {dict.auctionScreen.verified}
                       </span>
                     </div>
                   )}
@@ -266,13 +273,13 @@ export default function AuctionScreenPage() {
                   {listing.price && (
                     <p className="text-2xl font-bold text-green-400 mb-2">
                       {listing.currency} {listing.price.toLocaleString()}
-                      {listing.minOrderQty && <span className="text-gray-500 text-sm ml-1">/ {listing.minOrderQty} pcs</span>}
+                      {listing.minOrderQty && <span className="text-gray-500 text-sm ml-1">/ {listing.minOrderQty} {dict.auctionScreen.pcs}</span>}
                     </p>
                   )}
 
                   {listing.category && (
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-gray-500 text-xs">Category:</span>
+                      <span className="text-gray-500 text-xs">{dict.auctionScreen.category}:</span>
                       <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">{listing.category}</span>
                     </div>
                   )}
@@ -300,11 +307,11 @@ export default function AuctionScreenPage() {
 
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
                     <div className="flex gap-3 text-gray-500 text-xs">
-                      <span>👁️ {listing.views}</span>
+                      <span>👁️ {listing.views} {dict.auctionScreen.views}</span>
                       <span>💬 {listing.inquiries}</span>
                     </div>
                     <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition">
-                      Contact
+                      {dict.auctionScreen.contact}
                     </button>
                   </div>
                 </div>
@@ -323,6 +330,7 @@ export default function AuctionScreenPage() {
             setListings(prev => [listing, ...prev])
             setShowCreateModal(false)
           }}
+          dict={dict}
         />
       )}
     </div>
@@ -333,10 +341,12 @@ function CreateListingModal({
   type,
   onClose,
   onCreated,
+  dict,
 }: {
   type: 'selling' | 'buying'
   onClose: () => void
   onCreated: (listing: AuctionListing) => void
+  dict: typeof dictionaries.en
 }) {
   const { data: session } = useSession() ?? { data: null }
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -372,14 +382,14 @@ function CreateListingModal({
 
       if (res.ok) {
         const data = await res.json()
-        alert(`Listing created successfully! Cost: $${data.data.cost}`)
+        alert(`${dict.auctionScreen.listingCreated}${data.data.cost}`)
         onCreated(data.data.listing)
       } else {
-        alert('Failed to create listing')
+        alert(dict.auctionScreen.failedToCreate)
       }
     } catch (error) {
       console.error('Error creating listing:', error)
-      alert('Failed to create listing')
+      alert(dict.auctionScreen.failedToCreate)
     } finally {
       setIsSubmitting(false)
     }
@@ -390,7 +400,7 @@ function CreateListingModal({
       <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-700 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">
-            Create {type === 'selling' ? 'Selling' : 'Buying'} Listing
+            {dict.auctionScreen.createListing}
           </h2>
           <button
             onClick={onClose}
@@ -402,19 +412,19 @@ function CreateListingModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Title *</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.titleLabel} *</label>
             <input
               required
               type="text"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder={`What are you ${type === 'selling' ? 'selling' : 'looking to buy'}?`}
+              placeholder={`What are you ${type === 'selling' ? dict.auctionScreen.selling : dict.auctionScreen.buying}?`}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Description</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.descriptionLabel}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -426,13 +436,13 @@ function CreateListingModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium">Category</label>
+              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.category}</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Select category</option>
+                <option value="">{dict.auctionScreen.selectCategory}</option>
                 {[
                   'Electronics', 'Textiles', 'Machinery', 'Chemicals',
                   'Furniture', 'Toys', 'Beauty', 'Sports', 'Automotive', 'Services',
@@ -443,7 +453,7 @@ function CreateListingModal({
             </div>
 
             <div>
-              <label className="block text-gray-300 mb-2 font-medium">Price ({type === 'selling' ? 'Asking' : 'Budget'})</label>
+              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.price} ({type === 'selling' ? dict.auctionScreen.asking : dict.auctionScreen.budget})</label>
               <input
                 type="number"
                 value={formData.price}
@@ -455,10 +465,10 @@ function CreateListingModal({
           </div>
 
           <div className="border-t border-gray-700 pt-4">
-            <h3 className="text-lg font-bold text-white mb-4">Contact Information</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{dict.auctionScreen.contact}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">Email</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.email}</label>
                 <input
                   type="email"
                   value={formData.contactEmail}
@@ -468,7 +478,7 @@ function CreateListingModal({
                 />
               </div>
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">WhatsApp</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.whatsapp}</label>
                 <input
                   type="text"
                   value={formData.contactWhatsApp}
@@ -486,14 +496,14 @@ function CreateListingModal({
               onClick={onClose}
               className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
             >
-              Cancel
+              {dict.auctionScreen.cancel}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
             >
-              {isSubmitting ? 'Posting...' : 'Post Listing - $0.10'}
+              {isSubmitting ? dict.auctionScreen.posting : dict.auctionScreen.postListingCost}
             </button>
           </div>
         </form>
