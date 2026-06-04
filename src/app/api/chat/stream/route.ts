@@ -83,12 +83,57 @@ export async function GET(request: NextRequest) {
               },
             })
 
-            if (messages.length > 0 || shoutOuts.length > 0) {
+            // Fetch recent world chat messages
+            const worldChatMessages = await prisma.publicMessage.findMany({
+              where: {
+                isWorldChat: true,
+                createdAt: { gt: lastMessageTime },
+              },
+              orderBy: { createdAt: 'asc' },
+              take: 5,
+              include: {
+                sender: {
+                  select: {
+                    id: true,
+                    username: true,
+                    displayName: true,
+                    avatarUrl: true,
+                    role: true,
+                    isOnline: true,
+                  },
+                },
+              },
+            })
+
+            // Fetch recent notices
+            const notices = await prisma.notice.findMany({
+              where: {
+                createdAt: { gt: lastMessageTime },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 3,
+              include: {
+                sender: {
+                  select: {
+                    id: true,
+                    username: true,
+                    displayName: true,
+                    avatarUrl: true,
+                    role: true,
+                    isOnline: true,
+                  },
+                },
+              },
+            })
+
+            if (messages.length > 0 || shoutOuts.length > 0 || worldChatMessages.length > 0 || notices.length > 0) {
               const data = JSON.stringify({
                 type: 'update',
                 timestamp: new Date().toISOString(),
                 messages,
+                worldChatMessages,
                 shoutOuts,
+                notices,
                 onlineUsersCount,
               })
 

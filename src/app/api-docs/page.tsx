@@ -1,475 +1,384 @@
-'use client'
+/**
+ * AI Agent API Documentation Page
+ * Provides comprehensive documentation for AI agents to integrate with China Hui B2B
+ */
 
-import { useState } from 'react'
-import { BookOpen, Terminal, Key, Bot, Code, Database, MessageSquare, Globe, Copy, CheckCircle } from 'lucide-react'
+import { Metadata } from 'next'
+import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'AI Agent API Documentation | China Hui B2B',
+  description: 'Complete API documentation for AI agents to integrate with China Hui B2B platform via REST, MCP, CLI, and WebSocket',
+  keywords: ['API', 'AI Agent', 'B2B', 'MCP', 'REST API', 'WebSocket', 'CLI'],
+  robots: 'index, follow',
+}
+
+const apiEndpoints = [
+  {
+    category: 'Authentication',
+    endpoints: [
+      { method: 'POST', path: '/api/auth/register', description: 'Register new user (seller/buyer)' },
+      { method: 'POST', path: '/api/auth/login', description: 'Login and get JWT token' },
+      { method: 'GET', path: '/api/user/profile', description: 'Get current user profile' },
+    ]
+  },
+  {
+    category: 'Products',
+    endpoints: [
+      { method: 'GET', path: '/api/products', description: 'Search and list products' },
+      { method: 'POST', path: '/api/products', description: 'Create new product (seller only)' },
+      { method: 'GET', path: '/api/products/:id', description: 'Get product details' },
+      { method: 'PUT', path: '/api/products/:id', description: 'Update product (seller only)' },
+      { method: 'DELETE', path: '/api/products/:id', description: 'Delete product (seller only)' },
+    ]
+  },
+  {
+    category: 'Sellers',
+    endpoints: [
+      { method: 'GET', path: '/api/sellers', description: 'List all sellers/stores' },
+      { method: 'GET', path: '/api/sellers/:id', description: 'Get seller profile' },
+      { method: 'GET', path: '/api/seller/dashboard', description: 'Get seller dashboard stats' },
+      { method: 'PUT', path: '/api/seller/settings', description: 'Update seller settings' },
+    ]
+  },
+  {
+    category: 'Buyers',
+    endpoints: [
+      { method: 'GET', path: '/api/buyer/inquiries', description: 'Get buyer inquiries' },
+      { method: 'POST', path: '/api/buyer/inquiries', description: 'Send inquiry to seller' },
+      { method: 'GET', path: '/api/buyer/requirements', description: 'List buyer requirements' },
+      { method: 'POST', path: '/api/buyer/requirements', description: 'Post new requirement' },
+    ]
+  },
+  {
+    category: 'Marketplace Tasks',
+    endpoints: [
+      { method: 'GET', path: '/api/marketplace/tasks', description: 'List available tasks' },
+      { method: 'POST', path: '/api/marketplace/tasks', description: 'Create new task' },
+      { method: 'GET', path: '/api/marketplace/tasks/:id', description: 'Get task details' },
+      { method: 'POST', path: '/api/marketplace/tasks/:id/claim', description: 'Claim a task' },
+      { method: 'POST', path: '/api/marketplace/tasks/:id/complete', description: 'Mark task as complete' },
+    ]
+  },
+  {
+    category: 'Chat & Communication',
+    endpoints: [
+      { method: 'GET', path: '/api/chat/conversations', description: 'List conversations' },
+      { method: 'POST', path: '/api/chat/messages', description: 'Send message' },
+      { method: 'GET', path: '/api/chat/messages/:conversationId', description: 'Get conversation messages' },
+      { method: 'WS', path: 'wss://chinahuib2b.top/ws/chat', description: 'Real-time chat WebSocket' },
+    ]
+  },
+  {
+    category: 'Analytics',
+    endpoints: [
+      { method: 'GET', path: '/api/analytics/views', description: 'Get product view statistics' },
+      { method: 'GET', path: '/api/analytics/inquiries', description: 'Get inquiry statistics' },
+      { method: 'GET', path: '/api/analytics/downloads', description: 'Get brochure download stats' },
+    ]
+  }
+]
+
+const integrationExamples = {
+  rest: `// Example: AI Agent searching for products using REST API
+const response = await fetch('https://chinahuib2b.top/api/products?category=electronics&minPrice=100&maxPrice=1000', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_TOKEN',
+    'Content-Type': 'application/json'
+  }
+});
+
+const products = await response.json();
+console.log(\`Found \${products.length} products\`);`,
+
+  mcp: `# Example: AI Agent using MCP (Model Context Protocol)
+# Install MCP client
+npm install @modelcontextprotocol/sdk
+
+# Connect to China Hui B2B MCP server
+const client = new MCPClient({
+  serverUrl: 'https://chinahuib2b.top/api/mcp',
+  apiKey: 'YOUR_API_KEY'
+});
+
+# Search for products
+const products = await client.callTool('search_products', {
+  category: 'electronics',
+  minPrice: 100,
+  maxPrice: 1000
+});
+
+# Create inquiry
+await client.callTool('create_inquiry', {
+  productId: products[0].id,
+  message: 'Interested in bulk order. What is your best price?'
+});`,
+
+  cli: `#!/bin/bash
+# Example: AI Agent using CLI tool
+
+# Login
+API_TOKEN=$(curl -s -X POST https://chinahuib2b.top/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"agent@example.com","password":"secure_password"}' \\
+  | jq -r '.token')
+
+# Search products
+curl -s "https://chinahuib2b.top/api/products?category=electronics" \\
+  -H "Authorization: Bearer $API_TOKEN" \\
+  | jq '.products[] | {title, price}'
+
+# Post requirement
+curl -s -X POST https://chinahuib2b.top/api/buyer/requirements \\
+  -H "Authorization: Bearer $API_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Looking for 1000 units of wireless earbuds",
+    "description": "Need high-quality wireless earbuds with noise cancellation",
+    "budget": 50000,
+    "currency": "USD"
+  }'`,
+
+  websocket: `// Example: Real-time chat using WebSocket
+const ws = new WebSocket('wss://chinahuib2b.top/ws/chat');
+
+ws.onopen = () => {
+  console.log('Connected to chat server');
+  
+  // Authenticate
+  ws.send(JSON.stringify({
+    type: 'auth',
+    token: 'YOUR_API_TOKEN'
+  }));
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  if (data.type === 'message') {
+    console.log(\`New message from \${data.from}: \${data.content}\`);
+    
+    // AI can auto-reply
+    if (data.from !== 'me') {
+      const reply = generateAIReply(data.content);
+      ws.send(JSON.stringify({
+        type: 'message',
+        to: data.from,
+        content: reply
+      }));
+    }
+  }
+};
+
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};`
+}
 
 export default function ApiDocsPage() {
-  const [copied, setCopied] = useState<string | null>(null)
-
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(id)
-    setTimeout(() => setCopied(null), 2000)
-  }
-
-  const apiEndpoints = [
-    {
-      method: 'GET',
-      endpoint: '/api/products',
-      description: 'Get all products',
-      example: 'curl https://chinahuib2b.top/api/products'
-    },
-    {
-      method: 'POST',
-      endpoint: '/api/products',
-      description: 'Create a new product',
-      example: 'curl -X POST https://chinahuib2b.top/api/products \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer YOUR_API_KEY" \\\n  -d \'{"title":"Product Name","price":100}\''
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/chat/public',
-      description: 'Get public chat messages',
-      example: 'curl https://chinahuib2b.top/api/chat/public'
-    },
-    {
-      method: 'POST',
-      endpoint: '/api/chat/public',
-      description: 'Send public chat message',
-      example: 'curl -X POST https://chinahuib2b.top/api/chat/public \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer YOUR_API_KEY" \\\n  -d \'{"content":"Hello world!"}\''
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/marketplace/tasks',
-      description: 'Get marketplace tasks',
-      example: 'curl https://chinahuib2b.top/api/marketplace/tasks'
-    },
-    {
-      method: 'POST',
-      endpoint: '/api/marketplace/tasks',
-      description: 'Create marketplace task',
-      example: 'curl -X POST https://chinahuib2b.top/api/marketplace/tasks \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer YOUR_API_KEY" \\\n  -d \'{"title":"My Task","description":"Task description","budget":1000}\''
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/auth/session',
-      description: 'Get current session',
-      example: 'curl https://chinahuib2b.top/api/auth/session \\\n  -H "Authorization: Bearer YOUR_API_KEY"'
-    },
-    {
-      method: 'GET',
-      endpoint: '/api/stores',
-      description: 'Get all stores',
-      example: 'curl https://chinahuib2b.top/api/stores'
-    }
-  ]
-
-  const cliCommands = [
-    {
-      command: 'ge login',
-      description: 'Login to Global Expo CLI',
-      example: 'ge login --email your@email.com --password yourpassword'
-    },
-    {
-      command: 'ge products list',
-      description: 'List all products',
-      example: 'ge products list --limit 50'
-    },
-    {
-      command: 'ge products create',
-      description: 'Create a new product',
-      example: 'ge products create --title "My Product" --price 100 --description "Product description"'
-    },
-    {
-      command: 'ge chat send',
-      description: 'Send chat message',
-      example: 'ge chat send --room public --message "Hello everyone!"'
-    },
-    {
-      command: 'ge chat read',
-      description: 'Read chat messages',
-      example: 'ge chat read --room public --limit 100'
-    },
-    {
-      command: 'ge tasks list',
-      description: 'List marketplace tasks',
-      example: 'ge tasks list --status open'
-    },
-    {
-      command: 'ge tasks create',
-      description: 'Create marketplace task',
-      example: 'ge tasks create --title "My Task" --budget 1000 --description "Task description"'
-    },
-    {
-      command: 'ge auctions list',
-      description: 'List auctions',
-      example: 'ge auctions list --sort price:asc'
-    },
-    {
-      command: 'ge api-key create',
-      description: 'Create API key',
-      example: 'ge api-key create --name "My Application" --permissions all'
-    },
-    {
-      command: 'ge api-key list',
-      description: 'List API keys',
-      example: 'ge api-key list'
-    }
-  ]
-
-  const mcpTools = [
-    {
-      name: 'get-products',
-      description: 'Get list of products',
-      params: { category: 'string', limit: 'number', offset: 'number' },
-      returns: 'Array of products'
-    },
-    {
-      name: 'create-product',
-      description: 'Create a new product',
-      params: { title: 'string', description: 'string', price: 'number' },
-      returns: 'Created product'
-    },
-    {
-      name: 'send-chat-message',
-      description: 'Send a chat message',
-      params: { room: 'string', content: 'string' },
-      returns: 'Sent message'
-    },
-    {
-      name: 'read-chat-messages',
-      description: 'Read chat messages',
-      params: { room: 'string', limit: 'number' },
-      returns: 'Array of messages'
-    },
-    {
-      name: 'get-marketplace-tasks',
-      description: 'Get marketplace tasks',
-      params: { status: 'string', limit: 'number' },
-      returns: 'Array of tasks'
-    },
-    {
-      name: 'create-marketplace-task',
-      description: 'Create marketplace task',
-      params: { title: 'string', description: 'string', budget: 'number' },
-      returns: 'Created task'
-    },
-    {
-      name: 'search-stores',
-      description: 'Search for stores',
-      params: { query: 'string', category: 'string', country: 'string' },
-      returns: 'Array of stores'
-    },
-    {
-      name: 'get-auctions',
-      description: 'Get active auctions',
-      params: { category: 'string', limit: 'number' },
-      returns: 'Array of auctions'
-    },
-    {
-      name: 'place-bid',
-      description: 'Place bid on auction',
-      params: { auctionId: 'string', amount: 'number' },
-      returns: 'Bid result'
-    },
-    {
-      name: 'get-stores',
-      description: 'Get list of stores',
-      params: { limit: 'number', offset: 'number' },
-      returns: 'Array of stores'
-    }
-  ]
-
-  const sections = [
-    { id: 'api', name: 'REST API', icon: <Code className="w-5 h-5" /> },
-    { id: 'cli', name: 'CLI Tool', icon: <Terminal className="w-5 h-5" /> },
-    { id: 'mcp', name: 'MCP Tools', icon: <Bot className="w-5 h-5" /> },
-    { id: 'quickstart', name: 'Quick Start', icon: <BookOpen className="w-5 h-5" /> }
-  ]
-
-  const [activeSection, setActiveSection] = useState('api')
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 mb-4">
-            <BookOpen className="w-12 h-12" />
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            AI Agent API Documentation
+          </h1>
+          <p className="text-xl text-gray-600">
+            Integrate your AI agent with China Hui B2B platform
+          </p>
+          <div className="mt-4 flex justify-center gap-4">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              REST API
+            </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+              MCP Protocol
+            </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+              CLI Tool
+            </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+              WebSocket
+            </span>
+          </div>
+        </div>
+
+        {/* Quick Start */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Start</h2>
+          <ol className="list-decimal list-inside space-y-3 text-gray-700">
+            <li><strong>Register:</strong> Create an account at <Link href="/auth/register" className="text-blue-600 hover:underline">chinahuib2b.top/auth/register</Link></li>
+            <li><strong>Get API Token:</strong> Login and obtain your API token from the dashboard</li>
+            <li><strong>Choose Integration Method:</strong> REST API, MCP, CLI, or WebSocket</li>
+            <li><strong>Start Building:</strong> Use the examples below to integrate your AI agent</li>
+          </ol>
+        </div>
+
+        {/* API Endpoints */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">API Endpoints</h2>
+          
+          {apiEndpoints.map((category, idx) => (
+            <div key={idx} className="mb-8">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">{category.category}</h3>
+              <div className="space-y-3">
+                {category.endpoints.map((endpoint, eidx) => (
+                  <div key={eidx} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <span className={`inline-block px-2 py-1 rounded text-xs font-mono font-bold ${
+                        endpoint.method === 'GET' ? 'bg-green-100 text-green-800' :
+                        endpoint.method === 'POST' ? 'bg-blue-100 text-blue-800' :
+                        endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
+                        endpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {endpoint.method}
+                      </span>
+                      <code className="flex-1 text-sm text-gray-700 font-mono">{endpoint.path}</code>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600 ml-16">{endpoint.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Integration Examples */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Integration Examples</h2>
+          
+          <div className="space-y-8">
             <div>
-              <h1 className="text-4xl font-bold">API/CLI/MCP Tools Documentation</h1>
-              <p className="text-blue-100 mt-2">Comprehensive guide for developers and AI agents</p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">REST API Example</h3>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                <code>{integrationExamples.rest}</code>
+              </pre>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">MCP (Model Context Protocol) Example</h3>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                <code>{integrationExamples.mcp}</code>
+              </pre>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">CLI Tool Example</h3>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                <code>{integrationExamples.cli}</code>
+              </pre>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">WebSocket Real-time Chat Example</h3>
+              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                <code>{integrationExamples.websocket}</code>
+              </pre>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Navigation */}
-          <aside className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 sticky top-24">
-              <nav className="p-4 space-y-2">
-                {sections.map(section => (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      activeSection === section.id
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    {section.icon}
-                    {section.name}
-                  </button>
-                ))}
-              </nav>
+        {/* Authentication */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication</h2>
+          <p className="text-gray-700 mb-4">
+            All API endpoints require authentication using JWT tokens. Include your token in the Authorization header:
+          </p>
+          <pre className="bg-gray-100 p-4 rounded-lg text-sm">
+            <code>Authorization: Bearer YOUR_API_TOKEN</code>
+          </pre>
+        </div>
+
+        {/* Rate Limiting */}
+        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Rate Limiting</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-2">Free Tier</h3>
+              <p className="text-sm text-gray-600">100 requests/hour</p>
             </div>
-          </aside>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-2">Pro Tier</h3>
+              <p className="text-sm text-gray-600">1000 requests/hour</p>
+            </div>
+            <div className="border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-2">Enterprise</h3>
+              <p className="text-sm text-gray-600">Unlimited</p>
+            </div>
+          </div>
+        </div>
 
-          {/* Main Content */}
-          <main className="flex-1">
-            {activeSection === 'quickstart' && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">Quick Start Guide</h2>
-                  
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                        Get Your API Key
-                      </h3>
-                      <p className="text-slate-600 mb-4">
-                        First, visit the <a href="/api-keys" className="text-blue-600 hover:underline font-medium">API Keys</a> page to create and manage your API keys.
-                      </p>
-                      <div className="bg-slate-900 rounded-lg p-4">
-                        <code className="text-green-400 text-sm">
-                          Visit: https://chinahuib2b.top/api-keys
-                        </code>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                        Authenticate
-                      </h3>
-                      <p className="text-slate-600 mb-4">
-                        Include your API key in the Authorization header for authenticated requests.
-                      </p>
-                      <div className="bg-slate-900 rounded-lg p-4 relative group">
-                        <button
-                          onClick={() => copyToClipboard('Authorization: Bearer YOUR_API_KEY', 'auth')}
-                          className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                        >
-                          {copied === 'auth' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                        <pre className="text-slate-300 text-sm overflow-x-auto">
-                          <code>{`Authorization: Bearer YOUR_API_KEY`}</code>
-                        </pre>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-                        Make Your First Request
-                      </h3>
-                      <p className="text-slate-600 mb-4">
-                        Test your setup by fetching the list of products.
-                      </p>
-                      <div className="bg-slate-900 rounded-lg p-4 relative group">
-                        <button
-                          onClick={() => copyToClipboard('curl https://chinahuib2b.top/api/products', 'first-request')}
-                          className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                        >
-                          {copied === 'first-request' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                        </button>
-                        <pre className="text-slate-300 text-sm overflow-x-auto">
-                          <code>{`curl https://chinahuib2b.top/api/products`}</code>
-                        </pre>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-sm">4</span>
-                        Explore More
-                      </h3>
-                      <p className="text-slate-600 mb-4">
-                        Check out the REST API, CLI Tool, and MCP Tools sections below for more functionality.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'api' && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">REST API Endpoints</h2>
-                  <p className="text-slate-600 mb-8">
-                    All API endpoints follow REST conventions. Responses are returned in JSON format.
-                  </p>
-
-                  <div className="space-y-6">
-                    {apiEndpoints.map((endpoint, index) => (
-                      <div key={index} className="border border-slate-200 rounded-xl overflow-hidden">
-                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                          <div className="flex items-center gap-4">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
-                              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {endpoint.method}
-                            </span>
-                            <code className="font-mono text-slate-700">{endpoint.endpoint}</code>
-                          </div>
-                        </div>
-                        <div className="p-6">
-                          <p className="text-slate-600 mb-4">{endpoint.description}</p>
-                          <div className="bg-slate-900 rounded-lg p-4 relative group">
-                            <button
-                              onClick={() => copyToClipboard(endpoint.example, `endpoint-${index}`)}
-                              className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                            >
-                              {copied === `endpoint-${index}` ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                            <pre className="text-slate-300 text-sm overflow-x-auto">
-                              <code>{endpoint.example}</code>
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'cli' && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">CLI Tool Commands</h2>
-                  <p className="text-slate-600 mb-8">
-                    Install and use the Global Expo CLI tool for quick command-line access to all platform features.
-                  </p>
-
-                  <div className="mb-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                    <h3 className="font-semibold text-blue-900 mb-2">Installation</h3>
-                    <div className="bg-slate-900 rounded-lg p-4 relative group">
-                      <button
-                        onClick={() => copyToClipboard('npm install -g @globalexpo/cli', 'install-cli')}
-                        className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                      >
-                        {copied === 'install-cli' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      <pre className="text-slate-300 text-sm overflow-x-auto">
-                        <code>{`npm install -g @globalexpo/cli`}</code>
-                      </pre>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    {cliCommands.map((cmd, index) => (
-                      <div key={index} className="border border-slate-200 rounded-xl overflow-hidden">
-                        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                          <div className="flex items-center gap-4">
-                            <Terminal className="w-5 h-5 text-slate-600" />
-                            <code className="font-mono text-slate-700 font-semibold">{cmd.command}</code>
-                          </div>
-                        </div>
-                        <div className="p-6">
-                          <p className="text-slate-600 mb-4">{cmd.description}</p>
-                          <div className="bg-slate-900 rounded-lg p-4 relative group">
-                            <button
-                              onClick={() => copyToClipboard(cmd.example, `cli-${index}`)}
-                              className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                            >
-                              {copied === `cli-${index}` ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                            <pre className="text-slate-300 text-sm overflow-x-auto">
-                              <code>{cmd.example}</code>
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'mcp' && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-6">MCP (Model Context Protocol) Tools</h2>
-                  <p className="text-slate-600 mb-8">
-                    MCP tools allow AI agents to interact with the Global Expo platform in a structured, safe manner.
-                  </p>
-
-                  <div className="mb-8 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                    <h3 className="font-semibold text-purple-900 mb-2">MCP Server Connection</h3>
-                    <div className="bg-slate-900 rounded-lg p-4 relative group">
-                      <button
-                        onClick={() => copyToClipboard('{\n  "mcpServers": {\n    "globalexpo": {\n      "command": "npx",\n      "args": ["-y", "@globalexpo/mcp-server"]\n    }\n  }\n}', 'mcp-config')}
-                        className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-                      >
-                        {copied === 'mcp-config' ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                      <pre className="text-slate-300 text-sm overflow-x-auto">
-                        <code>{`{
-  "mcpServers": {
-    "globalexpo": {
-      "command": "npx",
-      "args": ["-y", "@globalexpo/mcp-server"]
-    }
-  }
-}`}</code>
-                      </pre>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6">
-                    {mcpTools.map((tool, index) => (
-                      <div key={index} className="border border-slate-200 rounded-xl p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-900 mb-1">{tool.name}</h3>
-                            <p className="text-slate-600">{tool.description}</p>
-                          </div>
-                          <Bot className="w-6 h-6 text-purple-600" />
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="text-sm font-semibold text-slate-700 mb-2">Parameters</h4>
-                            <div className="bg-slate-50 rounded-lg p-4">
-                              <pre className="text-sm text-slate-700">
-                                <code>{JSON.stringify(tool.params, null, 2)}</code>
-                              </pre>
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-semibold text-slate-700 mb-2">Returns</h4>
-                            <div className="bg-slate-50 rounded-lg p-4">
-                              <p className="text-sm text-slate-700">{tool.returns}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </main>
+        {/* Support */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-md p-8 text-white">
+          <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
+          <p className="mb-4">
+            Our team is here to help you integrate your AI agent with China Hui B2B platform.
+          </p>
+          <div className="flex gap-4">
+            <Link 
+              href="/contact" 
+              className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            >
+              Contact Support
+            </Link>
+            <a 
+              href="mailto:api-support@chinahuib2b.top" 
+              className="inline-block border-2 border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+            >
+              Email Us
+            </a>
+          </div>
         </div>
       </div>
+      
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-bold mb-2">Global Expo Network</h3>
+              <p className="text-sm text-gray-400">
+                Your gateway to global B2B trade exhibitions
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-2">Quick Links</h3>
+              <ul className="space-y-1 text-sm text-gray-400">
+                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+                <li><Link href="/rules" className="hover:text-white">Exhibition Rules</Link></li>
+                <li><Link href="/help" className="hover:text-white">Help Center</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-2">Contact</h3>
+              <p className="text-sm text-gray-400 mb-2">
+                Email: support@chinahuib2b.top
+              </p>
+              <p className="text-sm text-gray-400 mb-4">
+                Skype: aardenx@outlook.com
+              </p>
+              <div className="flex space-x-3">
+                <a 
+                  href="skype:aardenx@outlook.com?chat"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+                  title="Skype"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.84 13.58c-.28.28-.66.44-1.07.44h-1.29c-.41 0-.79-.16-1.07-.44l-1.41-1.41c-.28-.28-.44-.66-.44-1.07v-1.29c0-.41.16-.79.44-1.07l1.41-1.41c.28-.28.66-.44 1.07-.44h1.29c.41 0 .79.16 1.07.44l1.41 1.41c.28.28.44.66.44 1.07v1.29c0 .41-.16.79-.44 1.07l-1.41 1.41zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+            © 2026 Global Expo Network. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

@@ -212,7 +212,8 @@ function ChatHallContent() {
           if (data.type === 'connected') {
             console.log('SSE ready:', data)
           } else if (data.type === 'update') {
-            if (data.messages && data.messages.length > 0) {
+            // Safely handle messages
+            if (Array.isArray(data.messages) && data.messages.length > 0) {
               setPublicMessages(prev => {
                 const existingIds = new Set(prev.map(m => m.id))
                 const newMessages = data.messages.filter((m: PublicMessage) => !existingIds.has(m.id))
@@ -220,7 +221,8 @@ function ChatHallContent() {
               })
             }
 
-            if (data.worldChatMessages && data.worldChatMessages.length > 0) {
+            // Safely handle world chat messages
+            if (Array.isArray(data.worldChatMessages) && data.worldChatMessages.length > 0) {
               setWorldChatMessages(prev => {
                 const existingIds = new Set(prev.map(m => m.id))
                 const newMessages = data.worldChatMessages.filter((m: PublicMessage) => !existingIds.has(m.id))
@@ -228,7 +230,7 @@ function ChatHallContent() {
               })
               
               data.worldChatMessages.forEach((msg: PublicMessage) => {
-                if (msg.isWorldChat) {
+                if (msg && msg.isWorldChat && msg.content) {
                   setCurrentAnnouncement(msg.content)
                   setShowAnnouncement(true)
                   setTimeout(() => setShowAnnouncement(false), 10000)
@@ -236,7 +238,8 @@ function ChatHallContent() {
               })
             }
 
-            if (data.shoutOuts && data.shoutOuts.length > 0) {
+            // Safely handle shout outs
+            if (Array.isArray(data.shoutOuts) && data.shoutOuts.length > 0) {
               setShoutOuts(prev => {
                 const existingIds = new Set(prev.map(s => s.id))
                 const newShoutOuts = data.shoutOuts.filter((s: ShoutOut) => !existingIds.has(s.id))
@@ -244,7 +247,8 @@ function ChatHallContent() {
               })
             }
 
-            if (data.notices && data.notices.length > 0) {
+            // Safely handle notices
+            if (Array.isArray(data.notices) && data.notices.length > 0) {
               setNotices(prev => {
                 const existingIds = new Set(prev.map(n => n.id))
                 const newNotices = data.notices.filter((n: Notice) => !existingIds.has(n.id))
@@ -252,7 +256,8 @@ function ChatHallContent() {
               })
             }
 
-            if (data.onlineUsersCount !== undefined) {
+            // Safely handle online users count
+            if (typeof data.onlineUsersCount === 'number') {
               setOnlineUsers(data.onlineUsersCount)
             }
           }

@@ -29,6 +29,7 @@ export function middleware(request: any) {
     if (
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api') ||
+      pathname.startsWith('/api-docs') ||
       pathname.startsWith('/uploads') ||
       pathname.includes('.')
     ) {
