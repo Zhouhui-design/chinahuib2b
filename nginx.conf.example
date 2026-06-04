@@ -1,0 +1,149 @@
+# Nginx Configuration for Chinahuib2b
+# This configuration properly handles SSE (Server-Sent Events) and WebSocket connections
+
+upstream chinahuib2b {
+    server localhost:3000;
+    # For cluster mode with multiple PM2 instances:
+    # server localhost:3000;
+    # server localhost:3001;
+    # server localhost:3002;
+    # server localhost:3003;
+    
+    ip_hash; # Enable session stickiness for SSE/WebSocket
+}
+
+server {
+    listen 80;
+    server_name chinahuib2b.top www.chinahuib2b.top;
+
+    # Redirect HTTP to HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name chinahuib2b.top www.chinahuib2b.top;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/chinahuib2b.top/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/chinahuib2b.top/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+
+    # Root directory for static files
+    root /var/www/chinahuib2b/.next/static;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/javascript application/json;
+
+    # Serve static files directly
+    location ^~ /_next/static/ {
+        expires 1y;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location ^~ /static/ {
+        expires 1y;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location ^~ /icons/ {
+        expires 1y;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # WebSocket proxy configuration
+    location /api/chat/stream {
+        proxy_pass http://chinahuib2b;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # SSE/WebSocket specific settings
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400; # 1 day timeout for long-lived connections
+        proxy_send_timeout 86400;
+        proxy_connect_timeout 75;
+        
+        # Enable chunked transfer encoding for SSE
+        chunked_transfer_encoding on;
+        
+        # Set appropriate headers for SSE
+        add_header Cache-Control "no-cache";
+        add_header Connection "keep-alive";
+        add_header Access-Control-Allow-Origin "*";
+    }
+
+    # Auction WebSocket endpoint
+    location /api/auction {
+        proxy_pass http://chinahuib2b;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+        proxy_connect_timeout 75;
+    }
+
+    # General API proxy
+    location /api/ {
+        proxy_pass http://chinahuib2b;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 60s;
+    }
+
+    # All other requests go to Next.js
+    location / {
+        proxy_pass http://chinahuib2b;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_buffering on;
+        proxy_cache_valid 200 5m;
+        proxy_read_timeout 60s;
+    }
+
+    # Error pages
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}

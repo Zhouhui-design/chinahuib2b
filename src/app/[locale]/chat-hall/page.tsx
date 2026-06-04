@@ -169,18 +169,18 @@ function ChatHallContent() {
 
         if (messagesRes.ok) {
           const data = await messagesRes.json()
-          setPublicMessages(data.data.messages)
-          setOnlineUsers(data.data.onlineUsersCount)
+          setPublicMessages(data?.data?.messages || [])
+          setOnlineUsers(data?.data?.onlineUsersCount || 0)
         }
 
         if (shoutOutsRes.ok) {
           const data = await shoutOutsRes.json()
-          setShoutOuts(data.data.shoutOuts)
+          setShoutOuts(data?.data?.shoutOuts || [])
         }
 
         if (noticesRes.ok) {
           const data = await noticesRes.json()
-          setNotices(data.data.notices)
+          setNotices(data?.data?.notices || [])
         }
 
         if (worldStatsRes.ok) {
@@ -207,7 +207,11 @@ function ChatHallContent() {
 
       eventSource.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data)
+          const rawData = event.data
+          if (!rawData || typeof rawData !== 'string') return
+          
+          const data = JSON.parse(rawData)
+          if (!data || typeof data !== 'object') return
 
           if (data.type === 'connected') {
             console.log('SSE ready:', data)
@@ -215,17 +219,19 @@ function ChatHallContent() {
             // Safely handle messages
             if (Array.isArray(data.messages) && data.messages.length > 0) {
               setPublicMessages(prev => {
-                const existingIds = new Set(prev.map(m => m.id))
-                const newMessages = data.messages.filter((m: PublicMessage) => !existingIds.has(m.id))
-                return [...prev, ...newMessages]
+                if (!Array.isArray(prev)) return data.messages.slice(0, 50)
+                const existingIds = new Set(prev.map(m => m?.id).filter(Boolean))
+                const newMessages = data.messages.filter((m: PublicMessage) => m && !existingIds.has(m.id))
+                return [...prev, ...newMessages].slice(-100)
               })
             }
 
             // Safely handle world chat messages
             if (Array.isArray(data.worldChatMessages) && data.worldChatMessages.length > 0) {
               setWorldChatMessages(prev => {
-                const existingIds = new Set(prev.map(m => m.id))
-                const newMessages = data.worldChatMessages.filter((m: PublicMessage) => !existingIds.has(m.id))
+                if (!Array.isArray(prev)) return data.worldChatMessages.slice(0, 50)
+                const existingIds = new Set(prev.map(m => m?.id).filter(Boolean))
+                const newMessages = data.worldChatMessages.filter((m: PublicMessage) => m && !existingIds.has(m.id))
                 return [...newMessages, ...prev].slice(0, 50)
               })
               
@@ -241,8 +247,9 @@ function ChatHallContent() {
             // Safely handle shout outs
             if (Array.isArray(data.shoutOuts) && data.shoutOuts.length > 0) {
               setShoutOuts(prev => {
-                const existingIds = new Set(prev.map(s => s.id))
-                const newShoutOuts = data.shoutOuts.filter((s: ShoutOut) => !existingIds.has(s.id))
+                if (!Array.isArray(prev)) return data.shoutOuts.slice(0, 50)
+                const existingIds = new Set(prev.map(s => s?.id).filter(Boolean))
+                const newShoutOuts = data.shoutOuts.filter((s: ShoutOut) => s && !existingIds.has(s.id))
                 return [...newShoutOuts, ...prev].slice(0, 50)
               })
             }
@@ -250,14 +257,15 @@ function ChatHallContent() {
             // Safely handle notices
             if (Array.isArray(data.notices) && data.notices.length > 0) {
               setNotices(prev => {
-                const existingIds = new Set(prev.map(n => n.id))
-                const newNotices = data.notices.filter((n: Notice) => !existingIds.has(n.id))
+                if (!Array.isArray(prev)) return data.notices.slice(0, 30)
+                const existingIds = new Set(prev.map(n => n?.id).filter(Boolean))
+                const newNotices = data.notices.filter((n: Notice) => n && !existingIds.has(n.id))
                 return [...newNotices, ...prev].slice(0, 30)
               })
             }
 
             // Safely handle online users count
-            if (typeof data.onlineUsersCount === 'number') {
+            if (typeof data.onlineUsersCount === 'number' && data.onlineUsersCount >= 0) {
               setOnlineUsers(data.onlineUsersCount)
             }
           }
@@ -413,12 +421,13 @@ function ChatHallContent() {
     }
   }
 
-  const filteredShoutOuts = shoutOuts.filter(shoutOut => {
+  const filteredShoutOuts = Array.isArray(shoutOuts) ? shoutOuts.filter(shoutOut => {
+    if (!shoutOut || typeof shoutOut.content !== 'string') return false
     const matchesSearch = !searchQuery || 
       shoutOut.content.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesFilter = selectedFilter === 'all' || shoutOut.type === selectedFilter
     return matchesSearch && matchesFilter
-  })
+  }) : []
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -522,9 +531,9 @@ function ChatHallContent() {
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {publicMessages
-                  .filter(m => m.sender.isOnline)
+                  .filter(m => m.sender && m.sender.isOnline)
                   .reduce((acc, m) => {
-                    if (!acc.find(u => u.id === m.sender.id)) {
+                    if (m.sender && !acc.find(u => u.id === m.sender.id)) {
                       acc.push(m.sender)
                     }
                     return acc
@@ -736,24 +745,24 @@ function ChatHallContent() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {publicMessages.length === 0 ? (
+                  {(!publicMessages || publicMessages.length === 0) ? (
                     <div className="flex flex-col items-center justify-center h-full text-slate-500">
                       <MessageSquare className="w-16 h-16 mb-4 opacity-50" />
                       <p className="text-lg font-medium">{dict.chatHall.noMessages}</p>
                       <p className="text-sm">{dict.chatHall.firstHello}</p>
                     </div>
                   ) : (
-                    publicMessages.filter(m => !m.isWorldChat).map((message) => (
+                    publicMessages.filter(m => !m.isWorldChat && m).map((message) => (
                       <div
                         key={message.id}
                         className={`flex gap-3 ${message.isSystemMessage ? 'justify-center' : ''}`}
                       >
-                        {!message.isSystemMessage && (
+                        {!message.isSystemMessage && message.sender ? (
                           <div className="flex-shrink-0">
-                            <Link href={`/users/${message.sender.id}`}>
+                            <Link href={`/users/${message.sender?.id || ''}`}>
                               <div className="relative">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                  {message.sender.displayName?.charAt(0) || message.sender.username.charAt(0)}
+                                  {message.sender?.displayName?.charAt(0) || message.sender?.username?.charAt(0) || '?'}
                                 </div>
                                 {message.sender.isOnline && (
                                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
@@ -867,32 +876,32 @@ function ChatHallContent() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {worldChatMessages.length === 0 ? (
+                  {(!worldChatMessages || worldChatMessages.length === 0) ? (
                     <div className="flex flex-col items-center justify-center h-full text-slate-500">
                       <Globe className="w-16 h-16 mb-4 opacity-50" />
                       <p className="text-lg font-medium">{dict.chatHall.noWorldMessagesYet}</p>
                       <p className="text-sm">{dict.chatHall.beFirstToBroadcast}</p>
                     </div>
                   ) : (
-                    worldChatMessages.map((message) => (
-                      <div key={message.id} className="bg-gradient-to-r from-yellow-800/50 to-orange-800/50 rounded-xl p-4 border border-yellow-500/30">
+                    worldChatMessages.filter(Boolean).map((message) => (
+                      <div key={message?.id || Math.random()} className="bg-gradient-to-r from-yellow-800/50 to-orange-800/50 rounded-xl p-4 border border-yellow-500/30">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
-                            <Link href={`/users/${message.sender.id}`}>
+                            <Link href={`/users/${message?.sender?.id || ''}`}>
                               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center text-white font-bold">
-                                {message.sender.displayName?.charAt(0) || message.sender.username.charAt(0)}
+                                {message?.sender?.displayName?.charAt(0) || message?.sender?.username?.charAt(0) || '?'}
                               </div>
                             </Link>
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <Link
-                                href={`/users/${message.sender.id}`}
+                                href={`/users/${message?.sender?.id || ''}`}
                                 className="text-yellow-300 hover:text-yellow-200 font-bold"
                               >
-                                {message.sender.displayName || message.sender.username}
+                                {message?.sender?.displayName || message?.sender?.username || 'Unknown'}
                               </Link>
-                              {message.sender.sellerProfile && (
+                              {message?.sender?.sellerProfile && (
                                 <span className="text-xs bg-yellow-500/30 text-yellow-300 px-2 py-0.5 rounded-full">
                                   🏪 {dict.chatHall.visitStore}
                                 </span>
@@ -988,31 +997,31 @@ function ChatHallContent() {
 
                 {/* Notice List */}
                 <div className="space-y-3">
-                  {notices.length === 0 ? (
+                  {(!notices || notices.length === 0) ? (
                     <div className="text-center py-12 bg-slate-800/60 backdrop-blur rounded-xl">
                       <Bell className="w-16 h-16 mx-auto mb-4 text-slate-600" />
                       <p className="text-slate-400">{dict.chatHall.noNoticesYet}</p>
                     </div>
                   ) : (
-                    notices.map((notice) => (
-                      <div key={notice.id} className="bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700">
+                    notices.filter(Boolean).map((notice) => (
+                      <div key={notice?.id || Math.random()} className="bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white font-bold">
-                              {notice.sender.displayName?.charAt(0) || notice.sender.username.charAt(0)}
+                              {notice?.sender?.displayName?.charAt(0) || notice?.sender?.username?.charAt(0) || '?'}
                             </div>
                             <div>
-                              <h4 className="text-white font-semibold">{notice.title}</h4>
-                              <p className="text-slate-400 text-xs">{notice.sender.displayName} • {formatTime(notice.createdAt)}</p>
+                              <h4 className="text-white font-semibold">{notice?.title || ''}</h4>
+                              <p className="text-slate-400 text-xs">{notice?.sender?.displayName || notice?.sender?.username || 'System'} • {formatTime(notice?.createdAt || new Date().toISOString())}</p>
                             </div>
                           </div>
-                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityConfig[notice.priority].color} text-white`}>
-                            {priorityConfig[notice.priority].label}
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityConfig[notice?.priority || 'medium'].color} text-white`}>
+                            {priorityConfig[notice?.priority || 'medium'].label}
                           </span>
                         </div>
-                        <p className="text-white">{notice.content}</p>
+                        <p className="text-white">{notice?.content || ''}</p>
                         <div className="flex items-center gap-4 mt-3 text-xs text-slate-400">
-                          {notice.isGlobal && <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> Global</span>}
+                          {notice?.isGlobal && <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> Global</span>}
                           <span className="flex items-center gap-1"><Volume2 className="w-3 h-3" /> Delivered to all users</span>
                         </div>
                       </div>
@@ -1080,7 +1089,7 @@ function ChatHallContent() {
                         
                         <p className="text-white mb-4">{shoutOut.content}</p>
                         
-                        {shoutOut.tags && shoutOut.tags.length > 0 && (
+                        {Array.isArray(shoutOut.tags) && shoutOut.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
                             {shoutOut.tags.map(tag => (
                               <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg">
@@ -1127,19 +1136,19 @@ function ChatHallContent() {
               <h2 className="text-lg font-semibold text-white mb-4">📊 {dict.chatHall.hallStats}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-blue-400">{onlineUsers}</p>
+                  <p className="text-2xl font-bold text-blue-400">{onlineUsers || 0}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.onlineNow}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-green-400">{publicMessages.length}</p>
+                  <p className="text-2xl font-bold text-green-400">{(publicMessages?.length || 0)}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.messages}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-purple-400">{shoutOuts.length}</p>
+                  <p className="text-2xl font-bold text-purple-400">{(shoutOuts?.length || 0)}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.posts}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-yellow-400">{notices.length}</p>
+                  <p className="text-2xl font-bold text-yellow-400">{(notices?.length || 0)}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.notices}</p>
                 </div>
               </div>
@@ -1151,9 +1160,9 @@ function ChatHallContent() {
                 {dict.chatHall.trendingPosts}
               </h2>
               <div className="space-y-3">
-                {shoutOuts.slice(0, 5).map((shoutOut, index) => (
+                {(shoutOuts || []).slice(0, 5).filter(Boolean).map((shoutOut, index) => (
                   <div
-                    key={shoutOut.id}
+                    key={shoutOut?.id || Math.random()}
                     className="bg-slate-800/50 rounded-xl p-3 hover:bg-slate-700/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start gap-2">
@@ -1166,9 +1175,9 @@ function ChatHallContent() {
                         {index + 1}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm line-clamp-2">{shoutOut.content}</p>
+                        <p className="text-white text-sm line-clamp-2">{shoutOut?.content || ''}</p>
                         <p className="text-slate-400 text-xs mt-1">
-                          {shoutOut.sender.displayName} • {shoutOut.viewCount} {dict.chatHall.views}
+                          {shoutOut?.sender?.displayName || shoutOut?.sender?.username || 'Unknown'} • {(shoutOut?.viewCount || 0)} {dict.chatHall.views}
                         </p>
                       </div>
                     </div>

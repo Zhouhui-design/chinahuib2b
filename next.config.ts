@@ -50,6 +50,12 @@ const nextConfig: NextConfig = {
   
   // Experimental features for better performance
   experimental: {
+    // Disable ISR stale cache - must serve fresh pages always
+    staleTimes: {
+      dynamic: 0,
+      static: 0,
+    },
+    
     // Optimize package imports
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     
@@ -60,6 +66,11 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
   },
   
+  // Generate unique build ID for cache busting
+  generateBuildId: async () => {
+    return `${process.env.npm_package_version}-${Date.now().toString(36)}`
+  },
+
   // Headers for security and caching
   async headers() {
     return [
@@ -108,6 +119,19 @@ const nextConfig: NextConfig = {
               "form-action 'self'",
             ].join('; '),
           },
+          // No cache for HTML pages to ensure fresh content
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
         ],
       },
       {
@@ -129,6 +153,28 @@ const nextConfig: NextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // SSE/API routes - no caching
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+          {
+            key: 'X-Accel-Buffering',
+            value: 'no',
           },
         ],
       },

@@ -66,6 +66,8 @@ model User {
   digitalVoucherTransactions DigitalVoucherTransaction[]
   aiPermissions              AIPermission[]
   aiAuditLogs                AIAuditLog[]
+  wallet                     Wallet?
+  withdrawalRequests         WithdrawalRequest[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -572,6 +574,9 @@ model MarketplaceTask {
 
   // Relations
   taskApplications TaskApplication[]
+  taskMilestones   TaskMilestone[]
+  taskDeliverables TaskDeliverable[]
+  taskEscrow       TaskEscrow?
 
   @@index([status])
   @@index([type])
@@ -619,6 +624,133 @@ enum ApplicationStatus {
   ACCEPTED // Application accepted
   REJECTED // Application rejected
   WITHDRAWN // Applicant withdrew
+}
+
+// Task Milestones - Milestone tracking for tasks
+model TaskMilestone {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  amount      Decimal @db.Decimal(10, 2) // Amount to be released when milestone is completed
+  order       Int     // Order of milestone in sequence
+  
+  status      MilestoneStatus @default(PENDING)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([taskId])
+  @@index([status])
+}
+
+enum MilestoneStatus {
+  PENDING    // Milestone not yet reached
+  COMPLETED  // Milestone completed, awaiting payment
+  PAID       // Payment released
+}
+
+// Task Deliverables - Submitted deliverables for review
+model TaskDeliverable {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  title        String
+  description  String?
+  files        Json? // Array of file URLs
+  
+  submittedAt  DateTime?
+  status       DeliverableStatus @default(DRAFT)
+  reviewNotes  String? // Notes from reviewer
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([taskId])
+  @@index([status])
+}
+
+enum DeliverableStatus {
+  DRAFT     // Being worked on
+  SUBMITTED // Submitted for review
+  APPROVED  // Approved by task poster
+  REJECTED  // Rejected, needs revision
+}
+
+// Task Escrow - Escrow service for task payments
+model TaskEscrow {
+  id           String       @id @default(cuid())
+  taskId       String       @unique
+  task         MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  // Amounts
+  amount       Decimal      @db.Decimal(10, 2) // Total escrow amount
+  currency     String       @default("USD")
+  holdAmount   Decimal      @db.Decimal(10, 2) // Amount currently held
+  releaseAmount Decimal     @db.Decimal(10, 2) // Amount released to provider
+  
+  // Status
+  status       EscrowStatus @default(PENDING)
+  transactionId String?
+  
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  @@index([taskId])
+  @@index([status])
+}
+
+enum EscrowStatus {
+  PENDING    // Funds not deposited yet
+  FUNDED     // Funds deposited
+  RELEASING  // Partial release in progress
+  COMPLETED  // All funds released
+  DISPUTED   // Dispute initiated
+  REFUNDED   // Funds refunded to poster
+}
+
+// ========================================
+// AUCTION SYSTEM
+// ========================================
+
+// Auction Bid - Bids placed on auction listings
+model AuctionBid {
+  id          String           @id @default(cuid())
+  listingId   String
+  listing     AuctionListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  bidderId    String
+  bidder      User             @relation(fields: [bidderId], references: [id])
+  
+  // Bid details
+  amount      Decimal          @db.Decimal(10, 2)
+  currency    String           @default("USD")
+  
+  // Auto-bid settings
+  isAutoBid   Boolean          @default(false)
+  maxAutoBid  Decimal?         @db.Decimal(10, 2) // Maximum amount for auto-bid
+  
+  // Status
+  status      AuctionBidStatus @default(PENDING)
+  
+  createdAt   DateTime         @default(now())
+  
+  @@index([listingId])
+  @@index([bidderId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum AuctionBidStatus {
+  PENDING    // Bid placed, awaiting confirmation
+  ACCEPTED   // Bid accepted as current highest
+  OUTBID     // Outbid by another bidder
+  CANCELLED  // Bid cancelled by bidder
+  WON        // Won the auction
+  LOST       // Lost the auction
 }
 
 // ========================================
@@ -828,6 +960,23 @@ enum AuctionStatus {
 // Digital Voucher System
 // ========================================
 
+enum VoucherStatus {
+  CREATED
+  PENDING_VERIFICATION
+  VERIFIED
+  LISTED
+  TRANSFERRED
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+enum GoodsVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model DigitalVoucher {
   id       String        @id @default(cuid())
   sellerId String
@@ -836,8 +985,18 @@ model DigitalVoucher {
   // Voucher details
   title       String
   description String?
-  value       Decimal @db.Decimal(10, 2) // Voucher face value
+  value       Decimal @db.Decimal(10, 2)
   currency    String  @default("USD")
+
+  // Goods information (for hash generation)
+  goodsName           String?
+  goodsDescription    String?
+  goodsQuantity       Int?
+  goodsWeight         Float?
+  goodsDimensions     String?
+  goodsCategory       String?
+  goodsOrigin         String?
+  goodsSpecifications Json?
 
   // Redemption
   redemptionCode String    @unique
@@ -845,28 +1004,44 @@ model DigitalVoucher {
   redeemedById   String?
   redeemedAt     DateTime?
 
-  // Validity
+  // Validity & status
   validFrom  DateTime
   validUntil DateTime?
+  status     VoucherStatus             @default(CREATED)
+  verificationStatus GoodsVerificationStatus @default(PENDING)
+  issueDate  DateTime                  @default(now())
 
   // Security
-  isVerified   Boolean @default(false)
-  securityHash String?
+  isVerified      Boolean  @default(false)
+  securityHash    String?
+  hashAlgorithm   String?  // SHA-256
+  hashGeneratedAt DateTime?
+  certificateNumber String? @unique
 
   // Metadata
-  images String[]
-  terms  String? // Terms & conditions
+  images    String[]
+  documents Json?
+  terms     String?
+
+  // Logistics
+  trackingNumber  String?
+  logisticsStatus String?  // PENDING, IN_TRANSIT, DELIVERED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  transactions    DigitalVoucherTransaction[]
-  auctionListings AuctionListing[]
+  transactions        DigitalVoucherTransaction[]
+  auctionListings     AuctionListing[]
+  verificationRecords GoodsVerificationRecord[]
+  logisticsUpdates    LogisticsUpdate[]
 
   @@index([sellerId])
   @@index([redemptionCode])
+  @@index([certificateNumber])
   @@index([isRedeemed])
   @@index([isVerified])
+  @@index([status])
+  @@index([verificationStatus])
 }
 
 model DigitalVoucherTransaction {
@@ -877,17 +1052,15 @@ model DigitalVoucherTransaction {
   buyerId String?
   buyer   User?   @relation(fields: [buyerId], references: [id])
 
-  // Transaction
   amount        Decimal @db.Decimal(10, 2)
   currency      String  @default("USD")
   transactionId String?
+  transactionType String? // TRANSFER, REDEEM, VERIFY
 
-  // Verification
-  verifiedBy String? // Admin/Pawnshop verification
+  verifiedBy String?
   verifiedAt DateTime?
 
-  // Delivery
-  deliveryInfo Json? // Shipping/delivery info
+  deliveryInfo Json?
 
   status VoucherTransactionStatus @default(PENDING)
 
@@ -904,6 +1077,36 @@ enum VoucherTransactionStatus {
   IN_TRANSIT
   DELIVERED
   CANCELLED
+}
+
+model GoodsVerificationRecord {
+  id        String         @id @default(cuid())
+  voucherId String
+  voucher   DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  verifiedBy String?
+  status     GoodsVerificationStatus @default(PENDING)
+  notes      String?
+  images     Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([voucherId])
+}
+
+model LogisticsUpdate {
+  id        String         @id @default(cuid())
+  voucherId String
+  voucher   DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  status      String  // PENDING, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED
+  location    String?
+  description String?
+  timestamp   DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([voucherId])
 }
 
 // ========================================
@@ -1062,4 +1265,132 @@ enum OwnerType {
   USER
   SELLER
   SYSTEM
+}
+
+// ==================== Wallet & Payment System ====================
+
+// Payment gateways
+enum PaymentGateway {
+  ALIPAY
+  WECHAT
+  WORLDFIRST
+  MANUAL
+}
+
+// Fee types
+enum FeeType {
+  SHOUT_OUT
+  BOOTH_SUBSCRIPTION
+  AUCTION_COMMISSION
+  SYSTEM_NOTICE
+  WITHDRAWAL
+}
+
+// User wallet
+model Wallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  balance        Decimal  @db.Decimal(10, 2) @default(0)
+  currency       String   @default("USD")
+  totalDeposited Decimal  @db.Decimal(10, 2) @default(0)
+  totalWithdrawn Decimal  @db.Decimal(10, 2) @default(0)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  transactions WalletTransaction[]
+}
+
+// Transaction type
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Wallet transactions
+model WalletTransaction {
+  id          String            @id @default(cuid())
+  walletId    String
+  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  type        TransactionType
+  amount      Decimal           @db.Decimal(10, 2)
+  status      TransactionStatus @default(PENDING)
+  currency    String            @default("USD")
+  
+  reference   String?  // Related order/voucher/shout-out ID
+  description String?
+  gateway     PaymentGateway?
+  gatewayTxId String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Platform fee configuration
+model PlatformFee {
+  id            String  @id @default(cuid())
+  feeType       FeeType // SHOUT_OUT, BOOTH_SUBSCRIPTION, etc.
+  amount        Decimal @db.Decimal(10, 2)
+  currency      String  @default("USD")
+  description   String?
+  isActive      Boolean @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([feeType])
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+// Withdrawal requests
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount          Decimal          @db.Decimal(10, 2)
+  currency        String           @default("USD")
+  gateway         PaymentGateway
+  gatewayDetails  Json?
+  
+  status          WithdrawalStatus @default(PENDING)
+  
+  // Admin review (use String for admin ID, no separate relation to avoid complexity)
+  reviewedByAdmin String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  
+  gatewayTxId     String?
+  completedAt     DateTime?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }

@@ -1,63 +1,75 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import * as sellerService from '@/services/sellerService';
 
-export async function GET(request: Request) {
+// GET /api/sellers - Get all active sellers
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '12')
-    const skip = (page - 1) * limit
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Get total count
-    const total = await prisma.sellerProfile.count({
-      where: {
-        isActive: true
-      }
-    })
+    const { searchParams } = new URL(request.url);
+    const featured = searchParams.get('featured') === 'true';
+    const limit = parseInt(searchParams.get('limit') || '10');
 
-    // Get sellers with pagination
-    const sellers = await prisma.sellerProfile.findMany({
-      where: {
-        isActive: true
-      },
-      include: {
-        user: {
-          select: { 
-            username: true,
-            email: true
-          }
-        },
-        products: {
-          where: { isActive: true },
-          take: 3,
-          select: {
-            id: true,
-            title: true,
-            mainImageUrl: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      skip,
-      take: limit
-    })
+    let sellers;
+    if (featured) {
+      sellers = await sellerService.getFeaturedSellers(limit);
+    } else {
+      sellers = await sellerService.getActiveSellers();
+    }
 
-    return NextResponse.json({
-      sellers,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
-    })
+    return NextResponse.json(sellers);
   } catch (error) {
-    console.error('Error fetching sellers:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch sellers' },
-      { status: 500 }
-    )
+    console.error('Error fetching sellers:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// POST /api/sellers - Create seller profile
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if seller profile already exists
+    const existingProfile = await sellerService.getSellerProfile(session.user.id);
+    if (existingProfile) {
+      return NextResponse.json({ error: 'Seller profile already exists' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const sellerProfile = await sellerService.createSellerProfile(session.user.id, {
+      companyName: body.companyName,
+      companyType: body.companyType,
+      country: body.country,
+      province: body.province,
+      city: body.city,
+      address: body.address,
+      phone: body.phone,
+      email: body.email,
+      website: body.website,
+      whatsapp: body.whatsapp,
+      wechat: body.wechat,
+      telegram: body.telegram,
+      linkedin: body.linkedin,
+      facebook: body.facebook,
+      instagram: body.instagram,
+      description: body.description,
+      descriptions: body.descriptions,
+      logoUrl: body.logoUrl,
+      bannerUrl: body.bannerUrl,
+      certifications: body.certifications,
+    });
+
+    return NextResponse.json(sellerProfile, { status: 201 });
+  } catch (error) {
+    console.error('Error creating seller profile:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

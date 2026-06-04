@@ -1,66 +1,82 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
 
-export async function POST(request: Request) {
+// GET - Get user notifications
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, content, priority = 'medium' } = await request.json()
-    
-    if (!title || !content) {
-      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 })
-    }
+    const { prisma } = await import('@/lib/db')
 
-    const notice = await prisma.notice.create({
-      data: {
-        title,
-        content,
-        priority,
-        senderId: session.user.id,
-        isGlobal: true
+    const notices = await prisma.notice.findMany({
+      where: {
+        OR: [
+          { recipientId: session.user.id },
+          { isGlobal: true },
+        ],
       },
       include: {
         sender: {
           select: {
             id: true,
             username: true,
-            displayName: true
-          }
-        }
-      }
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
-    return NextResponse.json({ data: notice })
+    return NextResponse.json({
+      success: true,
+      data: {
+        notices,
+      },
+    })
   } catch (error) {
-    console.error('Error creating notice:', error)
+    console.error('Error fetching notices:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-export async function GET() {
+// POST - Create a new notice
+export async function POST(request: NextRequest) {
   try {
-    const notices = await prisma.notice.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-      include: {
-        sender: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true
-          }
-        }
-      }
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { title, content, recipientId, priority = 'medium', isGlobal = false } = body
+
+    if (!title || !content) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const { prisma } = await import('@/lib/db')
+
+    const notice = await prisma.notice.create({
+      data: {
+        title,
+        content,
+        senderId: session.user.id,
+        recipientId,
+        priority,
+        isGlobal,
+      },
     })
 
-    return NextResponse.json({ data: notices })
+    return NextResponse.json(notice, { status: 201 })
   } catch (error) {
-    console.error('Error fetching notices:', error)
+    console.error('Error creating notice:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

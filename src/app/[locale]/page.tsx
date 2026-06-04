@@ -210,6 +210,6 @@ export default async function Home({ params }: PageProps) {
 
       {/* AI Recommendations & Behavior Tracking */}
       <HomeClientWrapper userId={null} locale={locale} />
-    </div>
+    </>
   );
 }
