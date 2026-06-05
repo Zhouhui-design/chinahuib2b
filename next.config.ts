@@ -112,7 +112,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.chinahuib2b.top wss://chat.fixr2026.com https://www.google-analytics.com",
+              "connect-src 'self' https://api.x2xhub.com wss://x2xhub.com https://www.google-analytics.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

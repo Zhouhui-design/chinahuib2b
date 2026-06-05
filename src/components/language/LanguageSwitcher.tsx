@@ -15,9 +15,12 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
   const switchLanguage = (locale: LanguageCode) => {
     // Check if current path is a dashboard route (no locale prefix)
     const isDashboardRoute = pathname.startsWith('/seller') || pathname.startsWith('/admin')
+    
+    // Check if current path is a static route that doesn't need locale prefix
+    const isStaticRoute = pathname.startsWith('/api-docs') || pathname.startsWith('/ai-audit') || pathname.startsWith('/ai-register') || pathname.startsWith('/api-keys') || pathname.startsWith('/auction') || pathname.startsWith('/marketplace') || pathname.startsWith('/team-chat')
       
-    if (isDashboardRoute) {
-      // For dashboard routes, just set the language cookie
+    if (isDashboardRoute || isStaticRoute) {
+      // For dashboard routes and static routes, just set the language cookie
       document.cookie = `language=${locale}; path=/; max-age=31536000`
       // Reload the page to apply the new language
       window.location.reload()
