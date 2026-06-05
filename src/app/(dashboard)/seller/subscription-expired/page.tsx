@@ -93,7 +93,7 @@ export default function SubscriptionExpiredPage() {
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <div className="text-sm text-blue-900">
             <strong>{language === 'zh' ? '联系方式:' : 'Contact: '}</strong>
-            admin@chinahuib2b.top
+            admin@x2xhub.com
           </div>
         </div>
 

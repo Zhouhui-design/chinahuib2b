@@ -1,5 +1,5 @@
 /**
- * AI Agent SDK for chinahuib2b.top Platform
+ * AI Agent SDK for x2xhub.com Platform
  * 
  * Allows buyers and sellers to integrate their own AI agents
  * to automate interactions with the platform and chat system.
@@ -54,7 +54,7 @@ export class AIAgent {
 
   constructor(config: AIAgentConfig) {
     this.config = config
-    this.baseUrl = config.baseUrl || 'https://api.chinahuib2b.top'
+    this.baseUrl = config.baseUrl || 'https://x2xhub.com'
   }
 
   /**

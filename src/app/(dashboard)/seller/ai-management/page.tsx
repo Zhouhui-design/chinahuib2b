@@ -558,7 +558,7 @@ Body:
             <div className="bg-purple-50 rounded-lg p-4">
               <h3 className="font-bold text-purple-800 mb-2">{t.cliTool}</h3>
               <pre className="bg-gray-800 text-green-400 p-3 rounded text-sm overflow-x-auto">
-{`npx chinahuib2b-cli agent --action post_product \\
+{`npx x2xhub-cli agent --action post_product \\
   --api-key YOUR_API_KEY \\
   --title "Product Name" \\
   --price 99.99
@@ -577,9 +577,9 @@ Body:
 {`// MCP Server Config
 {
   "mcpServers": {
-    "chinahuib2b": {
+    "x2xhub": {
       "command": "npx",
-      "args": ["@chinahuib2b/mcp-server"],
+      "args": ["@x2xhub/mcp-server"],
       "env": {
         "API_KEY": "your_api_key"
       }

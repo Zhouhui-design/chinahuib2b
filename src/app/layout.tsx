@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Chinahuib2b",
+    title: "X2XHUB",
   },
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({
         {/* PWA Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Chinahuib2b" />
+        <meta name="apple-mobile-web-app-title" content="X2XHUB" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className="min-h-full flex flex-col">

@@ -66,7 +66,7 @@ const apiEndpoints = [
       { method: 'GET', path: '/api/chat/conversations', description: 'List conversations' },
       { method: 'POST', path: '/api/chat/messages', description: 'Send message' },
       { method: 'GET', path: '/api/chat/messages/:conversationId', description: 'Get conversation messages' },
-      { method: 'WS', path: 'wss://chinahuib2b.top/ws/chat', description: 'Real-time chat WebSocket' },
+      { method: 'WS', path: 'wss://x2xhub.com/ws/chat', description: 'Real-time chat WebSocket' },
     ]
   },
   {
@@ -81,7 +81,7 @@ const apiEndpoints = [
 
 const integrationExamples = {
   rest: `// Example: AI Agent searching for products using REST API
-const response = await fetch('https://chinahuib2b.top/api/products?category=electronics&minPrice=100&maxPrice=1000', {
+const response = await fetch('https://x2xhub.com/products?category=electronics&minPrice=100&maxPrice=1000', {
   headers: {
     'Authorization': 'Bearer YOUR_API_TOKEN',
     'Content-Type': 'application/json'
@@ -97,7 +97,7 @@ npm install @modelcontextprotocol/sdk
 
 # Connect to China Hui B2B MCP server
 const client = new MCPClient({
-  serverUrl: 'https://chinahuib2b.top/api/mcp',
+  serverUrl: 'https://x2xhub.com/mcp',
   apiKey: 'YOUR_API_KEY'
 });
 
@@ -118,18 +118,18 @@ await client.callTool('create_inquiry', {
 # Example: AI Agent using CLI tool
 
 # Login
-API_TOKEN=$(curl -s -X POST https://chinahuib2b.top/api/auth/login \\
+API_TOKEN=$(curl -s -X POST https://x2xhub.com/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{"email":"agent@example.com","password":"secure_password"}' \\
   | jq -r '.token')
 
 # Search products
-curl -s "https://chinahuib2b.top/api/products?category=electronics" \\
+curl -s "https://x2xhub.com/products?category=electronics" \\
   -H "Authorization: Bearer $API_TOKEN" \\
   | jq '.products[] | {title, price}'
 
 # Post requirement
-curl -s -X POST https://chinahuib2b.top/api/buyer/requirements \\
+curl -s -X POST https://x2xhub.com/buyer/requirements \\
   -H "Authorization: Bearer $API_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -140,7 +140,7 @@ curl -s -X POST https://chinahuib2b.top/api/buyer/requirements \\
   }'`,
 
   websocket: `// Example: Real-time chat using WebSocket
-const ws = new WebSocket('wss://chinahuib2b.top/ws/chat');
+const ws = new WebSocket('wss://x2xhub.com/ws/chat');
 
 ws.onopen = () => {
   console.log('Connected to chat server');
@@ -208,7 +208,7 @@ export default function ApiDocsPage() {
         <div className="bg-white rounded-lg shadow-md p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Start</h2>
           <ol className="list-decimal list-inside space-y-3 text-gray-700">
-            <li><strong>Register:</strong> Create an account at <Link href="/auth/register" className="text-blue-600 hover:underline">chinahuib2b.top/auth/register</Link></li>
+            <li><strong>Register:</strong> Create an account at <Link href="/auth/register" className="text-blue-600 hover:underline">x2xhub.com/auth/register</Link></li>
             <li><strong>Get API Token:</strong> Login and obtain your API token from the dashboard</li>
             <li><strong>Choose Integration Method:</strong> REST API, MCP, CLI, or WebSocket</li>
             <li><strong>Start Building:</strong> Use the examples below to integrate your AI agent</li>
@@ -324,7 +324,7 @@ export default function ApiDocsPage() {
               Contact Support
             </Link>
             <a 
-              href="mailto:api-support@chinahuib2b.top" 
+              href="mailto:api-support@x2xhub.com" 
               className="inline-block border-2 border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
             >
               Email Us
@@ -354,7 +354,7 @@ export default function ApiDocsPage() {
             <div>
               <h3 className="font-bold mb-2">Contact</h3>
               <p className="text-sm text-gray-400 mb-2">
-                Email: support@chinahuib2b.top
+                Email: support@x2xhub.com
               </p>
               <p className="text-sm text-gray-400 mb-4">
                 Skype: aardenx@outlook.com

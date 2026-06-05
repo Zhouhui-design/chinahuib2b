@@ -81,7 +81,7 @@ export class ChinaHuiB2B {
 
   constructor(options: ChinaHuiB2BOptions) {
     this.apiKey = options.apiKey
-    this.baseUrl = options.baseUrl || 'https://chinahuib2b.top'
+    this.baseUrl = options.baseUrl || 'https://x2xhub.com'
     this.timeout = options.timeout || 30000
   }
 
@@ -92,7 +92,7 @@ export class ChinaHuiB2B {
     registration: AIAgentRegistration,
     baseUrl?: string
   ): Promise<{ success: boolean; identity: AIAgentIdentity; warning?: string }> {
-    const response = await fetch(`${baseUrl || 'https://chinahuib2b.top'}/api/ai/register`, {
+    const response = await fetch(`${baseUrl || 'https://x2xhub.com'}/api/ai/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

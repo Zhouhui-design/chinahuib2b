@@ -1,5 +1,5 @@
 /**
- * Schema.org Structured Data for chinahuib2b.top
+ * Schema.org Structured Data for x2xhub.com
  * AI-First B2B Platform - Enhanced for AI Agent Discovery
  */
 
@@ -8,15 +8,15 @@ export const organizationSchema = {
   "@type": "Organization",
   "name": "China Hui B2B",
   "alternateName": [
-    "chinahuib2b.top",
+    "x2xhub.com",
     "Global Expo Network"
   ],
-  "url": "https://chinahuib2b.top",
-  "logo": "https://chinahuib2b.top/logo.png",
+  "url": "https://x2xhub.com",
+  "logo": "https://x2xhub.com/logo.png",
   "description": "AI-first global B2B marketplace connecting buyers and sellers worldwide with AI-powered tools",
   "sameAs": [
-    "https://twitter.com/chinahuib2b",
-    "https://linkedin.com/company/chinahuib2b"
+    "https://twitter.com/x2xhub",
+    "https://linkedin.com/company/x2xhub"
   ],
   "contactPoint": {
     "@type": "ContactPoint",
@@ -38,12 +38,12 @@ export const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "China Hui B2B",
-  "url": "https://chinahuib2b.top",
+  "url": "https://x2xhub.com",
   "potentialAction": {
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": "https://chinahuib2b.top/products?search={search_term_string}"
+      "urlTemplate": "https://x2xhub.com/products?search={search_term_string}"
     },
     "query-input": "required name=search_term_string"
   },
@@ -55,12 +55,12 @@ export const marketplaceSchema = {
   "@context": "https://schema.org",
   "@type": "OnlineMarketplace",
   "name": "China Hui B2B Marketplace",
-  "url": "https://chinahuib2b.top/marketplace",
+  "url": "https://x2xhub.com/marketplace",
   "description": "Task marketplace where anyone or any AI can post and complete business tasks",
   "provider": {
     "@type": "Organization",
     "name": "China Hui B2B",
-    "url": "https://chinahuib2b.top"
+    "url": "https://x2xhub.com"
   },
   "offers": {
     "@type": "AggregateOffer",
@@ -76,7 +76,7 @@ export const productSchema = (product: any) => ({
   "@type": "Product",
   "name": product.title,
   "description": product.description || "",
-  "image": product.mainImageUrl || "https://chinahuib2b.top/default-product.jpg",
+  "image": product.mainImageUrl || "https://x2xhub.com/default-product.jpg",
   "brand": {
     "@type": "Brand",
     "name": product.seller?.companyName || "Unknown Seller"
@@ -103,7 +103,7 @@ export const sellerSchema = (seller: any) => ({
   "@type": "Organization",
   "name": seller.companyName,
   "description": seller.companyDescription || "",
-  "url": `https://chinahuib2b.top/stores/${seller.id}`,
+  "url": `https://x2xhub.com/stores/${seller.id}`,
   "logo": seller.logoUrl || "",
   "address": {
     "@type": "PostalAddress",
@@ -125,7 +125,7 @@ export const apiDocumentationSchema = {
   "@type": "TechArticle",
   "headline": "China Hui B2B API Documentation",
   "description": "Complete API documentation for AI agents to integrate with China Hui B2B platform",
-  "url": "https://chinahuib2b.top/api/docs",
+  "url": "https://x2xhub.com/docs",
   "author": {
     "@type": "Organization",
     "name": "China Hui B2B"

@@ -83,7 +83,7 @@ export default async function TestUploadPage() {
 {`SPACES_ENDPOINT=https://nyc3.digitaloceanspaces.com
 SPACES_ACCESS_KEY=your_access_key
 SPACES_SECRET_KEY=your_secret_key
-SPACES_BUCKET=chinahuib2b
+SPACES_BUCKET=x2xhub
 SPACES_REGION=nyc3`}
             </pre>
             <p className="text-xs text-yellow-700 mt-2">

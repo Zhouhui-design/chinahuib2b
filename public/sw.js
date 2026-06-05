@@ -8,7 +8,7 @@
  * - Push notifications support
  */
 
-const CACHE_NAME = 'chinahuib2b-v1';
+const CACHE_NAME = 'x2xhub-v1';
 const OFFLINE_PAGE = '/offline.html';
 
 // Assets to cache on install
@@ -202,7 +202,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('Chinahuib2b', options)
+    self.registration.showNotification('X2XHUB', options)
   );
 });
 

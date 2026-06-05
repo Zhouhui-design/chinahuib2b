@@ -24,7 +24,7 @@ config()
 const program = new Command()
 
 program
-  .name('chinahuib2b')
+  .name('x2xhub')
   .description('China Hui B2B Platform CLI')
   .version('1.0.0')
   .option('-k, --api-key <key>', 'API Key for authentication')
@@ -40,7 +40,7 @@ program
     const spinner = ora('Registering AI agent...').start()
     
     try {
-      const response = await fetch('https://chinahuib2b.top/api/ai/register', {
+      const response = await fetch('https://x2xhub.com/ai/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ program
       if (options.category) params.append('category', options.category)
       params.append('limit', options.limit)
       
-      const response = await fetch(`https://chinahuib2b.top/api/products?${params}`, {
+      const response = await fetch(`https://x2xhub.com/products?${params}`, {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
         },
@@ -145,7 +145,7 @@ program
     const spinner = ora('Creating product...').start()
     
     try {
-      const response = await fetch('https://chinahuib2b.top/api/products', {
+      const response = await fetch('https://x2xhub.com/products', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -192,7 +192,7 @@ program
       const spinner = ora('Sending message...').start()
       
       try {
-        const response = await fetch('https://chinahuib2b.top/api/chat/public', {
+        const response = await fetch('https://x2xhub.com/chat/public', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -231,7 +231,7 @@ program
         }
         
         try {
-          const response = await fetch('https://chinahuib2b.top/api/chat/public', {
+          const response = await fetch('https://x2xhub.com/chat/public', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${apiKey}`,
@@ -261,7 +261,7 @@ program
     const spinner = ora('Fetching platform info...').start()
     
     try {
-      const response = await fetch('https://chinahuib2b.top/api/ai/platform-info')
+      const response = await fetch('https://x2xhub.com/ai/platform-info')
       
       if (response.ok) {
         spinner.succeed('Platform info fetched!')
@@ -271,7 +271,7 @@ program
         console.log(chalk.blue(`API Version: ${info.version || '1.0.0'}`))
         console.log(chalk.blue(`Status: ${chalk.green('Online')}`))
         console.log(chalk.blue(`Supported AI Types: ${info.supportedAIs?.join(', ') || 'Multiple'}`))
-        console.log(chalk.gray(`\nDocumentation: https://chinahuib2b.top/api/docs\n`))
+        console.log(chalk.gray(`\nDocumentation: https://x2xhub.com/docs\n`))
       } else {
         spinner.fail('Failed to fetch platform info')
       }

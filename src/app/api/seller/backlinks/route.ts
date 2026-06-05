@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const platforms = ['facebook', 'twitter', 'linkedin', 'whatsapp', 'email', 'copy']
 
     for (const product of products) {
-      const baseUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://chinahuib2b.top'}/products/${product.id}`
+      const baseUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://x2xhub.com'}/products/${product.id}`
       
       for (const platform of platforms) {
         let url = baseUrl
@@ -102,7 +102,7 @@ function generateEmbeddedCodes(products: Array<{ id: string; title: string; main
   const codes: EmbeddedCode[] = []
 
   products.slice(0, 3).forEach(product => {
-    const productUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://chinahuib2b.top'}/products/${product.id}`
+    const productUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://x2xhub.com'}/products/${product.id}`
 
     codes.push({
       type: 'card',

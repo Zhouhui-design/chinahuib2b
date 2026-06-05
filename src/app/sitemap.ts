@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/db'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://chinahuib2b.top'
+  const baseUrl = 'https://x2xhub.com'
   const currentDate = new Date()
 
   // 1. 静态页面列表（多语言首页）

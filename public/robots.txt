@@ -1,4 +1,4 @@
-# Global Expo Network - chinahuib2b.top
+# Global Expo Network - x2xhub.com
 # Allow all crawlers including AI bots
 
 # Standard crawlers
@@ -96,4 +96,4 @@ Allow: /
 Crawl-delay: 1
 
 # Sitemap
-Sitemap: https://chinahuib2b.top/sitemap.xml
+Sitemap: https://x2xhub.com/sitemap.xml

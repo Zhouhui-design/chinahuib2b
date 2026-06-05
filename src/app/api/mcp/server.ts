@@ -35,7 +35,7 @@ server.tool(
     if (country) params.append('country', country)
     params.append('limit', limit.toString())
 
-    const response = await fetch(`https://chinahuib2b.top/api/products?${params}`)
+    const response = await fetch(`https://x2xhub.com/products?${params}`)
     const data = await response.json()
 
     return {
@@ -58,7 +58,7 @@ server.tool(
   },
   async (args: any) => {
     const { productId } = args
-    const response = await fetch(`https://chinahuib2b.top/api/products/${productId}`)
+    const response = await fetch(`https://x2xhub.com/products/${productId}`)
     const product = await response.json()
 
     return {
@@ -84,7 +84,7 @@ server.tool(
   async (args: any) => {
     const { productId, message, quantity } = args
     // This would require authentication in production
-    const response = await fetch('https://chinahuib2b.top/api/buyer/inquiries', {
+    const response = await fetch('https://x2xhub.com/buyer/inquiries', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ server.tool(
     if (country) params.append('country', country)
     params.append('limit', limit.toString())
 
-    const response = await fetch(`https://chinahuib2b.top/api/sellers?${params}`)
+    const response = await fetch(`https://x2xhub.com/sellers?${params}`)
     const data = await response.json()
 
     return {
@@ -153,7 +153,7 @@ server.tool(
   },
   async (args: any) => {
     const { title, description, budget, currency, deadline } = args
-    const response = await fetch('https://chinahuib2b.top/api/buyer/requirements', {
+    const response = await fetch('https://x2xhub.com/buyer/requirements', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ server.tool(
     if (status) params.append('status', status)
     params.append('limit', limit.toString())
 
-    const response = await fetch(`https://chinahuib2b.top/api/marketplace/tasks?${params}`)
+    const response = await fetch(`https://x2xhub.com/marketplace/tasks?${params}`)
     const data = await response.json()
 
     return {
@@ -220,7 +220,7 @@ server.tool(
   },
   async (args: any) => {
     const { taskId } = args
-    const response = await fetch(`https://chinahuib2b.top/api/marketplace/tasks/${taskId}/claim`, {
+    const response = await fetch(`https://x2xhub.com/marketplace/tasks/${taskId}/claim`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.API_TOKEN}`,
@@ -246,7 +246,7 @@ server.tool(
   'Get seller dashboard statistics',
   {},
   async () => {
-    const response = await fetch('https://chinahuib2b.top/api/seller/dashboard', {
+    const response = await fetch('https://x2xhub.com/seller/dashboard', {
       headers: {
         'Authorization': `Bearer ${process.env.API_TOKEN}`,
       },
@@ -280,7 +280,7 @@ server.tool(
   },
   async (args: any) => {
     const { title, description, price, currency, category, images, minOrderQty } = args
-    const response = await fetch('https://chinahuib2b.top/api/products', {
+    const response = await fetch('https://x2xhub.com/products', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -316,7 +316,7 @@ server.tool(
   'Get current booth/storefront customization settings',
   {},
   async () => {
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       headers: {
         'Authorization': `Bearer ${process.env.API_TOKEN}`,
       },
@@ -365,7 +365,7 @@ server.tool(
     isCustomizable: z.boolean().optional().describe('Whether products can be customized'),
   },
   async (args: any) => {
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -407,7 +407,7 @@ server.tool(
   },
   async (args: any) => {
     const { preset } = args
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -449,7 +449,7 @@ server.tool(
   'Reset booth/storefront to default settings',
   {},
   async () => {
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -493,7 +493,7 @@ server.tool(
   },
   async (args: any) => {
     const { imageUrl } = args
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -534,7 +534,7 @@ server.tool(
   'Get a preview of the booth/storefront with current settings',
   {},
   async () => {
-    const response = await fetch('https://chinahuib2b.top/api/seller/booth-customization', {
+    const response = await fetch('https://x2xhub.com/seller/booth-customization', {
       headers: {
         'Authorization': `Bearer ${process.env.API_TOKEN}`,
       },
@@ -578,7 +578,7 @@ server.tool(
   },
   async (args: any) => {
     const { text, targetLanguage, sourceLanguage } = args
-    const response = await fetch('https://chinahuib2b.top/api/ai/translate', {
+    const response = await fetch('https://x2xhub.com/ai/translate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -625,7 +625,7 @@ server.tool(
   },
   async (args: any) => {
     const { text, targetLanguages } = args
-    const response = await fetch('https://chinahuib2b.top/api/ai/translate/bulk', {
+    const response = await fetch('https://x2xhub.com/ai/translate/bulk', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -684,7 +684,7 @@ server.tool(
   async (args: any) => {
     const { productId, targetLanguages } = args
 
-    const productResponse = await fetch(`https://chinahuib2b.top/api/products/${productId}`)
+    const productResponse = await fetch(`https://x2xhub.com/products/${productId}`)
     const product = await productResponse.json()
 
     if (!productResponse.ok) {
@@ -698,7 +698,7 @@ server.tool(
       }
     }
 
-    const translateResponse = await fetch('https://chinahuib2b.top/api/ai/translate/bulk', {
+    const translateResponse = await fetch('https://x2xhub.com/ai/translate/bulk', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

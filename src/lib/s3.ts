@@ -4,7 +4,7 @@ import { S3Client } from '@aws-sdk/client-s3'
 const spacesEndpoint = process.env.SPACES_ENDPOINT || 'https://nyc3.digitaloceanspaces.com'
 const spacesAccessKey = process.env.SPACES_ACCESS_KEY || ''
 const spacesSecretKey = process.env.SPACES_SECRET_KEY || ''
-const spacesBucket = process.env.SPACES_BUCKET || 'chinahuib2b'
+const spacesBucket = process.env.SPACES_BUCKET || 'x2xhub'
 const spacesRegion = process.env.SPACES_REGION || 'nyc3'
 
 export const s3Client = new S3Client({

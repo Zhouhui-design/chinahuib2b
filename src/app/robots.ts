@@ -118,6 +118,6 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 1,
       },
     ],
-    sitemap: 'https://chinahuib2b.top/sitemap.xml',
+    sitemap: 'https://x2xhub.com/sitemap.xml',
   }
 }

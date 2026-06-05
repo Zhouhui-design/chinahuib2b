@@ -2,7 +2,7 @@
  * Product API Service - Server-side data fetching
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.chinahuib2b.top';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://x2xhub.com';
 
 export interface Product {
   id: string;

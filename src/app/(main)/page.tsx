@@ -194,7 +194,7 @@ export default async function HomePage() {
             <div>
               <h3 className="font-bold mb-2">Contact</h3>
               <p className="text-sm text-gray-400 mb-2">
-                Email: support@chinahuib2b.top
+                Email: support@x2xhub.com
               </p>
               <p className="text-sm text-gray-400 mb-4">
                 Skype: aardenx@outlook.com

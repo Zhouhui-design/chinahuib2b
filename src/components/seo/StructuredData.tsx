@@ -24,7 +24,7 @@ export function ProductSchema({ product }: { product: any }) {
       availability: product.stock > 0 
         ? 'https://schema.org/InStock' 
         : 'https://schema.org/OutOfStock',
-      url: `https://chinahuib2b.top/products/${product.id}`,
+      url: `https://x2xhub.com/products/${product.id}`,
       seller: {
         '@type': 'Organization',
         name: product.storeName,
@@ -56,8 +56,8 @@ export function OrganizationSchema({ organization }: { organization: any }) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: organization.name,
-    url: organization.url || 'https://chinahuib2b.top',
-    logo: organization.logo || 'https://chinahuib2b.top/logo.png',
+    url: organization.url || 'https://x2xhub.com',
+    logo: organization.logo || 'https://x2xhub.com/logo.png',
     description: organization.description,
     address: organization.address ? {
       '@type': 'PostalAddress',
@@ -135,8 +135,8 @@ export function StoreSchema({ store }: { store: any }) {
     '@type': 'Store',
     name: store.storeName,
     description: store.description,
-    url: `https://chinahuib2b.top/stores/${store.id}`,
-    logo: store.logo || 'https://chinahuib2b.top/default-store-logo.png',
+    url: `https://x2xhub.com/stores/${store.id}`,
+    logo: store.logo || 'https://x2xhub.com/default-store-logo.png',
     image: store.banner || store.logo,
     address: store.address ? {
       '@type': 'PostalAddress',
@@ -196,7 +196,7 @@ export function ExhibitionSchema({ exhibition }: { exhibition: any }) {
       : 'https://schema.org/EventCancelled',
     offers: {
       '@type': 'Offer',
-      url: `https://chinahuib2b.top/exhibitions/${exhibition.id}`,
+      url: `https://x2xhub.com/exhibitions/${exhibition.id}`,
       price: exhibition.ticketPrice || 0,
       priceCurrency: 'USD',
       availability: exhibition.status === 'active'

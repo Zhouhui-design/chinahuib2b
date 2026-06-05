@@ -59,9 +59,9 @@ export async function GET() {
       docs: '/api/docs'
     },
     documentation: {
-      api: 'https://chinahuib2b.top/api/docs',
-      integration: 'https://chinahuib2b.top/docs/AI_INTEGRATION.md',
-      support: 'https://chinahuib2b.top/support'
+      api: 'https://x2xhub.com/docs',
+      integration: 'https://x2xhub.com/docs/AI_INTEGRATION.md',
+      support: 'https://x2xhub.com/support'
     },
     lastUpdated: new Date().toISOString()
   })

@@ -187,7 +187,7 @@ export default async function SubscriptionExpiredPage({ params, searchParams }: 
                       : 'Payment integration is under development. Please contact admin to renew manually.'}
                   </p>
                   <div className="text-sm text-blue-700">
-                    <strong>Email:</strong> admin@chinahuib2b.top
+                    <strong>Email:</strong> admin@x2xhub.com
                   </div>
                 </div>
               </div>

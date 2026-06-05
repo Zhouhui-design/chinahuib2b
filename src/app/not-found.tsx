@@ -115,7 +115,7 @@ export default function NotFound() {
             {t.search}
           </Link>
           <a
-            href="mailto:support@chinahuib2b.top"
+            href="mailto:support@x2xhub.com"
             className="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
           >
             {t.contact}

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // 发送邮件通知管理员（可选）
     // await sendEmailToAdmin({
-    //   to: 'admin@chinahuib2b.top',
+    //   to: 'admin@x2xhub.com',
     //   subject: 'New Payment Proof Submitted',
     //   body: `User ${email} submitted payment proof for $${amount}`,
     // });

@@ -83,7 +83,7 @@ export function chatAccessControl(req: NextRequest) {
           error: 'Access Denied',
           message: 'AI bots are strictly prohibited from accessing private conversations',
           reason: 'privacy_protection',
-          policy: 'https://chinahuib2b.top/privacy-policy',
+          policy: 'https://x2xhub.com/privacy-policy',
         },
         { 
           status: 403,

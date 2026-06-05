@@ -21,7 +21,7 @@ interface ProductSchemaProps {
   baseUrl?: string
 }
 
-export default function ProductSchema({ product, baseUrl = 'https://chinahuib2b.top' }: ProductSchemaProps) {
+export default function ProductSchema({ product, baseUrl = 'https://x2xhub.com' }: ProductSchemaProps) {
   const schema = {
     "@context": "https://schema.org/",
     "@type": "Product",
