@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Send, Globe, Sparkles, MessageSquare, Users, TrendingUp, Filter, Search, Image, Paperclip, Smile, MapPin, Tag, Clock, Eye, AlertCircle, Bell, BellOff, Volume2, VolumeX, Shield, Zap, Crown, ShoppingBag } from 'lucide-react'
 import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const DynamicSessionProvider = dynamic(
   () => import('@/components/providers/SessionProvider').then(mod => mod.SessionProvider),
@@ -85,7 +86,9 @@ const priorityConfig = {
 export default function ChatHallPage() {
   return (
     <DynamicSessionProvider>
-      <ChatHallContent />
+      <ErrorBoundary>
+        <ChatHallContent />
+      </ErrorBoundary>
     </DynamicSessionProvider>
   )
 }
@@ -216,27 +219,34 @@ function ChatHallContent() {
           if (data.type === 'connected') {
             console.log('SSE ready:', data)
           } else if (data.type === 'update') {
-            // Safely handle messages
+            // Safely handle messages with strict validation
             if (Array.isArray(data.messages) && data.messages.length > 0) {
               setPublicMessages(prev => {
-                if (!Array.isArray(prev)) return data.messages.slice(0, 50)
-                const existingIds = new Set(prev.map(m => m?.id).filter(Boolean))
-                const newMessages = data.messages.filter((m: PublicMessage) => m && !existingIds.has(m.id))
-                return [...prev, ...newMessages].slice(-100)
+                // 1. Clean old array: filter out invalid items
+                const cleanPrev = Array.isArray(prev) ? prev.filter(m => m && typeof m === 'object' && m.id) : [];
+                const existingIds = new Set(cleanPrev.map(m => m.id));
+                // 2. Filter new messages: valid object with id
+                const newMessages = data.messages.filter((m: PublicMessage) => 
+                  m && typeof m === 'object' && m.id && !existingIds.has(m.id)
+                );
+                // 3. Merge and limit length
+                return [...cleanPrev, ...newMessages].slice(-100);
               })
             }
 
-            // Safely handle world chat messages
+            // Safely handle world chat messages with strict validation
             if (Array.isArray(data.worldChatMessages) && data.worldChatMessages.length > 0) {
               setWorldChatMessages(prev => {
-                if (!Array.isArray(prev)) return data.worldChatMessages.slice(0, 50)
-                const existingIds = new Set(prev.map(m => m?.id).filter(Boolean))
-                const newMessages = data.worldChatMessages.filter((m: PublicMessage) => m && !existingIds.has(m.id))
-                return [...newMessages, ...prev].slice(0, 50)
+                const cleanPrev = Array.isArray(prev) ? prev.filter(m => m && typeof m === 'object' && m.id) : [];
+                const existingIds = new Set(cleanPrev.map(m => m.id));
+                const newMessages = data.worldChatMessages.filter((m: PublicMessage) => 
+                  m && typeof m === 'object' && m.id && !existingIds.has(m.id)
+                );
+                return [...newMessages, ...cleanPrev].slice(0, 50);
               })
               
               data.worldChatMessages.forEach((msg: PublicMessage) => {
-                if (msg && msg.isWorldChat && msg.content) {
+                if (msg && typeof msg === 'object' && msg.isWorldChat && msg.content) {
                   setCurrentAnnouncement(msg.content)
                   setShowAnnouncement(true)
                   setTimeout(() => setShowAnnouncement(false), 10000)
@@ -244,23 +254,27 @@ function ChatHallContent() {
               })
             }
 
-            // Safely handle shout outs
+            // Safely handle shout outs with strict validation
             if (Array.isArray(data.shoutOuts) && data.shoutOuts.length > 0) {
               setShoutOuts(prev => {
-                if (!Array.isArray(prev)) return data.shoutOuts.slice(0, 50)
-                const existingIds = new Set(prev.map(s => s?.id).filter(Boolean))
-                const newShoutOuts = data.shoutOuts.filter((s: ShoutOut) => s && !existingIds.has(s.id))
-                return [...newShoutOuts, ...prev].slice(0, 50)
+                const cleanPrev = Array.isArray(prev) ? prev.filter(s => s && typeof s === 'object' && s.id) : [];
+                const existingIds = new Set(cleanPrev.map(s => s.id));
+                const newShoutOuts = data.shoutOuts.filter((s: ShoutOut) => 
+                  s && typeof s === 'object' && s.id && !existingIds.has(s.id)
+                );
+                return [...newShoutOuts, ...cleanPrev].slice(0, 50);
               })
             }
 
-            // Safely handle notices
+            // Safely handle notices with strict validation
             if (Array.isArray(data.notices) && data.notices.length > 0) {
               setNotices(prev => {
-                if (!Array.isArray(prev)) return data.notices.slice(0, 30)
-                const existingIds = new Set(prev.map(n => n?.id).filter(Boolean))
-                const newNotices = data.notices.filter((n: Notice) => n && !existingIds.has(n.id))
-                return [...newNotices, ...prev].slice(0, 30)
+                const cleanPrev = Array.isArray(prev) ? prev.filter(n => n && typeof n === 'object' && n.id) : [];
+                const existingIds = new Set(cleanPrev.map(n => n.id));
+                const newNotices = data.notices.filter((n: Notice) => 
+                  n && typeof n === 'object' && n.id && !existingIds.has(n.id)
+                );
+                return [...newNotices, ...cleanPrev].slice(0, 30);
               })
             }
 
@@ -294,6 +308,34 @@ function ChatHallContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [publicMessages])
+
+  // 调试日志：打印所有状态的类型和内容
+  useEffect(() => {
+    console.group('🔍 Chat Hall 状态调试日志')
+    console.log('📊 publicMessages - type:', typeof publicMessages, 'isArray:', Array.isArray(publicMessages), 'length:', publicMessages?.length)
+    if (Array.isArray(publicMessages)) {
+      console.log('📊 publicMessages content:', publicMessages.slice(0, 3))
+      publicMessages.forEach((msg, idx) => {
+        console.log(`  [${idx}] msg.id:`, msg?.id, 'msg.type:', typeof msg, 'msg:', msg)
+      })
+    }
+    console.log('🌍 worldChatMessages - type:', typeof worldChatMessages, 'isArray:', Array.isArray(worldChatMessages), 'length:', worldChatMessages?.length)
+    if (Array.isArray(worldChatMessages)) {
+      console.log('🌍 worldChatMessages content:', worldChatMessages.slice(0, 3))
+    }
+    console.log('📣 shoutOuts - type:', typeof shoutOuts, 'isArray:', Array.isArray(shoutOuts), 'length:', shoutOuts?.length)
+    if (Array.isArray(shoutOuts)) {
+      console.log('📣 shoutOuts content:', shoutOuts.slice(0, 3))
+    }
+    console.log('🔔 notices - type:', typeof notices, 'isArray:', Array.isArray(notices), 'length:', notices?.length)
+    if (Array.isArray(notices)) {
+      console.log('🔔 notices content:', notices.slice(0, 3))
+    }
+    console.log('👥 onlineUsers - type:', typeof onlineUsers, 'value:', onlineUsers)
+    console.log('🔌 isConnected - type:', typeof isConnected, 'value:', isConnected)
+    console.log('⏳ isLoading - type:', typeof isLoading, 'value:', isLoading)
+    console.groupEnd()
+  }, [publicMessages, worldChatMessages, shoutOuts, notices, onlineUsers, isConnected, isLoading])
 
   useEffect(() => {
     const COOLDOWN_MS = 3000
@@ -333,7 +375,7 @@ function ChatHallContent() {
 
       if (res.ok) {
         const data = await res.json()
-        setPublicMessages(prev => [...prev, data.data])
+        setPublicMessages(prev => [...(prev || []), data.data])
         setNewMessage('')
       }
     } catch (error) {
@@ -363,7 +405,7 @@ function ChatHallContent() {
 
       if (res.ok) {
         const data = await res.json()
-        setWorldChatMessages(prev => [data.data, ...prev])
+        setWorldChatMessages(prev => [data.data, ...(prev || [])])
         setWorldChatStats(data.stats)
         setNewWorldChat('')
         
@@ -429,8 +471,10 @@ function ChatHallContent() {
     return matchesSearch && matchesFilter
   }) : []
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / 60000)
@@ -530,14 +574,15 @@ function ChatHallContent() {
                 </span>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {publicMessages
-                  .filter(m => m.sender && m.sender.isOnline)
+                {(publicMessages || [])
+                  .filter(m => m && m.sender && m.sender.id && m.sender.isOnline)
                   .reduce((acc, m) => {
                     if (m.sender && !acc.find(u => u.id === m.sender.id)) {
                       acc.push(m.sender)
                     }
                     return acc
                   }, [] as User[])
+                  .filter(user => user && user.id)
                   .slice(0, 10)
                   .map((user) => (
                     <Link
@@ -575,7 +620,7 @@ function ChatHallContent() {
                 </h2>
                 <div className="flex items-center gap-1 text-yellow-300 text-xs">
                   <Zap className="w-4 h-4" />
-                  {worldChatStats.remainingFree} {dict.chatHall.freeRemaining}
+                  {worldChatStats?.remainingFree ?? 0} {dict.chatHall.freeRemaining}
                 </div>
               </div>
               <form onSubmit={sendWorldChat} className="space-y-3">
@@ -590,7 +635,7 @@ function ChatHallContent() {
                 />
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-yellow-300">{newWorldChat.length}/100 {dict.chatHall.chars}</span>
-                  <span className="text-slate-400">${worldChatStats.costPerMessage}{dict.chatHall.perMessage}</span>
+                  <span className="text-slate-400">${worldChatStats?.costPerMessage ?? 0}{dict.chatHall.perMessage}</span>
                 </div>
                 <button
                   type="submit"
@@ -752,62 +797,66 @@ function ChatHallContent() {
                       <p className="text-sm">{dict.chatHall.firstHello}</p>
                     </div>
                   ) : (
-                    publicMessages.filter(m => !m.isWorldChat && m).map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex gap-3 ${message.isSystemMessage ? 'justify-center' : ''}`}
-                      >
-                        {!message.isSystemMessage && message.sender ? (
-                          <div className="flex-shrink-0">
-                            <Link href={`/users/${message.sender?.id || ''}`}>
-                              <div className="relative">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                  {message.sender?.displayName?.charAt(0) || message.sender?.username?.charAt(0) || '?'}
+                    (publicMessages || [])
+                      .filter(m => m && !m.isWorldChat)
+                      .map((message) => {
+                        const hasSender = !message.isSystemMessage && message.sender
+                        return (
+                        <div
+                          key={message.id}
+                          className={`flex gap-3 ${message.isSystemMessage ? 'justify-center' : ''}`}
+                        >
+                          {hasSender && (
+                            <div className="flex-shrink-0">
+                              <Link href={`/users/${message.sender?.id || ''}`}>
+                                <div className="relative">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                                    {message.sender?.displayName?.charAt(0) || message.sender?.username?.charAt(0) || '?'}
+                                  </div>
+                                  {message.sender.isOnline && (
+                                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
+                                  )}
                                 </div>
-                                {message.sender.isOnline && (
-                                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
-                                )}
-                              </div>
-                            </Link>
-                          </div>
-                        )}
-
-                        <div className="flex-1">
-                          {message.isAnnouncement ? (
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 border border-blue-500">
-                              <p className="text-white font-bold">{message.content}</p>
-                            </div>
-                          ) : message.isSystemMessage ? (
-                            <p className="text-slate-500 text-sm text-center italic">{message.content}</p>
-                          ) : (
-                            <div>
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <Link
-                                  href={`/users/${message.sender.id}`}
-                                  className="text-blue-400 hover:text-blue-300 font-medium"
-                                >
-                                  {message.sender.displayName || message.sender.username}
-                                </Link>
-                                {message.sender.sellerProfile && (
-                                  <Link
-                                    href={`/stores/${message.sender.sellerProfile.id}`}
-                                    className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full hover:bg-purple-500 transition-colors"
-                                  >
-                                    🏪 {dict.chatHall.visitStore}
-                                  </Link>
-                                )}
-                                <span className="text-slate-500 text-xs">
-                                  {formatTime(message.createdAt)}
-                                </span>
-                              </div>
-                              <div className="bg-slate-700/80 rounded-xl p-3 backdrop-blur">
-                                <p className="text-white whitespace-pre-wrap">{message.content}</p>
-                              </div>
+                              </Link>
                             </div>
                           )}
+
+                          <div className="flex-1">
+                            {message.isAnnouncement ? (
+                              <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 border border-blue-500">
+                                <p className="text-white font-bold">{message.content}</p>
+                              </div>
+                            ) : message.isSystemMessage ? (
+                              <p className="text-slate-500 text-sm text-center italic">{message.content}</p>
+                            ) : (
+                              <div>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <Link
+                                    href={`/users/${message.sender.id}`}
+                                    className="text-blue-400 hover:text-blue-300 font-medium"
+                                  >
+                                    {message.sender.displayName || message.sender.username}
+                                  </Link>
+                                  {message.sender.sellerProfile && (
+                                    <Link
+                                      href={`/stores/${message.sender.sellerProfile.id}`}
+                                      className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full hover:bg-purple-500 transition-colors"
+                                    >
+                                      🏪 {dict.chatHall.visitStore}
+                                    </Link>
+                                  )}
+                                  <span className="text-slate-500 text-xs">
+                                    {formatTime(message.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="bg-slate-700/80 rounded-xl p-3 backdrop-blur">
+                                  <p className="text-white whitespace-pre-wrap">{message.content}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      )})
                   )}
                   <div ref={messagesEndRef} />
                 </div>
@@ -870,7 +919,7 @@ function ChatHallContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-yellow-300">
-                      {worldChatStats.remainingFree} {dict.chatHall.freeRemaining}
+                      {worldChatStats?.remainingFree ?? 0} {dict.chatHall.freeRemaining}
                     </span>
                   </div>
                 </div>
@@ -883,8 +932,10 @@ function ChatHallContent() {
                       <p className="text-sm">{dict.chatHall.beFirstToBroadcast}</p>
                     </div>
                   ) : (
-                    worldChatMessages.filter(Boolean).map((message) => (
-                      <div key={message?.id || Math.random()} className="bg-gradient-to-r from-yellow-800/50 to-orange-800/50 rounded-xl p-4 border border-yellow-500/30">
+                    (worldChatMessages || [])
+                      .filter(m => m && typeof m === 'object' && m.id)
+                      .map((message) => (
+                      <div key={message.id} className="bg-gradient-to-r from-yellow-800/50 to-orange-800/50 rounded-xl p-4 border border-yellow-500/30">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
                             <Link href={`/users/${message?.sender?.id || ''}`}>
@@ -1003,8 +1054,10 @@ function ChatHallContent() {
                       <p className="text-slate-400">{dict.chatHall.noNoticesYet}</p>
                     </div>
                   ) : (
-                    notices.filter(Boolean).map((notice) => (
-                      <div key={notice?.id || Math.random()} className="bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700">
+                    (notices || [])
+                      .filter(n => n && typeof n === 'object' && n.id)
+                      .map((notice) => (
+                      <div key={notice.id} className="bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white font-bold">
@@ -1067,7 +1120,9 @@ function ChatHallContent() {
                       <p className="text-slate-400">{dict.chatHall.noPostsFound}</p>
                     </div>
                   ) : (
-                    filteredShoutOuts.map((shoutOut) => (
+                    filteredShoutOuts
+                      .filter(s => s && s.id)
+                      .map((shoutOut) => (
                       <div
                         key={shoutOut.id}
                         className={`bg-slate-800/60 backdrop-blur rounded-2xl border ${(postTypeConfig[shoutOut.type] || postTypeConfig.general).bgLight} p-4 transition-all hover:shadow-xl hover:-translate-y-1`}
@@ -1075,11 +1130,11 @@ function ChatHallContent() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                              {shoutOut.sender.displayName?.charAt(0) || shoutOut.sender.username.charAt(0)}
+                              {shoutOut?.sender?.displayName?.charAt(0) || shoutOut?.sender?.username?.charAt(0) || '?'}
                             </div>
                             <div>
-                              <p className="text-white font-medium">{shoutOut.sender.displayName || shoutOut.sender.username}</p>
-                              <p className="text-slate-400 text-xs">{formatTime(shoutOut.createdAt)}</p>
+                              <p className="text-white font-medium">{shoutOut?.sender?.displayName || shoutOut?.sender?.username || 'Unknown'}</p>
+                              <p className="text-slate-400 text-xs">{formatTime(shoutOut?.createdAt || new Date().toISOString())}</p>
                             </div>
                           </div>
                           <span className={`px-2 py-1 rounded-lg text-xs font-medium ${(postTypeConfig[shoutOut.type] || postTypeConfig.general).color} text-white`}>
@@ -1087,11 +1142,11 @@ function ChatHallContent() {
                           </span>
                         </div>
                         
-                        <p className="text-white mb-4">{shoutOut.content}</p>
+                        <p className="text-white mb-4">{shoutOut?.content || ''}</p>
                         
                         {Array.isArray(shoutOut.tags) && shoutOut.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
-                            {shoutOut.tags.map(tag => (
+                            {shoutOut.tags.filter(Boolean).map(tag => (
                               <span key={tag} className="flex items-center gap-1 px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg">
                                 <Tag className="w-3 h-3" />
                                 {tag}
@@ -1100,7 +1155,7 @@ function ChatHallContent() {
                           </div>
                         )}
                         
-                        {shoutOut.location && (
+                        {shoutOut?.location && (
                           <div className="flex items-center gap-1 text-slate-400 text-xs mb-3">
                             <MapPin className="w-4 h-4" />
                             {shoutOut.location}
@@ -1136,19 +1191,19 @@ function ChatHallContent() {
               <h2 className="text-lg font-semibold text-white mb-4">📊 {dict.chatHall.hallStats}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-blue-400">{onlineUsers || 0}</p>
+                  <p className="text-2xl font-bold text-blue-400">{onlineUsers ?? 0}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.onlineNow}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-green-400">{(publicMessages?.length || 0)}</p>
+                  <p className="text-2xl font-bold text-green-400">{publicMessages?.length ?? 0}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.messages}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-purple-400">{(shoutOuts?.length || 0)}</p>
+                  <p className="text-2xl font-bold text-purple-400">{shoutOuts?.length ?? 0}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.posts}</p>
                 </div>
                 <div className="bg-slate-700/50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-yellow-400">{(notices?.length || 0)}</p>
+                  <p className="text-2xl font-bold text-yellow-400">{notices?.length ?? 0}</p>
                   <p className="text-xs text-slate-400">{dict.chatHall.notices}</p>
                 </div>
               </div>
