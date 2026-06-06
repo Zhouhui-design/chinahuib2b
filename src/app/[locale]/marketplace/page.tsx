@@ -96,6 +96,35 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true)
   const [selectedType, setSelectedType] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [stats, setStats] = useState({
+    activeTasks: 0,
+    completedTasks: 0,
+    participants: 0,
+    totalValue: '$0'
+  })
+
+  // Fetch marketplace stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/marketplace/stats')
+        const data = await response.json()
+        
+        if (data.success && data.data) {
+          setStats({
+            activeTasks: data.data.activeTasks || 0,
+            completedTasks: data.data.completedTasks || 0,
+            participants: data.data.participants || 0,
+            totalValue: data.data.totalValue || '$0'
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching marketplace stats:', error)
+      }
+    }
+    
+    fetchStats()
+  }, [])
 
   // Fetch tasks from API
   useEffect(() => {
@@ -172,19 +201,19 @@ export default function MarketplacePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-blue-600">1,234</div>
+              <div className="text-3xl font-bold text-blue-600">{stats.activeTasks.toLocaleString()}</div>
               <div className="text-gray-600 mt-1">{dict.marketplace.stats.activeTasks}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-green-600">567</div>
+              <div className="text-3xl font-bold text-green-600">{stats.completedTasks.toLocaleString()}</div>
               <div className="text-gray-600 mt-1">{dict.marketplace.stats.completed}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-purple-600">890</div>
+              <div className="text-3xl font-bold text-purple-600">{stats.participants.toLocaleString()}</div>
               <div className="text-gray-600 mt-1">{dict.marketplace.stats.participants}</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-orange-600">$2.5M</div>
+              <div className="text-3xl font-bold text-orange-600">{stats.totalValue}</div>
               <div className="text-gray-600 mt-1">{dict.marketplace.stats.totalValue}</div>
             </div>
           </div>
