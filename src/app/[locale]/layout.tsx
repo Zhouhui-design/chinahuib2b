@@ -50,43 +50,43 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
               <Link href={`/${locale}/stores`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                 {dict.nav.exhibitors}
               </Link>
-              <Link href="/chat-hall" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
+              <Link href={`/${locale}/chat-hall`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                {dict.nav.chatHall || 'Chat Hall'}
+                {dict.nav.chatHall}
               </Link>
-              <Link href="/marketplace" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
+              <Link href={`/${locale}/marketplace`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                {dict.nav.marketplace || 'Marketplace'}
+                {dict.nav.marketplace}
               </Link>
-              <Link href="/auction-screen" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
+              <Link href={`/${locale}/auction-screen`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                 </svg>
-                {dict.nav.auction || 'Auction'}
+                {dict.nav.auction}
               </Link>
-              <Link href="/api-docs" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
+              <Link href={`/${locale}/api-docs`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4m0-2v2m0 16V5m0 16H9m3 0h3" />
                 </svg>
-                API
+                {dict.nav.api}
               </Link>
               <Link href={`/${locale}/wallet`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {dict.nav.wallet || 'Wallet'}
+                {dict.nav.wallet}
               </Link>
               <Link href={`/${locale}/notifications`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                {dict.nav.notifications || 'Notifications'}
+                {dict.nav.notifications}
               </Link>
-              <Link href="/seller" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1">
+              <Link href={`/${locale}/seller`} className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -129,19 +129,19 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           <Link href={`/${locale}/stores`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
             {dict.nav.exhibitors}
           </Link>
-          <Link href="/chat-hall" className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
-            {dict.nav.chatHall || 'Chat Hall'}
+          <Link href={`/${locale}/chat-hall`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+            {dict.nav.chatHall}
           </Link>
-          <Link href="/marketplace" className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
-            {dict.nav.marketplace || 'Marketplace'}
+          <Link href={`/${locale}/marketplace`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+            {dict.nav.marketplace}
           </Link>
-          <Link href="/auction-screen" className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
-            {dict.nav.auction || 'Auction'}
+          <Link href={`/${locale}/auction-screen`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+            {dict.nav.auction}
           </Link>
-          <Link href="/api-docs" className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
-            API
+          <Link href={`/${locale}/api-docs`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+            {dict.nav.api}
           </Link>
-          <Link href="/seller" className="block text-sm font-medium text-orange-600 hover:text-orange-700 py-2">
+          <Link href={`/${locale}/seller`} className="block text-sm font-medium text-orange-600 hover:text-orange-700 py-2">
             {dict.nav.sellerPortal}
           </Link>
         </div>

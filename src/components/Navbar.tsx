@@ -6,6 +6,7 @@ import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import type { LanguageCode } from '@/lib/languages';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
+import { getDictionary } from '@/locales/dictionary';
 
 type NavbarProps = {
   locale: LanguageCode;
@@ -15,6 +16,15 @@ export default function Navbar({ locale }: NavbarProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [dict, setDict] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchDict = async () => {
+      const dictionary = await getDictionary(locale);
+      setDict(dictionary);
+    };
+    fetchDict();
+  }, [locale]);
   
   useEffect(() => {
     const fetchSession = () => {
@@ -43,31 +53,7 @@ export default function Navbar({ locale }: NavbarProps) {
     }
   }, [])
   
-  const dict = {
-    nav: {
-      home: locale === 'zh' ? '首页' : locale === 'es' ? 'Inicio' : 'Home',
-      products: locale === 'zh' ? '产品' : locale === 'es' ? 'Productos' : 'Products',
-      exhibitors: locale === 'zh' ? '参展商' : locale === 'es' ? 'Expositores' : 'Exhibitors',
-      chatHall: locale === 'zh' ? '聊天广场' : locale === 'es' ? 'Sala de Chat' : 'Chat Hall',
-      marketplace: locale === 'zh' ? '帖子市场' : locale === 'es' ? 'Mercado' : 'Marketplace',
-      auction: locale === 'zh' ? '拍卖行' : locale === 'es' ? 'Subastas' : 'Auctions',
-      login: locale === 'zh' ? '登录' : locale === 'es' ? 'Iniciar Sesión' : 'Login',
-      register: locale === 'zh' ? '注册' : locale === 'es' ? 'Registrarse' : 'Register',
-      sellerPortal: locale === 'zh' ? '卖家门户' : locale === 'es' ? 'Portal del Vendedor' : 'Seller Portal',
-      profile: locale === 'zh' ? '个人资料' : locale === 'es' ? 'Perfil' : 'Profile',
-      accountSettings: locale === 'zh' ? '账号设置' : locale === 'es' ? 'Configuración de Cuenta' : 'Account Settings',
-      finances: locale === 'zh' ? '个人资金' : locale === 'es' ? 'Finanzas' : 'Finances',
-      myStore: locale === 'zh' ? '我的店铺' : locale === 'es' ? 'Mi Tienda' : 'My Store',
-      chatAccount: locale === 'zh' ? '聊天账号' : locale === 'es' ? 'Cuenta de Chat' : 'Chat Account',
-      aiAgents: locale === 'zh' ? 'AI 代理' : locale === 'es' ? 'Agentes AI' : 'AI Agents',
-      aiAudit: locale === 'zh' ? 'AI 审计日志' : locale === 'es' ? 'Auditoría AI' : 'AI Audit Log',
-      apiKeys: locale === 'zh' ? 'API 密钥管理' : locale === 'es' ? 'Claves API' : 'API Keys',
-      apiDocs: locale === 'zh' ? 'API/CLI/MCP 文档' : locale === 'es' ? 'Documentación API' : 'API/CLI/MCP Docs',
-      aiRegister: locale === 'zh' ? 'AI 身份注册' : locale === 'es' ? 'Registro AI' : 'AI Identity Register',
-      teamChat: locale === 'zh' ? '队伍聊天' : locale === 'es' ? 'Chat de Equipo' : 'Team Chat',
-      signOut: locale === 'zh' ? '退出登录' : locale === 'es' ? 'Cerrar Sesión' : 'Sign Out',
-    }
-  };
+  if (!dict) return null;
 
   const getPathWithoutLocale = (path: string) => {
     const segments = path.split('/').filter(Boolean);
@@ -115,7 +101,7 @@ export default function Navbar({ locale }: NavbarProps) {
               {dict.nav.exhibitors}
             </Link>
             <Link
-              href="/chat-hall"
+              href={`/${locale}/chat-hall`}
               className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/chat-hall') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
@@ -124,7 +110,7 @@ export default function Navbar({ locale }: NavbarProps) {
               {dict.nav.chatHall}
             </Link>
             <Link
-              href="/marketplace"
+              href={`/${locale}/marketplace`}
               className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/marketplace') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
@@ -133,7 +119,7 @@ export default function Navbar({ locale }: NavbarProps) {
               {dict.nav.marketplace}
             </Link>
             <Link
-              href="/auction-screen"
+              href={`/${locale}/auction-screen`}
               className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/auction-screen') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
@@ -142,7 +128,7 @@ export default function Navbar({ locale }: NavbarProps) {
               {dict.nav.auction}
             </Link>
             <Link
-              href="/api-docs"
+              href={`/${locale}/api-docs`}
               className={`text-sm font-medium transition-colors flex items-center ${
                 currentPath.startsWith('/api-docs') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
               }`}
@@ -178,7 +164,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </div>
                       
                       <Link
-                        href="/buyer/profile"
+                        href={`/${locale}/buyer/profile`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -187,7 +173,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/buyer/settings"
+                        href={`/${locale}/buyer/settings`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -196,7 +182,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/buyer/finances"
+                        href={`/${locale}/buyer/finances`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -207,7 +193,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       <div className="border-t border-gray-200 my-1" />
                       
                       <Link
-                        href="/chat-hall"
+                        href={`/${locale}/chat-hall`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -216,7 +202,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/marketplace"
+                        href={`/${locale}/marketplace`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -225,7 +211,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/auction-screen"
+                        href={`/${locale}/auction-screen`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -238,7 +224,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       {user.role === 'SELLER' && (
                         <>
                           <Link
-                            href="/seller"
+                            href={`/${locale}/seller`}
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >
@@ -246,7 +232,7 @@ export default function Navbar({ locale }: NavbarProps) {
                             {dict.nav.myStore}
                           </Link>
                           <Link
-                            href="/seller/ai-management"
+                            href={`/${locale}/seller/ai-management`}
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >
@@ -258,7 +244,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       )}
                       
                       <Link
-                        href="/api-keys"
+                        href={`/${locale}/api-keys`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -267,7 +253,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/ai-audit"
+                        href={`/${locale}/ai-audit`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -276,7 +262,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/ai-register"
+                        href={`/${locale}/ai-register`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -285,7 +271,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       </Link>
                       
                       <Link
-                        href="/team-chat"
+                        href={`/${locale}/team-chat`}
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -297,7 +283,7 @@ export default function Navbar({ locale }: NavbarProps) {
                         <>
                           <div className="border-t border-gray-200 my-1" />
                           <Link
-                            href="/admin"
+                            href={`/${locale}/admin`}
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >
@@ -311,7 +297,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       <button
                         onClick={async () => {
                           setShowUserMenu(false)
-                          window.location.href = `/api/auth/signout?callbackUrl=/${locale}`
+                          window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`
                         }}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                       >
