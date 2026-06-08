@@ -224,7 +224,7 @@ export default function Navbar({ locale }: NavbarProps) {
                       {user.role === 'SELLER' && (
                         <>
                           <Link
-                            href={`/${locale}/seller`}
+                            href="/seller"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >
@@ -232,7 +232,7 @@ export default function Navbar({ locale }: NavbarProps) {
                             {dict.nav.myStore}
                           </Link>
                           <Link
-                            href={`/${locale}/seller/ai-management`}
+                            href="/seller/ai-management"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >
@@ -283,7 +283,7 @@ export default function Navbar({ locale }: NavbarProps) {
                         <>
                           <div className="border-t border-gray-200 my-1" />
                           <Link
-                            href={`/${locale}/admin`}
+                            href="/admin"
                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setShowUserMenu(false)}
                           >

@@ -184,7 +184,7 @@ export default async function SubscriptionRequiredPage({ params }: PageProps) {
 
               {/* Submit Proof Button */}
               <Link
-                href={`/${locale}/seller/submit-payment-proof`}
+                href="/seller/submit-payment-proof"
                 className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center transition-colors block"
               >
                 {locale === 'zh' ? ' 提交付款凭证' : ' Submit Payment Proof'}

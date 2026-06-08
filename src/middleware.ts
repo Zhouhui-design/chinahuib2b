@@ -9,7 +9,7 @@ export function middleware(request: any) {
   const pathname = request.nextUrl.pathname
   
   // Skip middleware for dashboard routes (seller, admin)
-  // These routes don't need language prefix
+  // These routes don't need language prefix and handle their own i18n
   if (
     pathname.startsWith('/seller') ||
     pathname.startsWith('/admin')

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Settings, BarChart3, LogOut, HelpCircle, Globe, FileText, Tag, Home, ChevronRight, Menu } from 'lucide-react'
+import { Settings, BarChart3, LogOut, HelpCircle, Globe, FileText, Tag, Home, ChevronRight, Menu, Users } from 'lucide-react'
 
 type AdminDashboardClientLayoutProps = {
   children: React.ReactNode
@@ -21,6 +21,7 @@ export default function AdminDashboardClientLayout({
 
   const t = {
     dashboard: '管理后台',
+    users: '用户管理',
     seo: 'SEO 管理',
     monitoring: '系统监控',
     paymentProofs: '支付审核',
@@ -93,6 +94,7 @@ export default function AdminDashboardClientLayout({
                      pathname.includes('/monitoring') ? t.monitoring :
                      pathname.includes('/payment-proofs') ? t.paymentProofs :
                      pathname.includes('/ab-testing') ? t.abTesting :
+                     pathname.includes('/users') ? t.users :
                      pathname.split('/').pop()}
                   </span>
                 </>
@@ -158,6 +160,18 @@ export default function AdminDashboardClientLayout({
               >
                 <BarChart3 className="w-5 h-5 mr-3" />
                 系统概览
+              </Link>
+              
+              <Link
+                href="/admin/users"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/admin/users')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Users className="w-5 h-5 mr-3" />
+                {t.users}
               </Link>
               
               <Link

@@ -13,7 +13,6 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        PRISMA_CLIENT_ENGINE_TYPE: 'binary',
         NODE_OPTIONS: '--max-old-space-size=4096'
       },
       error_file: './logs/err.log',

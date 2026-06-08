@@ -91,7 +91,7 @@ export default function Breadcrumb({ locale }: BreadcrumbProps) {
     { name: dict.products, href: `/${locale}/products`, icon: 'package' },
     { name: dict.stores, href: `/${locale}/stores`, icon: 'store' },
     { name: dict.chat, href: `/${locale}/chat-hall`, icon: 'message-circle' },
-    { name: dict.seller, href: `/${locale}/seller`, icon: 'user' },
+    { name: dict.seller, href: '/seller', icon: 'user' },
   ];
 
   return (

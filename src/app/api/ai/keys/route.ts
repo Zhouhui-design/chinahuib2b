@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAIApiKey, getAIIdentity, type AIIdentity } from '@/lib/ai-identity'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 
 /**
  * GET /api/ai/keys

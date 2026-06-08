@@ -1252,7 +1252,7 @@ function ChatHallContent() {
                   {dict.chatHall.postProduct}
                 </Link>
                 <Link
-                  href={`/${locale}/seller/booths`}
+                  href="/seller/booths"
                   className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                 >
                   <BuildingIcon className="w-5 h-5" />
