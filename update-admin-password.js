@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
   requireTLS: true,
   auth: {
     user: '1994169577@qq.com',
-    pass: 'hbamngtrhdxwfbej', // SMTP authorization code
+    pass: process.env.EMAIL_PASSWORD || 'hbamngtrhdxwfbej', // SMTP authorization code from environment
   },
 });
 

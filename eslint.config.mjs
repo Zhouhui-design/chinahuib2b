@@ -22,6 +22,13 @@ const eslintConfig = defineConfig([
     "*.spec.tsx",
     "prisma/seed*.ts",
     "prisma/create-admin.ts",
+    // Scripts (use CommonJS for simplicity)
+    "scripts/**",
+    "*.js",
+    "check-admin.js",
+    "create-admin.js",
+    "sync-admin-server.js",
+    "update-admin-password.js",
   ]),
 ]);
 

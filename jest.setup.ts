@@ -1,29 +1,67 @@
 import '@testing-library/jest-dom'
 
 // Polyfill for Web APIs in Node.js environment
+// Note: jsdom provides most of these, so we only mock what's missing
 global.Request = global.Request || class Request {
-  constructor(_input: string | Request, _init?: RequestInit) {}
-  url = ''
-  method = 'GET'
-  headers = new Headers()
+  constructor(input: string | Request, init?: RequestInit) {
+    this.url = typeof input === 'string' ? input : input.url
+    this.method = init?.method || 'GET'
+    this.headers = new Headers(init?.headers)
+  }
+  url: string
+  method: string
+  headers: Headers
   clone() { return this }
 }
 
-global.Response = global.Response || class Response {
-  constructor(_body?: BodyInit, _init?: ResponseInit) {}
-  status = 200
-  ok = true
-  headers = new Headers()
-  json() { return Promise.resolve({}) }
-  text() { return Promise.resolve('') }
-  clone() { return this }
+// Polyfill Response for Node.js test environment
+// jsdom should provide this, but we add it as a fallback
+if (typeof Response === 'undefined') {
+  global.Response = class Response {
+    constructor(body?: BodyInit, init?: ResponseInit) {
+      this.status = init?.status || 200
+      this.ok = this.status >= 200 && this.status < 300
+      this.headers = new Headers(init?.headers)
+      this._body = body
+    }
+    status: number
+    ok: boolean
+    headers: Headers
+    _body?: BodyInit
+    json() { return Promise.resolve(this._body) }
+    text() { return Promise.resolve(typeof this._body === 'string' ? this._body : JSON.stringify(this._body)) }
+    clone() { return this }
+
+    // Static method needed by NextResponse.json()
+    static json(data: any, init?: ResponseInit) {
+      return new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(init?.headers || {}),
+        },
+      })
+    }
+  } as any
 }
 
 global.Headers = global.Headers || class Headers {
-  constructor(_init?: HeadersInit) {}
-  get(_name: string) { return null }
-  set(_name: string, _value: string) {}
-  has(_name: string) { return false }
+  constructor(init?: HeadersInit) {
+    this._map = new Map()
+    if (init) {
+      if (Array.isArray(init)) {
+        init.forEach(([name, value]) => this._map.set(name, value))
+      } else if (init instanceof Headers) {
+        init._map.forEach((value, name) => this._map.set(name, value))
+      } else {
+        Object.entries(init).forEach(([name, value]) => this._map.set(name, value))
+      }
+    }
+  }
+  _map: Map<string, string>
+  get(name: string) { return this._map.get(name) || null }
+  set(name: string, value: string) { this._map.set(name, value) }
+  has(name: string) { return this._map.has(name) }
 }
 
 // Mock Next.js router

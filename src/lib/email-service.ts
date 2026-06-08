@@ -9,11 +9,12 @@ import nodemailer from 'nodemailer'
 export function createTransporter() {
   return nodemailer.createTransport({
     host: 'smtp.qq.com',
-    port: 465,
-    secure: true, // SSL
+    port: 587,
+    secure: false, // TLS
+    requireTLS: true,
     auth: {
-      user: '1994169577@qq.com',
-      pass: 'hbamngtrhdxwfbej', // SMTP authorization code
+      user: process.env.EMAIL_USER || '1994169577@qq.com',
+      pass: process.env.EMAIL_PASSWORD, // SMTP authorization code from environment variable
     },
   })
 }

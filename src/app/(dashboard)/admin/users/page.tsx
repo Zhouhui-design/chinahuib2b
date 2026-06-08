@@ -50,8 +50,9 @@ export default function UsersPage() {
 
       setUsers(data.users)
       setTotalPages(data.pagination.totalPages)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      const error = err as Error
+      setError(error.message)
     } finally {
       setLoading(false)
     }
@@ -59,12 +60,11 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers()
-  }, [page, roleFilter, statusFilter])
+  }, [page, roleFilter, statusFilter, search])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setPage(1)
-    fetchUsers()
   }
 
   const handleDelete = async (userId: string) => {
@@ -84,8 +84,9 @@ export default function UsersPage() {
 
       alert('用户删除成功')
       fetchUsers()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      const error = err as Error
+      alert(error.message)
     }
   }
 
@@ -103,8 +104,9 @@ export default function UsersPage() {
       }
 
       fetchUsers()
-    } catch (err: any) {
-      alert(err.message)
+    } catch (err) {
+      const error = err as Error
+      alert(error.message)
     }
   }
 

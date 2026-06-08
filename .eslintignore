@@ -18,3 +18,14 @@ build/
 # Seed files (have unused variables by design)
 prisma/seed*.ts
 prisma/create-admin.ts
+
+# Scripts (use CommonJS for simplicity)
+scripts/*.js
+scripts/*.ts
+*.js
+
+# Admin scripts
+check-admin.js
+create-admin.js
+sync-admin-server.js
+update-admin-password.js
