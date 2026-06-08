@@ -3,15 +3,22 @@ const { Pool } = require('pg');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const bcrypt = require('bcryptjs');
 
+// Database connection - MUST use environment variables in production!
+// This is a LOCAL script for development purposes only
 const pool = new Pool({
-  connectionString: 'postgresql://expo_dev:dev123@localhost:5432/global_expo_dev',
+  connectionString: process.env.DATABASE_URL || 'postgresql://expo_dev:dev123@localhost:5432/global_expo_dev',
 });
 
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// The password that was sent to email
-const password = '8I,*pfk4k%QkXm>B';
+// The password that was sent to email - MUST use environment variable!
+// DO NOT hardcode passwords in production
+const password = process.env.ADMIN_PASSWORD || '8I,*pfk4k%QkXm>B';
+
+// SECURITY WARNING: This is a local development script
+// DO NOT commit this file with real credentials to any repository
+// Use environment variables: ADMIN_PASSWORD, DATABASE_URL
 
 async function syncAdminToServer() {
   try {

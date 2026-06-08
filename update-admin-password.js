@@ -22,6 +22,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 // Email configuration
+// SECURITY: MUST use environment variable for SMTP password
 const transporter = nodemailer.createTransport({
   host: 'smtp.qq.com',
   port: 587,
@@ -29,7 +30,7 @@ const transporter = nodemailer.createTransport({
   requireTLS: true,
   auth: {
     user: '1994169577@qq.com',
-    pass: process.env.EMAIL_PASSWORD || 'hbamngtrhdxwfbej', // SMTP authorization code from environment
+    pass: process.env.EMAIL_PASSWORD, // SMTP authorization code - MUST set in environment variable
   },
 });
 
