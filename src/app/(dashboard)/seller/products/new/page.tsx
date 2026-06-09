@@ -14,6 +14,10 @@ interface Category {
   nameEn?: string
 }
 
+interface UploadedFile {
+  url: string
+}
+
 export default function AddProductPage() {
   const router = useRouter()
   const language = useSellerLanguage()
@@ -511,8 +515,8 @@ export default function AddProductPage() {
     }
   }
 
-  const handleImageUpload = (data: any) => {
-    const newImages = Array.isArray(data) ? data.map((d: any) => d.url) : [data.url]
+  const handleImageUpload = (data: UploadedFile | UploadedFile[]) => {
+    const newImages = Array.isArray(data) ? data.map((d) => d.url) : [data.url]
     setImages(prev => [...prev, ...newImages])
 
     if (!mainImageUrl && newImages.length > 0) {
@@ -575,7 +579,7 @@ export default function AddProductPage() {
           acc[spec.key.trim()] = spec.value.trim()
         }
         return acc
-      }, {} as Record<string, any>)
+      }, {} as Record<string, string>)
 
       const productData = {
         title,

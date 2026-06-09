@@ -13,6 +13,10 @@ interface Brochure {
   createdAt: string
 }
 
+interface UploadResult {
+  success: boolean
+}
+
 export default function BrochuresPage() {
   const router = useRouter()
   const [brochures, setBrochures] = useState<Brochure[]>([])
@@ -73,7 +77,7 @@ export default function BrochuresPage() {
   }
 
   // Upload success callback
-  const handleUploadSuccess = (data: any) => {
+  const handleUploadSuccess = (data: UploadResult) => {
     setUploading(false)
     // Reload list after upload
     loadBrochures()

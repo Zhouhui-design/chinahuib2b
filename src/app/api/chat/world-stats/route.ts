@@ -8,7 +8,7 @@ export async function GET() {
     const session = await getServerSession(authOptions)
     
     let remainingFree = 10
-    let costPerMessage = 0.1
+    const costPerMessage = 0.1
 
     if (session?.user) {
       const today = new Date()

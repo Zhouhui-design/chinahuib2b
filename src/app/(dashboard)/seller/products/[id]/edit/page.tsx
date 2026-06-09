@@ -7,9 +7,8 @@ import { ArrowLeft, Save, X, Plus, Trash2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
-interface Category {
-  id: string
-  name: string
+interface UploadedFile {
+  url: string
 }
 
 export default function EditProductPage() {
@@ -88,8 +87,8 @@ export default function EditProductPage() {
     }
   }
 
-  const handleImageUpload = (data: any) => {
-    const newImages = Array.isArray(data) ? data.map((d: any) => d.url) : [data.url]
+  const handleImageUpload = (data: UploadedFile | UploadedFile[]) => {
+    const newImages = Array.isArray(data) ? data.map((d) => d.url) : [data.url]
     setImages(prev => [...prev, ...newImages])
 
     // Set first image as main if not set
@@ -158,7 +157,7 @@ export default function EditProductPage() {
           acc[spec.key.trim()] = spec.value.trim()
         }
         return acc
-      }, {} as Record<string, any>)
+      }, {} as Record<string, string>)
 
       const productData = {
         title,

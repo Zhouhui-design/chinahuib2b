@@ -44,8 +44,8 @@ export async function createShoutOut(
 
   // Calculate priority based on payment
   let priority = data.priority || 1;
-  let finalCost = data.cost || 0;
-  let isFree = data.isFree ?? true;
+  const finalCost = data.cost || 0;
+  const isFree = data.isFree ?? true;
   
   if (!isFree && finalCost > 0) {
     // Check wallet balance

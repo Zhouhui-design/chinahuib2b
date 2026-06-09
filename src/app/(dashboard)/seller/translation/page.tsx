@@ -33,6 +33,12 @@ const PRESET_TEXTS = [
   { label: 'Thank You', text: 'Thank you for your purchase! Your order has been received and is being processed. We will send you tracking information once shipped.' },
 ]
 
+interface TranslationResult {
+  success?: boolean
+  title?: string
+  translated?: string
+}
+
 export default function TranslationPage() {
   const [sourceText, setSourceText] = useState('')
   const [sourceLang, setSourceLang] = useState('auto')
@@ -103,7 +109,7 @@ export default function TranslationPage() {
       if (data.translations) {
         const result: Record<string, string> = {}
         for (const [lang, trans] of Object.entries(data.translations)) {
-          const transData = trans as any
+          const transData = trans as TranslationResult
           if (transData.success !== false) {
             result[lang] = transData.title || transData.translated || sourceText
           }

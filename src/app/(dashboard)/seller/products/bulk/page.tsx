@@ -27,6 +27,19 @@ interface ProductRow {
   status: 'pending' | 'success' | 'failed'
 }
 
+interface ProductResult {
+  title: string
+}
+
+interface ProductPartial {
+  title?: string
+  description?: string
+  categoryId?: string
+  price?: string
+  moq?: string
+  supplyCapacity?: string
+}
+
 export default function BulkUploadPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -364,7 +377,7 @@ export default function BulkUploadPage() {
 
         for (let i = 1; i < rows.length; i++) {
           const values = rows[i].split(',').map(v => v.trim())
-          const product: any = {}
+          const product: ProductPartial = {}
 
           headers.forEach((header, index) => {
             if (header === 'title') product.title = values[index] || ''
@@ -417,7 +430,7 @@ export default function BulkUploadPage() {
     }])
   }
 
-  const updateProduct = (id: string, field: keyof ProductRow, value: any) => {
+  const updateProduct = <K extends keyof ProductRow>(id: string, field: K, value: ProductRow[K]) => {
     setProducts(prev => prev.map(p =>
       p.id === id ? { ...p, [field]: value } : p
     ))
@@ -459,8 +472,8 @@ export default function BulkUploadPage() {
         })
 
         setProducts(prev => prev.map(p => {
-          const successItem = data.results.success.find((s: any) => s.title === p.title)
-          const failedItem = data.results.failed.find((s: any) => s.title === p.title)
+          const successItem = (data.results.success as ProductResult[]).find(s => s.title === p.title)
+          const failedItem = (data.results.failed as ProductResult[]).find(s => s.title === p.title)
           if (successItem) return { ...p, status: 'success' as const }
           if (failedItem) return { ...p, status: 'failed' as const, error: failedItem.error }
           return p

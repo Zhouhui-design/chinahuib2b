@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu } from 'lucide-react'
-import { useSellerLanguage } from '@/hooks/useSellerLanguage'
+import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
 
@@ -236,7 +236,7 @@ export default function SellerDashboardClientLayout({
             </div>
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}
-              <LanguageSwitcher currentLocale={language as any} />
+              <LanguageSwitcher currentLocale={language as LanguageCode} />
               
               {/* Help Guide Link */}
               <Link

@@ -7,6 +7,10 @@ import MultilingualInput from '@/components/ui/MultilingualInput'
 import { Save, Building2, MapPin, Phone, Mail, MessageCircle, CheckCircle, Loader2 } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
+interface UploadedFile {
+  url: string
+}
+
 export default function StoreProfilePage() {
   const router = useRouter()
   const language = useSellerLanguage()
@@ -652,12 +656,12 @@ export default function StoreProfilePage() {
     }
   }
 
-  const handleLogoUpload = (data: any) => {
+  const handleLogoUpload = (data: UploadedFile | UploadedFile[]) => {
     const url = Array.isArray(data) ? data[0]?.url : data.url
     if (url) setLogoUrl(url)
   }
 
-  const handleBannerUpload = (data: any) => {
+  const handleBannerUpload = (data: UploadedFile | UploadedFile[]) => {
     const url = Array.isArray(data) ? data[0]?.url : data.url
     if (url) setBannerUrl(url)
   }
