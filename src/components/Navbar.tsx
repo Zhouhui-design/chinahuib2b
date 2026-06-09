@@ -14,9 +14,14 @@ type NavbarProps = {
 
 export default function Navbar({ locale }: NavbarProps) {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  interface UserSession {
+    name?: string
+    email?: string
+    role?: string
+  }
+  const [user, setUser] = useState<UserSession | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [dict, setDict] = useState<any>(null);
+  const [dict, setDict] = useState<Record<string, any> | null>(null);
   
   useEffect(() => {
     const fetchDict = async () => {

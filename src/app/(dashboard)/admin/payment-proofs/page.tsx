@@ -54,7 +54,10 @@ export default function AdminPaymentProofsPage() {
   };
 
   useEffect(() => {
-    fetchPaymentProofs();
+    const fetchData = async () => {
+      await fetchPaymentProofs();
+    };
+    void fetchData();
   }, [filter]);
 
   const handleApprove = async (proofId: string) => {

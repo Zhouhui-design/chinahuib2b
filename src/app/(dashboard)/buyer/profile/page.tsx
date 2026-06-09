@@ -18,11 +18,6 @@ export default function BuyerProfilePage() {
     bio: ''
   })
   
-  // Load profile data on mount
-  useEffect(() => {
-    loadProfileData()
-  }, [])
-  
   const loadProfileData = async () => {
     try {
       const response = await fetch('/api/user/profile')
@@ -42,6 +37,14 @@ export default function BuyerProfilePage() {
       console.error('Failed to load profile:', error)
     }
   }
+  
+  // Load profile data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      await loadProfileData()
+    }
+    void fetchData()
+  }, [])
   
   // Get language from cookie
   useEffect(() => {

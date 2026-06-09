@@ -440,7 +440,7 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
         
         {recentProducts.length > 0 ? (
           <div className="divide-y divide-gray-200">
-            {recentProducts.map((product: any) => (
+            {recentProducts.map((product) => (
               <div key={product.id} className="px-6 py-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">

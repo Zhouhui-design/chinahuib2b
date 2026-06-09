@@ -59,7 +59,10 @@ export default function UsersPage() {
   }
 
   useEffect(() => {
-    fetchUsers()
+    const getData = async () => {
+      await fetchUsers()
+    }
+    void getData()
   }, [page, roleFilter, statusFilter, search])
 
   const handleSearch = (e: React.FormEvent) => {

@@ -56,7 +56,10 @@ export default function SEOManagerPage() {
   }
 
   useEffect(() => {
-    loadConfigs()
+    const fetchData = async () => {
+      await loadConfigs()
+    }
+    void fetchData()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {

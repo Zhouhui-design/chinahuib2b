@@ -94,8 +94,8 @@ function ResetPasswordForm() {
       setTimeout(() => {
         router.push(`/${locale}/auth/login`)
       }, 2000)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      setError((err as Error).message || '操作失败')
     } finally {
       setLoading(false)
     }

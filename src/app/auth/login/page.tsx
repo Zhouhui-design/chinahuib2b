@@ -37,8 +37,8 @@ function LoginForm() {
       const callbackUrl = searchParams.get('callbackUrl') || '/admin'
       router.push(callbackUrl)
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      setError((err as Error).message || '登录失败')
     } finally {
       setLoading(false)
     }

@@ -53,8 +53,8 @@ export default function VerificationFileUpload({
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000)
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload file')
+    } catch (err) {
+      setError((err as Error).message || 'Failed to upload file')
     } finally {
       setUploading(false)
       // Reset input

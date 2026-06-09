@@ -3,10 +3,13 @@
 import { useState } from 'react'
 
 export default function TestSEO() {
-  const [testResult, setTestResult] = useState<any[]>([])
-
-  const runTests = async () => {
-    const results: any[] = []
+  interface TestResult {
+    test: string
+    status: string
+    details: string
+  }
+  const [testResult, setTestResult] = useState<TestResult[]>([])
+  const results: TestResult[] = []
 
     // Test 1: Robots.txt
     try {
@@ -16,8 +19,8 @@ export default function TestSEO() {
         status: res.status === 200 ? '✅ PASS' : '❌ FAIL',
         details: `Status: ${res.status}`
       })
-    } catch (error: any) {
-      results.push({ test: 'Robots.txt', status: '❌ FAIL', details: error.message })
+    } catch (error) {
+      results.push({ test: 'Robots.txt', status: '❌ FAIL', details: (error as Error).message })
     }
 
     // Test 2: Sitemap.xml
@@ -28,8 +31,8 @@ export default function TestSEO() {
         status: res.status === 200 ? '✅ PASS' : '❌ FAIL',
         details: `Status: ${res.status}`
       })
-    } catch (error: any) {
-      results.push({ test: 'Sitemap.xml', status: '❌ FAIL', details: error.message })
+    } catch (error) {
+      results.push({ test: 'Sitemap.xml', status: '❌ FAIL', details: (error as Error).message })
     }
 
     // Test 3: 404 Page
@@ -40,8 +43,8 @@ export default function TestSEO() {
         status: res.status === 404 ? '✅ PASS' : '❌ FAIL',
         details: `Status: ${res.status}`
       })
-    } catch (error: any) {
-      results.push({ test: '404 Page', status: '❌ FAIL', details: error.message })
+    } catch (error) {
+      results.push({ test: '404 Page', status: '❌ FAIL', details: (error as Error).message })
     }
 
     // Test 4: Dead Link API
@@ -56,8 +59,8 @@ export default function TestSEO() {
         status: res.status === 200 ? '✅ PASS' : '❌ FAIL',
         details: `Status: ${res.status}`
       })
-    } catch (error: any) {
-      results.push({ test: 'Dead Link API', status: '❌ FAIL', details: error.message })
+    } catch (error) {
+      results.push({ test: 'Dead Link API', status: '❌ FAIL', details: (error as Error).message })
     }
 
     // Test 5: SEO Config API
@@ -68,8 +71,8 @@ export default function TestSEO() {
         status: res.status === 200 ? '✅ PASS' : '❌ FAIL',
         details: `Status: ${res.status}`
       })
-    } catch (error: any) {
-      results.push({ test: 'SEO Config API', status: '❌ FAIL', details: error.message })
+    } catch (error) {
+      results.push({ test: 'SEO Config API', status: '❌ FAIL', details: (error as Error).message })
     }
 
     setTestResult(results)

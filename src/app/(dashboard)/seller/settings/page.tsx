@@ -63,7 +63,14 @@ export default function SellerSettingsPage() {
     confirmPassword: ''
   })
   
-  const [verificationFiles, setVerificationFiles] = useState<any[]>([])
+  interface VerificationFile {
+    id: string
+    name: string
+    type: string
+    url?: string
+    uploadedAt?: string
+  }
+  const [verificationFiles, setVerificationFiles] = useState<VerificationFile[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   
   // Load profile data on mount

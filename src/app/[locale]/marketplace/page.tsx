@@ -92,7 +92,16 @@ export default function MarketplacePage() {
   const locale = (params.locale as LanguageCode) || 'en'
   const dict = dictionaries[locale] || dictionaries.en
 
-  const [tasks, setTasks] = useState<any[]>([])
+  interface Task {
+    id: string
+    type: 'manufacturing' | 'product_sale' | 'service'
+    postedAt: string
+    title: string
+    description: string
+    budget?: string
+    applications?: number
+  }
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedType, setSelectedType] = useState('all')
   const [sortBy, setSortBy] = useState('newest')

@@ -220,8 +220,8 @@ export default function RegisterPage() {
 
       const redirectLang = language || 'en'
       router.push(`/${redirectLang}/auth/login?registered=true`)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      setError((err as Error).message || '注册失败')
     } finally {
       setLoading(false)
     }

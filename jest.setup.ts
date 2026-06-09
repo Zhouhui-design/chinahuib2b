@@ -33,7 +33,7 @@ if (typeof Response === 'undefined') {
     clone() { return this }
 
     // Static method needed by NextResponse.json()
-    static json(data: any, init?: ResponseInit) {
+    static json(data: unknown, init?: ResponseInit) {
       return new Response(JSON.stringify(data), {
         ...init,
         headers: {
@@ -42,7 +42,7 @@ if (typeof Response === 'undefined') {
         },
       })
     }
-  } as any
+  } as typeof globalThis.Response
 }
 
 global.Headers = global.Headers || class Headers {

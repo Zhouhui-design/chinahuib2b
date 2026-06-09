@@ -106,7 +106,14 @@ function ChatHallContent() {
   }
   
   const [mounted, setMounted] = useState(false)
-  const [session, setSession] = useState<any>(null)
+  interface ChatSession {
+    user?: {
+      id: string
+      name?: string
+      avatar?: string
+    }
+  }
+  const [session, setSession] = useState<ChatSession | null>(null)
   const [status, setStatus] = useState<string>('loading')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)

@@ -21,7 +21,13 @@ import { abTesting } from '@/lib/ab-testing'
 
 export default function ABTestingDashboard() {
   const [selectedExperiment, setSelectedExperiment] = useState<string | null>(null)
-  const [results, setResults] = useState<any[]>([])
+  
+  interface ExperimentResult {
+    variantId: string
+    totalUsers: number
+    conversionRate: number
+  }
+  const [results, setResults] = useState<ExperimentResult[]>([])
 
   // Load results when experiment is selected
   useEffect(() => {

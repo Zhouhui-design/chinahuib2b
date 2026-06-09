@@ -79,14 +79,18 @@ export default function MonitoringDashboard() {
 
   // Initial fetch and auto-refresh
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
-      fetchMonitoringData()
-      
-      if (autoRefresh) {
-        const interval = setInterval(fetchMonitoringData, 30000) // Refresh every 30 seconds
-        return () => clearInterval(interval)
+    const handleFetch = async () => {
+      if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
+        await fetchMonitoringData()
+        
+        if (autoRefresh) {
+          const interval = setInterval(fetchMonitoringData, 30000) // Refresh every 30 seconds
+          return () => clearInterval(interval)
+        }
       }
     }
+    
+    void handleFetch()
   }, [status, session, autoRefresh])
 
   if (status === 'loading' || loading) {
