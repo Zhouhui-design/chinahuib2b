@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { getDictionary } from '@/locales/dictionary'
@@ -62,9 +62,18 @@ function LoginForm() {
         throw new Error(result.error)
       }
 
-      // Redirect to home page or callback URL
-      const callbackUrl = searchParams.get('callbackUrl') || '/'
-      router.push(callbackUrl)
+      // Get session to check user role
+      const session = await getSession()
+      
+      // Redirect based on user role
+      let redirectUrl = searchParams.get('callbackUrl') || '/'
+      
+      // If user is admin, redirect to admin dashboard
+      if (session?.user?.role === 'ADMIN') {
+        redirectUrl = '/admin'
+      }
+      
+      router.push(redirectUrl)
       router.refresh()
     } catch (err) {
       setError((err as Error).message || '登录失败')
