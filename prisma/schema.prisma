@@ -172,16 +172,23 @@ enum SubscriptionStatus {
 
 // Product categories (3-level hierarchy)
 model Category {
-  id       String     @id @default(cuid())
-  name     String
-  nameEn   String?
-  slug     String     @unique
-  level    Int // 1, 2, or 3
-  parentId String?
-  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children Category[] @relation("CategoryHierarchy")
+  id          String     @id @default(cuid())
+  name        String
+  nameEn      String?
+  slug        String     @unique
+  level       Int // 1, 2, or 3
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  
+  model       String?    // Model (型号)
+  modelEn     String?    // Model (English)
+  series      String?    // Series (系列)
+  seriesEn    String?    // Series (English)
+  description String?    // Description (分类描述)
+  descriptionEn String?  // Description (English)
 
-  products Product[]
+  products    Product[]
 
   @@index([slug])
   @@index([parentId])

@@ -15,6 +15,12 @@ export async function GET(request: Request) {
         slug: true,
         level: true,
         parentId: true,
+        model: true,
+        modelEn: true,
+        series: true,
+        seriesEn: true,
+        description: true,
+        descriptionEn: true,
       },
       orderBy: { name: 'asc' }
     })
@@ -27,6 +33,12 @@ export async function GET(request: Request) {
       slug: cat.slug,
       level: cat.level,
       parentId: cat.parentId,
+      model: cat.model,
+      modelEn: cat.modelEn,
+      series: cat.series,
+      seriesEn: cat.seriesEn,
+      description: cat.description,
+      descriptionEn: cat.descriptionEn,
     }))
 
     return NextResponse.json({

@@ -56,6 +56,14 @@ export const authOptions: AuthOptions = {
         session.user.role = token.role as string
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // Allow callback URLs to admin dashboard
+      if (url.startsWith('/admin')) {
+        return url
+      }
+      // Default redirect to admin dashboard after login
+      return '/admin'
     }
   },
   pages: {

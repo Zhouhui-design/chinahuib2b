@@ -22,21 +22,19 @@ function LoginForm() {
     setError('')
     setLoading(true)
 
+    const callbackUrl = searchParams.get('callbackUrl') || '/admin'
+    
     try {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: callbackUrl,
       })
 
       if (result?.error) {
         throw new Error(result.error)
       }
-
-      // Redirect to admin dashboard or callback URL
-      const callbackUrl = searchParams.get('callbackUrl') || '/admin'
-      router.push(callbackUrl)
-      router.refresh()
     } catch (err) {
       setError((err as Error).message || '登录失败')
     } finally {
