@@ -2,14 +2,9 @@
 
 import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter, useSearchParams, useParams } from 'next/navigation'
-import Link from 'next/link'
-import { getDictionary } from '@/locales/dictionary'
-import type { LanguageCode } from '@/lib/languages'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-function LoginForm() {
-  const params = useParams()
-  const locale = params.locale as LanguageCode
+function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
@@ -19,44 +14,19 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const registered = searchParams.get('registered')
-
-  // Simple translations
-  const t = {
-    title: locale === 'zh' ? '登录您的账户' : 
-           locale === 'ar' ? 'تسجيل الدخول إلى حسابك' :
-           locale === 'es' ? 'Iniciar sesión en su cuenta' :
-           locale === 'fr' ? 'Connectez-vous à votre compte' :
-           locale === 'de' ? 'Melden Sie sich bei Ihrem Konto an' :
-           locale === 'ja' ? 'アカウントにログイン' :
-           locale === 'ko' ? '계정에 로그인' :
-           locale === 'ru' ? 'Войдите в свой аккаунт' :
-           locale === 'pt' ? 'Entre na sua conta' :
-           locale === 'hi' ? 'अपने खाते में साइन इन करें' :
-           locale === 'th' ? 'เข้าสู่ระบบบัญชีของคุณ' :
-           locale === 'vi' ? 'Đăng nhập vào tài khoản của bạn' :
-           'Sign in to your account',
-    or: locale === 'zh' ? '或' : 'Or',
-    createAccount: locale === 'zh' ? '创建新账户' : 'create a new account',
-    email: locale === 'zh' ? '邮箱地址' : 'Email address',
-    password: locale === 'zh' ? '密码' : 'Password',
-    signIn: locale === 'zh' ? '登录' : 'Sign in',
-    signingIn: locale === 'zh' ? '登录中...' : 'Signing in...',
-    registrationSuccess: locale === 'zh' ? '注册成功！请登录。' : 'Registration successful! Please sign in.',
-    forgotPassword: locale === 'zh' ? '忘记密码？' : 'Forgot Password?',
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
+      const callbackUrl = searchParams.get('callbackUrl') || '/admin'
+      
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: true,
-        callbackUrl: searchParams.get('callbackUrl') || `/${locale}`,
+        callbackUrl: callbackUrl,
       })
 
       if (result?.error) {
@@ -72,15 +42,18 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t.title}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            管理员登录
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t.or}{' '}
-            <Link href={`/${locale}/auth/register`} className="font-medium text-blue-600 hover:text-blue-500">
-              {t.createAccount}
-            </Link>
+          <p className="mt-2 text-sm text-gray-600">
+            请输入您的管理员账号信息
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -89,34 +62,29 @@ function LoginForm() {
               {error}
             </div>
           )}
-          {registered && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-              {t.registrationSuccess}
-            </div>
-          )}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email" className="sr-only">{t.email}</label>
+              <label htmlFor="email" className="sr-only">邮箱地址</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder={t.email}
+                placeholder="邮箱地址"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">{t.password}</label>
+              <label htmlFor="password" className="sr-only">密码</label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder={t.password}
+                placeholder="密码"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
@@ -124,12 +92,12 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center justify-end">
-            <Link
-              href={`/${locale}/auth/forgot-password`}
+            <a
+              href="/en/auth/forgot-password"
               className="text-sm font-medium text-blue-600 hover:text-blue-500"
             >
-              {t.forgotPassword}
-            </Link>
+              忘记密码？
+            </a>
           </div>
 
           <div>
@@ -138,7 +106,7 @@ function LoginForm() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? t.signingIn : t.signIn}
+              {loading ? '登录中...' : '登录'}
             </button>
           </div>
         </form>
@@ -147,10 +115,10 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <LoginForm />
+      <AdminLoginForm />
     </Suspense>
   )
 }

@@ -58,16 +58,8 @@ export const authOptions: AuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Allow callback URLs to admin dashboard
-      if (url.startsWith('/admin')) {
-        return url
-      }
-      // Default redirect to admin dashboard after login
-      return '/admin'
+      return url.startsWith('/admin') ? url : '/'
     }
-  },
-  pages: {
-    signIn: "/auth/login",
   },
   session: {
     strategy: "jwt" as const,
