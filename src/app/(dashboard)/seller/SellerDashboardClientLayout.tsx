@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu } from 'lucide-react'
+import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot } from 'lucide-react'
 import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
+import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 type SellerDashboardClientLayoutProps = {
   children: React.ReactNode
@@ -401,6 +402,30 @@ export default function SellerDashboardClientLayout({
               >
                 <Building2 className="w-5 h-5 mr-3" />
                 {t.booths}
+              </Link>
+              
+              <Link
+                href="/seller/ai-accounts"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/ai-accounts')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Bot className="w-5 h-5 mr-3" />
+                {language === 'zh' ? 'AI 账号' :
+                 language === 'ja' ? 'AIアカウント' :
+                 language === 'ar' ? 'حسابات AI' :
+                 language === 'es' ? 'Cuentas AI' :
+                 language === 'fr' ? 'Comptes AI' :
+                 language === 'de' ? 'AI-Konten' :
+                 language === 'ko' ? 'AI 계정' :
+                 language === 'ru' ? 'AI-аккаунты' :
+                 language === 'pt' ? 'Contas AI' :
+                 language === 'hi' ? 'AI खाते' :
+                 language === 'th' ? 'บัญชี AI' :
+                 language === 'vi' ? 'Tài khoản AI' :
+                 'AI Accounts'}
               </Link>
               
               <Link

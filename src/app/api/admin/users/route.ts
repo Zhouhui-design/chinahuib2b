@@ -58,8 +58,7 @@ export async function GET(request: NextRequest) {
           lastLoginAt: true,
           _count: {
             select: {
-              products: true,
-              sellerProfile: true,
+              inquiries: true,
             }
           }
         },

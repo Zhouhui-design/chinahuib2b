@@ -39,8 +39,7 @@ export async function GET(
         updatedAt: true,
         _count: {
           select: {
-            products: true,
-            sellerProfile: true,
+            inquiries: true,
           }
         }
       }

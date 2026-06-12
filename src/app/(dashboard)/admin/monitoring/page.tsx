@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { 
   AlertTriangle, 
   Activity, 
@@ -45,19 +43,10 @@ interface MonitoringOverview {
 }
 
 export default function MonitoringDashboard() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
   const [overview, setOverview] = useState<MonitoringOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
-
-  // Check admin access
-  useEffect(() => {
-    if (status === 'unauthenticated' || (status === 'authenticated' && session?.user?.role !== 'ADMIN')) {
-      router.push('/auth/login')
-    }
-  }, [session, status, router])
 
   // Fetch monitoring data
   const fetchMonitoringData = async () => {
@@ -80,20 +69,18 @@ export default function MonitoringDashboard() {
   // Initial fetch and auto-refresh
   useEffect(() => {
     const handleFetch = async () => {
-      if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
-        await fetchMonitoringData()
-        
-        if (autoRefresh) {
-          const interval = setInterval(fetchMonitoringData, 30000) // Refresh every 30 seconds
-          return () => clearInterval(interval)
-        }
+      await fetchMonitoringData()
+      
+      if (autoRefresh) {
+        const interval = setInterval(fetchMonitoringData, 30000) // Refresh every 30 seconds
+        return () => clearInterval(interval)
       }
     }
     
     void handleFetch()
-  }, [status, session, autoRefresh])
+  }, [autoRefresh])
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

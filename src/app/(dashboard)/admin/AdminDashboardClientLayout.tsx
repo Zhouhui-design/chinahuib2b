@@ -3,16 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { Settings, BarChart3, LogOut, HelpCircle, Globe, FileText, Tag, Home, ChevronRight, Menu, Users, Folder } from 'lucide-react'
 
 type AdminDashboardClientLayoutProps = {
   children: React.ReactNode
-  onSignOut: () => void
 }
 
 export default function AdminDashboardClientLayout({ 
-  children, 
-  onSignOut 
+  children 
 }: AdminDashboardClientLayoutProps) {
   const pathname = usePathname()
   const [showQuickMenu, setShowQuickMenu] = useState(false)
@@ -63,7 +62,7 @@ export default function AdminDashboardClientLayout({
                 查看公开网站
               </Link>
               <button
-                onClick={onSignOut}
+                onClick={() => signOut({ callbackUrl: '/' })}
                 className="flex items-center text-sm text-gray-600 hover:text-red-600"
               >
                 <LogOut className="w-4 h-4 mr-1" />

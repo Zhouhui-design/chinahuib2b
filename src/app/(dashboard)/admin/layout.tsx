@@ -17,12 +17,8 @@ export default async function AdminLayout({
     redirect('/')
   }
 
-  const signOutAction = async () => {
-    window.location.href = '/api/auth/signout?callbackUrl=/'
-  }
-
   return (
-    <AdminDashboardClientLayout onSignOut={signOutAction}>
+    <AdminDashboardClientLayout>
       {children}
     </AdminDashboardClientLayout>
   )

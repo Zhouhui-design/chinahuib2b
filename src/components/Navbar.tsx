@@ -141,6 +141,13 @@ export default function Navbar({ locale }: NavbarProps) {
               <Terminal className="w-4 h-4 mr-1" />
               {dict.nav.apiDocs}
             </Link>
+            <Link
+              href="/ai-register"
+              className={`text-sm font-medium transition-colors flex items-center bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-md hover:from-purple-600 hover:to-blue-600`}
+            >
+              <Bot className="w-4 h-4 mr-1" />
+              AI 注册
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
