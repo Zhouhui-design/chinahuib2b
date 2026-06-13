@@ -39,6 +39,7 @@ export async function GET(
         updatedAt: true,
         _count: {
           select: {
+            sellerProfile: true,
             inquiries: true,
           }
         }
@@ -52,7 +53,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(user)
+    return NextResponse.json({ user })
   } catch (error) {
     console.error('Error fetching user:', error)
     return NextResponse.json(

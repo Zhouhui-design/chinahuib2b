@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
+import type { LanguageCode } from '@/lib/languages'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [language, setLanguage] = useState('en')
+  const params = useParams()
+  const language = params.locale as LanguageCode || 'en'
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -15,14 +18,7 @@ export default function RegisterPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    const cookies = document.cookie.split(';')
-    const langCookie = cookies.find(c => c.trim().startsWith('language='))
-    if (langCookie) {
-      setLanguage(langCookie.split('=')[1])
-    }
-  }, [])
+  const [showPassword, setShowPassword] = useState(false)
 
   const t = {
     title: language === 'zh' ? '创建您的账户' :
@@ -155,6 +151,19 @@ export default function RegisterPage() {
                    language === 'th' ? '⚠️ นโยบายกิจกรรมบัญชี: บัญชีที่ไม่ใช้งาน 365 วันจะถูกปิดใช้งาน กรุณาล็อกอินเป็นประจำเพื่อให้บัญชีของคุณทำงานอยู่' :
                    language === 'vi' ? '⚠️ Chính sách hoạt động tài khoản: Tài khoản không hoạt động trong 365 ngày sẽ bị vô hiệu hóa. Vui lòng đăng nhập thường xuyên để giữ tài khoản của bạn hoạt động.' :
                    '⚠️ Account Activity Policy: Accounts inactive for 365 days will be deactivated. Please log in regularly to keep your account active.',
+    loginTip: language === 'zh' ? '💡 温馨提示：本平台支持用户名和邮箱登录，两者至少填写一项（建议都填写）。填写真实邮箱可接收平台公告及找回密码（忘记密码时可通过邮箱找回）。' :
+              language === 'ja' ? '💡 注意：当社プラットフォームはユーザー名とメールアドレスでのログインをサポートしています。少なくともいずれか一方を入力してください（両方入力することをお勧めします）。実際のメールアドレスを入力すると、プラットフォームからのお知らせを受け取ったり、パスワードをリセットしたりできます（パスワードを忘れた場合、メールアドレスからリセットできます）。' :
+              language === 'ar' ? '💡 ملاحظة: منصةنا تدعم تسجيل الدخول باستخدام اسم المستخدم والعنوان البريدي. أملأ على الأقل أحدهما (يوصى بملء كليهما). يمكنك تلقي الإعلانات من المنصة واستعادة كلمة المرور (عند نسيان كلمة المرور يمكن استعادتها من خلال البريد الإلكتروني) عند ملء عنوان بريد إلكتروني حقيقي.' :
+              language === 'es' ? '💡 Consejo: Nuestra plataforma admite inicio de sesión con nombre de usuario y correo electrónico. Rellene al menos uno de ellos (se recomienda rellenar ambos). Al introducir un correo electrónico real, podrá recibir anuncios de la plataforma y recuperar la contraseña (si olvida la contraseña, podrá recuperarla a través del correo electrónico).' :
+              language === 'fr' ? '💡 Conseil: Notre plateforme prend en charge la connexion avec nom d\'utilisateur et adresse e-mail. Veuillez remplir au moins l\'un d\'eux (il est recommandé de remplir les deux). En renseignant une adresse e-mail réelle, vous pouvez recevoir les annonces de la plateforme et récupérer votre mot de passe (si vous oubliez votre mot de passe, vous pouvez le récupérer par e-mail).' :
+              language === 'de' ? '💡 Tipp: Unsere Plattform unterstützt die Anmeldung mit Benutzername und E-Mail. Bitte füllen Sie mindestens eines davon aus (es wird empfohlen, beide auszufüllen). Durch Eingabe einer echten E-Mail-Adresse können Sie Plattformankündigungen erhalten und Ihr Passwort zurücksetzen (wenn Sie Ihr Passwort vergessen haben, können Sie es über E-Mail zurücksetzen).' :
+              language === 'ko' ? '💡 안내: 본 플랫폼은 사용자 이름과 이메일로 로그인을 지원합니다. 둘 중 하나 이상을 입력하세요 (둘 다 입력하는 것이 좋습니다). 실제 이메일을 입력하면 플랫폼 공지사항을 받을 수 있고 비밀번호를 찾을 수 있습니다 (비밀번호를 잊은 경우 이메일을 통해 찾을 수 있습니다).' :
+              language === 'ru' ? '💡 Советы: Наша платформа поддерживает вход по имени пользователя и электронной почте. Пожалуйста, заполните хотя бы одно из полей (рекомендуется заполнить оба). При указании реальной электронной почты вы можете получать уведомления платформы и восстанавливать пароль (если вы забудете пароль, вы можете восстановить его по электронной почте).' :
+              language === 'pt' ? '💡 Dica: Nossa plataforma suporta login com nome de usuário e e-mail. Preencha pelo menos um deles (recomenda-se preencher ambos). Ao inserir um e-mail real, você poderá receber anúncios da plataforma e recuperar sua senha (se você esquecer sua senha, poderá recuperá-la por e-mail).' :
+              language === 'hi' ? '💡 टिप्पणी: हमारा प्लेटफॉर्म उपयोगकर्ता नाम और ईमेल के साथ लॉगिन का समर्थन करता है। कम से कम एक को भरें (दोनों को भरने की सिफारिश की जाती है)। वास्तविक ईमेल डालकर आप प्लेटफॉर्म की घोषणाएं प्राप्त कर सकते हैं और पासवर्ड पुनर्प्राप्त कर सकते हैं (यदि आप पासवर्ड भूल जाते हैं, तो आप ईमेल के माध्यम से इसे पुनर्प्राप्त कर सकते हैं)।' :
+              language === 'th' ? '💡 คำแนะนำ: แพลตฟอร์มของเรารองรับการเข้าสู่ระบบด้วยชื่อผู้ใช้และอีเมล กรุณากรอกอย่างน้อยหนึ่งรายการ (ขอแนะนำให้กรอกทั้งสองรายการ) เมื่อป้อนอีเมลจริง คุณสามารถรับข่าวประชาสัมพันธ์จากแพลตฟอร์มและเรียกคืนรหัสผ่าน (หากคุณลืมรหัสผ่าน คุณสามารถเรียกคืนได้ผ่านอีเมล)' :
+              language === 'vi' ? '💡 Lưu ý: Nền tảng của chúng tôi hỗ trợ đăng nhập bằng tên người dùng và email. Vui lòng điền ít nhất một trong hai (khuyến nghị điền cả hai). Khi điền email thực tế, bạn có thể nhận thông báo từ nền tảng và lấy lại mật khẩu (nếu bạn quên mật khẩu, bạn có thể lấy lại qua email).' :
+              '💡 Tip: Our platform supports login with username and email. Please fill in at least one of them (recommended to fill both). By entering a real email, you can receive platform announcements and retrieve your password (if you forget your password, you can retrieve it via email).',
     creatingAccount: language === 'zh' ? '正在创建账户...' :
                      language === 'ja' ? 'アカウント作成中...' :
                      language === 'ar' ? 'جارٍ إنشاء الحساب...' :
@@ -276,16 +285,25 @@ export default function RegisterPage() {
             </div>
             <div>
               <label htmlFor="password" className="sr-only">{t.passwordPlaceholder}</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder={t.passwordPlaceholder}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder={t.passwordPlaceholder}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
             <div>
               <label htmlFor="role" className="sr-only">{t.accountType}</label>
@@ -300,6 +318,10 @@ export default function RegisterPage() {
                 <option value="SELLER">{t.sellerOption}</option>
               </select>
             </div>
+          </div>
+
+          <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded border border-blue-200">
+            {t.loginTip}
           </div>
 
           <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded">

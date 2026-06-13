@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 import { getDictionary } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
 
@@ -18,6 +19,7 @@ function LoginForm() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const registered = searchParams.get('registered')
   const urlError = searchParams.get('error')
@@ -54,7 +56,19 @@ function LoginForm() {
            'Sign in to your account',
     or: locale === 'zh' ? '或' : 'Or',
     createAccount: locale === 'zh' ? '创建新账户' : 'create a new account',
-    email: locale === 'zh' ? '邮箱地址' : 'Email address',
+    email: locale === 'zh' ? '邮箱地址或用户名' : 
+           locale === 'ar' ? 'عنوان البريد الإلكتروني أو اسم المستخدم' :
+           locale === 'es' ? 'Dirección de correo electrónico o nombre de usuario' :
+           locale === 'fr' ? 'Adresse e-mail ou nom d\'utilisateur' :
+           locale === 'de' ? 'E-Mail-Adresse oder Benutzername' :
+           locale === 'ja' ? 'メールアドレスまたはユーザー名' :
+           locale === 'ko' ? '이메일 주소 또는 사용자 이름' :
+           locale === 'ru' ? 'Адрес электронной почты или имя пользователя' :
+           locale === 'pt' ? 'Endereço de e-mail ou nome de usuário' :
+           locale === 'hi' ? 'ईमेल पता या उपयोगकर्ता नाम' :
+           locale === 'th' ? 'ที่อยู่อีเมลหรือชื่อผู้ใช้' :
+           locale === 'vi' ? 'Địa chỉ email hoặc tên người dùng' :
+           'Email address or username',
     password: locale === 'zh' ? '密码' : 'Password',
     signIn: locale === 'zh' ? '登录' : 'Sign in',
     signingIn: locale === 'zh' ? '登录中...' : 'Signing in...',
@@ -133,7 +147,7 @@ function LoginForm() {
               <input
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder={t.email}
@@ -143,16 +157,25 @@ function LoginForm() {
             </div>
             <div>
               <label htmlFor="password" className="sr-only">{t.password}</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder={t.password}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder={t.password}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -1,29 +1,80 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { notFound, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { languages, type LanguageCode } from '@/lib/languages';
 import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
+import { useState, useEffect } from 'react';
+import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
   params: Promise<{ locale: LanguageCode }>;
 };
 
-export async function generateStaticParams() {
-  return languages.map((lang) => ({
-    locale: lang.code,
-  }));
-}
+export default function LocaleLayout({ children, params }: LayoutProps) {
+  const pathname = usePathname();
+  const [locale, setLocale] = useState<LanguageCode>('en');
+  const [dict, setDict] = useState<Record<string, any> | null>(null);
+  const [user, setUser] = useState<{ id?: string; name?: string; email?: string; role?: string } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
-export default async function LocaleLayout({ children, params }: LayoutProps) {
-  const { locale } = await params;
-  const dict = await getDictionary(locale);
-  
-  // Validate locale
+  useEffect(() => {
+    const fetchData = async () => {
+      const { locale: lang } = await params;
+      setLocale(lang);
+      const dictionary = await getDictionary(lang);
+      setDict(dictionary);
+    };
+    fetchData();
+  }, [params]);
+
+  useEffect(() => {
+    const fetchSession = () => {
+      fetch('/api/auth/session')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.user) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        })
+        .catch(err => console.error('Failed to fetch session:', err));
+    };
+
+    fetchSession();
+
+    const handleFocus = () => fetchSession();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   const isValidLocale = languages.some(lang => lang.code === locale);
   if (!isValidLocale) {
     notFound();
   }
+
+  if (!dict) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  const getPathWithoutLocale = (path: string) => {
+    const segments = path.split('/').filter(Boolean);
+    const firstSegment = segments[0];
+    const isLocale = ['en', 'zh', 'es', 'fr', 'de', 'ja', 'ko', 'ar', 'ru', 'pt', 'hi', 'th', 'vi'].includes(firstSegment);
+    return isLocale ? '/' + segments.slice(1).join('/') : path;
+  };
+
+  const currentPath = getPathWithoutLocale(pathname);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,78 +91,234 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             </Link>
 
             {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link href={`/${locale}`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+            <div className="hidden md:flex items-center space-x-6">
+              <Link
+                href={`/${locale}`}
+                className={`text-sm font-medium transition-colors ${
+                  currentPath === '/' ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 {dict.nav.home}
               </Link>
-              <Link href={`/${locale}/products`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+              <Link
+                href={`/${locale}/products`}
+                className={`text-sm font-medium transition-colors ${
+                  currentPath.startsWith('/products') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 {dict.nav.products}
               </Link>
-              <Link href={`/${locale}/stores`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+              <Link
+                href={`/${locale}/stores`}
+                className={`text-sm font-medium transition-colors ${
+                  currentPath.startsWith('/stores') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 {dict.nav.exhibitors}
               </Link>
-              <Link href={`/${locale}/chat-hall`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+              <Link
+                href={`/${locale}/chat-hall`}
+                className={`text-sm font-medium transition-colors flex items-center ${
+                  currentPath.startsWith('/chat-hall') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <MessageCircle className="w-4 h-4 mr-1" />
                 {dict.nav.chatHall}
               </Link>
-              <Link href={`/${locale}/marketplace`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+              <Link
+                href={`/${locale}/marketplace`}
+                className={`text-sm font-medium transition-colors flex items-center ${
+                  currentPath.startsWith('/marketplace') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <BookOpen className="w-4 h-4 mr-1" />
                 {dict.nav.marketplace}
               </Link>
-              <Link href={`/${locale}/auction-screen`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                </svg>
+              <Link
+                href={`/${locale}/auction-screen`}
+                className={`text-sm font-medium transition-colors flex items-center ${
+                  currentPath.startsWith('/auction-screen') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <Gavel className="w-4 h-4 mr-1" />
                 {dict.nav.auction}
               </Link>
-              <Link href={`/${locale}/api-docs`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4m0-2v2m0 16V5m0 16H9m3 0h3" />
-                </svg>
+              <Link
+                href={`/${locale}/api-docs`}
+                className={`text-sm font-medium transition-colors flex items-center ${
+                  currentPath.startsWith('/api-docs') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
+                <Terminal className="w-4 h-4 mr-1" />
                 {dict.nav.api}
               </Link>
-              <Link href={`/${locale}/wallet`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {dict.nav.wallet}
-              </Link>
-              <Link href={`/${locale}/notifications`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {dict.nav.notifications}
-              </Link>
-              <Link href="/seller" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                {dict.nav.sellerPortal}
+              <Link
+                href={`/${locale}/ai-register`}
+                className="text-sm font-medium transition-colors flex items-center bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-md hover:from-purple-600 hover:to-blue-600"
+              >
+                <Bot className="w-4 h-4 mr-1" />
+                {dict.nav.aiRegister}
               </Link>
             </div>
 
             {/* Right side - Language Switcher & Auth */}
             <div className="flex items-center space-x-4">
               <LanguageSwitcher currentLocale={locale} />
-              
-              <div className="flex items-center space-x-3">
+
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:block">{dict.nav.profile}</span>
+                  </button>
+
+                  {showUserMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowUserMenu(false)}
+                      />
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                        <div className="px-4 py-2 border-b border-gray-200">
+                          <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
+                          <p className="text-xs text-gray-500">{user.role}</p>
+                        </div>
+
+                        <Link
+                          href={`/${locale}/buyer/profile`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <UserCircle className="w-4 h-4 mr-2" />
+                          {dict.nav.profile}
+                        </Link>
+
+                        <Link
+                          href={`/${locale}/buyer/settings`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Settings className="w-4 h-4 mr-2" />
+                          {dict.nav.accountSettings}
+                        </Link>
+
+                        <Link
+                          href={`/${locale}/buyer/finances`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <DollarSign className="w-4 h-4 mr-2" />
+                          {dict.nav.finances}
+                        </Link>
+
+                        <div className="border-t border-gray-200 my-1" />
+
+                        <Link
+                          href={`/${locale}/chat-hall`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          {dict.nav.chatAccount}
+                        </Link>
+
+                        <Link
+                          href={`/${locale}/marketplace`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <ShoppingBag className="w-4 h-4 mr-2" />
+                          {dict.nav.marketplace}
+                        </Link>
+
+                        <Link
+                          href={`/${locale}/auction-screen`}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <Gavel className="w-4 h-4 mr-2" />
+                          {dict.nav.auction}
+                        </Link>
+
+                        {user.role === 'SELLER' && (
+                          <>
+                            <div className="border-t border-gray-200 my-1" />
+                            <Link
+                              href="/seller"
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Store className="w-4 h-4 mr-2" />
+                              {dict.nav.myStore}
+                            </Link>
+                            <Link
+                              href="/seller/ai-management"
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Bot className="w-4 h-4 mr-2" />
+                              {dict.nav.aiAgents}
+                            </Link>
+                          </>
+                        )}
+
+                        {user.role === 'ADMIN' && (
+                          <>
+                            <div className="border-t border-gray-200 my-1" />
+                            <Link
+                              href="/admin"
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setShowUserMenu(false)}
+                            >
+                              <Settings className="w-4 h-4 mr-2" />
+                              Admin Panel
+                            </Link>
+                          </>
+                        )}
+
+                        <div className="border-t border-gray-200 my-1" />
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`;
+                          }}
+                          className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          {dict.nav.signOut}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="hidden sm:flex items-center space-x-3">
+                  <Link
+                    href={`/${locale}/auth/login`}
+                    className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  >
+                    {dict.nav.login}
+                  </Link>
+                  <Link
+                    href={`/${locale}/auth/register`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    {dict.nav.register}
+                  </Link>
+                </div>
+              )}
+
+              {!user && (
                 <Link
-                  href={`/${locale}/auth/login`}
-                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  href="/seller"
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm"
                 >
-                  {dict.nav.login}
+                  {dict.nav.sellerPortal}
                 </Link>
-                <Link
-                  href={`/${locale}/auth/register`}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  {dict.nav.register}
-                </Link>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -144,6 +351,33 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
           <Link href="/seller" className="block text-sm font-medium text-orange-600 hover:text-orange-700 py-2">
             {dict.nav.sellerPortal}
           </Link>
+          {user && (
+            <>
+              <div className="border-t border-gray-200 my-2" />
+              <Link href={`/${locale}/buyer/profile`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+                {dict.nav.profile}
+              </Link>
+              <button
+                onClick={() => {
+                  window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`;
+                }}
+                className="block text-sm font-medium text-red-600 py-2"
+              >
+                {dict.nav.signOut}
+              </button>
+            </>
+          )}
+          {!user && (
+            <>
+              <div className="border-t border-gray-200 my-2" />
+              <Link href={`/${locale}/auth/login`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
+                {dict.nav.login}
+              </Link>
+              <Link href={`/${locale}/auth/register`} className="block text-sm font-medium text-blue-600 hover:text-blue-700 py-2">
+                {dict.nav.register}
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

@@ -7,10 +7,37 @@ import { checkPasswordBreach, getPasswordStrength } from "@/lib/password-securit
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  username: z.string(),
   password: z.string().min(8, "Password must be at least 8 characters"),
   role: z.enum(["BUYER", "SELLER"]).optional().default("BUYER"),
 })
+
+function validateUsername(username: string): { valid: boolean; error?: string } {
+  // Trim trailing spaces
+  const trimmed = username.trimEnd()
+  
+  // Check if empty after trimming
+  if (trimmed.length === 0) {
+    return { valid: false, error: "Username cannot be empty" }
+  }
+  
+  // Check length (1-8 characters)
+  if (trimmed.length < 1 || trimmed.length > 8) {
+    return { valid: false, error: "Username must be 1-8 characters long" }
+  }
+  
+  // Single character cannot be a space
+  if (trimmed.length === 1 && trimmed === " ") {
+    return { valid: false, error: "Single character username cannot be a space" }
+  }
+  
+  // First character cannot be a space for multi-character usernames
+  if (trimmed.length > 1 && trimmed[0] === " ") {
+    return { valid: false, error: "Username cannot start with a space" }
+  }
+  
+  return { valid: true }
+}
 
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
@@ -33,36 +60,72 @@ export async function POST(request: NextRequest) {
     
     const { email, username, password, role } = validation.data
 
-    const normalizedEmail = email.toLowerCase().trim()
-
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: normalizedEmail },
-          { username }
-        ]
-      }
-    })
-    
-    if (existingUser) {
+    // Validate username with custom rules
+    const usernameValidation = validateUsername(username)
+    if (!usernameValidation.valid) {
       return NextResponse.json(
-        { error: "Email or username already exists" },
+        { error: usernameValidation.error },
         { status: 400 }
       )
     }
+    
+    // Clean username: trim trailing spaces only
+    const cleanedUsername = username.trimEnd()
+    
+    const normalizedEmail = email.toLowerCase().trim()
 
-    // Check password breach
-    const breachCheck = await checkPasswordBreach(password)
-    if (breachCheck.isBreached) {
+    // Check existing username with cleaned version
+    const existingEmail = await prisma.user.findFirst({
+      where: { email: normalizedEmail }
+    })
+    
+    const existingUsername = await prisma.user.findFirst({
+      where: { username: cleanedUsername }
+    })
+    
+    if (existingEmail && existingUsername) {
       return NextResponse.json(
-        {
-          error: "Password security issue detected",
-          details: breachCheck.message,
-          warning: "Please choose a different password that hasn't been exposed in data breaches."
+        { 
+          error: "Both email and username already exist",
+          details: {
+            emailExists: true,
+            usernameExists: true,
+            message: "The email and username you entered are already registered. Please use different credentials."
+          }
+        },
+        { status: 400 }
+      )
+    } else if (existingEmail) {
+      return NextResponse.json(
+        { 
+          error: "Email already exists",
+          details: {
+            emailExists: true,
+            usernameExists: false,
+            message: "This email address is already registered. Please use a different email or log in with your existing account."
+          }
+        },
+        { status: 400 }
+      )
+    } else if (existingUsername) {
+      return NextResponse.json(
+        { 
+          error: "Username already exists",
+          details: {
+            emailExists: false,
+            usernameExists: true,
+            message: "This username is already taken. Please choose a different username."
+          }
         },
         { status: 400 }
       )
     }
+
+    // Check password breach (warn only, don't block)
+    const breachCheck = await checkPasswordBreach(password)
+    const passwordWarning = breachCheck.isBreached 
+      ? `Warning: This password has been exposed in ${breachCheck.count.toLocaleString()} data breaches. Consider choosing a more secure password.`
+      : null
 
     // Check password strength
     const strength = getPasswordStrength(password)
@@ -84,7 +147,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.create({
       data: {
         email: normalizedEmail,
-        username,
+        username: cleanedUsername,
         password: hashedPassword,
         role: role as any,
       },
@@ -114,6 +177,7 @@ export async function POST(request: NextRequest) {
           username: user.username,
           role: user.role,
         },
+        warning: passwordWarning,
       },
       { status: 201 }
     )

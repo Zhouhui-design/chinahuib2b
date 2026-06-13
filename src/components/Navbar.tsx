@@ -160,7 +160,7 @@ export default function Navbar({ locale }: NavbarProps) {
                   className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  <span className="hidden sm:block">{user.name || user.email}</span>
+                  <span className="hidden sm:block">{dict.nav.profile}</span>
                 </button>
                 
                 {showUserMenu && (

@@ -1,4 +1,4 @@
-// This migration adds model and series fields to Category model
+-- This migration adds model and series fields to Category model
 
 ALTER TABLE "Category" ADD COLUMN "model" TEXT;
 ALTER TABLE "Category" ADD COLUMN "modelEn" TEXT;

@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         isActive: !isAI, // AI accounts are active by default, human accounts need verification
         emailVerificationToken: !isAI ? verificationToken : null,
         emailVerified: isAI,
+        isAI: isAI, // Explicitly set AI flag
         ownerId: isAI ? ownerId : null,
       }
     })

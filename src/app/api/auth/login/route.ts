@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Email/username and password are required" },
         { status: 400 }
       )
     }
@@ -32,13 +32,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const input = email.toLowerCase().trim()
+    
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: input },
+          { username: input },
+        ],
+      },
     })
 
     if (!user || !user.password) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Invalid email/username or password" },
         { status: 401 }
       )
     }

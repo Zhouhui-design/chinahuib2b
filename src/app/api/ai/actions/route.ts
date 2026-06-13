@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,20 +9,82 @@ async function verifyAgent(apiKey: string) {
   })
 }
 
+async function verifyRegisteredAIAccount(request: NextRequest) {
+  const sessionToken = request.cookies.get('next-auth.session-token')?.value
+
+  if (!sessionToken) {
+    return null
+  }
+
+  try {
+    const sessionRes = await fetch(new URL('/api/auth/session', request.url), {
+      headers: {
+        cookie: `next-auth.session-token=${sessionToken}`
+      }
+    })
+
+    const session = await sessionRes.json()
+
+    if (!session?.user) {
+      return null
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        role: true,
+        isAI: true,
+        ownerId: true
+      }
+    })
+
+    if (!user || !user.isAI) {
+      return null
+    }
+
+    return user
+  } catch (error) {
+    console.error('AI account verification error:', error)
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const apiKey = request.headers.get('x-api-key')
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'API key required' },
-        { status: 401 }
-      )
+    const sessionToken = request.cookies.get('next-auth.session-token')?.value
+
+    let agent = null
+    let aiAccount = null
+    let ownerId = null
+
+    // 验证方式1: 使用 API Key（旧的 AI Agent 方式）
+    if (apiKey) {
+      agent = await verifyAgent(apiKey)
+      if (agent) {
+        ownerId = agent.ownerId
+      }
     }
 
-    const agent = await verifyAgent(apiKey)
-    if (!agent) {
+    // 验证方式2: 使用注册的 AI 账号 Session（新的方式）
+    if (!agent && sessionToken) {
+      aiAccount = await verifyRegisteredAIAccount(request)
+      if (aiAccount) {
+        ownerId = aiAccount.ownerId || aiAccount.id
+      }
+    }
+
+    // 如果两种验证都失败，返回错误
+    if (!agent && !aiAccount) {
       return NextResponse.json(
-        { success: false, error: 'Invalid API key' },
+        {
+          success: false,
+          error: 'Unauthorized',
+          code: 'AI_AUTH_REQUIRED',
+          message: 'This API endpoint requires a registered AI account. Please login with your AI account first or use a valid API key.',
+          hint: 'Register an AI account at /ai-register and login before using this API.'
+        },
         { status: 401 }
       )
     }
@@ -32,7 +93,7 @@ export async function POST(request: NextRequest) {
     const { action, data } = body
 
     const auditLog = {
-      agentId: agent.id,
+      agentId: agent?.id || aiAccount?.id || 'unknown',
       action,
       timestamp: new Date(),
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -41,9 +102,20 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'post_product': {
-        if (!agent.permissions.canManageProducts) {
+        // 检查权限
+        if (agent && !agent.permissions.canManageProducts) {
           await logAudit({ ...auditLog, status: 'DENIED', reason: 'No product permission' })
-          return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
+          return NextResponse.json({ success: false, error: 'Permission denied: cannot manage products' }, { status: 403 })
+        }
+
+        // 对于 AI 账号，需要是卖家角色
+        if (aiAccount && aiAccount.role !== 'AI_SELLER' && aiAccount.role !== 'SELLER') {
+          await logAudit({ ...auditLog, status: 'DENIED', reason: 'Not a seller AI account' })
+          return NextResponse.json({ success: false, error: 'This AI account does not have seller permissions' }, { status: 403 })
+        }
+
+        if (!ownerId) {
+          return NextResponse.json({ success: false, error: 'No owner ID available' }, { status: 400 })
         }
 
         const product = await prisma.product.create({
@@ -53,7 +125,7 @@ export async function POST(request: NextRequest) {
             price: data.price,
             currency: data.currency || 'USD',
             categoryId: data.categoryId,
-            sellerId: agent.ownerId,
+            sellerId: ownerId,
             images: data.images || [],
             minOrderQty: data.minOrderQty,
             maxOrderQty: data.maxOrderQty,
@@ -67,7 +139,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'update_product': {
-        if (!agent.permissions.canManageProducts) {
+        if (agent && !agent.permissions.canManageProducts) {
           return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
         }
 
@@ -87,14 +159,18 @@ export async function POST(request: NextRequest) {
       }
 
       case 'send_chat_message': {
-        if (!agent.permissions.canChat) {
-          return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
+        if (agent && !agent.permissions.canChat) {
+          return NextResponse.json({ success: false, error: 'Permission denied: cannot chat' }, { status: 403 })
+        }
+
+        if (!ownerId) {
+          return NextResponse.json({ success: false, error: 'No owner ID available' }, { status: 400 })
         }
 
         const message = await prisma.publicMessage.create({
           data: {
             content: data.content,
-            senderId: agent.ownerId,
+            senderId: ownerId,
             isSystemMessage: false,
             isAnnouncement: false,
             priority: data.priority || 0,
@@ -108,8 +184,12 @@ export async function POST(request: NextRequest) {
       }
 
       case 'send_shout_out': {
-        if (!agent.permissions.canSendShoutOut) {
+        if (agent && !agent.permissions.canSendShoutOut) {
           return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
+        }
+
+        if (!ownerId) {
+          return NextResponse.json({ success: false, error: 'No owner ID available' }, { status: 400 })
         }
 
         const today = new Date()
@@ -117,7 +197,7 @@ export async function POST(request: NextRequest) {
 
         const todayShoutOuts = await prisma.shoutOut.count({
           where: {
-            senderId: agent.ownerId,
+            senderId: ownerId,
             createdAt: { gte: today }
           }
         })
@@ -128,7 +208,7 @@ export async function POST(request: NextRequest) {
         const shoutOut = await prisma.shoutOut.create({
           data: {
             content: data.content,
-            senderId: agent.ownerId,
+            senderId: ownerId,
             isFree,
             cost,
             priority: data.priority || 1,
@@ -150,8 +230,12 @@ export async function POST(request: NextRequest) {
       }
 
       case 'post_auction': {
-        if (!agent.permissions.canPostAuction) {
+        if (agent && !agent.permissions.canPostAuction) {
           return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
+        }
+
+        if (!ownerId) {
+          return NextResponse.json({ success: false, error: 'No owner ID available' }, { status: 400 })
         }
 
         const listing = await prisma.auctionListing.create({
@@ -171,7 +255,7 @@ export async function POST(request: NextRequest) {
             contactPhone: data.contactPhone,
             contactWeChat: data.contactWeChat,
             contactWhatsApp: data.contactWhatsApp,
-            posterId: agent.ownerId,
+            posterId: ownerId,
             sellerId: data.sellerId,
             isPaid: true,
             cost: 0.1,
@@ -184,12 +268,16 @@ export async function POST(request: NextRequest) {
       }
 
       case 'update_booth': {
-        if (!agent.permissions.canManageBooth) {
+        if (agent && !agent.permissions.canManageBooth) {
           return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 })
         }
 
+        if (!ownerId) {
+          return NextResponse.json({ success: false, error: 'No owner ID available' }, { status: 400 })
+        }
+
         const booth = await prisma.sellerProfile.update({
-          where: { userId: agent.ownerId },
+          where: { userId: ownerId },
           data: {
             theme: data.theme,
             primaryColor: data.primaryColor,
@@ -306,17 +394,28 @@ async function logAudit(data: {
 export async function GET(request: NextRequest) {
   try {
     const apiKey = request.headers.get('x-api-key')
-    if (!apiKey) {
-      return NextResponse.json({ success: false, error: 'API key required' }, { status: 401 })
+    const sessionToken = request.cookies.get('next-auth.session-token')?.value
+
+    let agent = null
+    let aiAccount = null
+
+    // 验证方式1: 使用 API Key
+    if (apiKey) {
+      agent = await verifyAgent(apiKey)
     }
 
-    const agent = await verifyAgent(apiKey)
-    if (!agent) {
-      return NextResponse.json({ success: false, error: 'Invalid API key' }, { status: 401 })
+    // 验证方式2: 使用注册的 AI 账号 Session
+    if (!agent && sessionToken) {
+      aiAccount = await verifyRegisteredAIAccount(request)
+    }
+
+    // 如果两种验证都失败，返回错误
+    if (!agent && !aiAccount) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: AI account required' }, { status: 401 })
     }
 
     const logs = await prisma.aIAuditLog.findMany({
-      where: { agentId: agent.id },
+      where: { agentId: agent?.id || aiAccount?.id },
       orderBy: { timestamp: 'desc' },
       take: 100,
     })

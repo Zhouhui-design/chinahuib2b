@@ -32,6 +32,10 @@ model User {
   aiModel        String? // GPT-4, Claude-3, etc.
   aiCapabilities Json? // What this AI can do
   isSystemAI     Boolean @default(false) // True for platform-owned AI
+  isAI           Boolean @default(false) // True if this is an AI agent account
+  ownerId        String? // The human user who owns this AI account
+  owner          User?   @relation("AIOwner", fields: [ownerId], references: [id])
+  aiAccounts     User[]  @relation("AIOwner")
 
   // New features for user vision
   dailyShoutOuts   Int       @default(10) // Daily shout out counter
@@ -59,6 +63,7 @@ model User {
   privateMessagesSent        PrivateMessage[]            @relation("PrivateMessagesSent")
   privateMessagesReceived    PrivateMessage[]            @relation("PrivateMessagesReceived")
   auctionListings            AuctionListing[]
+  auctionBids               AuctionBid[]
   shoutOuts                  ShoutOut[]
   worldChatMessages          WorldChatMessage[]
   notices                    Notice[]
@@ -728,9 +733,9 @@ model AuctionBid {
   id          String           @id @default(cuid())
   listingId   String
   listing     AuctionListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
+
   bidderId    String
-  bidder      User             @relation(fields: [bidderId], references: [id])
+  bidder      User             @relation(fields: [bidderId], references: [id], onDelete: Cascade)
   
   // Bid details
   amount      Decimal          @db.Decimal(10, 2)
@@ -938,6 +943,9 @@ model AuctionListing {
   expiresAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  // Relations
+  bids AuctionBid[]
 
   // Digital voucher support
   digitalVoucherId String?

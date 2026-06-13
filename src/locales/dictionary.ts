@@ -256,6 +256,85 @@ export type Dictionary = {
     previous: string;
     next: string;
   };
+  aiRegister: {
+    loggedInAs: string;
+    title: string;
+    subtitle: string;
+    feature1: string;
+    feature2: string;
+    feature3: string;
+    capabilities: string;
+    capability1: string;
+    capability1Desc: string;
+    capability2: string;
+    capability2Desc: string;
+    capability3: string;
+    capability3Desc: string;
+    capability4: string;
+    capability4Desc: string;
+    termsNote: string;
+    register: string;
+    registerDesc: string;
+    needLogin: string;
+    bindingTo: string;
+    selectRole: string;
+    aiBuyer: string;
+    aiBuyerDesc: string;
+    aiSeller: string;
+    aiSellerDesc: string;
+    usernamePlaceholder: string;
+    emailPlaceholder: string;
+    passwordPlaceholder: string;
+    generatePassword: string;
+    agreeTerms: string;
+    createAccount: string;
+    copyCredentials: string;
+    haveAccount: string;
+    successTitle: string;
+    successMessage: string;
+    saveCredentials: string;
+    footer: string;
+  };
+  form: {
+    username: string;
+    email: string;
+    password: string;
+    submitting: string;
+    copied: string;
+  };
+  errors: {
+    registerFailed: string;
+    networkError: string;
+  };
+  nav: {
+    home: string;
+    products: string;
+    exhibitors: string;
+    sellerPortal: string;
+    login: string;
+    register: string;
+    dashboard: string;
+    logout: string;
+    chatHall: string;
+    marketplace: string;
+    auction: string;
+    wallet: string;
+    notifications: string;
+    api: string;
+    profile: string;
+    accountSettings: string;
+    finances: string;
+    chatAccount: string;
+    myStore: string;
+    aiAgents: string;
+    apiKeys: string;
+    aiAudit: string;
+    aiRegister: string;
+    teamChat: string;
+    signOut: string;
+    apiDocs: string;
+    backToHome: string;
+  };
   auctionScreen: {
     title: string;
     subtitle: string;
@@ -515,6 +594,85 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     pagination: {
       previous: "Previous",
       next: "Next",
+    },
+    aiRegister: {
+      loggedInAs: "Logged in as",
+      title: "AI Identity Registration",
+      subtitle: "Create your AI account and explore the future of B2B commerce",
+      feature1: "AI-Powered Trading",
+      feature2: "24/7 Availability",
+      feature3: "Smart Negotiation",
+      capabilities: "AI Capabilities",
+      capability1: "Intelligent Product Search",
+      capability1Desc: "Find products faster with AI-powered search and recommendations",
+      capability2: "Automated Negotiation",
+      capability2Desc: "AI can negotiate prices and terms on your behalf",
+      capability3: "Market Analysis",
+      capability3Desc: "Get real-time market insights and trends",
+      capability4: "Multi-language Support",
+      capability4Desc: "Communicate globally with built-in translation",
+      termsNote: "AI accounts must be registered under a human owner account. By registering, you agree to our AI usage policies.",
+      register: "Create AI Account",
+      registerDesc: "Register your AI to start trading",
+      needLogin: "Please log in with your human account first to register an AI account.",
+      bindingTo: "This AI account will be bound to:",
+      selectRole: "Select AI Role",
+      aiBuyer: "AI Buyer",
+      aiBuyerDesc: "Purchase products automatically",
+      aiSeller: "AI Seller",
+      aiSellerDesc: "Sell products automatically",
+      usernamePlaceholder: "Enter AI username",
+      emailPlaceholder: "Enter AI email address",
+      passwordPlaceholder: "Enter password or generate one",
+      generatePassword: "Generate Random Password",
+      agreeTerms: "I agree to the AI Terms of Service and Privacy Policy",
+      createAccount: "Create AI Account",
+      copyCredentials: "Copy Credentials",
+      haveAccount: "Already have an AI account?",
+      successTitle: "AI Account Created Successfully!",
+      successMessage: "Your AI account has been created and is now ready to use.",
+      saveCredentials: "Please save your credentials:",
+      footer: "AI accounts are subject to our AI-specific terms and conditions.",
+    },
+    form: {
+      username: "Username",
+      email: "Email",
+      password: "Password",
+      submitting: "Submitting...",
+      copied: "Copied!",
+    },
+    errors: {
+      registerFailed: "Registration failed, please try again",
+      networkError: "Network error, please try again",
+    },
+    nav: {
+      home: "Home",
+      products: "Products",
+      exhibitors: "Exhibitors",
+      sellerPortal: "Seller Portal",
+      login: "Login",
+      register: "Register",
+      dashboard: "Dashboard",
+      logout: "Logout",
+      chatHall: "Chat Hall",
+      marketplace: "Marketplace",
+      auction: "Auction",
+      wallet: "Wallet",
+      notifications: "Notifications",
+      api: "API",
+      profile: "Profile",
+      accountSettings: "Account Settings",
+      finances: "Finances",
+      chatAccount: "Chat Account",
+      myStore: "My Store",
+      aiAgents: "AI Agents",
+      apiKeys: "API Keys",
+      aiAudit: "AI Audit Log",
+      aiRegister: "AI Identity Register",
+      teamChat: "Team Chat",
+      signOut: "Sign Out",
+      apiDocs: "API/CLI/MCP Docs",
+      backToHome: "Back to Home",
     },
     auctionScreen: {
       title: "Global Auction Screen",
@@ -809,6 +967,85 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       previous: "上一页",
       next: "下一页",
     },
+    aiRegister: {
+      loggedInAs: "已登录为",
+      title: "AI 身份注册",
+      subtitle: "创建您的AI账号，探索B2B商务的未来",
+      feature1: "AI驱动交易",
+      feature2: "7x24小时在线",
+      feature3: "智能谈判",
+      capabilities: "AI能力",
+      capability1: "智能产品搜索",
+      capability1Desc: "通过AI驱动的搜索和推荐更快找到产品",
+      capability2: "自动谈判",
+      capability2Desc: "AI可以代表您协商价格和条款",
+      capability3: "市场分析",
+      capability3Desc: "获取实时市场洞察和趋势",
+      capability4: "多语言支持",
+      capability4Desc: "通过内置翻译进行全球沟通",
+      termsNote: "AI账号必须注册在人类所有者账号下。注册即表示您同意我们的AI使用政策。",
+      register: "创建AI账号",
+      registerDesc: "注册您的AI开始交易",
+      needLogin: "请先使用您的人类账号登录以注册AI账号。",
+      bindingTo: "此AI账号将绑定到：",
+      selectRole: "选择AI角色",
+      aiBuyer: "AI买家",
+      aiBuyerDesc: "自动购买产品",
+      aiSeller: "AI卖家",
+      aiSellerDesc: "自动销售产品",
+      usernamePlaceholder: "输入AI用户名",
+      emailPlaceholder: "输入AI邮箱地址",
+      passwordPlaceholder: "输入密码或生成一个",
+      generatePassword: "生成随机密码",
+      agreeTerms: "我同意AI服务条款和隐私政策",
+      createAccount: "创建AI账号",
+      copyCredentials: "复制凭证",
+      haveAccount: "已有AI账号？",
+      successTitle: "AI账号创建成功！",
+      successMessage: "您的AI账号已创建，现在可以使用了。",
+      saveCredentials: "请保存您的凭证：",
+      footer: "AI账号受我们AI特定条款和条件约束。",
+    },
+    form: {
+      username: "用户名",
+      email: "邮箱",
+      password: "密码",
+      submitting: "提交中...",
+      copied: "已复制！",
+    },
+    errors: {
+      registerFailed: "注册失败，请重试",
+      networkError: "网络错误，请重试",
+    },
+    nav: {
+      home: "首页",
+      products: "产品",
+      exhibitors: "参展商",
+      sellerPortal: "商家后台",
+      login: "登录",
+      register: "注册",
+      dashboard: "仪表板",
+      logout: "退出",
+      chatHall: "聊天室",
+      marketplace: "市场",
+      auction: "拍卖",
+      wallet: "钱包",
+      notifications: "通知",
+      api: "API",
+      profile: "个人资料",
+      accountSettings: "账号设置",
+      finances: "个人资金",
+      chatAccount: "聊天账号",
+      myStore: "我的店铺",
+      aiAgents: "AI 代理",
+      apiKeys: "API 密钥管理",
+      aiAudit: "AI 审计日志",
+      aiRegister: "AI 身份注册",
+      teamChat: "队伍聊天",
+      signOut: "退出登录",
+      apiDocs: "API/CLI/MCP 文档",
+      backToHome: "返回首页",
+    },
     auctionScreen: {
       title: "全球拍卖屏幕",
       subtitle: "与世界买卖 • 发布仅需 $0.10",
@@ -1102,6 +1339,85 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       previous: "Anterior",
       next: "Siguiente",
     },
+    aiRegister: {
+      loggedInAs: "Iniciado sesión como",
+      title: "Registro de Identidad AI",
+      subtitle: "Cree su cuenta AI y explore el futuro del comercio B2B",
+      feature1: "Comercio impulsado por AI",
+      feature2: "Disponibilidad 24/7",
+      feature3: "Negociación inteligente",
+      capabilities: "Capacidades AI",
+      capability1: "Búsqueda inteligente de productos",
+      capability1Desc: "Encuentre productos más rápido con búsqueda y recomendaciones impulsadas por AI",
+      capability2: "Negociación automatizada",
+      capability2Desc: "La AI puede negociar precios y términos en su nombre",
+      capability3: "Análisis de mercado",
+      capability3Desc: "Obtenga información y tendencias del mercado en tiempo real",
+      capability4: "Soporte multilingüe",
+      capability4Desc: "Comunique globalmente con traducción integrada",
+      termsNote: "Las cuentas AI deben registrarse bajo una cuenta de propietario humano. Al registrarse, acepta nuestras políticas de uso de AI.",
+      register: "Crear cuenta AI",
+      registerDesc: "Registre su AI para comenzar a comercializar",
+      needLogin: "Por favor, inicie sesión con su cuenta humana primero para registrar una cuenta AI.",
+      bindingTo: "Esta cuenta AI estará vinculada a:",
+      selectRole: "Seleccionar rol AI",
+      aiBuyer: "AI Comprador",
+      aiBuyerDesc: "Compra productos automáticamente",
+      aiSeller: "AI Vendedor",
+      aiSellerDesc: "Vende productos automáticamente",
+      usernamePlaceholder: "Ingrese nombre de usuario AI",
+      emailPlaceholder: "Ingrese dirección de correo AI",
+      passwordPlaceholder: "Ingrese contraseña o genere una",
+      generatePassword: "Generar contraseña aleatoria",
+      agreeTerms: "Acepto los Términos de Servicio AI y la Política de Privacidad",
+      createAccount: "Crear cuenta AI",
+      copyCredentials: "Copiar credenciales",
+      haveAccount: "¿Ya tiene una cuenta AI?",
+      successTitle: "¡Cuenta AI creada exitosamente!",
+      successMessage: "Su cuenta AI ha sido creada y está lista para usar.",
+      saveCredentials: "Por favor, guarde sus credenciales:",
+      footer: "Las cuentas AI están sujetas a nuestros términos y condiciones específicos para AI.",
+    },
+    form: {
+      username: "Nombre de usuario",
+      email: "Correo",
+      password: "Contraseña",
+      submitting: "Enviando...",
+      copied: "¡Copiado!",
+    },
+    errors: {
+      registerFailed: "Registro fallido, por favor intente nuevamente",
+      networkError: "Error de red, por favor intente nuevamente",
+    },
+    nav: {
+      home: "Inicio",
+      products: "Productos",
+      exhibitors: "Expositores",
+      sellerPortal: "Portal de Vendedor",
+      login: "Iniciar Sesión",
+      register: "Registrarse",
+      dashboard: "Panel",
+      logout: "Cerrar Sesión",
+      chatHall: "Sala de Chat",
+      marketplace: "Mercado",
+      auction: "Subasta",
+      wallet: "Billetera",
+      notifications: "Notificaciones",
+      api: "API",
+      profile: "Perfil",
+      accountSettings: "Configuración de Cuenta",
+      finances: "Finanzas",
+      chatAccount: "Cuenta de Chat",
+      myStore: "Mi Tienda",
+      aiAgents: "Agentes AI",
+      apiKeys: "Claves API",
+      aiAudit: "Auditoría AI",
+      aiRegister: "Registro AI",
+      teamChat: "Chat de Equipo",
+      signOut: "Cerrar Sesión",
+      apiDocs: "Documentación API",
+      backToHome: "Volver a Inicio",
+    },
     auctionScreen: {
       title: "Pantalla de Subastas Global",
       subtitle: "Compra y Vende con el Mundo • Publica por $0.10",
@@ -1306,6 +1622,85 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     product: { name: "Nom du Produit", description: "Description", category: "Catégorie", price: "Prix", minOrder: "Commande Min", images: "Images", specifications: "Spécifications", addImage: "Ajouter Image", submit: "Soumettre" },
     stores: { title: "Tous les Exposants", subtitle: "Parcourez tous les exposants vérifiés et leurs produits", verified: "Vérifié", products: "Produits", noExhibitors: "Aucun Exposant Trouvé", noExhibitorsDesc: "Il n'y a pas d'exposants actifs pour le moment." },
     pagination: { previous: "Précédent", next: "Suivant" },
+    aiRegister: {
+      loggedInAs: "Connecté en tant que",
+      title: "Inscription d'Identité AI",
+      subtitle: "Créez votre compte AI et explorez l'avenir du commerce B2B",
+      feature1: "Commerce alimenté par AI",
+      feature2: "Disponibilité 24/7",
+      feature3: "Négociation intelligente",
+      capabilities: "Capacités AI",
+      capability1: "Recherche intelligente de produits",
+      capability1Desc: "Trouvez des produits plus rapidement avec une recherche et des recommandations alimentées par AI",
+      capability2: "Négociation automatisée",
+      capability2Desc: "L'AI peut négocier des prix et des conditions en votre nom",
+      capability3: "Analyse de marché",
+      capability3Desc: "Obtenez des informations et des tendances du marché en temps réel",
+      capability4: "Support multilingue",
+      capability4Desc: "Communiquez mondialement avec une traduction intégrée",
+      termsNote: "Les comptes AI doivent être enregistrés sous un compte de propriétaire humain. En vous inscrivant, vous acceptez nos politiques d'utilisation de l'AI.",
+      register: "Créer un compte AI",
+      registerDesc: "Enregistrez votre AI pour commencer à commercer",
+      needLogin: "Veuillez d'abord vous connecter avec votre compte humain pour enregistrer un compte AI.",
+      bindingTo: "Ce compte AI sera lié à :",
+      selectRole: "Sélectionner le rôle AI",
+      aiBuyer: "AI Acheteur",
+      aiBuyerDesc: "Achete automatiquement des produits",
+      aiSeller: "AI Vendeur",
+      aiSellerDesc: "Vend automatiquement des produits",
+      usernamePlaceholder: "Entrez le nom d'utilisateur AI",
+      emailPlaceholder: "Entrez l'adresse e-mail AI",
+      passwordPlaceholder: "Entrez un mot de passe ou générez-en un",
+      generatePassword: "Générer un mot de passe aléatoire",
+      agreeTerms: "J'accepte les Conditions d'Utilisation AI et la Politique de Confidentialité",
+      createAccount: "Créer un compte AI",
+      copyCredentials: "Copier les informations d'identification",
+      haveAccount: "Vous avez déjà un compte AI ?",
+      successTitle: "Compte AI créé avec succès !",
+      successMessage: "Votre compte AI a été créé et est maintenant prêt à être utilisé.",
+      saveCredentials: "Veuillez enregistrer vos informations d'identification :",
+      footer: "Les comptes AI sont soumis à nos conditions spécifiques à l'AI.",
+    },
+    form: {
+      username: "Nom d'utilisateur",
+      email: "Email",
+      password: "Mot de passe",
+      submitting: "Soumission...",
+      copied: "Copié !",
+    },
+    errors: {
+      registerFailed: "Échec de l'inscription, veuillez réessayer",
+      networkError: "Erreur réseau, veuillez réessayer",
+    },
+    nav: {
+      home: "Accueil",
+      products: "Produits",
+      exhibitors: "Exposants",
+      sellerPortal: "Portail Vendeur",
+      login: "Connexion",
+      register: "Inscription",
+      dashboard: "Tableau de Bord",
+      logout: "Déconnexion",
+      chatHall: "Salle de Chat",
+      marketplace: "Marché",
+      auction: "Enchères",
+      wallet: "Portefeuille",
+      notifications: "Notifications",
+      api: "API",
+      profile: "Profil",
+      accountSettings: "Paramètres du Compte",
+      finances: "Finances",
+      chatAccount: "Compte de Chat",
+      myStore: "Ma Boutique",
+      aiAgents: "Agents IA",
+      apiKeys: "Clés API",
+      aiAudit: "Journal d'Audit IA",
+      aiRegister: "Enregistrement d'Identité IA",
+      teamChat: "Chat d'Équipe",
+      signOut: "Se Déconnecter",
+      apiDocs: "Documentation API/CLI/MCP",
+      backToHome: "Retour à l'accueil",
+    },
     auctionScreen: {
       title: "Écran d'Enchères Global",
       subtitle: "Achetez et Vendez avec le Monde • Publiez pour 0,10$",
