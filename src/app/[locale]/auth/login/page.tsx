@@ -20,6 +20,22 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   const registered = searchParams.get('registered')
+  const urlError = searchParams.get('error')
+
+  // 处理 URL 中的错误参数
+  const getErrorMessage = (errorParam: string | null) => {
+    if (!errorParam) return ''
+    switch (errorParam) {
+      case 'CredentialsSignin':
+        return locale === 'zh' ? '账号不存在或密码错误，请检查或注册新账号' : 'Account does not exist or password is incorrect. Please check or register a new account'
+      case 'SessionRequired':
+        return locale === 'zh' ? '请登录以访问此页面' : 'Please sign in to access this page'
+      case 'AccessDenied':
+        return locale === 'zh' ? '账号已被禁用' : 'Account is deactivated'
+      default:
+        return locale === 'zh' ? '登录失败，请重试' : 'Login failed, please try again'
+    }
+  }
 
   // Simple translations
   const t = {
@@ -44,7 +60,11 @@ function LoginForm() {
     signingIn: locale === 'zh' ? '登录中...' : 'Signing in...',
     registrationSuccess: locale === 'zh' ? '注册成功！请登录。' : 'Registration successful! Please sign in.',
     forgotPassword: locale === 'zh' ? '忘记密码？' : 'Forgot Password?',
+    accountNotFound: locale === 'zh' ? '账号不存在，需要注册' : 'Account does not exist, please register',
   }
+
+  // 显示 URL 错误或表单错误
+  const displayError = getErrorMessage(urlError) || error
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,12 +75,20 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        redirect: true,
-        callbackUrl: searchParams.get('callbackUrl') || `/${locale}`,
+        redirect: false,
       })
 
       if (result?.error) {
-        throw new Error(result.error)
+        // 根据错误类型设置不同的错误消息
+        if (result.error === 'CredentialsSignin') {
+          setError(locale === 'zh' ? '账号不存在或密码错误，请检查或注册新账号' : 'Account does not exist or password is incorrect. Please check or register a new account')
+        } else {
+          setError(result.error)
+        }
+      } else if (result?.ok) {
+        // 登录成功，手动重定向
+        const callbackUrl = searchParams.get('callbackUrl') || `/${locale}`
+        router.push(callbackUrl)
       }
     } catch (err) {
       setError((err as Error).message || '登录失败')
@@ -84,9 +112,14 @@ function LoginForm() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+              {displayError}
+              {(urlError === 'CredentialsSignin' || error.includes('账号不存在') || error.includes('Account does not exist')) && (
+                <Link href={`/${locale}/auth/register`} className="block mt-2 font-medium text-blue-600 hover:text-blue-500">
+                  {t.accountNotFound}
+                </Link>
+              )}
             </div>
           )}
           {registered && (
