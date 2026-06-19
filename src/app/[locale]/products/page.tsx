@@ -106,23 +106,6 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
     <div className="bg-gray-50 min-h-screen">
       {/* Schema.org Structured Data */}
       <BreadcrumbSchema items={breadcrumbs} />
-      
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">G</span>
-              </div>
-              <span className="text-xl font-bold text-gray-800 hidden sm:block">Global Expo</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">{dict.nav.products}</span>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* Category Sidebar */}
       <Suspense fallback={null}>
