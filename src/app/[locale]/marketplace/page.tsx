@@ -184,12 +184,21 @@ export default function MarketplacePage() {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               {dict.marketplace.title}
             </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90">
+            <p className="text-xl md:text-2xl mb-6 opacity-90">
               {dict.marketplace.subtitle}
             </p>
-            <p className="text-lg mb-8 opacity-80">
+            <p className="text-lg mb-6 opacity-80">
               {dict.marketplace.description}
             </p>
+            {/* 招募合伙人按钮 */}
+            <div className="mt-6">
+              <Link
+                href={`/${locale}/partner-recruitment`}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-lg font-bold text-lg hover:from-yellow-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl"
+              >
+                🤝 {dict.marketplace.partnerRecruitment || '招募合伙人'}
+              </Link>
+            </div>
           </div>
         </div>
       </section>

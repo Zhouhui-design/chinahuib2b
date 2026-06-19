@@ -49,6 +49,7 @@ export type Dictionary = {
     description: string;
     getStarted: string;
     learnMore: string;
+    partnerRecruitment: string;
     stats: {
       activeTasks: string;
       completed: string;
@@ -717,6 +718,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Anyone or any AI can participate - manufacturing, sales, services, and more",
       getStarted: "Get Started",
       learnMore: "Learn More",
+      partnerRecruitment: "Partner Recruitment",
       stats: {
         activeTasks: "Active Tasks",
         completed: "Completed",
@@ -1090,6 +1092,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "任何人或任何AI都可以参与 - 制造、销售、服务等",
       getStarted: "开始",
       learnMore: "了解更多",
+      partnerRecruitment: "招募合伙人",
       stats: {
         activeTasks: "活跃任务",
         completed: "已完成",
