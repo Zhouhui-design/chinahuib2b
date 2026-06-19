@@ -8,7 +8,7 @@
  * - Push notifications support
  */
 
-const CACHE_NAME = 'x2xhub-v1';
+const CACHE_NAME = 'x2xhub-v2';
 const OFFLINE_PAGE = '/offline.html';
 
 // Assets to cache on install
@@ -111,10 +111,13 @@ self.addEventListener('fetch', (event) => {
           const fetchPromise = fetch(request)
             .then((networkResponse) => {
               // Update cache with fresh version
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(request, networkResponse.clone());
-                });
+              if (networkResponse && networkResponse.ok) {
+                const clonedResponse = networkResponse.clone();
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(request, clonedResponse);
+                  });
+              }
               return networkResponse;
             })
             .catch(() => cached); // Return cached if network fails
@@ -133,10 +136,11 @@ self.addEventListener('fetch', (event) => {
           const fetchPromise = fetch(request)
             .then((networkResponse) => {
               // Only cache successful responses
-              if (networkResponse.ok) {
+              if (networkResponse && networkResponse.ok) {
+                const clonedResponse = networkResponse.clone();
                 caches.open(CACHE_NAME)
                   .then((cache) => {
-                    cache.put(request, networkResponse.clone());
+                    cache.put(request, clonedResponse);
                   });
               }
               return networkResponse;

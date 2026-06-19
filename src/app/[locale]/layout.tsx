@@ -280,16 +280,14 @@ export default function LocaleLayout({ children, params }: LayoutProps) {
                         )}
 
                         <div className="border-t border-gray-200 my-1" />
-                        <button
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`;
-                          }}
+                        <Link
+                          href={`/${locale}/auth/signout`}
+                          onClick={() => setShowUserMenu(false)}
                           className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                         >
                           <LogOut className="w-4 h-4 mr-2" />
                           {dict.nav.signOut}
-                        </button>
+                        </Link>
                       </div>
                     </>
                   )}
@@ -357,14 +355,12 @@ export default function LocaleLayout({ children, params }: LayoutProps) {
               <Link href={`/${locale}/buyer/profile`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
                 {dict.nav.profile}
               </Link>
-              <button
-                onClick={() => {
-                  window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`;
-                }}
+              <Link
+                href={`/${locale}/auth/signout`}
                 className="block text-sm font-medium text-red-600 py-2"
               >
                 {dict.nav.signOut}
-              </button>
+              </Link>
             </>
           )}
           {!user && (

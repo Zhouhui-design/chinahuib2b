@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft } from 'lucide-react'
-import { getDictionary } from '@/locales/dictionary'
-import { languages, type LanguageCode } from '@/lib/languages'
+import { loadTranslations } from '@/i18n/lazyTranslations'
+import type { Language } from '@/i18n/translations'
 
 export default function AIRegisterClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const params = useParams()
-  const locale = params?.locale as LanguageCode || 'en'
+  const locale = (params?.locale as Language) || 'en'
   
   const [dict, setDict] = useState<Record<string, any> | null>(null)
   const [selectedRole, setSelectedRole] = useState('AI_BUYER')
@@ -20,7 +20,7 @@ export default function AIRegisterClient() {
   
   useEffect(() => {
     const fetchData = async () => {
-      const dictionary = await getDictionary(locale)
+      const dictionary = await loadTranslations(locale)
       setDict(dictionary)
     }
     fetchData()

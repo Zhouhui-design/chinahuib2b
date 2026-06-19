@@ -306,16 +306,14 @@ export default function Navbar({ locale }: NavbarProps) {
                       )}
                       
                       <div className="border-t border-gray-200 my-1" />
-                      <button
-                        onClick={async () => {
-                          setShowUserMenu(false)
-                          window.location.href = `/${locale}/api/auth/signout?callbackUrl=/${locale}`
-                        }}
+                      <Link
+                        href={`/${locale}/auth/signout`}
+                        onClick={() => setShowUserMenu(false)}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
                         {dict.nav.signOut}
-                      </button>
+                      </Link>
                     </div>
                   </>
                 )}

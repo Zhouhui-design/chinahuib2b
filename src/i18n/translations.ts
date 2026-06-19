@@ -2,6 +2,47 @@
 export type Language = 'en' | 'zh' | 'es' | 'fr' | 'de' | 'ar' | 'pt' | 'ru' | 'ja' | 'ko'
 
 export interface Translations {
+  // AI Register
+  aiRegister: {
+    loggedInAs: string
+    title: string
+    subtitle: string
+    feature1: string
+    feature2: string
+    feature3: string
+    capabilities: string
+    capability1: string
+    capability1Desc: string
+    capability2: string
+    capability2Desc: string
+    capability3: string
+    capability3Desc: string
+    capability4: string
+    capability4Desc: string
+    termsNote: string
+    register: string
+    registerDesc: string
+    needLogin: string
+    bindingTo: string
+    selectRole: string
+    aiBuyer: string
+    aiBuyerDesc: string
+    aiSeller: string
+    aiSellerDesc: string
+    usernamePlaceholder: string
+    emailPlaceholder: string
+    passwordPlaceholder: string
+    generatePassword: string
+    agreeTerms: string
+    createAccount: string
+    copyCredentials: string
+    haveAccount: string
+    successTitle: string
+    successMessage: string
+    saveCredentials: string
+    footer: string
+  }
+  
   // Navigation
   nav: {
     home: string
@@ -129,6 +170,45 @@ export interface Translations {
 
 export const translations: Record<Language, Translations> = {
   en: {
+    aiRegister: {
+      loggedInAs: 'Logged in as',
+      title: 'AI Identity Registration',
+      subtitle: 'Create your AI account and explore the future of B2B commerce',
+      feature1: 'AI-Powered Trading',
+      feature2: '24/7 Availability',
+      feature3: 'Smart Negotiation',
+      capabilities: 'AI Capabilities',
+      capability1: 'Intelligent Product Search',
+      capability1Desc: 'Find products faster with AI-powered search and recommendations',
+      capability2: 'Automated Negotiation',
+      capability2Desc: 'AI can negotiate prices and terms on your behalf',
+      capability3: 'Market Analysis',
+      capability3Desc: 'Get real-time market insights and trends',
+      capability4: 'Multi-language Support',
+      capability4Desc: 'Communicate globally with built-in translation',
+      termsNote: 'AI accounts must be registered under a human owner account. By registering, you agree to our AI usage policies.',
+      register: 'Create AI Account',
+      registerDesc: 'Register your AI to start trading',
+      needLogin: 'Please log in with your human account first to register an AI account.',
+      bindingTo: 'This AI account will be bound to:',
+      selectRole: 'Select AI Role',
+      aiBuyer: 'AI Buyer',
+      aiBuyerDesc: 'Purchase products automatically',
+      aiSeller: 'AI Seller',
+      aiSellerDesc: 'Sell products automatically',
+      usernamePlaceholder: 'Enter AI username',
+      emailPlaceholder: 'Enter AI email address',
+      passwordPlaceholder: 'Enter password or generate one',
+      generatePassword: 'Generate Random Password',
+      agreeTerms: 'I agree to the AI Terms of Service and Privacy Policy',
+      createAccount: 'Create AI Account',
+      copyCredentials: 'Copy Credentials',
+      haveAccount: 'Already have an AI account?',
+      successTitle: 'AI Account Created Successfully!',
+      successMessage: 'Your AI account has been created and is now ready to use.',
+      saveCredentials: 'Please save your credentials:',
+      footer: 'AI accounts are subject to our AI-specific terms and conditions.',
+    },
     nav: {
       home: 'Home',
       products: 'Products',
@@ -241,6 +321,45 @@ export const translations: Record<Language, Translations> = {
     },
   },
   zh: {
+    aiRegister: {
+      loggedInAs: '已登录为',
+      title: 'AI 身份注册',
+      subtitle: '创建您的AI账号，探索B2B商务的未来',
+      feature1: 'AI驱动交易',
+      feature2: '7x24小时在线',
+      feature3: '智能谈判',
+      capabilities: 'AI能力',
+      capability1: '智能产品搜索',
+      capability1Desc: '通过AI驱动的搜索和推荐更快找到产品',
+      capability2: '自动谈判',
+      capability2Desc: 'AI可以代表您协商价格和条款',
+      capability3: '市场分析',
+      capability3Desc: '获取实时市场洞察和趋势',
+      capability4: '多语言支持',
+      capability4Desc: '通过内置翻译进行全球沟通',
+      termsNote: 'AI账号必须注册在人类所有者账号下。注册即表示您同意我们的AI使用政策。',
+      register: '创建AI账号',
+      registerDesc: '注册您的AI开始交易',
+      needLogin: '请先使用您的人类账号登录以注册AI账号。',
+      bindingTo: '此AI账号将绑定到：',
+      selectRole: '选择AI角色',
+      aiBuyer: 'AI买家',
+      aiBuyerDesc: '自动购买产品',
+      aiSeller: 'AI卖家',
+      aiSellerDesc: '自动销售产品',
+      usernamePlaceholder: '输入AI用户名',
+      emailPlaceholder: '输入AI邮箱地址',
+      passwordPlaceholder: '输入密码或生成一个',
+      generatePassword: '生成随机密码',
+      agreeTerms: '我同意AI服务条款和隐私政策',
+      createAccount: '创建AI账号',
+      copyCredentials: '复制凭证',
+      haveAccount: '已有AI账号？',
+      successTitle: 'AI账号创建成功！',
+      successMessage: '您的AI账号已创建，现在可以使用了。',
+      saveCredentials: '请保存您的凭证：',
+      footer: 'AI账号受我们AI特定条款和条件约束。',
+    },
     nav: {
       home: '首页',
       products: '产品展厅',
