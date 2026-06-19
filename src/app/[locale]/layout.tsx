@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { languages, type LanguageCode } from '@/lib/languages';
 import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
+import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
@@ -382,6 +383,9 @@ export default function LocaleLayout({ children, params }: LayoutProps) {
 
       {/* Page Content */}
       {children}
+
+      {/* Footer */}
+      <Footer locale={locale} />
     </div>
   );
 }

@@ -92,6 +92,20 @@ export type Dictionary = {
     rating: string;
     minOrder: string;
   };
+  footer: {
+    partnerRecruitment: string;
+    partnerDesc: string;
+    joinUs: string;
+    investNow: string;
+    about: string;
+    quickLinks: string;
+    services: string;
+    contact: string;
+    invest: string;
+    privacy: string;
+    terms: string;
+    cookies: string;
+  };
   nav: {
     home: string;
     products: string;
@@ -760,7 +774,21 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       views: "views",
       rating: "rating",
       minOrder: "Min order",
-    }
+    },
+    footer: {
+      partnerRecruitment: "Partner Recruitment",
+      partnerDesc: "Global recruitment - no geographic restrictions",
+      joinUs: "Join Us",
+      investNow: "Invest Now",
+      about: "Global Expo Network is the world's leading B2B cross-border trade exhibition platform, connecting buyers and sellers worldwide, promoting international trade development.",
+      quickLinks: "Quick Links",
+      services: "Services",
+      contact: "Contact Us",
+      invest: "Investment Opportunities",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service",
+      cookies: "Cookie Settings",
+    },
   },
   zh: {
     home: {
@@ -1134,7 +1162,21 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       views: "次浏览",
       rating: "评分",
       minOrder: "最小起订量",
-    }
+    },
+    footer: {
+      partnerRecruitment: "招募合伙人",
+      partnerDesc: "全球招募 - 不限地区",
+      joinUs: "加入我们",
+      investNow: "欢迎投资",
+      about: "Global Expo Network 是全球领先的B2B跨境贸易展览平台，连接全球买家和卖家，促进国际贸易发展。",
+      quickLinks: "快速链接",
+      services: "服务",
+      contact: "联系我们",
+      invest: "投资机会",
+      privacy: "隐私政策",
+      terms: "服务条款",
+      cookies: "Cookie设置",
+    },
   },
   es: {
     home: {
