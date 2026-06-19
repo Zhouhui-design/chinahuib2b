@@ -89,6 +89,23 @@ export interface Translations {
       moreLanguagesDesc: string
       backToHome: string
     }
+    investment: {
+      title: string
+      subtitle: string
+      contactTitle: string
+      phoneLabel: string
+      emailLabel: string
+      downloadTitle: string
+      downloadSubtitle: string
+      chineseBusinessPlan: string
+      englishBusinessPlan: string
+      englishPitchDeck: string
+      chinesePitchDeck: string
+      roadshow5Pages: string
+      moreLanguagesTitle: string
+      moreLanguagesDesc: string
+      backToMarketplace: string
+    }
     marketplace: {
       postTaskPage: {
         backToMarketplace: string
@@ -337,6 +354,23 @@ export const translations: Record<Language, Translations> = {
       moreLanguagesDesc: 'Business plans are available in 30 major languages for global accessibility',
       backToHome: '← Back to Home',
     },
+    investment: {
+      title: 'Welcome to Invest',
+      subtitle: 'Download our business plans and explore investment opportunities',
+      contactTitle: 'Contact Us',
+      phoneLabel: 'Phone',
+      emailLabel: 'Email',
+      downloadTitle: 'Download Business Plans',
+      downloadSubtitle: 'Get detailed information about our platform, business model, and growth strategy',
+      chineseBusinessPlan: 'Business Plan (Chinese)',
+      englishBusinessPlan: 'Business Plan (English)',
+      englishPitchDeck: 'Pitch Deck (English)',
+      chinesePitchDeck: 'Pitch Deck (Chinese)',
+      roadshow5Pages: 'Roadshow 5 Pages',
+      moreLanguagesTitle: '30 Languages Available',
+      moreLanguagesDesc: 'Business plans are available in 30 major languages for global accessibility',
+      backToMarketplace: 'Back to Marketplace',
+    },
     marketplace: {
       postTaskPage: {
         backToMarketplace: '← Back to Marketplace',
@@ -572,6 +606,23 @@ export const translations: Record<Language, Translations> = {
       moreLanguagesTitle: '30种语言版本',
       moreLanguagesDesc: '商业计划书提供30种主要语言版本，方便全球访问',
       backToHome: '← 返回首页',
+    },
+    investment: {
+      title: '欢迎投资',
+      subtitle: '下载商业计划书，探索投资机会',
+      contactTitle: '联系我们',
+      phoneLabel: '电话',
+      emailLabel: '邮箱',
+      downloadTitle: '下载商业计划书',
+      downloadSubtitle: '获取关于我们平台、商业模式和增长策略的详细信息',
+      chineseBusinessPlan: '商业计划书（中文）',
+      englishBusinessPlan: '商业计划书（英文）',
+      englishPitchDeck: '路演稿（英文）',
+      chinesePitchDeck: '路演稿（中文）',
+      roadshow5Pages: '路演5页版',
+      moreLanguagesTitle: '30种语言版本',
+      moreLanguagesDesc: '商业计划书提供30种主要语言版本，方便全球访问',
+      backToMarketplace: '返回市场',
     },
     marketplace: {
       postTaskPage: {

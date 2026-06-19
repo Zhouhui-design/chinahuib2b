@@ -419,7 +419,7 @@ export default function MarketplacePage() {
           <p className="text-xl mb-8 opacity-90">
             {dict.marketplace.joinThousands}
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 flex-wrap">
             <Link
               href={`/${locale}/auth/register?type=seller`}
               className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
@@ -431,6 +431,12 @@ export default function MarketplacePage() {
               className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
             >
               {dict.marketplace.registerAsBuyer}
+            </Link>
+            <Link
+              href={`/${locale}/investment`}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-yellow-600 hover:to-orange-600 transition-colors"
+            >
+              💰 {dict.marketplace.investNow}
             </Link>
           </div>
         </div>

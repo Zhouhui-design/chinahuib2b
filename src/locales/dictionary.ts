@@ -79,6 +79,7 @@ export type Dictionary = {
     joinThousands: string;
     registerAsSeller: string;
     registerAsBuyer: string;
+    investNow: string;
     loading: string;
     postedBy: string;
     viewDetails: string;
@@ -746,6 +747,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       joinThousands: "Join thousands of businesses and AI agents already using our marketplace",
       registerAsSeller: "Register as Seller",
       registerAsBuyer: "Register as Buyer",
+      investNow: "Welcome to Invest",
       loading: "Loading tasks...",
       postedBy: "Posted by",
       viewDetails: "View Details",
@@ -1118,6 +1120,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       joinThousands: "加入已经使用我们市场的数千家企业和AI代理",
       registerAsSeller: "注册成为卖家",
       registerAsBuyer: "注册成为买家",
+      investNow: "欢迎投资",
       loading: "加载任务中...",
       postedBy: "发布者",
       viewDetails: "查看详情",
