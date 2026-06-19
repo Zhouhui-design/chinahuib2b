@@ -5,9 +5,11 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { loadTranslations } from '@/i18n/lazyTranslations'
+import type { Language } from '@/i18n/translations'
 
 interface FormDataType {
   title: string
@@ -24,6 +26,30 @@ interface FormDataType {
 
 export default function PostTaskPage() {
   const router = useRouter()
+  const params = useParams()
+  const locale = (params.locale as Language) || 'en'
+  
+  const [translations, setTranslations] = useState<typeof import('@/i18n/translations').translations['en'] | null>(null)
+  const [loadingTranslations, setLoadingTranslations] = useState(true)
+
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      const dict = await loadTranslations(locale)
+      setTranslations(dict)
+      setLoadingTranslations(false)
+    }
+    fetchTranslations()
+  }, [locale])
+
+  if (loadingTranslations || !translations) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+
+  const t = translations.marketplace.postTaskPage
 
   // Form state
   const [formData, setFormData] = useState<FormDataType>({
@@ -63,25 +89,25 @@ export default function PostTaskPage() {
     const newErrors: any = {}
     
     if (!formData.title.trim()) {
-      newErrors['title'] = 'Title is required'
+      newErrors['title'] = t.titleRequired
     }
     
     if (!formData.description.trim()) {
-      newErrors['description'] = 'Description is required'
+      newErrors['description'] = t.descriptionRequired
     } else if (formData.description.length < 50) {
-      newErrors['description'] = 'Description must be at least 50 characters'
+      newErrors['description'] = t.descriptionMinLength
     }
     
     if (formData.budget && isNaN(Number(formData.budget))) {
-      newErrors['budget'] = 'Budget must be a number'
+      newErrors['budget'] = t.budgetMustBeNumber
     }
     
     if (formData.price && isNaN(Number(formData.price))) {
-      newErrors['price'] = 'Price must be a number'
+      newErrors['price'] = t.priceMustBeNumber
     }
     
     if (formData.minOrderQty && isNaN(Number(formData.minOrderQty))) {
-      newErrors['minOrderQty'] = 'Min order quantity must be a number'
+      newErrors['minOrderQty'] = t.minOrderMustBeNumber
     }
     
     setErrors(newErrors)
@@ -91,7 +117,7 @@ export default function PostTaskPage() {
   // AI Generate Description
   const handleAIGenerate = async () => {
     if (!formData.title.trim()) {
-      alert('Please enter a title first')
+      alert(t.enterTitleFirst)
       return
     }
     
@@ -104,7 +130,7 @@ export default function PostTaskPage() {
       
       // Mock AI-generated description based on title and type
       const mockDescriptions: Record<string, string> = {
-        MANUFACTURING: `We are looking for a reliable manufacturer to produce ${formData.title.toLowerCase()}. 
+        MANUFACTURING: `We are looking for a reliable manufacturer to produce ${formData.title.toLowerCase()}.
 
 Requirements:
 - High quality standards
@@ -162,7 +188,7 @@ Contact us today to discuss your requirements and get a custom quote.`
       alert('AI has generated a description for you! You can edit it as needed.')
     } catch (error) {
       console.error('AI generation error:', error)
-      alert('Failed to generate description. Please try again.')
+      alert(t.failedToPost)
     } finally {
       setAiGenerating(false)
     }
@@ -200,14 +226,14 @@ Contact us today to discuss your requirements and get a custom quote.`
       const data = await response.json()
       
       if (data.success) {
-        alert('Task posted successfully!')
-        router.push(`/marketplace/${data.data.id}`)
+        alert(t.taskPostedSuccess)
+        router.push(`/${locale}/marketplace/${data.data.id}`)
       } else {
-        alert(data.error || 'Failed to post task')
+        alert(data.error || t.failedToPost)
       }
     } catch (error) {
       console.error('Error posting task:', error)
-      alert('Network error. Please try again.')
+      alert(t.networkError)
     } finally {
       setLoading(false)
     }
@@ -219,14 +245,14 @@ Contact us today to discuss your requirements and get a custom quote.`
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/marketplace"
+            href={`/${locale}/marketplace`}
             className="text-blue-600 hover:text-blue-800 font-medium mb-4 inline-block"
           >
-            ← Back to Marketplace
+            {t.backToMarketplace}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Post a New Task</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t.title}</h1>
           <p className="text-gray-600 mt-2">
-            Describe what you need and connect with qualified suppliers, sellers, or service providers.
+            {t.subtitle}
           </p>
         </div>
 
@@ -235,7 +261,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Title *
+              {t.taskTitle}
             </label>
             <input
               type="text"
@@ -245,7 +271,7 @@ Contact us today to discuss your requirements and get a custom quote.`
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.title ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="e.g., Looking for Factory to Produce Wireless Earbuds"
+              placeholder={t.taskTitlePlaceholder}
             />
             {errors.title && (
               <p className="mt-1 text-sm text-red-600">{errors.title}</p>
@@ -255,7 +281,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           {/* Task Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Type *
+              {t.taskType}
             </label>
             <select
               name="type"
@@ -263,9 +289,9 @@ Contact us today to discuss your requirements and get a custom quote.`
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="MANUFACTURING">🏭 Manufacturing - Looking for factory/manufacturer</option>
-              <option value="PRODUCT_SALE">🛍️ Product Sale - Selling products</option>
-              <option value="SERVICE">🔧 Service - Offering services</option>
+              <option value="MANUFACTURING">{t.manufacturing}</option>
+              <option value="PRODUCT_SALE">{t.productSale}</option>
+              <option value="SERVICE">{t.service}</option>
             </select>
           </div>
 
@@ -273,7 +299,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
-                Description *
+                {t.description}
               </label>
               <button
                 type="button"
@@ -281,7 +307,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                 disabled={aiGenerating || !formData.title}
                 className="text-sm text-purple-600 hover:text-purple-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {aiGenerating ? '✨ Generating...' : '✨ AI Generate'}
+                {aiGenerating ? t.generating : t.aiGenerate}
               </button>
             </div>
             <textarea
@@ -292,13 +318,13 @@ Contact us today to discuss your requirements and get a custom quote.`
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Describe your requirements in detail..."
+              placeholder={t.descriptionPlaceholder}
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description}</p>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              Minimum 50 characters. Use the AI Generate button for assistance.
+              {t.descriptionMinChars}
             </p>
           </div>
 
@@ -306,7 +332,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Budget (Optional)
+                {t.budget}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
@@ -318,7 +344,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                   className={`w-full pl-8 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.budget ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Total budget"
+                  placeholder={t.budgetPlaceholder}
                   min="0"
                   step="0.01"
                 />
@@ -330,7 +356,7 @@ Contact us today to discuss your requirements and get a custom quote.`
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unit Price (Optional)
+                {t.unitPrice}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
@@ -342,7 +368,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                   className={`w-full pl-8 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.price ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Price per unit"
+                  placeholder={t.unitPricePlaceholder}
                   min="0"
                   step="0.01"
                 />
@@ -357,7 +383,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Currency
+                {t.currency}
               </label>
               <select
                 name="currency"
@@ -375,7 +401,7 @@ Contact us today to discuss your requirements and get a custom quote.`
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unit (Optional)
+                {t.unit}
               </label>
               <input
                 type="text"
@@ -383,7 +409,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                 value={formData.unit}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., per unit, per hour, per piece"
+                placeholder={t.unitPlaceholder}
               />
             </div>
           </div>
@@ -392,7 +418,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Min Order Quantity (Optional)
+                {t.minOrderQty}
               </label>
               <input
                 type="number"
@@ -402,7 +428,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.minOrderQty ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Minimum quantity"
+                placeholder={t.minOrderQtyPlaceholder}
                 min="1"
               />
               {errors.minOrderQty && (
@@ -412,7 +438,7 @@ Contact us today to discuss your requirements and get a custom quote.`
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Deadline (Optional)
+                {t.deadline}
               </label>
               <input
                 type="date"
@@ -428,7 +454,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           {/* Contact Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Information (Optional)
+              {t.contactInfo}
             </label>
             <input
               type="text"
@@ -436,10 +462,10 @@ Contact us today to discuss your requirements and get a custom quote.`
               value={formData.contactInfo}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Email, phone, or other contact details"
+              placeholder={t.contactInfoPlaceholder}
             />
             <p className="mt-1 text-xs text-gray-500">
-              This will be visible to applicants. Leave blank to use your profile contact info.
+              {t.contactInfoNote}
             </p>
           </div>
 
@@ -450,26 +476,26 @@ Contact us today to discuss your requirements and get a custom quote.`
               disabled={loading}
               className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Posting...' : 'Post Task'}
+              {loading ? t.posting : t.postTaskBtn}
             </button>
             <Link
-              href="/marketplace"
+              href={`/${locale}/marketplace`}
               className="px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-center"
             >
-              Cancel
+              {t.cancel}
             </Link>
           </div>
         </form>
 
         {/* Tips Section */}
         <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">💡 Tips for Posting Tasks</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">{t.tipsTitle}</h3>
           <ul className="space-y-2 text-sm text-blue-800">
-            <li>• Be specific about your requirements to attract qualified applicants</li>
-            <li>• Include realistic budgets to set clear expectations</li>
-            <li>• Provide detailed descriptions to reduce back-and-forth communication</li>
-            <li>• Set reasonable deadlines to ensure quality work</li>
-            <li>• Use AI Generate to get a professional description template</li>
+            <li>• {t.tip1}</li>
+            <li>• {t.tip2}</li>
+            <li>• {t.tip3}</li>
+            <li>• {t.tip4}</li>
+            <li>• {t.tip5}</li>
           </ul>
         </div>
       </div>

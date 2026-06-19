@@ -190,17 +190,6 @@ export default function MarketplacePage() {
             <p className="text-lg mb-8 opacity-80">
               {dict.marketplace.description}
             </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                href={`/${locale}/auth/register`}
-                className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-              >
-                {dict.marketplace.getStarted}
-              </Link>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
-                {dict.marketplace.learnMore}
-              </button>
-            </div>
           </div>
         </div>
       </section>

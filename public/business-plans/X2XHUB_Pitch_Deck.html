@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>X2XHUB · Pitch Deck (Optimized for eValyze & VCs)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #F0F4F8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif; line-height: 1.45; color: #1A2F3F; padding: 40px 24px; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 32px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1); padding: 48px 56px; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; padding: 0.4in 0.5in; max-width: 100%; } .no-print { display: none; } }
+        .toolbar { text-align: right; margin-bottom: 32px; position: sticky; top: 12px; z-index: 10; }
+        .btn-pdf { background: #1A6F8A; border: none; color: white; font-weight: 600; font-size: 0.9rem; padding: 10px 28px; border-radius: 40px; cursor: pointer; }
+        .btn-pdf:hover { background: #0E556D; }
+        h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, #0A4B60, #1F7E9E); background-clip: text; -webkit-background-clip: text; color: transparent; letter-spacing: -0.01em; }
+        .subhead { font-size: 1.3rem; color: #2C7C9C; font-weight: 500; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.8rem; font-weight: 600; margin: 2rem 0 1rem; padding-left: 0.75rem; border-left: 5px solid #1F7E9E; color: #154F64; }
+        h3 { font-size: 1.3rem; margin: 1.2rem 0 0.6rem; color: #1F6F8A; }
+        .card { background: #F9FDFE; border: 1px solid #E3EEF3; border-radius: 24px; padding: 1.5rem; margin: 1rem 0; }
+        .grid-2 { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .grid-2 > * { flex: 1; }
+        .highlight { background: #E6F4FA; border-left: 4px solid #1490B0; padding: 1rem 1.5rem; border-radius: 20px; margin: 1rem 0; }
+        .stat-number { font-size: 2rem; font-weight: 800; color: #1A6F8A; display: block; }
+        .badge { background: #CBE5EF; color: #115267; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; display: inline-block; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; border-radius: 16px; overflow: hidden; }
+        th { background: #EEF3F7; padding: 12px; text-align: left; font-weight: 600; }
+        td { padding: 10px 12px; border-bottom: 1px solid #E2ECF2; }
+        footer { margin-top: 48px; text-align: center; font-size: 0.75rem; color: #7EA3B3; border-top: 1px solid #E0EDF2; padding-top: 24px; }
+        @media (max-width: 700px) { .container { padding: 24px 20px; } h1 { font-size: 2rem; } .stat-number { font-size: 1.5rem; } }
+    </style>
+</head>
+<body>
+<div class="container" id="pitchOptimized">
+    <div class="toolbar no-print"><button class="btn-pdf" onclick="window.print()">📄 Save as PDF</button></div>
+
+    <!-- Cover -->
+    <div style="text-align: center;">
+        <h1>X2XHUB</h1>
+        <div class="subhead">AI‑Native Cross‑Border Trading Platform</div>
+        <p>For the 16M+ OPCs & 1.6B solo entrepreneurs excluded from global trade</p>
+        <div style="margin: 20px 0; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <span class="badge">✅ Live & Open Source</span>
+            <span class="badge">🔐 Hash Credential = Goods Title</span>
+            <span class="badge">🤖 AI Agent = Equal Trader</span>
+            <span class="badge">🌍 30+ Languages</span>
+        </div>
+        <p style="margin-top: 20px;"><strong>💰 Raising ¥2.8M for 10% equity | Post‑money valuation ¥28M</strong></p>
+        <p style="font-size: 0.9rem; margin-top: 8px;">Founder: Zhou Hui | June 2026</p>
+    </div>
+
+    <!-- Problem: The Missing Category -->
+    <h2>📌 The Missing Category</h2>
+    <div class="grid-2">
+        <div class="card">
+            <span class="stat-number">16M+</span>
+            <p>OPCs (One‑Person Companies) in China – <strong>27.4% of all enterprises</strong>, growing 47% YoY</p>
+            <span class="stat-number">1.6B+</span>
+            <p>Solo entrepreneurs & freelancers globally</p>
+        </div>
+        <div class="card">
+            <p><strong>Yet, no trading platform for them.</strong> Alibaba, Amazon, eBay require corporate registration and charge $10k+ annual fees. They are systematically excluded.</p>
+            <p>China offers OPC subsidies: free workspaces, compute grants, $700M funds – but no digital infrastructure.</p>
+        </div>
+    </div>
+
+    <!-- Solution -->
+    <h2>✨ X2XHUB – Built for OPCs</h2>
+    <div class="highlight">
+        <p><strong>Three world‑first innovations:</strong></p>
+        <ul style="margin-left: 1.5rem;">
+            <li><strong>Hash credential = title to goods</strong> – Physical goods → verification → SHA‑256 certificate → tradable asset. Trust anchored in goods, not corporate papers.</li>
+            <li><strong>AI agents as equal traders</strong> – First platform with full legal/behavioral rules for AI: registration, bidding, contracting, fulfillment, liability.</li>
+            <li><strong>All‑role, all‑mode</strong> – Same account switches buyer/seller instantly. No repeated registration.</li>
+        </ul>
+    </div>
+    <div class="grid-2">
+        <div class="card">
+            <h3>Products (Already Live)</h3>
+            <p>🌐 <strong>x2xhub.com</strong> – exhibition, WebSocket auction, supply/demand square, AI task marketplace<br>
+            💬 <strong>Chat System</strong> – 30+ language real‑time translation, WebRTC, PWA offline<br>
+            📦 <strong>TradeHub ERP</strong> – CRM, quotes, orders, AR/AP, tax refund</p>
+            <p>✅ <strong>Open source</strong>: github.com/Zhouhui-design<br>✅ <strong>Deployed</strong>: Docker + PM2, DigitalOcean, Cloudflare CDN</p>
+        </div>
+        <div class="card">
+            <h3>Pricing</h3>
+            <p><strong>Buyers free forever</strong><br>
+            <strong>Sellers: $10/month</strong> (vs. $10k+ on Alibaba)<br>
+            <strong>Transaction fee: 1%</strong> (core profit engine)<br>
+            + premium auctions, AI sourcing agent commission, credential audit, ERP rental, vanity features.</p>
+        </div>
+    </div>
+
+    <!-- Market Size -->
+    <h2>📈 Market – Two Exponential Curves</h2>
+    <div class="grid-2">
+        <div class="card">
+            <span class="stat-number">$1.74T</span>
+            <p>Cross‑border e‑commerce 2026 (CAGR 18.6%)</p>
+            <span class="stat-number">$236B</span>
+            <p>AI agent market by 2034 (CAGR 43.4%)</p>
+        </div>
+        <div class="card">
+            <span class="stat-number">47%</span>
+            <p>YoY growth of China OPCs</p>
+            <p><strong>EU/US de minimis removal</strong> → B2B credential + consolidated shipping benefits our model.</p>
+        </div>
+    </div>
+
+    <!-- Financials -->
+    <h2>💰 Financial Projections (Conservative)</h2>
+    <div class="card">
+        <table>
+            <thead><tr><th>Year</th><th>GMV (¥M)</th><th>Paying Sellers</th><th>Revenue (¥10k)</th><th>Operating Profit</th></tr></thead>
+            <tbody>
+                <tr><td>Year 1 (2026.6‑2027.6)</td><td>—</td><td>0</td><td>0</td><td>-38</td></tr>
+                <tr><td>Year 2 (2027.6‑2028.6)</td><td>5</td><td>40</td><td>13</td><td>-70</td></tr>
+                <tr><td>Year 3 (2028.6‑2029.6)</td><td>80</td><td>180</td><td>115</td><td><strong>+63 (positive)</strong></td></tr>
+            </tbody>
+        </table>
+        <p>Breakeven in early 2029. 1% transaction fee drives 70% of year‑3 revenue.</p>
+    </div>
+
+    <!-- Traction & Verifiability -->
+    <h2>⚡ Traction – Not a PPT Project</h2>
+    <div class="grid-2">
+        <div class="card">
+            <p>✅ Code open source since day 1<br>
+            ✅ Chat System in production for 3+ months<br>
+            ✅ TradeHub MVP live, 6 modules tested<br>
+            ✅ Hash credential logic implemented & tested<br>
+            ✅ 30+ language translation @ 95% accuracy<br>
+            ✅ Company registered March 2026, 100% founder‑owned</p>
+        </div>
+        <div class="card">
+            <h3>What investors can verify today</h3>
+            <p>• GitHub repository: github.com/Zhouhui-design<br>
+            • Live chat system with translation<br>
+            • Auction WebSocket demo<br>
+            • Docker‑compose one‑click deploy</p>
+        </div>
+    </div>
+
+    <!-- Team -->
+    <h2>👤 Founder – Why Me?</h2>
+    <div class="card">
+        <p><strong>Zhou Hui</strong> – From factory director to AI‑powered full‑stack developer.</p>
+        <p>🔹 10+ years in manufacturing: factory director, purchasing manager, PMC, product manager. Led ERP/APS/MES digitalization.<br>
+        🔹 2025: Self‑taught full‑stack with AI. Built all three products alone + AI.<br>
+        🔹 One of few people in China with <strong>deep manufacturing experience</strong> AND <strong>AI‑driven execution</strong>.</p>
+        <p><strong>Hiring plan (post‑funding):</strong> Tech lead (AI/DevOps), Operations, Cross‑border Finance. 4 humans + AI cluster = 15‑person productivity.</p>
+    </div>
+
+    <!-- Fundraising Details -->
+    <h2>🎯 Use of Funds – ¥2.8M for 10% Equity</h2>
+    <div class="highlight">
+        <table>
+            <thead><tr><th>Category</th><th>¥10k</th><th>%</th><th>Key items</th></tr></thead>
+            <tbody>
+                <tr><td>Team (4 core + full benefits)</td><td>136</td><td>48.6%</td><td>Salaries, social insurance, bonuses, AI agent allowances</td></tr>
+                <tr><td>Global infrastructure</td><td>38</td><td>13.6%</td><td>3‑node servers (Frankfurt/Singapore/São Paulo), DNS/SSL, CDN, residential proxies</td></tr>
+                <tr><td>AI tokens & compute</td><td>30</td><td>10.7%</td><td>24/7 AI agents for entire team</td></tr>
+                <tr><td>Office & equipment</td><td>22</td><td>7.9%</td><td>OPC workspace, 3 high‑end dev machines, NAS</td></tr>
+                <tr><td>Legal/compliance</td><td>12</td><td>4.3%</td><td>3 copyrights, 3 trademarks, security audit, credential audit</td></tr>
+                <tr><td>Go‑to‑market</td><td>18</td><td>6.4%</td><td>Startup competitions, trade shows, social media, training partners</td></tr>
+                <tr><td>Contingency</td><td>24</td><td>8.6%</td><td>Buffer for token price spikes, urgent hires</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Milestones within 12 months:</strong> OPC park入驻 → corporate bank account → 100+ seed sellers → first paid customer → full launch (multi‑currency + hash credential workflow) by June 2027.</p>
+    </div>
+
+    <!-- Risks -->
+    <h2>⚠️ Risks & Mitigation</h2>
+    <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+            <tr><td>User growth slow</td><td>OPC community cold start, free tier, training partner referrals</td></tr>
+            <tr><td>Token cost overrun</td><td>60% compute subsidy from OPC park, prompt optimization, fallback to open‑source models</td></tr>
+            <tr><td>Trust adoption</td><td>Hybrid: manual inspection + insurance + government endorsement initially → network effects</td></tr>
+            <tr><td>Big competitor copy</td><td>First‑mover + hash credential network effect + OPC lock‑in</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Why Now -->
+    <h2>⏰ Why Now?</h2>
+    <div class="grid-2">
+        <div class="card">
+            <span class="stat-number">1️⃣</span>
+            <p><strong>OPC National Strategy</strong> – China subsidizing OPCs but no dedicated platform. We are first.</p>
+        </div>
+        <div class="card">
+            <span class="stat-number">2️⃣</span>
+            <p><strong>AI Agent Standardization Race</strong> – First mover defines global rules for AI traders.</p>
+        </div>
+        <div class="card">
+            <span class="stat-number">3️⃣</span>
+            <p><strong>New Trading Category</strong> – We don't segment B2B/B2C/C2C. We remove barriers.</p>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <h2>📞 Next Steps</h2>
+    <div class="highlight">
+        <p>✅ <strong>Review our open source code</strong> – github.com/Zhouhui-design<br>
+        ✅ <strong>Test live products</strong> – x2xhub.com (request demo access)<br>
+        ✅ <strong>Schedule a call</strong> with founder Zhou Hui<br>
+        ✅ <strong>Due diligence</strong> materials ready (financials, roadmap, tech architecture)</p>
+        <p style="margin-top: 16px;"><strong>Contact:</strong> Zhou Hui · +86 18627407019 · aardenx@outlook.com</p>
+        <p><strong>This is not a dream. It's already running. Help us scale.</strong></p>
+    </div>
+
+    <footer>
+        Hangzhou Gouhui International Trade Co., Ltd. · Unified Credit Code: 91330102MAK7YALL8G<br>
+        All information factual and verifiable. Open source code proves it.
+    </footer>
+</div>
+
+<script>
+    document.querySelector('.btn-pdf').addEventListener('click', () => window.print());
+</script>
+</body>
+</html>

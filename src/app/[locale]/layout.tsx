@@ -346,6 +346,9 @@ export default function LocaleLayout({ children, params }: LayoutProps) {
           <Link href={`/${locale}/api-docs`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
             {dict.nav.api}
           </Link>
+          <Link href={`/${locale}/partner-recruitment`} className="block text-sm font-medium bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-md hover:from-yellow-600 hover:to-orange-600">
+            {dict.nav.partnerRecruitment}
+          </Link>
           <Link href="/seller" className="block text-sm font-medium text-orange-600 hover:text-orange-700 py-2">
             {dict.nav.sellerPortal}
           </Link>

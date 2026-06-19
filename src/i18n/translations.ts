@@ -45,18 +45,101 @@ export interface Translations {
   
   // Navigation
   nav: {
-    home: string
-    products: string
-    exhibitors: string
-    categories: string
-    login: string
-    register: string
-    dashboard: string
-    logout: string
-  }
-  
-  // Home Page
-  home: {
+      home: string
+      products: string
+      exhibitors: string
+      categories: string
+      login: string
+      register: string
+      dashboard: string
+      logout: string
+      partnerRecruitment: string
+    }
+    partnerRecruitment: {
+      title: string
+      subtitle: string
+      globalRecruitment: string
+      partnerTypesTitle: string
+      individual: string
+      individualDesc: string
+      company: string
+      companyDesc: string
+      investor: string
+      investorDesc: string
+      government: string
+      governmentDesc: string
+      partnershipMethodsTitle: string
+      capitalPartnership: string
+      capitalPartnershipDesc: string
+      capitalBenefit1: string
+      capitalBenefit2: string
+      capitalBenefit3: string
+      operationPartnership: string
+      operationPartnershipDesc: string
+      operationBenefit1: string
+      operationBenefit2: string
+      operationBenefit3: string
+      contactTitle: string
+      phoneLabel: string
+      emailLabel: string
+      contactNote: string
+      businessPlansTitle: string
+      businessPlansDesc: string
+      moreLanguagesTitle: string
+      moreLanguagesDesc: string
+      backToHome: string
+    }
+    marketplace: {
+      postTaskPage: {
+        backToMarketplace: string
+        title: string
+        subtitle: string
+        taskTitle: string
+        taskTitlePlaceholder: string
+        taskType: string
+        manufacturing: string
+        productSale: string
+        service: string
+        description: string
+        aiGenerate: string
+        generating: string
+        descriptionPlaceholder: string
+        descriptionMinChars: string
+        budget: string
+        budgetPlaceholder: string
+        unitPrice: string
+        unitPricePlaceholder: string
+        currency: string
+        unit: string
+        unitPlaceholder: string
+        minOrderQty: string
+        minOrderQtyPlaceholder: string
+        deadline: string
+        contactInfo: string
+        contactInfoPlaceholder: string
+        contactInfoNote: string
+        postTaskBtn: string
+        posting: string
+        cancel: string
+        tipsTitle: string
+        tip1: string
+        tip2: string
+        tip3: string
+        tip4: string
+        tip5: string
+        titleRequired: string
+        descriptionRequired: string
+        descriptionMinLength: string
+        budgetMustBeNumber: string
+        priceMustBeNumber: string
+        minOrderMustBeNumber: string
+        enterTitleFirst: string
+        taskPostedSuccess: string
+        failedToPost: string
+        networkError: string
+      }
+    }
+    home: {
     title: string
     subtitle: string
     heroTitle: string
@@ -218,6 +301,91 @@ export const translations: Record<Language, Translations> = {
       register: 'Register',
       dashboard: 'Dashboard',
       logout: 'Logout',
+      partnerRecruitment: 'Partner Recruitment',
+    },
+    partnerRecruitment: {
+      title: 'Join Us as a Partner',
+      subtitle: 'Build the Future of Global Cross-Border Trade Together',
+      globalRecruitment: 'Global Recruitment - No Geographic Restrictions',
+      partnerTypesTitle: 'Who Can Join?',
+      individual: 'Individuals',
+      individualDesc: 'Entrepreneurs, freelancers, and professionals with expertise',
+      company: 'Companies',
+      companyDesc: 'Businesses looking for strategic partnerships',
+      investor: 'Investors',
+      investorDesc: 'Investment institutions seeking high-growth opportunities',
+      government: 'Government',
+      governmentDesc: 'Government agencies promoting trade and economic development',
+      partnershipMethodsTitle: 'Partnership Methods',
+      capitalPartnership: 'Capital Partnership',
+      capitalPartnershipDesc: 'Invest capital to become a shareholder and share profits',
+      capitalBenefit1: 'Equity ownership in the platform',
+      capitalBenefit2: 'Priority access to new features and markets',
+      capitalBenefit3: 'Regular dividends and profit sharing',
+      operationPartnership: 'Operation Partnership',
+      operationPartnershipDesc: 'Contribute expertise and skills to manage specific operations',
+      operationBenefit1: 'Revenue share based on performance',
+      operationBenefit2: 'Professional development and training',
+      operationBenefit3: 'Flexible working arrangements',
+      contactTitle: 'Contact Us',
+      phoneLabel: 'Phone',
+      emailLabel: 'Email',
+      contactNote: 'Reach out to us anytime to discuss partnership opportunities. We respond within 24 hours.',
+      businessPlansTitle: 'Download Business Plans',
+      businessPlansDesc: 'Get detailed information about our platform, business model, and growth strategy',
+      moreLanguagesTitle: '30 Languages Available',
+      moreLanguagesDesc: 'Business plans are available in 30 major languages for global accessibility',
+      backToHome: '← Back to Home',
+    },
+    marketplace: {
+      postTaskPage: {
+        backToMarketplace: '← Back to Marketplace',
+        title: 'Post a New Task',
+        subtitle: 'Describe what you need and connect with qualified suppliers, sellers, or service providers.',
+        taskTitle: 'Task Title *',
+        taskTitlePlaceholder: 'e.g., Looking for Factory to Produce Wireless Earbuds',
+        taskType: 'Task Type *',
+        manufacturing: '🏭 Manufacturing - Looking for factory/manufacturer',
+        productSale: '🛍️ Product Sale - Selling products',
+        service: '🔧 Service - Offering services',
+        description: 'Description *',
+        aiGenerate: '✨ AI Generate',
+        generating: '✨ Generating...',
+        descriptionPlaceholder: 'Describe your requirements in detail...',
+        descriptionMinChars: 'Minimum 50 characters. Use the AI Generate button for assistance.',
+        budget: 'Budget (Optional)',
+        budgetPlaceholder: 'Total budget',
+        unitPrice: 'Unit Price (Optional)',
+        unitPricePlaceholder: 'Price per unit',
+        currency: 'Currency',
+        unit: 'Unit (Optional)',
+        unitPlaceholder: 'e.g., per unit, per hour, per piece',
+        minOrderQty: 'Min Order Quantity (Optional)',
+        minOrderQtyPlaceholder: 'Minimum quantity',
+        deadline: 'Deadline (Optional)',
+        contactInfo: 'Contact Information (Optional)',
+        contactInfoPlaceholder: 'Email, phone, or other contact details',
+        contactInfoNote: 'This will be visible to applicants. Leave blank to use your profile contact info.',
+        postTaskBtn: 'Post Task',
+        posting: 'Posting...',
+        cancel: 'Cancel',
+        tipsTitle: '💡 Tips for Posting Tasks',
+        tip1: 'Be specific about your requirements to attract qualified applicants',
+        tip2: 'Include realistic budgets to set clear expectations',
+        tip3: 'Provide detailed descriptions to reduce back-and-forth communication',
+        tip4: 'Set reasonable deadlines to ensure quality work',
+        tip5: 'Use AI Generate to get a professional description template',
+        titleRequired: 'Title is required',
+        descriptionRequired: 'Description is required',
+        descriptionMinLength: 'Description must be at least 50 characters',
+        budgetMustBeNumber: 'Budget must be a number',
+        priceMustBeNumber: 'Price must be a number',
+        minOrderMustBeNumber: 'Min order quantity must be a number',
+        enterTitleFirst: 'Please enter a title first',
+        taskPostedSuccess: 'Task posted successfully!',
+        failedToPost: 'Failed to post task',
+        networkError: 'Network error. Please try again.',
+      }
     },
     home: {
       title: 'Global Expo Network',
@@ -369,6 +537,91 @@ export const translations: Record<Language, Translations> = {
       register: '注册',
       dashboard: '管理后台',
       logout: '退出',
+      partnerRecruitment: '招募合伙人',
+    },
+    partnerRecruitment: {
+      title: '招募合伙人',
+      subtitle: '共建全球跨境贸易的未来',
+      globalRecruitment: '全球招募 - 不限地区',
+      partnerTypesTitle: '招募对象',
+      individual: '个人',
+      individualDesc: '创业者、自由职业者和专业人士',
+      company: '公司',
+      companyDesc: '寻求战略合作伙伴的企业',
+      investor: '投资机构',
+      investorDesc: '寻求高增长机会的投资机构',
+      government: '政府',
+      governmentDesc: '促进贸易和经济发展的政府机构',
+      partnershipMethodsTitle: '合伙方式',
+      capitalPartnership: '资金合伙',
+      capitalPartnershipDesc: '投资资金成为股东，共享利润',
+      capitalBenefit1: '平台股权所有权',
+      capitalBenefit2: '优先使用新功能和市场',
+      capitalBenefit3: '定期分红和利润分享',
+      operationPartnership: '运营合伙',
+      operationPartnershipDesc: '贡献专业技能，负责平台特定运营',
+      operationBenefit1: '基于绩效的收入分享',
+      operationBenefit2: '专业发展和培训',
+      operationBenefit3: '灵活的工作安排',
+      contactTitle: '联系我们',
+      phoneLabel: '电话',
+      emailLabel: '邮箱',
+      contactNote: '随时联系我们讨论合作机会。我们会在24小时内回复。',
+      businessPlansTitle: '下载商业计划书',
+      businessPlansDesc: '获取关于我们平台、商业模式和增长策略的详细信息',
+      moreLanguagesTitle: '30种语言版本',
+      moreLanguagesDesc: '商业计划书提供30种主要语言版本，方便全球访问',
+      backToHome: '← 返回首页',
+    },
+    marketplace: {
+      postTaskPage: {
+        backToMarketplace: '← 返回市场',
+        title: '发布新任务',
+        subtitle: '描述您的需求，与合格的供应商、卖家或服务提供商建立联系。',
+        taskTitle: '任务标题 *',
+        taskTitlePlaceholder: '例如：寻找工厂生产无线耳机',
+        taskType: '任务类型 *',
+        manufacturing: '🏭 制造 - 寻找工厂/制造商',
+        productSale: '🛍️ 产品销售 - 销售产品',
+        service: '🔧 服务 - 提供服务',
+        description: '描述 *',
+        aiGenerate: '✨ AI生成',
+        generating: '✨ 正在生成...',
+        descriptionPlaceholder: '详细描述您的需求...',
+        descriptionMinChars: '最少50个字符。使用AI生成按钮获取帮助。',
+        budget: '预算（可选）',
+        budgetPlaceholder: '总预算',
+        unitPrice: '单价（可选）',
+        unitPricePlaceholder: '每单位价格',
+        currency: '货币',
+        unit: '单位（可选）',
+        unitPlaceholder: '例如：每件、每小时、每个',
+        minOrderQty: '最小订购量（可选）',
+        minOrderQtyPlaceholder: '最小数量',
+        deadline: '截止日期（可选）',
+        contactInfo: '联系信息（可选）',
+        contactInfoPlaceholder: '邮箱、电话或其他联系方式',
+        contactInfoNote: '此信息将对申请者可见。留空则使用您的个人资料联系信息。',
+        postTaskBtn: '发布任务',
+        posting: '正在发布...',
+        cancel: '取消',
+        tipsTitle: '💡 发布任务提示',
+        tip1: '具体描述您的需求以吸引合格的申请者',
+        tip2: '包含合理的预算以设定明确的期望',
+        tip3: '提供详细的描述以减少反复沟通',
+        tip4: '设定合理的截止日期以确保工作质量',
+        tip5: '使用AI生成获取专业的描述模板',
+        titleRequired: '标题必填',
+        descriptionRequired: '描述必填',
+        descriptionMinLength: '描述至少需要50个字符',
+        budgetMustBeNumber: '预算必须是数字',
+        priceMustBeNumber: '价格必须是数字',
+        minOrderMustBeNumber: '最小订购量必须是数字',
+        enterTitleFirst: '请先输入标题',
+        taskPostedSuccess: '任务发布成功！',
+        failedToPost: '发布任务失败',
+        networkError: '网络错误，请重试。',
+      }
     },
     home: {
       title: '全球商展网',
@@ -476,15 +729,244 @@ export const translations: Record<Language, Translations> = {
   es: {} as any,
   fr: {} as any,
   de: {} as any,
-  ar: {} as any,
+  ar: {
+    aiRegister: {
+      loggedInAs: 'مسجل الدخول sebagai',
+      title: 'تسجيل هوية الذكاء الاصطناعي',
+      subtitle: 'إنشاء حساب الذكاء الاصطناعي واستكشاف مستقبل تجارة B2B',
+      feature1: 'التداول المدعوم بالذكاء الاصطناعي',
+      feature2: 'التوفر على مدار الساعة',
+      feature3: 'التفاوض الذكي',
+      capabilities: 'قدرات الذكاء الاصطناعي',
+      capability1: 'البحث الذكي عن المنتجات',
+      capability1Desc: 'ابحث عن المنتجات بشكل أسرع مع البحث والتوصيات المدعومة بالذكاء الاصطناعي',
+      capability2: 'التفاوض الآلي',
+      capability2Desc: 'يمكن للذكاء الاصطناعي التفاوض بشأن الأسعار والشروط نيابةً عنك',
+      capability3: 'تحليل السوق',
+      capability3Desc: 'احصل على رؤى واتجاهات السوق في الوقت الفعلي',
+      capability4: 'دعم متعدد اللغات',
+      capability4Desc: 'تواصل عالميًا مع الترجمة المدمجة',
+      termsNote: 'يجب تسجيل حسابات الذكاء الاصطناعي تحت حساب مالك بشري. بالتسجيل، أنت توافق على سياسات استخدام الذكاء الاصطناعي.',
+      register: 'إنشاء حساب الذكاء الاصطناعي',
+      registerDesc: 'سجل الذكاء الاصطناعي الخاص بك لبدء التداول',
+      needLogin: 'يرجى تسجيل الدخول بحسابك البشري أولاً لتسجيل حساب الذكاء الاصطناعي.',
+      bindingTo: 'سيتم ربط حساب الذكاء الاصطناعي هذا بـ:',
+      selectRole: 'اختر دور الذكاء الاصطناعي',
+      aiBuyer: 'مشتري الذكاء الاصطناعي',
+      aiBuyerDesc: 'شراء المنتجات تلقائيًا',
+      aiSeller: 'بائع الذكاء الاصطناعي',
+      aiSellerDesc: 'بيع المنتجات تلقائيًا',
+      usernamePlaceholder: 'أدخل اسم مستخدم الذكاء الاصطناعي',
+      emailPlaceholder: 'أدخل عنوان بريد إلكتروني للذكاء الاصطناعي',
+      passwordPlaceholder: 'أدخل كلمة مرور أو أنشئ واحدة',
+      generatePassword: 'إنشاء كلمة مرور عشوائية',
+      agreeTerms: 'أوافق على شروط خدمة الذكاء الاصطناعي وسياسة الخصوصية',
+      createAccount: 'إنشاء حساب الذكاء الاصطناعي',
+      copyCredentials: 'نسخ بيانات الاعتماد',
+      haveAccount: 'لديك بالفعل حساب ذكاء اصطناعي؟',
+      successTitle: 'تم إنشاء حساب الذكاء الاصطناعي بنجاح!',
+      successMessage: 'تم إنشاء حساب الذكاء الاصطناعي الخاص بك وهو الآن جاهز للاستخدام.',
+      saveCredentials: 'يرجى حفظ بيانات الاعتماد الخاصة بك:',
+      footer: 'تخضع حسابات الذكاء الاصطناعي لشروطنا وأحكامنا المحددة للذكاء الاصطناعي.',
+    },
+    nav: {
+      home: 'الرئيسية',
+      products: 'المنتجات',
+      exhibitors: 'العارضون',
+      categories: 'الفئات',
+      login: 'تسجيل الدخول',
+      register: 'التسجيل',
+      dashboard: 'لوحة التحكم',
+      logout: 'تسجيل الخروج',
+    },
+    marketplace: {
+      postTaskPage: {
+        backToMarketplace: '← العودة إلى السوق',
+        title: 'نشر مهمة جديدة',
+        subtitle: 'صف ما تحتاجه وتواصل مع الموردين أو البائعين أو مقدمي الخدمات المؤهلين.',
+        taskTitle: 'عنوان المهمة *',
+        taskTitlePlaceholder: 'مثال: البحث عن مصنع لإنتاج سماعات الأذن اللاسلكية',
+        taskType: 'نوع المهمة *',
+        manufacturing: '🏭 تصنيع - البحث عن مصنع/مصنع',
+        productSale: '🛍️ بيع المنتجات - بيع المنتجات',
+        service: '🔧 خدمة - تقديم الخدمات',
+        description: 'الوصف *',
+        aiGenerate: '✨ توليد الذكاء الاصطناعي',
+        generating: '✨ جاري التوليد...',
+        descriptionPlaceholder: 'صف متطلباتك بالتفصيل...',
+        descriptionMinChars: 'الحد الأدنى 50 حرفًا. استخدم زر توليد الذكاء الاصطناعي للمساعدة.',
+        budget: 'الميزانية (اختياري)',
+        budgetPlaceholder: 'الميزانية الإجمالية',
+        unitPrice: 'سعر الوحدة (اختياري)',
+        unitPricePlaceholder: 'السعر لكل وحدة',
+        currency: 'العملة',
+        unit: 'الوحدة (اختياري)',
+        unitPlaceholder: 'مثال: لكل وحدة، في الساعة، لكل قطعة',
+        minOrderQty: 'الحد الأدنى للطلب (اختياري)',
+        minOrderQtyPlaceholder: 'الحد الأدنى للكمية',
+        deadline: 'الموعد النهائي (اختياري)',
+        contactInfo: 'معلومات الاتصال (اختياري)',
+        contactInfoPlaceholder: 'البريد الإلكتروني أو الهاتف أو تفاصيل الاتصال الأخرى',
+        contactInfoNote: 'سيكون هذا مرئيًا للمتقدمين. اتركه فارغًا لاستخدام معلومات الاتصال في ملفك الشخصي.',
+        postTaskBtn: 'نشر المهمة',
+        posting: 'جاري النشر...',
+        cancel: 'إلغاء',
+        tipsTitle: '💡 نصائح لنشر المهام',
+        tip1: 'كن محددًا في متطلباتك لجذب متقدمين مؤهلين',
+        tip2: 'أدرج ميزانيات واقعية لتحديد توقعات واضحة',
+        tip3: 'قدم أوصافًا تفصيلية لتقليل التواصل المتكرر',
+        tip4: 'حدد مواعيد نهائية معقولة لضمان جودة العمل',
+        tip5: 'استخدم توليد الذكاء الاصطناعي للحصول على قالب وصف احترافي',
+        titleRequired: 'العنوان مطلوب',
+        descriptionRequired: 'الوصف مطلوب',
+        descriptionMinLength: 'يجب أن يكون الوصف 50 حرفًا على الأقل',
+        budgetMustBeNumber: 'يجب أن تكون الميزانية رقمًا',
+        priceMustBeNumber: 'يجب أن يكون السعر رقمًا',
+        minOrderMustBeNumber: 'يجب أن تكون الكمية الدنيا للطلب رقمًا',
+        enterTitleFirst: 'يرجى إدخال العنوان أولاً',
+        taskPostedSuccess: 'تم نشر المهمة بنجاح!',
+        failedToPost: 'فشل في نشر المهمة',
+        networkError: 'خطأ في الشبكة. يرجى المحاولة مرة أخرى.',
+      }
+    },
+    home: {
+      title: 'شبكة المعرض العالمي',
+      subtitle: 'بوابتك للتجارة العالمية بين الشركات',
+      heroTitle: 'مرحبًا بك في قاعة المعرض العالمية',
+      heroSubtitle: 'اكتشف منتجات عالية الجودة من مصنعين حول العالم',
+      featuredExhibits: 'العروض المميزة',
+      exhibitionZones: 'مناطق العرض',
+      viewExhibit: 'عرض المنتج',
+      browseAll: 'تصفح جميع المنتجات',
+    },
+    products: {
+      title: 'عرض المنتجات',
+      subtitle: 'تصفح العروض من المصنعين العالميين',
+      filters: 'الفلاتر',
+      category: 'الفئة',
+      country: 'البلد',
+      companyType: 'نوع الشركة',
+      searchPlaceholder: 'البحث عن المنتجات أو العارضين...',
+      sortBy: 'ترتيب حسب',
+      newest: 'الأحدث',
+      popular: 'الأكثر شعبية',
+      noProducts: 'لم يتم العثور على منتجات',
+      viewDetails: 'عرض التفاصيل',
+      specifications: 'المواصفات',
+      minOrderQty: 'الحد الأدنى للطلب',
+      supplyCapacity: 'قدرة التوريد',
+      contactExhibitor: 'التواصل مع العارض',
+      downloadBrochure: 'تحميل الكتيب',
+      viewContactInfo: 'عرض معلومات الاتصال',
+    },
+    exhibitors: {
+      title: 'قاعة العارضين',
+      subtitle: 'تواصل مباشرة مع المصنعين والمصدرين المعتمدين',
+      searchPlaceholder: 'البحث عن العارضين...',
+      filters: 'الفلاتر',
+      category: 'الفئة',
+      country: 'البلد',
+      companyType: 'نوع الشركة',
+      noExhibitors: 'لم يتم العثور على عارضين',
+      viewProfile: 'عرض الملف الشخصي',
+      viewProducts: 'عرض المنتجات',
+    },
+    chatHall: {
+      title: 'قاعة الدردشة العالمية',
+      subtitle: 'تواصل مع المشترين والبائعين العالميين',
+      onlineUsers: 'المستخدمون المتصلون',
+      online: 'متصل',
+      marketplace: 'السوق',
+      auctions: 'المزادات',
+      worldChat: 'الدردشة العالمية',
+      quickPost: 'نشر سريع',
+      publicChat: 'الدردشة العامة',
+      posts: 'المنشورات',
+      notices: 'الإعلانات',
+      typePlaceholder: 'اكتب رسالتك...',
+      send: 'إرسال',
+    },
+    auction: {
+      title: 'قاعة المزادات',
+      subtitle: 'اكتشف فرصًا استثنائية في مزاداتنا',
+      currentBid: 'المزايدة الحالية',
+      timeLeft: 'الوقت المتبقي',
+      placeBid: 'Place Bid',
+      viewDetails: 'عرض التفاصيل',
+      noAuctions: 'لا توجد مزادات نشطة',
+    },
+    auth: {
+      login: {
+        title: 'تسجيل الدخول',
+        email: 'البريد الإلكتروني أو اسم المستخدم',
+        emailPlaceholder: 'أدخل بريدك الإلكتروني أو اسم المستخدم',
+        password: 'كلمة المرور',
+        passwordPlaceholder: 'أدخل كلمة المرور الخاصة بك',
+        rememberMe: 'تذكرني',
+        forgotPassword: 'نسيت كلمة المرور؟',
+        loginButton: 'تسجيل الدخول',
+        noAccount: 'ليس لديك حساب؟',
+        register: 'سجل الآن',
+        loginTitle: 'مرحبًا بك مرة أخرى',
+        loginSubtitle: 'تسجيل الدخول للوصول إلى حسابك',
+      },
+      register: {
+        title: 'إنشاء حساب جديد',
+        username: 'اسم المستخدم',
+        usernamePlaceholder: 'اختر اسم مستخدم فريد',
+        email: 'البريد الإلكتروني',
+        emailPlaceholder: 'أدخل بريدك الإلكتروني',
+        password: 'كلمة المرور',
+        passwordPlaceholder: 'أنشئ كلمة مرور قوية',
+        confirmPassword: 'تأكيد كلمة المرور',
+        confirmPasswordPlaceholder: 'أعد إدخال كلمة المرور',
+        agreeTerms: 'أوافق على الشروط والأحكام',
+        registerButton: 'إنشاء حساب',
+        haveAccount: 'لديك بالفعل حساب؟',
+        login: 'تسجيل الدخول',
+        registerTitle: 'انضم إلى شبكة المعرض العالمي',
+        registerSubtitle: 'أنشئ حسابًا للوصول إلى الميزات الكاملة',
+      },
+      forgotPassword: {
+        title: 'نسيت كلمة المرور',
+        email: 'البريد الإلكتروني',
+        emailPlaceholder: 'أدخل بريدك الإلكتروني المسجل',
+        sendButton: 'إرسال رابط إعادة التعيين',
+        backToLogin: 'العودة إلى تسجيل الدخول',
+      },
+    },
+    common: {
+      loading: 'جاري التحميل...',
+      error: 'خطأ',
+      success: 'نجاح',
+      save: 'حفظ',
+      cancel: 'إلغاء',
+      delete: 'حذف',
+      edit: 'تعديل',
+      view: 'عرض',
+      search: 'بحث',
+      filter: 'فلتر',
+      sort: 'ترتيب',
+      next: 'التالي',
+      previous: 'السابق',
+      submit: 'إرسال',
+      back: 'رجوع',
+      close: 'إغلاق',
+      confirm: 'تأكيد',
+      yes: 'نعم',
+      no: 'لا',
+      upload: 'رفع',
+      download: 'تحميل',
+    },
+  },
   pt: {} as any,
   ru: {} as any,
   ja: {} as any,
   ko: {} as any,
 }
 
-// Fill other languages with English as placeholder
+// Fill other languages with English as placeholder (excluding ar which has full translations)
 const englishFallback = translations.en
-;(['es', 'fr', 'de', 'ar', 'pt', 'ru', 'ja', 'ko'] as Language[]).forEach(lang => {
+;(['es', 'fr', 'de', 'pt', 'ru', 'ja', 'ko'] as Language[]).forEach(lang => {
   translations[lang] = englishFallback
 })

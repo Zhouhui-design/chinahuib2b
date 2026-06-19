@@ -148,6 +148,13 @@ export default function Navbar({ locale }: NavbarProps) {
               <Bot className="w-4 h-4 mr-1" />
               AI 注册
             </Link>
+            <Link
+              href={`/${locale}/partner-recruitment`}
+              className={`text-sm font-medium transition-colors flex items-center bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-md hover:from-yellow-600 hover:to-orange-600`}
+            >
+              <Users className="w-4 h-4 mr-1" />
+              {dict.nav.partnerRecruitment}
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
