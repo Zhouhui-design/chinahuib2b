@@ -6,6 +6,7 @@ import { languages, type LanguageCode } from '@/lib/languages';
 import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import Footer from '@/components/Footer';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
@@ -15,6 +16,14 @@ type LayoutProps = {
 };
 
 export default function LocaleLayout({ children, params }: LayoutProps) {
+  return (
+    <SessionProvider>
+      <LocaleLayoutContent children={children} params={params} />
+    </SessionProvider>
+  );
+}
+
+function LocaleLayoutContent({ children, params }: LayoutProps) {
   const pathname = usePathname();
   const [locale, setLocale] = useState<LanguageCode>('en');
   const [dict, setDict] = useState<Record<string, any> | null>(null);
