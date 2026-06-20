@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getDictionary } from '@/locales/dictionary';
 import type { LanguageCode } from '@/lib/languages';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Mail, Phone, MapPin, Globe, Users, DollarSign } from 'lucide-react';
 
 type FooterProps = {
@@ -17,6 +19,8 @@ type FooterProps = {
 
 export default function Footer({ locale }: FooterProps) {
   const [dict, setDict] = useState<Record<string, any> | null>(null);
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchDict = async () => {
@@ -25,6 +29,28 @@ export default function Footer({ locale }: FooterProps) {
     };
     fetchDict();
   }, [locale]);
+
+  const handleSellerPortalClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // 检查登录状态
+    if (status === 'unauthenticated' || !session) {
+      alert(dict?.footer?.loginRequired || '请先登录卖家账号');
+      router.push(`/${locale}/auth/login`);
+      return;
+    }
+    
+    // 检查是否为卖家账号
+    const userRole = session?.user?.role;
+    if (userRole !== 'SELLER' && userRole !== 'ADMIN') {
+      alert(dict?.footer?.sellerAccountRequired || '请登录卖家账号才能访问卖家后台');
+      router.push(`/${locale}/auth/login`);
+      return;
+    }
+    
+    // 是卖家账号，允许访问
+    router.push('/seller');
+  };
 
   if (!dict) return null;
 
@@ -146,9 +172,12 @@ export default function Footer({ locale }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/seller" className="text-gray-400 hover:text-white transition-colors">
+                <button
+                  onClick={handleSellerPortalClick}
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
                   {dict.nav.sellerPortal}
-                </Link>
+                </button>
               </li>
               <li>
                 <Link href={`/${locale}/ai-register`} className="text-gray-400 hover:text-white transition-colors">

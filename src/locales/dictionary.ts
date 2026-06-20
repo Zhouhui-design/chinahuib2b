@@ -106,6 +106,8 @@ export type Dictionary = {
     terms: string;
     cookies: string;
     suggestEmail: string;
+    loginRequired: string;
+    sellerAccountRequired: string;
   };
   nav: {
     home: string;
@@ -790,6 +792,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       terms: "Terms of Service",
       cookies: "Cookie Settings",
       suggestEmail: "Suggestions Email",
+      loginRequired: "Please login with seller account first",
+      sellerAccountRequired: "Please login with seller account to access seller portal",
     },
   },
   zh: {
@@ -1179,6 +1183,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       terms: "服务条款",
       cookies: "Cookie设置",
       suggestEmail: "建议邮箱",
+      loginRequired: "请先登录卖家账号",
+      sellerAccountRequired: "请登录卖家账号才能访问卖家后台",
     },
   },
   es: {

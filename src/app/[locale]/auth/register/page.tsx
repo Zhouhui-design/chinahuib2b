@@ -138,6 +138,19 @@ export default function RegisterPage() {
                   language === 'th' ? 'ผู้ขาย（เปิดร้านค้า - $10/เดือน）' :
                   language === 'vi' ? 'Người bán（Mở cửa hàng - $10/tháng）' :
                   'Seller (Open Store - $10/month)',
+    buyerAndSellerOption: language === 'zh' ? '买家 & 卖家（双重身份 - $10/月）' :
+                          language === 'ja' ? 'バイヤー & セラー（二重の役割 - $10/月）' :
+                          language === 'ar' ? '买家 & 卖家（دور مزدوج - $10/月）' :
+                          language === 'es' ? 'Comprador & Vendedor (Rol dual - $10/mes)' :
+                          language === 'fr' ? 'Acheteur & Vendeur (Double rôle - 10$/mois)' :
+                          language === 'de' ? 'Käufer & Verkäufer (Doppelte Rolle - 10$/Monat)' :
+                          language === 'ko' ? '구매자 & 판매자（이중 역할 - $10/월）' :
+                          language === 'ru' ? 'Покупатель & Продавец (Двойная роль - 10$/мес)' :
+                          language === 'pt' ? 'Comprador & Vendedor (Função dupla - $10/mês)' :
+                          language === 'hi' ? 'खरीदार & विक्रेता（दोहरी भूमिका - $10/महीना）' :
+                          language === 'th' ? 'ผู้ซื้อ & ผู้ขาย（บทบาทคู่ - $10/เดือน）' :
+                          language === 'vi' ? 'Người mua & Người bán（Vai trò kép - $10/tháng）' :
+                          'Buyer & Seller (Dual Role - $10/month)',
     policyWarning: language === 'zh' ? '⚠️ 账户活动政策：365天未活跃的账户将被停用。请定期登录以保持账户活跃。' :
                    language === 'ja' ? '⚠️ アカウントアクティビティポリシー：365日間非アクティブなアカウントは停止されます。アカウントを有効に保つために定期的にログインしてください。' :
                    language === 'ar' ? '⚠️ سياسة نشاط الحساب: سيتم إيقاف الحسابات غير النشطة لمدة 365 يومًا. يرجى تسجيل الدخول بانتظام لإبقاء حسابك نشطًا.' :
@@ -316,6 +329,7 @@ export default function RegisterPage() {
               >
                 <option value="BUYER">{t.buyerOption}</option>
                 <option value="SELLER">{t.sellerOption}</option>
+                <option value="BOTH">{t.buyerAndSellerOption || '买家 & 卖家'}</option>
               </select>
             </div>
           </div>
