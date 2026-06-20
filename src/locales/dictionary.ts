@@ -105,6 +105,7 @@ export type Dictionary = {
     privacy: string;
     terms: string;
     cookies: string;
+    suggestEmail: string;
   };
   nav: {
     home: string;
@@ -788,6 +789,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       privacy: "Privacy Policy",
       terms: "Terms of Service",
       cookies: "Cookie Settings",
+      suggestEmail: "Suggestions Email",
     },
   },
   zh: {
@@ -1176,6 +1178,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       privacy: "隐私政策",
       terms: "服务条款",
       cookies: "Cookie设置",
+      suggestEmail: "建议邮箱",
     },
   },
   es: {

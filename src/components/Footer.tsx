@@ -187,6 +187,13 @@ export default function Footer({ locale }: FooterProps) {
                 </div>
               </li>
               <li className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-yellow-400 mt-0.5" />
+                <div>
+                  <p className="text-white">sardenesy@gmail.com</p>
+                  <p className="text-gray-400 text-sm">{dict.footer?.suggestEmail || '建议邮箱'}</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-blue-400 mt-0.5" />
                 <div>
                   <p className="text-white">Shanghai, China</p>
