@@ -29,8 +29,9 @@ export async function POST(request: NextRequest) {
       include: { sellerProfile: true }
     })
 
-    if (!user || user.role !== 'SELLER' || !user.sellerProfile) {
-      return NextResponse.json({ error: 'Only sellers can upload files' }, { status: 403 })
+    // Allow both SELLER and ADMIN roles to upload files
+    if (!user || (user.role !== 'SELLER' && user.role !== 'ADMIN')) {
+      return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
 
     // Parse form data
@@ -133,20 +134,24 @@ export async function POST(request: NextRequest) {
         data: { hasBrochure: true }
       })
     } else if (type === 'store_brochure') {
-      // Create store brochure record
-      const brochure = await prisma.storeBrochure.create({
-        data: {
-          sellerId: user.sellerProfile.id,
-          title: file.name.replace(/\.pdf$/i, ''),
-          fileName: file.name,
-          fileUrl: publicUrl,
-          fileSize,
-          downloadCount: 0,
-          sortOrder: 0,
-        }
-      })
-      result.brochureId = brochure.id
-      result.sellerId = user.sellerProfile.id
+      // Create store brochure record (only for SELLER role)
+      if (user.role === 'SELLER' && user.sellerProfile) {
+        const brochure = await prisma.storeBrochure.create({
+          data: {
+            sellerId: user.sellerProfile.id,
+            title: file.name.replace(/\.pdf$/i, ''),
+            fileName: file.name,
+            fileUrl: publicUrl,
+            fileSize,
+            downloadCount: 0,
+            sortOrder: 0,
+          }
+        })
+        result.brochureId = brochure.id
+        result.sellerId = user.sellerProfile.id
+      } else {
+        return NextResponse.json({ error: 'Store brochure requires seller profile' }, { status: 400 })
+      }
     } else if (type === 'product_image' && productId) {
       // Update product with new image
       const product = await prisma.product.findUnique({
@@ -169,19 +174,57 @@ export async function POST(request: NextRequest) {
         result.productId = productId
       }
     } else if (type === 'logo') {
-      // Update seller logo
-      await prisma.sellerProfile.update({
-        where: { id: user.sellerProfile.id },
-        data: { logoUrl: publicUrl }
-      })
-      result.sellerId = user.sellerProfile.id
+      // Update seller logo (only for SELLER role)
+      if (user.role === 'SELLER') {
+        // If sellerProfile doesn't exist, create one
+        let sellerProfile = user.sellerProfile
+        if (!sellerProfile) {
+          const userEmail = session.user.email || ''
+          sellerProfile = await prisma.sellerProfile.create({
+            data: {
+              userId: session.user.id,
+              storeName: userEmail.split('@')[0] || 'My Store',
+              slug: `store-${session.user.id.slice(0, 8)}`,
+              description: '',
+              logoUrl: publicUrl
+            }
+          })
+        } else {
+          await prisma.sellerProfile.update({
+            where: { id: sellerProfile.id },
+            data: { logoUrl: publicUrl }
+          })
+        }
+        result.sellerId = sellerProfile.id
+      } else {
+        return NextResponse.json({ error: 'Logo update requires seller profile' }, { status: 400 })
+      }
     } else if (type === 'banner') {
-      // Update seller banner
-      await prisma.sellerProfile.update({
-        where: { id: user.sellerProfile.id },
-        data: { bannerUrl: publicUrl }
-      })
-      result.sellerId = user.sellerProfile.id
+      // Update seller banner (only for SELLER role)
+      if (user.role === 'SELLER') {
+        // If sellerProfile doesn't exist, create one
+        let sellerProfile = user.sellerProfile
+        if (!sellerProfile) {
+          const userEmail = session.user.email || ''
+          sellerProfile = await prisma.sellerProfile.create({
+            data: {
+              userId: session.user.id,
+              storeName: userEmail.split('@')[0] || 'My Store',
+              slug: `store-${session.user.id.slice(0, 8)}`,
+              description: '',
+              bannerUrl: publicUrl
+            }
+          })
+        } else {
+          await prisma.sellerProfile.update({
+            where: { id: sellerProfile.id },
+            data: { bannerUrl: publicUrl }
+          })
+        }
+        result.sellerId = sellerProfile.id
+      } else {
+        return NextResponse.json({ error: 'Banner update requires seller profile' }, { status: 400 })
+      }
     }
 
     return NextResponse.json({
