@@ -15,8 +15,14 @@ const productSchema = z.object({
   specifications: z.record(z.string(), z.any()).optional(),
   minOrderQty: z.number().min(1).optional(),
   supplyCapacity: z.string().optional(),
-  images: z.array(z.string()).optional(),
-  mainImageUrl: z.string().url().optional(),
+  images: z.array(z.string().refine(
+    (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+    { message: 'Image URL must be a valid URL or a relative path starting with /uploads/' }
+  )).optional(),
+  mainImageUrl: z.string().optional().refine(
+    (val) => !val || val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+    { message: 'mainImageUrl must be a valid URL or a relative path starting with /uploads/' }
+  ),
   isFeatured: z.boolean().optional().default(false),
   autoTranslate: z.boolean().optional().default(false),
   sourceLanguage: z.string().optional().default('en'),
@@ -39,9 +45,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('Create product request body:', JSON.stringify(body, null, 2))
     const validation = productSchema.safeParse(body)
 
     if (!validation.success) {
+      console.log('Validation failed:', JSON.stringify(validation.error.issues, null, 2))
       return NextResponse.json({
         error: 'Validation failed',
         details: validation.error.issues
@@ -129,11 +137,12 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     const includeAI = searchParams.get('includeAI') !== 'false'
 
-    const [dbProducts, total] = await Promise.all([
+    const [dbProducts, total, booths] = await Promise.all([
       prisma.product.findMany({
         where: { sellerId: seller.id },
         include: {
-          category: { select: { name: true } }
+          category: { select: { name: true } },
+          booth: { select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true } }
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -141,6 +150,10 @@ export async function GET(request: NextRequest) {
       }),
       prisma.product.count({
         where: { sellerId: seller.id }
+      }),
+      prisma.booth.findMany({
+        where: { sellerId: seller.id, isPublished: true },
+        select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true }
       })
     ])
 
@@ -201,6 +214,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       products: allProducts,
+      booths,
       pagination: {
         page,
         limit,

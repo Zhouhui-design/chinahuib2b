@@ -46,6 +46,11 @@ export async function GET() {
         mimeType: file.mimeType,
         isVerified: file.isVerified,
         description: file.description,
+        certificateNumber: file.certificateNumber,
+        issuingAuthority: file.issuingAuthority,
+        issueDate: file.issueDate,
+        expiryDate: file.expiryDate,
+        certificateName: file.certificateName,
         createdAt: file.createdAt,
       }))
     })

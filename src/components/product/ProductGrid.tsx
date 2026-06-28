@@ -22,15 +22,16 @@ type Product = {
 
 type ProductGridProps = {
   products: Product[];
+  locale?: string;
 };
 
-export default function ProductGrid({ products }: ProductGridProps) {
+export default function ProductGrid({ products, locale = 'en' }: ProductGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
       {products.map((product) => (
         <Link
           key={product.id}
-          href={`/products/${product.id}`}
+          href={`/${locale}/products/${product.id}`}
           className="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
         >
           {/* Product Image */}

@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Fix workspace root for monorepo
+  outputFileTracingRoot: __dirname,
+  
   // Allow cross-origin requests in development mode
   allowedDevOrigins: ['x2xhub.com', 'www.x2xhub.com', '139.59.108.156'],
   

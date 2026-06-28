@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         id: cat.parent.id,
         name: locale === 'en' && cat.parent.nameEn ? cat.parent.nameEn : cat.parent.name,
       } : null,
+      hsCode: cat.hsCode,
       model: cat.model,
       modelEn: cat.modelEn,
       series: cat.series,
@@ -62,20 +63,27 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { name, nameEn, level, parentId, model, modelEn, series, seriesEn, description, descriptionEn } = body
+    console.log('Create category request body:', body)
+    
+    const { name, nameEn, level, parentId, hsCode, model, modelEn, series, seriesEn, description, descriptionEn } = body
 
     if (!name || level === undefined) {
+      console.log('Validation failed: name=', name, 'level=', level)
       return NextResponse.json({ error: 'Name and level are required' }, { status: 400 })
     }
 
-    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    let slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    
+    if (!slug) {
+      slug = `category-${Date.now()}`
+    }
 
     const existing = await prisma.category.findUnique({
       where: { slug },
     })
 
     if (existing) {
-      return NextResponse.json({ error: 'Category with this name already exists' }, { status: 400 })
+      slug = `${slug}-${Date.now()}`
     }
 
     const category = await prisma.category.create({
@@ -84,7 +92,8 @@ export async function POST(request: Request) {
         nameEn,
         slug,
         level,
-        parentId,
+        ...(parentId && parentId.trim() ? { parent: { connect: { id: parentId.trim() } } } : {}),
+        hsCode,
         model,
         modelEn,
         series,
@@ -114,7 +123,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json()
-    const { id, name, nameEn, level, parentId, model, modelEn, series, seriesEn, description, descriptionEn } = body
+    const { id, name, nameEn, level, parentId, hsCode, model, modelEn, series, seriesEn, description, descriptionEn } = body
 
     if (!id || !name) {
       return NextResponse.json({ error: 'ID and name are required' }, { status: 400 })
@@ -124,18 +133,25 @@ export async function PUT(request: Request) {
       where: { id },
     })
 
+    console.log('Update category - existing:', existing)
+    console.log('Update category - incoming name:', name, 'level:', level, 'parentId:', parentId)
+
     if (!existing) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    console.log('Update category - existing.slug:', existing.slug, 'new slug:', slug)
 
-    const slugExists = await prisma.category.findFirst({
-      where: { slug, id: { not: id } },
-    })
+    if (existing.slug !== slug) {
+      const slugExists = await prisma.category.findFirst({
+        where: { slug, id: { not: id } },
+      })
+      console.log('Update category - slugExists:', slugExists)
 
-    if (slugExists) {
-      return NextResponse.json({ error: 'Another category with this name already exists' }, { status: 400 })
+      if (slugExists) {
+        return NextResponse.json({ error: 'Another category with this name already exists' }, { status: 400 })
+      }
     }
 
     const category = await prisma.category.update({
@@ -145,7 +161,8 @@ export async function PUT(request: Request) {
         nameEn,
         slug,
         level,
-        parentId,
+        ...(parentId && parentId.trim() ? { parent: { connect: { id: parentId.trim() } } } : { parent: { disconnect: true } }),
+        hsCode,
         model,
         modelEn,
         series,

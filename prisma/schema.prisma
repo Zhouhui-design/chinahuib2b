@@ -49,6 +49,11 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
 
+  // Chat system integration
+  chatSystemToken    String? // JWT token for chat-system
+  chatSystemUserId   String? // User ID in chat-system
+  chatSystemLinkedAt DateTime? // When linked to chat-system
+
   // Relations
   sellerProfile              SellerProfile?
   inquiries                  Inquiry[]
@@ -110,11 +115,48 @@ model SellerProfile {
   linkedin       String? // LinkedIn profile URL
   facebook       String? // Facebook page URL
   instagram      String? // Instagram profile
+  youtube        String? // YouTube channel URL
+  tiktok         String? // TikTok profile URL
+  twitter        String? // Twitter/X profile URL
+  pinterest      String? // Pinterest profile URL
+  douyin         String? // 抖音/Douyin profile URL
+  xiaohongshu    String? // 小红书/RED profile URL
+  qq             String? // QQ number or group
+  dingtalk       String? // 钉钉/DingTalk ID
+  lark           String? // 飞书/Lark ID
+  wechatVideo    String? // 微信视频号/WeChat Channels URL
+  weibo          String? // 微博/Weibo profile URL
+  kuaishou       String? // 快手/Kuaishou profile URL
+  bilibili       String? // B站/Bilibili profile URL
+  reddit         String? // Reddit profile URL
+  snapchat       String? // Snapchat profile URL
+  tumblr         String? // Tumblr profile URL
+  chatSystem     String? // Chat system account (email or username)
   description    String? // Rich text (stored as HTML) - deprecated, use descriptions instead
   descriptions   Json? // Multi-language descriptions { "zh": "...", "en": "...", "ja": "..." }
   logoUrl        String?
   bannerUrl      String?
   certifications String[] // Array of certification names
+
+  // Organization Profile - Enhanced for user vision
+  organizationType OrganizationType @default(ENTERPRISE) // 组织形式：企业/个体户/国企/个人
+  registeredCapital  String? // 注册资金
+  registeredAddress  String? // 注册地址
+  businessAddress    String? // 经营地址
+  employeeCount      String? // 公司人数
+  patents            String[] // 专利列表
+  awards             String[] // 奖章/荣誉列表
+  companyPhotos      String[] // 公司照片
+  teamPhotos         String[] // 团队照片
+  mapLatitude        Float?  // 地图纬度
+  mapLongitude       Float?  // 地图经度
+  mapAddress         String? // 地图显示地址
+  foundingYear       String? // 成立年份
+  businessScope      String? // 经营范围
+  legalRepresentative String? // 法定代表人
+  registrationNumber String? // 注册号/统一社会信用代码
+  bankAccount        String? // 银行账户
+  taxNumber          String? // 税号
 
   // Booth customization - Enhanced for user vision
   boothName       String? // Custom exhibitor booth name (deprecated, use boothNames instead)
@@ -168,6 +210,13 @@ enum CompanyType {
   BOTH
 }
 
+enum OrganizationType {
+  ENTERPRISE    // 企业
+  INDIVIDUAL    // 个体户
+  STATE_OWNED   // 国企
+  PERSONAL      // 个人
+}
+
 enum SubscriptionStatus {
   FREE_TRIAL
   ACTIVE
@@ -181,11 +230,12 @@ model Category {
   name        String
   nameEn      String?
   slug        String     @unique
-  level       Int // 1, 2, or 3
+  level       Int // 1, 2, 3, 4, or 5
   parentId    String?
   parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryHierarchy")
   
+  hsCode      String?    // HS编码
   model       String?    // Model (型号)
   modelEn     String?    // Model (English)
   series      String?    // Series (系列)
@@ -208,6 +258,7 @@ model Booth {
   sellerId    String
   seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   
+  boothNumber String        @unique // System-generated booth number, e.g. BTH-000001
   name        String        // Booth name (e.g., "2024 Spring Fair")
   names       Json?         // Multi-language booth names
   
@@ -215,6 +266,11 @@ model Booth {
   exhibitionName String     // Name of the exhibition/event
   exhibitionDates Json?     // {"start": "2024-03-01", "end": "2024-03-15"}
   location       String?    // Physical location or virtual
+  
+  // Booth branding
+  logoUrl     String?      // Booth logo URL
+  bannerUrl   String?      // Booth banner URL
+  keywords    Json?        // Keywords for SEO (max 10)
   
   // Booth status
   isActive     Boolean      @default(true)
@@ -437,6 +493,13 @@ model SellerVerificationFile {
   sortOrder   Int     @default(0)
   description String? // Optional description
 
+  // Enterprise certificate fields
+  certificateNumber String? // 证书编号
+  issuingAuthority  String? // 颁发机构
+  issueDate         String? // 颁发日期
+  expiryDate        String? // 有效期至
+  certificateName   String? // 自定义证书名称
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -446,13 +509,22 @@ model SellerVerificationFile {
 }
 
 enum VerificationFileType {
-  BUSINESS_LICENSE // 营业执照
-  ID_CARD // 身份证
-  DRIVER_LICENSE // 驾驶证
-  CREDIT_CARD // 信用卡（脱敏）
-  PHOTO // 照片
-  VIDEO // 视频
-  OTHER // 其他
+  BUSINESS_LICENSE       // 营业执照
+  OPERATING_LICENSE      // 经营许可证
+  TAX_REGISTRATION       // 税务登记证
+  ORG_CODE_CERTIFICATE   // 组织机构代码证
+  ISO_CERTIFICATION      // ISO认证
+  CE_CERTIFICATION       // CE认证
+  FDA_CERTIFICATION      // FDA认证
+  EXPORT_LICENSE         // 出口许可证
+  IMPORT_LICENSE         // 进口许可证
+  COUNTRY_REGISTRATION   // 其他国家企业注册证明
+  ID_CARD                // 身份证
+  DRIVER_LICENSE         // 驾驶证
+  CREDIT_CARD            // 信用卡（脱敏）
+  PHOTO                  // 照片
+  VIDEO                  // 视频
+  OTHER                  // 其他
 }
 
 // SEO - TDK (Title/Description/Keywords) configuration

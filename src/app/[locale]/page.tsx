@@ -9,6 +9,7 @@ import DisclaimerTicker from '@/components/DisclaimerTicker'
 import { getSEOConfig } from '@/lib/seo'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
+import BoothCard from '@/components/BoothCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,12 +24,43 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return seo || {}
 }
 
+interface Booth {
+  id: string
+  name: string
+  names?: { [key: string]: string }
+  exhibitionName: string
+  exhibitionDates?: { start: string; end: string }
+  location?: string
+  logoUrl?: string
+  bannerUrl?: string
+  keywords?: string[]
+  theme?: string
+  layout?: string
+  isActive: boolean
+  isPublished: boolean
+  createdAt: string
+  seller: {
+    id: string
+    companyName: string
+    country: string
+    city: string
+    logoUrl?: string
+  }
+  products: {
+    id: string
+    title: string
+    mainImageUrl: string
+    images: string[]
+  }[]
+}
+
 export default async function Home({ params }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
 
   let featuredProducts: any[] = [];
   let exhibitors: any[] = [];
+  let booths: Booth[] = [];
 
   try {
     const productsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/products?limit=4`, {
@@ -52,6 +84,19 @@ export default async function Home({ params }: PageProps) {
     }
   } catch (e) {
     console.error('Failed to fetch sellers:', e);
+  }
+
+  // Booths - fetch from public API
+  try {
+    const boothsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/public/booths`, {
+      cache: 'no-store'
+    });
+    if (boothsResponse.ok) {
+      const boothsData = await boothsResponse.json();
+      booths = boothsData.booths || [];
+    }
+  } catch (e) {
+    console.error('Failed to fetch booths:', e);
   }
 
   return (
@@ -87,6 +132,39 @@ export default async function Home({ params }: PageProps) {
                 {dict.home.hero.searchButton}
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Booths Section */}
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Virtual Exhibition Booths</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">Explore our featured exhibition booths from around the world. Click to view stunning product displays and connect with exhibitors.</p>
+          </div>
+          
+          {booths.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {booths.map((booth) => (
+                <BoothCard key={booth.id} booth={booth} locale={locale} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+              <div className="text-6xl mb-4">🎪</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Exhibition Booths Yet</h3>
+              <p className="text-gray-600">Be the first to create an exhibition booth and showcase your products!</p>
+            </div>
+          )}
+          
+          <div className="text-center mt-8">
+            <Link 
+              href={`/${locale}/stores`} 
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md font-semibold transition-colors"
+            >
+              View All Booths
+            </Link>
           </div>
         </div>
       </section>

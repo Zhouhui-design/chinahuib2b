@@ -13,7 +13,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Download, MessageCircle, Eye, Calendar, Package, Globe, Building2 } from 'lucide-react'
-import { getProductById, incrementProductView } from '@/lib/api/products'
+import { getProductById } from '@/lib/api/products'
 import ChatWidget from '@/components/chat/ChatWidget'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo/StructuredData'
 
@@ -40,9 +40,6 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!product) {
     notFound()
   }
-  
-  // Increment view count (non-blocking)
-  incrementProductView(id).catch(console.error)
   
   // Prepare breadcrumb schema
   const breadcrumbs = [

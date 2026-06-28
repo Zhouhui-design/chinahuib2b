@@ -15,6 +15,7 @@ const productUpdateSchema = z.object({
   mainImageUrl: z.string().url().optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  boothId: z.string().optional(),
 })
 
 

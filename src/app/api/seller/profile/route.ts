@@ -15,12 +15,29 @@ const profileUpdateSchema = z.object({
   phone: z.string().optional(),
   email: z.string().optional(),
   website: z.string().optional(),
-  whatsapp: z.string().optional(),
-  wechat: z.string().optional(),
-  telegram: z.string().optional(),
-  linkedin: z.string().optional(),
-  facebook: z.string().optional(),
-  instagram: z.string().optional(),
+  whatsapp: z.string().nullable().optional(),
+  wechat: z.string().nullable().optional(),
+  telegram: z.string().nullable().optional(),
+  linkedin: z.string().nullable().optional(),
+  facebook: z.string().nullable().optional(),
+  instagram: z.string().nullable().optional(),
+  youtube: z.string().nullable().optional(),
+  tiktok: z.string().nullable().optional(),
+  twitter: z.string().nullable().optional(),
+  pinterest: z.string().nullable().optional(),
+  douyin: z.string().nullable().optional(),
+  xiaohongshu: z.string().nullable().optional(),
+  qq: z.string().nullable().optional(),
+  dingtalk: z.string().nullable().optional(),
+  lark: z.string().nullable().optional(),
+  wechatVideo: z.string().nullable().optional(),
+  weibo: z.string().nullable().optional(),
+  kuaishou: z.string().nullable().optional(),
+  bilibili: z.string().nullable().optional(),
+  reddit: z.string().nullable().optional(),
+  snapchat: z.string().nullable().optional(),
+  tumblr: z.string().nullable().optional(),
+  chatSystem: z.string().nullable().optional(),
   logoUrl: z.string().nullable().optional(),
   bannerUrl: z.string().nullable().optional(),
   certifications: z.array(z.string()).nullable().optional(),
@@ -30,6 +47,24 @@ const profileUpdateSchema = z.object({
   isCustomizable: z.boolean().optional(),
   autoTranslate: z.boolean().optional().default(false),
   sourceLanguage: z.string().optional().default('en'),
+  organizationType: z.enum(['ENTERPRISE', 'INDIVIDUAL', 'STATE_OWNED', 'PERSONAL']).optional(),
+  registeredCapital: z.string().nullable().optional(),
+  registeredAddress: z.string().nullable().optional(),
+  businessAddress: z.string().nullable().optional(),
+  employeeCount: z.string().nullable().optional(),
+  patents: z.array(z.string()).optional(),
+  awards: z.array(z.string()).optional(),
+  companyPhotos: z.array(z.string()).optional(),
+  teamPhotos: z.array(z.string()).optional(),
+  mapLatitude: z.number().nullable().optional(),
+  mapLongitude: z.number().nullable().optional(),
+  mapAddress: z.string().nullable().optional(),
+  foundingYear: z.string().nullable().optional(),
+  businessScope: z.string().nullable().optional(),
+  legalRepresentative: z.string().nullable().optional(),
+  registrationNumber: z.string().nullable().optional(),
+  bankAccount: z.string().nullable().optional(),
+  taxNumber: z.string().nullable().optional(),
 })
 
 
@@ -110,6 +145,22 @@ export async function PUT(request: NextRequest) {
 
     const data = validation.data
 
+    // Check if company name already exists (excluding current user)
+    if (data.companyName && data.companyName !== seller.companyName) {
+      const existingCompany = await prisma.sellerProfile.findFirst({
+        where: {
+          companyName: data.companyName,
+          userId: { not: session.user.id }
+        }
+      })
+      if (existingCompany) {
+        return NextResponse.json({ 
+          error: 'Company name already exists',
+          message: 'This company name is already registered by another user. Please use a different name.'
+        }, { status: 400 })
+      }
+    }
+
     let descriptions: Record<string, string> = data.descriptions || {}
     let boothNames: Record<string, string> = data.boothNames || {}
 
@@ -144,12 +195,47 @@ export async function PUT(request: NextRequest) {
       ...(data.linkedin && { linkedin: data.linkedin }),
       ...(data.facebook && { facebook: data.facebook }),
       ...(data.instagram && { instagram: data.instagram }),
+      ...(data.youtube && { youtube: data.youtube }),
+      ...(data.tiktok && { tiktok: data.tiktok }),
+      ...(data.twitter && { twitter: data.twitter }),
+      ...(data.pinterest && { pinterest: data.pinterest }),
+      ...(data.douyin && { douyin: data.douyin }),
+      ...(data.xiaohongshu && { xiaohongshu: data.xiaohongshu }),
+      ...(data.qq && { qq: data.qq }),
+      ...(data.dingtalk && { dingtalk: data.dingtalk }),
+      ...(data.lark && { lark: data.lark }),
+      ...(data.wechatVideo && { wechatVideo: data.wechatVideo }),
+      ...(data.weibo && { weibo: data.weibo }),
+      ...(data.kuaishou && { kuaishou: data.kuaishou }),
+      ...(data.bilibili && { bilibili: data.bilibili }),
+      ...(data.reddit && { reddit: data.reddit }),
+      ...(data.snapchat && { snapchat: data.snapchat }),
+      ...(data.tumblr && { tumblr: data.tumblr }),
+      ...(data.chatSystem && { chatSystem: data.chatSystem }),
       logoUrl: data.logoUrl,
       bannerUrl: data.bannerUrl,
       ...(data.certifications && { certifications: data.certifications }),
       ...(Object.keys(boothNames).length > 0 && { boothNames }),
       boothCategories: data.boothCategories,
       isCustomizable: data.isCustomizable,
+      ...(data.organizationType && { organizationType: data.organizationType }),
+      ...(data.registeredCapital !== undefined && { registeredCapital: data.registeredCapital }),
+      ...(data.registeredAddress !== undefined && { registeredAddress: data.registeredAddress }),
+      ...(data.businessAddress !== undefined && { businessAddress: data.businessAddress }),
+      ...(data.employeeCount !== undefined && { employeeCount: data.employeeCount }),
+      ...(data.patents && { patents: data.patents }),
+      ...(data.awards && { awards: data.awards }),
+      ...(data.companyPhotos && { companyPhotos: data.companyPhotos }),
+      ...(data.teamPhotos && { teamPhotos: data.teamPhotos }),
+      ...(data.mapLatitude !== undefined && { mapLatitude: data.mapLatitude }),
+      ...(data.mapLongitude !== undefined && { mapLongitude: data.mapLongitude }),
+      ...(data.mapAddress !== undefined && { mapAddress: data.mapAddress }),
+      ...(data.foundingYear !== undefined && { foundingYear: data.foundingYear }),
+      ...(data.businessScope !== undefined && { businessScope: data.businessScope }),
+      ...(data.legalRepresentative !== undefined && { legalRepresentative: data.legalRepresentative }),
+      ...(data.registrationNumber !== undefined && { registrationNumber: data.registrationNumber }),
+      ...(data.bankAccount !== undefined && { bankAccount: data.bankAccount }),
+      ...(data.taxNumber !== undefined && { taxNumber: data.taxNumber }),
     }
 
     const updatedProfile = await prisma.sellerProfile.update({

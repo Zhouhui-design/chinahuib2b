@@ -3,6 +3,21 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 
+async function generateBoothNumber(): Promise<string> {
+  const lastBooth = await prisma.booth.findFirst({
+    orderBy: { createdAt: 'desc' },
+    select: { boothNumber: true }
+  })
+  
+  if (!lastBooth) {
+    return 'BTH-000001'
+  }
+  
+  const lastNum = parseInt(lastBooth.boothNumber.replace('BTH-', ''), 10)
+  const nextNum = lastNum + 1
+  return `BTH-${nextNum.toString().padStart(6, '0')}`
+}
+
 const createBoothSchema = z.object({
   name: z.string().min(2).max(200),
   names: z.record(z.string(), z.string()).optional(),
@@ -12,17 +27,34 @@ const createBoothSchema = z.object({
     end: z.string().optional()
   }).optional(),
   location: z.string().optional(),
+  logoUrl: z.string().optional(),
+  bannerUrl: z.string().optional(),
+  keywords: z.array(z.string()).max(10).optional(),
   theme: z.string().optional(),
   colorScheme: z.string().optional(),
   layout: z.string().optional(),
 })
 
-const updateBoothSchema = createBoothSchema.extend({
+const updateBoothSchema = z.object({
+  name: z.string().min(2).max(200).optional(),
+  names: z.record(z.string(), z.string()).optional(),
+  exhibitionName: z.string().min(2).max(200).optional(),
+  exhibitionDates: z.object({
+    start: z.string().optional(),
+    end: z.string().optional()
+  }).optional(),
+  location: z.string().optional(),
+  logoUrl: z.string().optional(),
+  bannerUrl: z.string().optional(),
+  keywords: z.array(z.string()).max(10).optional(),
+  theme: z.string().optional(),
+  colorScheme: z.string().optional(),
+  layout: z.string().optional(),
   isActive: z.boolean().optional(),
   isPublished: z.boolean().optional(),
 })
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     
@@ -30,8 +62,60 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    // Get seller profile ID
+    const sellerProfile = await prisma.sellerProfile.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!sellerProfile) {
+      if (id) {
+        return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+      }
+      return NextResponse.json({ booths: [] })
+    }
+
+    // If ID is provided, get single booth
+    if (id) {
+      const booth = await prisma.booth.findUnique({
+        where: { id },
+        include: {
+          seller: {
+            select: {
+              companyName: true,
+              country: true,
+              city: true,
+              logoUrl: true
+            }
+          },
+          products: {
+            select: {
+              id: true,
+              title: true,
+              mainImageUrl: true,
+              images: true
+            }
+          }
+        }
+      })
+
+      if (!booth) {
+        return NextResponse.json({ error: 'Booth not found' }, { status: 404 })
+      }
+
+      // Verify ownership
+      if (booth.sellerId !== sellerProfile.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      return NextResponse.json({ booth })
+    }
+
+    // Otherwise, get all booths
     const booths = await prisma.booth.findMany({
-      where: { sellerId: session.user.id },
+      where: { sellerId: sellerProfile.id },
       orderBy: { createdAt: 'desc' }
     })
 
@@ -63,14 +147,59 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
+    // Check if seller profile exists, if not create one
+    let sellerProfile = await prisma.sellerProfile.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!sellerProfile) {
+      // Get user email from session
+      const userEmail = session.user.email || ''
+      
+      sellerProfile = await prisma.sellerProfile.create({
+        data: {
+          userId: session.user.id,
+          companyName: userEmail.split('@')[0] || 'My Company',
+          companyType: 'SOLE_PROPRIETORSHIP',
+          country: 'CN',
+          city: 'Hangzhou',
+          storeName: userEmail.split('@')[0] || 'My Store',
+          slug: `store-${session.user.id.slice(0, 8)}`,
+          description: '',
+        }
+      })
+    }
+
+    // Check if booth name already exists for this seller
+    const existingBooth = await prisma.booth.findFirst({
+      where: { 
+        sellerId: sellerProfile.id,
+        name: data.name
+      }
+    })
+
+    if (existingBooth) {
+      return NextResponse.json({ 
+        error: 'Booth name already exists',
+        field: 'name'
+      }, { status: 400 })
+    }
+
+    // Generate booth number
+    const boothNumber = await generateBoothNumber()
+
     const booth = await prisma.booth.create({
       data: {
-        sellerId: session.user.id,
+        sellerId: sellerProfile.id,
+        boothNumber,
         name: data.name,
         names: data.names,
         exhibitionName: data.exhibitionName,
         exhibitionDates: data.exhibitionDates,
         location: data.location,
+        logoUrl: data.logoUrl,
+        bannerUrl: data.bannerUrl,
+        keywords: data.keywords,
         theme: data.theme,
         colorScheme: data.colorScheme,
         layout: data.layout,
@@ -113,6 +242,15 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Get seller profile to verify ownership
+    const sellerProfile = await prisma.sellerProfile.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!sellerProfile) {
+      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+    }
+
     const booth = await prisma.booth.findUnique({
       where: { id }
     })
@@ -121,8 +259,26 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Booth not found' }, { status: 404 })
     }
 
-    if (booth.sellerId !== session.user.id) {
+    if (booth.sellerId !== sellerProfile.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if booth name already exists for this seller (if name is being updated)
+    if (validation.data.name && validation.data.name !== booth.name) {
+      const existingBooth = await prisma.booth.findFirst({
+        where: { 
+          sellerId: sellerProfile.id,
+          name: validation.data.name,
+          NOT: { id }
+        }
+      })
+
+      if (existingBooth) {
+        return NextResponse.json({ 
+          error: 'Booth name already exists',
+          field: 'name'
+        }, { status: 400 })
+      }
     }
 
     const updatedBooth = await prisma.booth.update({
@@ -157,6 +313,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Booth ID is required' }, { status: 400 })
     }
 
+    // Get seller profile to verify ownership
+    const sellerProfile = await prisma.sellerProfile.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!sellerProfile) {
+      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+    }
+
     const booth = await prisma.booth.findUnique({
       where: { id }
     })
@@ -165,7 +330,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Booth not found' }, { status: 404 })
     }
 
-    if (booth.sellerId !== session.user.id) {
+    if (booth.sellerId !== sellerProfile.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

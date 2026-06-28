@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
@@ -13,6 +13,7 @@ function LoginForm() {
   const locale = params.locale as LanguageCode
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { update: updateSession } = useSession()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -75,6 +76,8 @@ function LoginForm() {
     registrationSuccess: locale === 'zh' ? '注册成功！请登录。' : 'Registration successful! Please sign in.',
     forgotPassword: locale === 'zh' ? '忘记密码？' : 'Forgot Password?',
     accountNotFound: locale === 'zh' ? '账号不存在，需要注册' : 'Account does not exist, please register',
+    loginWithChatSystem: locale === 'zh' ? '使用 Chat System 账号登录' : 'Login with Chat System',
+    orSeparator: locale === 'zh' ? '或者' : 'Or',
   }
 
   // 显示 URL 错误或表单错误
@@ -101,6 +104,7 @@ function LoginForm() {
         }
       } else if (result?.ok) {
         // 登录成功，手动重定向
+        await updateSession()
         const callbackUrl = searchParams.get('callbackUrl') || `/${locale}`
         router.push(callbackUrl)
       }
@@ -196,6 +200,24 @@ function LoginForm() {
             >
               {loading ? t.signingIn : t.signIn}
             </button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 text-gray-500">{t.orSeparator}</span>
+            </div>
+          </div>
+
+          <div>
+            <a
+              href={`${process.env.NEXT_PUBLIC_CHAT_API_URL || 'https://chat.fixturerb2b.top'}?tenant=chinahuib2b&action=login&redirect=${encodeURIComponent(window.location.origin + `/${locale}`)}`}
+              className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {t.loginWithChatSystem}
+            </a>
           </div>
         </form>
       </div>

@@ -319,6 +319,7 @@ export const translations: Record<Language, Translations> = {
       dashboard: 'Dashboard',
       logout: 'Logout',
       partnerRecruitment: 'Partner Recruitment',
+      backToHome: '← Back to Home',
     },
     partnerRecruitment: {
       title: 'Join Us as a Partner',
@@ -469,6 +470,17 @@ export const translations: Record<Language, Translations> = {
       website: 'Website',
       visitStore: 'Visit Store',
     },
+    form: {
+      username: 'Username',
+      email: 'Email',
+      password: 'Password',
+      submitting: 'Submitting...',
+      copied: 'Copied!',
+    },
+    errors: {
+      registerFailed: 'Registration failed, please try again',
+      networkError: 'Network error, please try again',
+    },
     auth: {
       login: 'Login',
       register: 'Register',
@@ -572,6 +584,7 @@ export const translations: Record<Language, Translations> = {
       dashboard: '管理后台',
       logout: '退出',
       partnerRecruitment: '招募合伙人',
+      backToHome: '← 返回首页',
     },
     partnerRecruitment: {
       title: '招募合伙人',
@@ -721,6 +734,17 @@ export const translations: Record<Language, Translations> = {
       email: '邮箱',
       website: '网站',
       visitStore: '访问店铺',
+    },
+    form: {
+      username: '用户名',
+      email: '邮箱',
+      password: '密码',
+      submitting: '提交中...',
+      copied: '已复制！',
+    },
+    errors: {
+      registerFailed: '注册失败，请重试',
+      networkError: '网络错误，请重试',
     },
     auth: {
       login: '登录',

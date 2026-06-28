@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [linkChatSystem, setLinkChatSystem] = useState(false)
 
   const t = {
     title: language === 'zh' ? '创建您的账户' :
@@ -216,6 +217,19 @@ export default function RegisterPage() {
                    language === 'th' ? 'NextAuth ไม่ได้กำหนดค่าอย่างถูกต้อง กรุณาติดต่อผู้ดูแลระบบ' :
                    language === 'vi' ? 'NextAuth chưa được định cấu hình đúng. Vui lòng liên hệ với quản trị viên.' :
                    'NextAuth is not properly configured. Please contact the administrator.',
+    linkChatSystem: language === 'zh' ? '同时授权 Chat System 账号（可使用同一套账号登录聊天系统）' :
+                    language === 'ja' ? 'Chat Systemアカウントも同時にリンク（同じアカウントでチャットシステムにログイン可能）' :
+                    language === 'ar' ? 'قم بالترخيص لـ Chat System في نفس الوقت (يمكن تسجيل الدخول إلى نظام الدردشة باستخدام نفس الحساب)' :
+                    language === 'es' ? 'También vincular cuenta de Chat System (puede iniciar sesión en el sistema de chat con la misma cuenta)' :
+                    language === 'fr' ? 'Vinculer également le compte Chat System (vous pouvez vous connecter au système de chat avec le même compte)' :
+                    language === 'de' ? 'Chat System-Konto auch verbinden (Sie können sich mit demselben Konto im Chatsystem anmelden)' :
+                    language === 'ko' ? 'Chat System 계정도 함께 연결 (동일한 계정으로 채팅 시스템에 로그인 가능)' :
+                    language === 'ru' ? 'Также привязать аккаунт Chat System (можно входить в чат-систему с одним и тем же аккаунтом)' :
+                    language === 'pt' ? 'Vincular também a conta do Chat System (pode fazer login no sistema de chat com a mesma conta)' :
+                    language === 'hi' ? 'चैट सिस्टम खाते को भी एक साथ लिंक करें (एक ही खाते से चैट सिस्टम में लॉगिन कर सकते हैं)' :
+                    language === 'th' ? 'เชื่อมต่อ Chat System Account ด้วย (สามารถเข้าสู่ระบบแชทด้วยบัญชีเดียวกัน)' :
+                    language === 'vi' ? 'Cũng liên kết tài khoản Chat System (có thể đăng nhập hệ thống chat với cùng một tài khoản)' :
+                    'Also link Chat System account (can log in to chat system with the same account)',
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,6 +252,28 @@ export default function RegisterPage() {
           throw new Error(errorMessages)
         }
         throw new Error(data.error || 'Registration failed')
+      }
+
+      if (linkChatSystem) {
+        try {
+          const signInRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email,
+              password: formData.password,
+            })
+          })
+          if (signInRes.ok) {
+            await fetch('/api/auth/chat-link', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ role: formData.role })
+            })
+          }
+        } catch (linkError) {
+          console.warn('Failed to link chat system:', linkError)
+        }
       }
 
       const redirectLang = language || 'en'
@@ -340,6 +376,24 @@ export default function RegisterPage() {
 
           <div className="text-xs text-gray-600 bg-yellow-50 p-3 rounded">
             {t.policyWarning}
+          </div>
+
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="linkChatSystem"
+                name="linkChatSystem"
+                type="checkbox"
+                checked={linkChatSystem}
+                onChange={(e) => setLinkChatSystem(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor="linkChatSystem" className="text-gray-600">
+                {t.linkChatSystem}
+              </label>
+            </div>
           </div>
 
           <div>

@@ -327,7 +327,7 @@ export default function SellerDashboardClientLayout({
                       {language === 'zh' ? '参展商' : language === 'ja' ? '出展者' : language === 'ar' ? 'المُعرضون' : language === 'es' ? 'Expositores' : language === 'fr' ? 'Exposants' : language === 'de' ? 'Aussteller' : language === 'ko' ? '출展자' : language === 'ru' ? 'Участники' : language === 'pt' ? 'Expositores' : language === 'hi' ? 'प्रदर्शनकर्ता' : language === 'th' ? 'ผู้เข้าร่วมแสดงสินค้า' : language === 'vi' ? 'Nhà triển lãm' : 'Exhibitors'}
                     </Link>
                     <div className="border-t border-gray-200 my-1" />
-                    <Link href="/buyer/profile" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">
+                    <Link href={`/${language}/buyer/profile`} onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                       {language === 'zh' ? '买家中心' : language === 'ja' ? 'バイヤーセンター' : language === 'ar' ? 'مركز المشتري' : language === 'es' ? 'Centro de Comprador' : language === 'fr' ? 'Centre de l\'Acheteur' : language === 'de' ? 'Käuferzentrum' : language === 'ko' ? '바이어 센터' : language === 'ru' ? 'Центр покупателя' : language === 'pt' ? 'Centro do Comprador' : language === 'hi' ? 'खरीदार केंद्र' : language === 'th' ? 'ศูนย์ผู้ซื้อ' : language === 'vi' ? 'Trung tâm Người mua' : 'Buyer Center'}
                     </Link>

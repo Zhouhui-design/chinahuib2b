@@ -17,8 +17,9 @@ export default async function HomePage() {
   const featuredProducts = await prisma.product.findMany({
     where: { isActive: true },
     include: {
-      seller: { select: { companyName: true, country: true } },
-      category: { select: { name: true } }
+      seller: { select: { companyName: true, country: true, boothName: true } },
+      category: { select: { name: true } },
+      booth: { select: { name: true, exhibitionName: true } }
     },
     orderBy: { createdAt: 'desc' },
     take: 6
@@ -151,6 +152,12 @@ export default async function HomePage() {
                         >
                           🏢 {product.seller.companyName}
                         </Link>
+                        {product.seller.boothName && (
+                          <p>🏷️ {product.seller.boothName}</p>
+                        )}
+                        {product.booth && (
+                          <p>🎪 {product.booth.exhibitionName || product.booth.name}</p>
+                        )}
                         <p>📍 {product.seller.country}</p>
                         <p>📁 {product.category.name}</p>
                       </div>

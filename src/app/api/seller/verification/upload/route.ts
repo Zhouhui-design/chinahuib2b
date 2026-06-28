@@ -32,6 +32,11 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     const fileType = formData.get('fileType') as string
     const description = formData.get('description') as string | null
+    const certificateNumber = formData.get('certificateNumber') as string | null
+    const issuingAuthority = formData.get('issuingAuthority') as string | null
+    const issueDate = formData.get('issueDate') as string | null
+    const expiryDate = formData.get('expiryDate') as string | null
+    const certificateName = formData.get('certificateName') as string | null
 
     if (!file) {
       return NextResponse.json(
@@ -50,6 +55,15 @@ export async function POST(request: NextRequest) {
     // Validate file type
     const validTypes = [
       'BUSINESS_LICENSE',
+      'OPERATING_LICENSE',
+      'TAX_REGISTRATION',
+      'ORG_CODE_CERTIFICATE',
+      'ISO_CERTIFICATION',
+      'CE_CERTIFICATION',
+      'FDA_CERTIFICATION',
+      'EXPORT_LICENSE',
+      'IMPORT_LICENSE',
+      'COUNTRY_REGISTRATION',
       'ID_CARD',
       'DRIVER_LICENSE',
       'CREDIT_CARD',
@@ -104,6 +118,11 @@ export async function POST(request: NextRequest) {
         fileSize: file.size,
         mimeType: file.type,
         description: description || undefined,
+        certificateNumber: certificateNumber || undefined,
+        issuingAuthority: issuingAuthority || undefined,
+        issueDate: issueDate || undefined,
+        expiryDate: expiryDate || undefined,
+        certificateName: certificateName || undefined,
       }
     })
 
@@ -115,6 +134,11 @@ export async function POST(request: NextRequest) {
         fileUrl: verificationFile.fileUrl,
         fileSize: verificationFile.fileSize,
         fileType: verificationFile.fileType,
+        certificateNumber: verificationFile.certificateNumber,
+        issuingAuthority: verificationFile.issuingAuthority,
+        issueDate: verificationFile.issueDate,
+        expiryDate: verificationFile.expiryDate,
+        certificateName: verificationFile.certificateName,
         createdAt: verificationFile.createdAt,
       }
     })

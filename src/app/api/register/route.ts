@@ -9,7 +9,7 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   username: z.string(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["BUYER", "SELLER"]).optional().default("BUYER"),
+  role: z.enum(["BUYER", "SELLER", "BOTH"]).optional().default("BUYER"),
 })
 
 function validateUsername(username: string): { valid: boolean; error?: string } {
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     })
     
     // If seller, create seller profile
-    if (role === "SELLER") {
+    if (role === "SELLER" || role === "BOTH") {
       await prisma.sellerProfile.create({
         data: {
           userId: user.id,

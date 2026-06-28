@@ -14,7 +14,7 @@ type PageProps = {
   searchParams: Promise<any>;
 };
 
-async function ProductList({ searchParams }: { searchParams: Promise<any> }) {
+async function ProductList({ searchParams, locale }: { searchParams: Promise<any>; locale: string }) {
   const { category } = await searchParams;
   
   // Build filter query
@@ -80,7 +80,7 @@ async function ProductList({ searchParams }: { searchParams: Promise<any> }) {
 
       {/* Product Grid */}
       {products.length > 0 ? (
-        <ProductGrid products={products} />
+        <ProductGrid products={products} locale={locale} />
       ) : (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">📦</div>
@@ -133,7 +133,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
                 </div>
               }
             >
-              <ProductList searchParams={searchParams} />
+              <ProductList searchParams={searchParams} locale={locale} />
             </Suspense>
           </div>
         </div>

@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Allow both SELLER and ADMIN roles to upload files
     if (!user || (user.role !== 'SELLER' && user.role !== 'ADMIN')) {
+      console.log('Upload rejected - user:', user?.id, 'role:', user?.role)
       return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
 
@@ -174,57 +175,54 @@ export async function POST(request: NextRequest) {
         result.productId = productId
       }
     } else if (type === 'logo') {
-      // Update seller logo (only for SELLER role)
-      if (user.role === 'SELLER') {
-        // If sellerProfile doesn't exist, create one
-        let sellerProfile = user.sellerProfile
-        if (!sellerProfile) {
-          const userEmail = session.user.email || ''
-          sellerProfile = await prisma.sellerProfile.create({
-            data: {
-              userId: session.user.id,
-              storeName: userEmail.split('@')[0] || 'My Store',
-              slug: `store-${session.user.id.slice(0, 8)}`,
-              description: '',
-              logoUrl: publicUrl
-            }
-          })
-        } else {
-          await prisma.sellerProfile.update({
-            where: { id: sellerProfile.id },
-            data: { logoUrl: publicUrl }
-          })
-        }
-        result.sellerId = sellerProfile.id
+      console.log('Processing logo upload - type:', type, 'user role:', user.role, 'has sellerProfile:', !!user.sellerProfile)
+      // Update seller logo (create sellerProfile if not exists)
+      let sellerProfile = user.sellerProfile
+      if (!sellerProfile) {
+        const userEmail = session.user.email || ''
+        sellerProfile = await prisma.sellerProfile.create({
+          data: {
+            userId: session.user.id,
+            storeName: userEmail.split('@')[0] || 'My Store',
+            slug: `store-${session.user.id.slice(0, 8)}`,
+            description: '',
+            logoUrl: publicUrl
+          }
+        })
       } else {
-        return NextResponse.json({ error: 'Logo update requires seller profile' }, { status: 400 })
+        await prisma.sellerProfile.update({
+          where: { id: sellerProfile.id },
+          data: { logoUrl: publicUrl }
+        })
       }
+      result.sellerId = sellerProfile.id
     } else if (type === 'banner') {
-      // Update seller banner (only for SELLER role)
-      if (user.role === 'SELLER') {
-        // If sellerProfile doesn't exist, create one
-        let sellerProfile = user.sellerProfile
-        if (!sellerProfile) {
-          const userEmail = session.user.email || ''
-          sellerProfile = await prisma.sellerProfile.create({
-            data: {
-              userId: session.user.id,
-              storeName: userEmail.split('@')[0] || 'My Store',
-              slug: `store-${session.user.id.slice(0, 8)}`,
-              description: '',
-              bannerUrl: publicUrl
-            }
-          })
-        } else {
-          await prisma.sellerProfile.update({
-            where: { id: sellerProfile.id },
-            data: { bannerUrl: publicUrl }
-          })
-        }
-        result.sellerId = sellerProfile.id
+      // Update seller banner (create sellerProfile if not exists)
+      let sellerProfile = user.sellerProfile
+      if (!sellerProfile) {
+        const userEmail = session.user.email || ''
+        sellerProfile = await prisma.sellerProfile.create({
+          data: {
+            userId: session.user.id,
+            storeName: userEmail.split('@')[0] || 'My Store',
+            slug: `store-${session.user.id.slice(0, 8)}`,
+            description: '',
+            bannerUrl: publicUrl
+          }
+        })
       } else {
-        return NextResponse.json({ error: 'Banner update requires seller profile' }, { status: 400 })
+        await prisma.sellerProfile.update({
+          where: { id: sellerProfile.id },
+          data: { bannerUrl: publicUrl }
+        })
       }
+      result.sellerId = sellerProfile.id
+    } else if (type === 'boothLogo') {
+      // Just return the URL for booth logo (booth will be created/updated separately)
+      result.url = publicUrl
+    } else if (type === 'boothBanner') {
+      // Just return the URL for booth banner (booth will be created/updated separately)
+      result.url = publicUrl
     }
 
     return NextResponse.json({

@@ -47,7 +47,7 @@ export interface Product {
  */
 export async function getProductById(productId: string): Promise<Product | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/products/${productId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/products/${productId}/public`, {
       next: { 
         revalidate: 3600, // ISR: Revalidate every hour
         tags: [`product-${productId}`]
@@ -130,7 +130,7 @@ export async function incrementProductView(productId: string): Promise<void> {
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store' // Don't cache this request
+      next: { revalidate: 0 }
     });
   } catch (error) {
     console.error('Error incrementing view count:', error);
