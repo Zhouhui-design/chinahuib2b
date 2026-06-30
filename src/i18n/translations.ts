@@ -135,6 +135,22 @@ export interface Translations {
         contactInfo: string
         contactInfoPlaceholder: string
         contactInfoNote: string
+        attachments: string
+        uploadImages: string
+        uploadFiles: string
+        uploadDrawings: string
+        uploadCompressed: string
+        imagesPlaceholder: string
+        filesPlaceholder: string
+        drawingsPlaceholder: string
+        compressedPlaceholder: string
+        supportedImageTypes: string
+        supportedFileTypes: string
+        supportedDrawingTypes: string
+        supportedCompressedTypes: string
+        maxFileSize: string
+        uploadSuccess: string
+        removeAttachment: string
         postTaskBtn: string
         posting: string
         cancel: string
@@ -401,6 +417,22 @@ export const translations: Record<Language, Translations> = {
         contactInfo: 'Contact Information (Optional)',
         contactInfoPlaceholder: 'Email, phone, or other contact details',
         contactInfoNote: 'This will be visible to applicants. Leave blank to use your profile contact info.',
+        attachments: 'Attachments',
+        uploadImages: '🖼️ Upload Images',
+        uploadFiles: '📄 Upload Files',
+        uploadDrawings: '📐 Upload Drawings',
+        uploadCompressed: '📦 Upload Compressed',
+        imagesPlaceholder: 'Click to upload images (JPG, PNG, WebP)',
+        filesPlaceholder: 'Click to upload documents (PDF, DOC, DOCX)',
+        drawingsPlaceholder: 'Click to upload CAD drawings (DWG, DXF)',
+        compressedPlaceholder: 'Click to upload compressed files (ZIP, RAR)',
+        supportedImageTypes: 'JPG, PNG, WebP',
+        supportedFileTypes: 'PDF, DOC, DOCX',
+        supportedDrawingTypes: 'DWG, DXF',
+        supportedCompressedTypes: 'ZIP, RAR',
+        maxFileSize: 'Max 20MB per file',
+        uploadSuccess: 'File uploaded successfully!',
+        removeAttachment: 'Remove',
         postTaskBtn: 'Post Task',
         posting: 'Posting...',
         cancel: 'Cancel',
@@ -666,6 +698,22 @@ export const translations: Record<Language, Translations> = {
         contactInfo: '联系信息（可选）',
         contactInfoPlaceholder: '邮箱、电话或其他联系方式',
         contactInfoNote: '此信息将对申请者可见。留空则使用您的个人资料联系信息。',
+        attachments: '附件',
+        uploadImages: '🖼️ 上传图片',
+        uploadFiles: '📄 上传文件',
+        uploadDrawings: '📐 上传图纸',
+        uploadCompressed: '📦 上传压缩包',
+        imagesPlaceholder: '点击上传图片（JPG, PNG, WebP）',
+        filesPlaceholder: '点击上传文档（PDF, DOC, DOCX）',
+        drawingsPlaceholder: '点击上传CAD图纸（DWG, DXF）',
+        compressedPlaceholder: '点击上传压缩文件（ZIP, RAR）',
+        supportedImageTypes: 'JPG, PNG, WebP',
+        supportedFileTypes: 'PDF, DOC, DOCX',
+        supportedDrawingTypes: 'DWG, DXF',
+        supportedCompressedTypes: 'ZIP, RAR',
+        maxFileSize: '单文件最大20MB',
+        uploadSuccess: '文件上传成功！',
+        removeAttachment: '删除',
         postTaskBtn: '发布任务',
         posting: '正在发布...',
         cancel: '取消',
@@ -918,6 +966,22 @@ export const translations: Record<Language, Translations> = {
         contactInfo: 'معلومات الاتصال (اختياري)',
         contactInfoPlaceholder: 'البريد الإلكتروني أو الهاتف أو تفاصيل الاتصال الأخرى',
         contactInfoNote: 'سيكون هذا مرئيًا للمتقدمين. اتركه فارغًا لاستخدام معلومات الاتصال في ملفك الشخصي.',
+        attachments: 'المرفقات',
+        uploadImages: '🖼️ رفع الصور',
+        uploadFiles: '📄 رفع الملفات',
+        uploadDrawings: '📐 رفع الرسمات',
+        uploadCompressed: '📦 رفع الملفات المضغوطة',
+        imagesPlaceholder: 'انقر لرفع الصور (JPG, PNG, WebP)',
+        filesPlaceholder: 'انقر لرفع الوثائق (PDF, DOC, DOCX)',
+        drawingsPlaceholder: 'انقر لرفع الرسمات الهندسية (DWG, DXF)',
+        compressedPlaceholder: 'انقر لرفع الملفات المضغوطة (ZIP, RAR)',
+        supportedImageTypes: 'JPG, PNG, WebP',
+        supportedFileTypes: 'PDF, DOC, DOCX',
+        supportedDrawingTypes: 'DWG, DXF',
+        supportedCompressedTypes: 'ZIP, RAR',
+        maxFileSize: 'حد أقصى 20 ميجابايت لكل ملف',
+        uploadSuccess: 'تم رفع الملف بنجاح!',
+        removeAttachment: 'حذف',
         postTaskBtn: 'نشر المهمة',
         posting: 'جاري النشر...',
         cancel: 'إلغاء',

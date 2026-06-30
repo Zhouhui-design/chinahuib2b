@@ -5,11 +5,12 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { loadTranslations } from '@/i18n/lazyTranslations'
 import type { Language } from '@/i18n/translations'
+import { X, Image, FileText, FileCode, FileArchive, Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
 interface FormDataType {
   title: string
@@ -24,6 +25,13 @@ interface FormDataType {
   contactInfo: string
 }
 
+interface Attachment {
+  id: string
+  url: string
+  fileName: string
+  type: 'image' | 'file' | 'drawing' | 'compressed'
+}
+
 export default function PostTaskPage() {
   const router = useRouter()
   const params = useParams()
@@ -31,6 +39,41 @@ export default function PostTaskPage() {
   
   const [translations, setTranslations] = useState<typeof import('@/i18n/translations').translations['en'] | null>(null)
   const [loadingTranslations, setLoadingTranslations] = useState(true)
+
+  const [formData, setFormData] = useState<FormDataType>({
+    title: '',
+    description: '',
+    type: 'MANUFACTURING',
+    budget: '',
+    price: '',
+    currency: 'USD',
+    unit: '',
+    minOrderQty: '',
+    deadline: '',
+    contactInfo: '',
+  })
+  
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const drawingInputRef = useRef<HTMLInputElement>(null)
+  const compressedInputRef = useRef<HTMLInputElement>(null)
+  
+  const [uploadingState, setUploadingState] = useState<{
+    image: boolean
+    file: boolean
+    drawing: boolean
+    compressed: boolean
+  }>({
+    image: false,
+    file: false,
+    drawing: false,
+    compressed: false,
+  })
 
   useEffect(() => {
     const fetchTranslations = async () => {
@@ -51,30 +94,10 @@ export default function PostTaskPage() {
 
   const t = translations.marketplace.postTaskPage
 
-  // Form state
-  const [formData, setFormData] = useState<FormDataType>({
-    title: '',
-    description: '',
-    type: 'MANUFACTURING',
-    budget: '',
-    price: '',
-    currency: 'USD',
-    unit: '',
-    minOrderQty: '',
-    deadline: '',
-    contactInfo: '',
-  })
-  
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [aiGenerating, setAiGenerating] = useState(false)
-
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev }
@@ -84,7 +107,6 @@ export default function PostTaskPage() {
     }
   }
 
-  // Validate form
   const validateForm = () => {
     const newErrors: any = {}
     
@@ -114,7 +136,6 @@ export default function PostTaskPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  // AI Generate Description
   const handleAIGenerate = async () => {
     if (!formData.title.trim()) {
       alert(t.enterTitleFirst)
@@ -124,11 +145,8 @@ export default function PostTaskPage() {
     try {
       setAiGenerating(true)
       
-      // TODO: Implement actual AI API call
-      // For now, simulate AI generation
       await new Promise(resolve => setTimeout(resolve, 1500))
       
-      // Mock AI-generated description based on title and type
       const mockDescriptions: Record<string, string> = {
         MANUFACTURING: `We are looking for a reliable manufacturer to produce ${formData.title.toLowerCase()}.
 
@@ -194,7 +212,63 @@ Contact us today to discuss your requirements and get a custom quote.`
     }
   }
 
-  // Handle form submission
+  const handleFileUpload = async (
+    files: FileList | null, 
+    attachmentType: 'image' | 'file' | 'drawing' | 'compressed'
+  ) => {
+    if (!files || files.length === 0) return
+
+    const typeKey = attachmentType === 'image' ? 'image' : 
+                    attachmentType === 'file' ? 'file' : 
+                    attachmentType === 'drawing' ? 'drawing' : 'compressed'
+    
+    setUploadingState(prev => ({ ...prev, [typeKey]: true }))
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        
+        if (file.size > 20 * 1024 * 1024) {
+          alert(`${t.maxFileSize}: ${file.name}`)
+          continue
+        }
+
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'task_attachment')
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Upload failed')
+        }
+
+        setAttachments(prev => [...prev, {
+          id: `${Date.now()}-${i}`,
+          url: data.url,
+          fileName: file.name,
+          type: attachmentType,
+        }])
+      }
+      
+      alert(t.uploadSuccess)
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploadingState(prev => ({ ...prev, [typeKey]: false }))
+    }
+  }
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== id))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -205,8 +279,7 @@ Contact us today to discuss your requirements and get a custom quote.`
     try {
       setLoading(true)
       
-      // In production, get user ID from auth context
-      const postedBy = 'current-user-id' // TODO: Replace with actual user ID
+      const attachmentUrls = attachments.map(att => att.url)
       
       const response = await fetch('/api/marketplace/tasks', {
         method: 'POST',
@@ -215,7 +288,7 @@ Contact us today to discuss your requirements and get a custom quote.`
         },
         body: JSON.stringify({
           ...formData,
-          postedBy,
+          attachments: attachmentUrls,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           price: formData.price ? parseFloat(formData.price) : null,
           minOrderQty: formData.minOrderQty ? parseInt(formData.minOrderQty) : null,
@@ -242,7 +315,6 @@ Contact us today to discuss your requirements and get a custom quote.`
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="mb-8">
           <Link
             href={`/${locale}/marketplace`}
@@ -256,9 +328,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-8 space-y-6">
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.taskTitle}
@@ -278,7 +348,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             )}
           </div>
 
-          {/* Task Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.taskType}
@@ -295,7 +364,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             </select>
           </div>
 
-          {/* Description with AI Button */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -328,7 +396,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             </p>
           </div>
 
-          {/* Budget and Price */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -379,7 +446,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             </div>
           </div>
 
-          {/* Currency and Unit */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -414,7 +480,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             </div>
           </div>
 
-          {/* Min Order Qty and Deadline */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -451,7 +516,6 @@ Contact us today to discuss your requirements and get a custom quote.`
             </div>
           </div>
 
-          {/* Contact Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.contactInfo}
@@ -469,7 +533,183 @@ Contact us today to discuss your requirements and get a custom quote.`
             </p>
           </div>
 
-          {/* Submit Buttons */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              {t.attachments}
+            </label>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                onClick={() => !uploadingState.image && imageInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all
+                  ${uploadingState.image ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+                `}
+              >
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                  disabled={uploadingState.image}
+                  className="hidden"
+                />
+                <div className="flex flex-col items-center space-y-2">
+                  {uploadingState.image ? (
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  ) : (
+                    <Image className="w-8 h-8 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t.uploadImages}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t.supportedImageTypes} • {t.maxFileSize}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => !uploadingState.file && fileInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all
+                  ${uploadingState.file ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+                `}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  multiple
+                  onChange={(e) => handleFileUpload(e.target.files, 'file')}
+                  disabled={uploadingState.file}
+                  className="hidden"
+                />
+                <div className="flex flex-col items-center space-y-2">
+                  {uploadingState.file ? (
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  ) : (
+                    <FileText className="w-8 h-8 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t.uploadFiles}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t.supportedFileTypes} • {t.maxFileSize}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => !uploadingState.drawing && drawingInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all
+                  ${uploadingState.drawing ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+                `}
+              >
+                <input
+                  ref={drawingInputRef}
+                  type="file"
+                  accept=".dwg,.dxf"
+                  multiple
+                  onChange={(e) => handleFileUpload(e.target.files, 'drawing')}
+                  disabled={uploadingState.drawing}
+                  className="hidden"
+                />
+                <div className="flex flex-col items-center space-y-2">
+                  {uploadingState.drawing ? (
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  ) : (
+                    <FileCode className="w-8 h-8 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t.uploadDrawings}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t.supportedDrawingTypes} • {t.maxFileSize}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => !uploadingState.compressed && compressedInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all
+                  ${uploadingState.compressed ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+                `}
+              >
+                <input
+                  ref={compressedInputRef}
+                  type="file"
+                  accept=".zip,.rar"
+                  multiple
+                  onChange={(e) => handleFileUpload(e.target.files, 'compressed')}
+                  disabled={uploadingState.compressed}
+                  className="hidden"
+                />
+                <div className="flex flex-col items-center space-y-2">
+                  {uploadingState.compressed ? (
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  ) : (
+                    <FileArchive className="w-8 h-8 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t.uploadCompressed}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t.supportedCompressedTypes} • {t.maxFileSize}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {attachments.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-600 mb-2">
+                  {t.attachments} ({attachments.length})
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="relative bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-2">
+                        {attachment.type === 'image' ? (
+                          <Image className="w-5 h-5 text-green-500" />
+                        ) : attachment.type === 'drawing' ? (
+                          <FileCode className="w-5 h-5 text-blue-500" />
+                        ) : attachment.type === 'compressed' ? (
+                          <FileArchive className="w-5 h-5 text-orange-500" />
+                        ) : (
+                          <FileText className="w-5 h-5 text-gray-500" />
+                        )}
+                        <span className="text-xs text-gray-600 truncate max-w-[120px]">
+                          {attachment.fileName}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => removeAttachment(attachment.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="submit"
@@ -487,7 +727,6 @@ Contact us today to discuss your requirements and get a custom quote.`
           </div>
         </form>
 
-        {/* Tips Section */}
         <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
           <h3 className="text-lg font-semibold text-blue-900 mb-3">{t.tipsTitle}</h3>
           <ul className="space-y-2 text-sm text-blue-800">

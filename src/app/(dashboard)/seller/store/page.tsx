@@ -15,8 +15,11 @@ export default function StoreProfilePage() {
   const language = useSellerLanguage()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [submittingForApproval, setSubmittingForApproval] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [profileStatus, setProfileStatus] = useState<string>('DRAFT')
+  const [reviewNotes, setReviewNotes] = useState<string>('')
 
   const [companyName, setCompanyName] = useState('')
   const [description, setDescription] = useState('')
@@ -707,6 +710,124 @@ export default function StoreProfilePage() {
                         language === 'th' ? 'ชื่อบริษัทเป็นสิ่งจำเป็น' :
                         language === 'vi' ? 'Tên công ty là bắt buộc' :
                         'Company name is required',
+    // Profile Approval Status
+    profileStatusDraft: language === 'zh' ? '草稿' :
+                        language === 'ja' ? '下書き' :
+                        language === 'ar' ? 'مسودة' :
+                        language === 'es' ? 'Borrador' :
+                        language === 'fr' ? 'Brouillon' :
+                        language === 'de' ? 'Entwurf' :
+                        language === 'ko' ? '초안' :
+                        language === 'ru' ? 'Черновик' :
+                        language === 'pt' ? 'Rascunho' :
+                        language === 'hi' ? 'ड्राफ्ट' :
+                        language === 'th' ? 'แบบร่าง' :
+                        language === 'vi' ? 'Bản nháp' :
+                        'Draft',
+    profileStatusPending: language === 'zh' ? '等待审核' :
+                          language === 'ja' ? '承認待ち' :
+                          language === 'ar' ? 'في انتظار الموافقة' :
+                          language === 'es' ? 'Esperando aprobación' :
+                          language === 'fr' ? 'En attente d\'approbation' :
+                          language === 'de' ? 'Wartet auf Genehmigung' :
+                          language === 'ko' ? '승인 대기 중' :
+                          language === 'ru' ? 'Ожидает одобрения' :
+                          language === 'pt' ? 'Aguardando aprovação' :
+                          language === 'hi' ? 'स्वीकृति की प्रतीक्षा' :
+                          language === 'th' ? 'รอการอนุมัติ' :
+                          language === 'vi' ? 'Đang chờ phê duyệt' :
+                          'Pending Approval',
+    profileStatusApproved: language === 'zh' ? '已批准' :
+                            language === 'ja' ? '承認済み' :
+                            language === 'ar' ? 'موافق عليه' :
+                            language === 'es' ? 'Aprobado' :
+                            language === 'fr' ? 'Approuvé' :
+                            language === 'de' ? 'Genehmigt' :
+                            language === 'ko' ? '승인됨' :
+                            language === 'ru' ? 'Одобрено' :
+                            language === 'pt' ? 'Aprovado' :
+                            language === 'hi' ? 'स्वीकृत' :
+                            language === 'th' ? 'อนุมัติแล้ว' :
+                            language === 'vi' ? 'Đã phê duyệt' :
+                            'Approved',
+    profileStatusRejected: language === 'zh' ? '已拒绝' :
+                            language === 'ja' ? '拒否された' :
+                            language === 'ar' ? 'مرفوض' :
+                            language === 'es' ? 'Rechazado' :
+                            language === 'fr' ? 'Rejeté' :
+                            language === 'de' ? 'Abgelehnt' :
+                            language === 'ko' ? '거부됨' :
+                            language === 'ru' ? 'Отклонено' :
+                            language === 'pt' ? 'Rejeitado' :
+                            language === 'hi' ? 'अस्वीकृत' :
+                            language === 'th' ? 'ถูกปฏิเสธ' :
+                            language === 'vi' ? 'Đã từ chối' :
+                            'Rejected',
+    submitForApproval: language === 'zh' ? '提交审核' :
+                       language === 'ja' ? '承認を申請' :
+                       language === 'ar' ? 'تقديم للموافقة' :
+                       language === 'es' ? 'Enviar para aprobación' :
+                       language === 'fr' ? 'Soumettre pour approbation' :
+                       language === 'de' ? 'Zur Genehmigung einreichen' :
+                       language === 'ko' ? '승인 요청' :
+                       language === 'ru' ? 'Отправить на одобрение' :
+                       language === 'pt' ? 'Enviar para aprovação' :
+                       language === 'hi' ? 'स्वीकृति के लिए प्रस्तुत करें' :
+                       language === 'th' ? 'ส่งเพื่ออนุมัติ' :
+                       language === 'vi' ? 'Gửi phê duyệt' :
+                       'Submit for Approval',
+    submittingForApproval: language === 'zh' ? '提交中...' :
+                           language === 'ja' ? '申請中...' :
+                           language === 'ar' ? 'جارِ التقديم...' :
+                           language === 'es' ? 'Enviando...' :
+                           language === 'fr' ? 'En cours de soumission...' :
+                           language === 'de' ? 'Wird eingereicht...' :
+                           language === 'ko' ? '제출 중...' :
+                           language === 'ru' ? 'Отправка...' :
+                           language === 'pt' ? 'Enviando...' :
+                           language === 'hi' ? 'प्रस्तुत कर रहा है...' :
+                           language === 'th' ? 'กำลังส่ง...' :
+                           language === 'vi' ? 'Đang gửi...' :
+                           'Submitting...',
+    submittedForApproval: language === 'zh' ? '已提交审核，请等待管理员批准！' :
+                           language === 'ja' ? '承認を申請しました，管理者の承認をお待ちください！' :
+                           language === 'ar' ? 'تم التقديم، يرجى انتظار موافقة المشرف!' :
+                           language === 'es' ? '¡Enviado! Por favor espere la aprobación del administrador.' :
+                           language === 'fr' ? 'Soumis ! Veuillez attendre l\'approbation de l\'administrateur.' :
+                           language === 'de' ? 'Eingereicht! Bitte warten Sie auf die Genehmigung des Administrators.' :
+                           language === 'ko' ? '제출되었습니다. 관리자의 승인을 기다려주세요!' :
+                           language === 'ru' ? 'Отправлено! Пожалуйста, дождитесь одобрения администратора.' :
+                           language === 'pt' ? 'Enviado! Por favor, aguarde a aprovação do administrador.' :
+                           language === 'hi' ? 'प्रस्तुत किया गया! कृपया प्रशासक की स्वीकृति की प्रतीक्षा करें।' :
+                           language === 'th' ? 'ส่งแล้ว! กรุณารอการอนุมัติจากผู้ดูแลระบบ' :
+                           language === 'vi' ? 'Đã gửi! Vui lòng chờ quản trị viên phê duyệt.' :
+                           'Submitted! Please wait for admin approval.',
+    approvalFailed: language === 'zh' ? '提交失败' :
+                    language === 'ja' ? '申請に失敗しました' :
+                    language === 'ar' ? 'فشل التقديم' :
+                    language === 'es' ? 'Error al enviar' :
+                    language === 'fr' ? 'Échec de la soumission' :
+                    language === 'de' ? 'Einreichung fehlgeschlagen' :
+                    language === 'ko' ? '제출 실패' :
+                    language === 'ru' ? 'Ошибка отправки' :
+                    language === 'pt' ? 'Falha ao enviar' :
+                    language === 'hi' ? 'प्रस्तुत करने में विफल' :
+                    language === 'th' ? 'การส่งล้มเหลว' :
+                    language === 'vi' ? 'Gửi thất bại' :
+                    'Submission failed',
+    profileRejectedMessage: language === 'zh' ? '您的资料被拒绝，原因如下：' :
+                            language === 'ja' ? 'プロフィールが拒否されました，原因：' :
+                            language === 'ar' ? 'تم رفض ملفك الشخصي، السبب:' :
+                            language === 'es' ? 'Su perfil fue rechazado. Razón:' :
+                            language === 'fr' ? 'Votre profil a été rejeté. Raison:' :
+                            language === 'de' ? 'Ihr Profil wurde abgelehnt. Grund:' :
+                            language === 'ko' ? '프로필이 거부되었습니다. 이유:' :
+                            language === 'ru' ? 'Ваш профиль отклонен. Причина:' :
+                            language === 'pt' ? 'Seu perfil foi rejeitado. Motivo:' :
+                            language === 'hi' ? 'आपकी प्रोफ़ाइल अस्वीकृत कर दी गई। कारण:' :
+                            language === 'th' ? 'โปรไฟล์ของคุณถูกปฏิเสธ เหตุผล:' :
+                            language === 'vi' ? 'Hồ sơ của bạn bị từ chối. Lý do:' :
+                            'Your profile was rejected. Reason:',
     failedToLoadProfile: language === 'zh' ? '无法加载资料' :
                           language === 'ja' ? 'プロフィールの読み込みに失敗しました' :
                           language === 'ar' ? 'فشل تحميل الملف الشخصي' :
@@ -1049,6 +1170,10 @@ export default function StoreProfilePage() {
 
       const data = await response.json()
       const profile = data.profile
+
+      // Set profile status
+      setProfileStatus(profile.profileStatus || 'DRAFT')
+      setReviewNotes(profile.profileReviewNotes || '')
 
       setCompanyName(profile.companyName || '')
       setDescription(profile.description || '')
@@ -1522,6 +1647,37 @@ export default function StoreProfilePage() {
     }
   }
 
+  const handleSubmitForApproval = async () => {
+    if (!companyName.trim()) {
+      setError(t.companyNameRequired)
+      return
+    }
+
+    setSubmittingForApproval(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/seller/profile/submit-approval', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t.approvalFailed)
+      }
+
+      setProfileStatus('PENDING')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 5000)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.approvalFailed)
+    } finally {
+      setSubmittingForApproval(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -1532,12 +1688,64 @@ export default function StoreProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t.pageTitle}</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          {t.pageSubtitle}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t.pageTitle}</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            {t.pageSubtitle}
+          </p>
+        </div>
+        {/* Profile Status Badge */}
+        <div className="flex items-center gap-3">
+          {profileStatus === 'DRAFT' && (
+            <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+              {t.profileStatusDraft}
+            </span>
+          )}
+          {profileStatus === 'PENDING' && (
+            <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              {t.profileStatusPending}
+            </span>
+          )}
+          {profileStatus === 'APPROVED' && (
+            <span className="px-3 py-1.5 bg-green-100 text-green-700 text-sm font-medium rounded-full flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              {t.profileStatusApproved}
+            </span>
+          )}
+          {profileStatus === 'REJECTED' && (
+            <span className="px-3 py-1.5 bg-red-100 text-red-700 text-sm font-medium rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              {t.profileStatusRejected}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Rejection Notice */}
+      {profileStatus === 'REJECTED' && reviewNotes && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-800 font-medium">{t.profileRejectedMessage}</p>
+          <p className="text-sm text-red-700 mt-1">{reviewNotes}</p>
+        </div>
+      )}
+
+      {/* Pending Approval Notice */}
+      {profileStatus === 'PENDING' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">{t.submittedForApproval}</p>
+        </div>
+      )}
+
+      {/* Approved Notice */}
+      {profileStatus === 'APPROVED' && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-green-600" />
+          <p className="text-sm text-green-800">{t.profileStatusApproved}</p>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -2767,7 +2975,28 @@ export default function StoreProfilePage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-3">
+          {/* Submit for Approval Button - Only show when DRAFT or REJECTED */}
+          {(profileStatus === 'DRAFT' || profileStatus === 'REJECTED') && (
+            <button
+              type="button"
+              onClick={handleSubmitForApproval}
+              disabled={submittingForApproval}
+              className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submittingForApproval ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t.submittingForApproval}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {t.submitForApproval}
+                </>
+              )}
+            </button>
+          )}
           <button
             type="submit"
             disabled={saving}

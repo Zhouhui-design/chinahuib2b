@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { TaskType, TaskStatus } from '@prisma/client'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 
 /**
  * GET /api/marketplace/tasks
@@ -104,12 +106,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     
     // Validate required fields
-    const { title, description, type, postedBy } = body
+    const { title, description, type } = body
     
-    if (!title || !description || !type || !postedBy) {
+    if (!title || !description || !type) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -133,11 +143,11 @@ export async function POST(request: NextRequest) {
         budget: body.budget ? parseFloat(body.budget) : null,
         price: body.price ? parseFloat(body.price) : null,
         currency: body.currency || 'USD',
-        unit: body.unit,
+        unit: body.unit || null,
         minOrderQty: body.minOrderQty ? parseInt(body.minOrderQty) : null,
         deadline: body.deadline ? new Date(body.deadline) : null,
-        postedBy,
-        contactInfo: body.contactInfo,
+        postedById: session.user.id,
+        contactInfo: body.contactInfo || null,
         attachments: body.attachments || [],
         status: TaskStatus.OPEN,
       },

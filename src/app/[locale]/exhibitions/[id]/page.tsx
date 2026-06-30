@@ -11,7 +11,7 @@ import {
   Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 
 interface Product {
   id: string
@@ -152,6 +152,8 @@ const CHAT_TENANT = (process.env['NEXT_PUBLIC_CHAT_TENANT'] as string) || 'china
 export default function BoothDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session } = useSession()
   const router = useRouter()
+  const routeParams = useParams()
+  const locale = (routeParams.locale as string) || 'en'
   const [booth, setBooth] = useState<Booth | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -770,17 +772,17 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="p-6 space-y-6">
                   {/* Company Logo & Banner */}
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    {booth.seller.bannerUrl && (
+                    {(booth.seller.bannerUrl || booth.bannerUrl) && (
                       <img
-                        src={booth.seller.bannerUrl}
+                        src={booth.seller.bannerUrl || booth.bannerUrl}
                         alt="Company Banner"
                         className="w-full h-32 object-cover"
                       />
                     )}
                     <div className="p-4 flex items-center gap-4 bg-white">
-                      {booth.seller.logoUrl ? (
+                      {(booth.seller.logoUrl || booth.logoUrl) ? (
                         <img
-                          src={booth.seller.logoUrl}
+                          src={booth.seller.logoUrl || booth.logoUrl}
                           alt={booth.seller.companyName}
                           className="w-20 h-20 rounded-lg object-contain bg-gray-50"
                         />
@@ -809,16 +811,17 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
 
                   {/* Company Profile Description */}
-                  {booth.seller.description && (
+                  {(booth.seller.descriptions?.[locale] || booth.seller.description) && (
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4">
                       <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
                         <Briefcase className="w-5 h-5 mr-2 text-blue-600" />
                         Company Profile
                       </h3>
                       <div
-                        className="prose prose-sm max-w-none text-gray-700"
-                        dangerouslySetInnerHTML={{ __html: booth.seller.description }}
-                      />
+                        className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap"
+                      >
+                        {booth.seller.descriptions?.[locale] || booth.seller.description}
+                      </div>
                     </div>
                   )}
 
@@ -902,12 +905,12 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
 
                   {/* Social Media */}
-                  {booth.seller.whatsapp || booth.seller.wechat || booth.seller.telegram || booth.seller.linkedin || 
+                  {(booth.seller.whatsapp || booth.seller.wechat || booth.seller.telegram || booth.seller.linkedin || 
                    booth.seller.facebook || booth.seller.instagram || booth.seller.youtube || booth.seller.tiktok ||
                    booth.seller.twitter || booth.seller.pinterest || booth.seller.douyin || booth.seller.xiaohongshu ||
                    booth.seller.qq || booth.seller.dingtalk || booth.seller.lark || booth.seller.wechatVideo ||
                    booth.seller.weibo || booth.seller.kuaishou || booth.seller.bilibili || booth.seller.reddit ||
-                   booth.seller.snapchat || booth.seller.tumblr || booth.seller.chatSystem && (
+                   booth.seller.snapchat || booth.seller.tumblr || booth.seller.chatSystem) && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                       <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                         <h3 className="text-lg font-bold text-gray-900 flex items-center">

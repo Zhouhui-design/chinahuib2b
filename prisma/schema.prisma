@@ -183,6 +183,13 @@ model SellerProfile {
   isVerified Boolean @default(false)
   isActive   Boolean @default(true)
 
+  // Profile approval status for organization info visibility
+  profileStatus       ProfileStatus @default(DRAFT) // DRAFT/PENDING/APPROVED/REJECTED
+  profileSubmittedAt DateTime? // When seller submitted for review
+  profileReviewedAt  DateTime? // When admin reviewed
+  profileReviewedBy  String? // Admin user ID who reviewed
+  profileReviewNotes String? // Admin notes for rejection/approval
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -222,6 +229,13 @@ enum SubscriptionStatus {
   ACTIVE
   EXPIRED
   CANCELLED
+}
+
+enum ProfileStatus {
+  DRAFT     // 未提交，草稿状态
+  PENDING   // 已提交，等待审核
+  APPROVED  // 已批准，信息公开
+  REJECTED  // 已拒绝，需要修改
 }
 
 // Product categories (3-level hierarchy)

@@ -29,12 +29,6 @@ export async function POST(request: NextRequest) {
       include: { sellerProfile: true }
     })
 
-    // Allow both SELLER and ADMIN roles to upload files
-    if (!user || (user.role !== 'SELLER' && user.role !== 'ADMIN')) {
-      console.log('Upload rejected - user:', user?.id, 'role:', user?.role)
-      return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
-    }
-
     // Parse form data
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -43,6 +37,15 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    // Allow all logged-in users to upload chat files and task attachments
+    const isChatUpload = type === 'chat_image' || type === 'chat_file';
+    const isTaskUpload = type === 'task_attachment';
+    
+    if (!user || (!isChatUpload && !isTaskUpload && user.role !== 'SELLER' && user.role !== 'ADMIN')) {
+      console.log('Upload rejected - user:', user?.id, 'role:', user?.role, 'type:', type)
+      return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
 
     // Validate file size (20MB max)
@@ -57,6 +60,9 @@ export async function POST(request: NextRequest) {
     else if (type === 'logo') subDir = 'logos'
     else if (type === 'banner') subDir = 'banners'
     else if (type === 'brochure' || type === 'store_brochure') subDir = 'brochures'
+    else if (type === 'chat_image') subDir = 'chat-images'
+    else if (type === 'chat_file') subDir = 'chat-files'
+    else if (type === 'task_attachment') subDir = 'task-attachments'
 
     const targetDir = path.join(UPLOAD_DIR, subDir)
     await mkdir(targetDir, { recursive: true })

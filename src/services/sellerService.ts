@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { SellerProfile, Product, Booth, SubscriptionStatus } from '@prisma/client';
+import { SellerProfile, Product, Booth, SubscriptionStatus, ProfileStatus } from '@prisma/client';
 
 // Get seller profile by user ID
 export async function getSellerProfile(userId: string): Promise<SellerProfile | null> {
@@ -345,11 +345,100 @@ export async function getFeaturedSellers(limit: number = 10): Promise<SellerProf
     where: {
       isActive: true,
       isVerified: true,
+      profileStatus: ProfileStatus.APPROVED,
     },
     include: {
       products: { take: 3 },
     },
     orderBy: { createdAt: 'desc' },
     take: limit,
+  });
+}
+
+// Get all approved sellers for public display
+export async function getApprovedSellers(
+  page: number = 1,
+  limit: number = 12
+): Promise<{ sellers: SellerProfile[]; total: number; totalPages: number }> {
+  const skip = (page - 1) * limit;
+
+  const [sellers, total] = await Promise.all([
+    prisma.sellerProfile.findMany({
+      where: {
+        isActive: true,
+        profileStatus: ProfileStatus.APPROVED,
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.sellerProfile.count({
+      where: {
+        isActive: true,
+        profileStatus: ProfileStatus.APPROVED,
+      },
+    }),
+  ]);
+
+  return {
+    sellers,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+// Get sellers pending approval (for admin)
+export async function getPendingApprovalSellers(): Promise<SellerProfile[]> {
+  return await prisma.sellerProfile.findMany({
+    where: {
+      isActive: true,
+      profileStatus: ProfileStatus.PENDING,
+    },
+    orderBy: { profileSubmittedAt: 'asc' },
+  });
+}
+
+// Approve seller profile
+export async function approveSellerProfile(
+  sellerId: string,
+  adminId: string,
+  notes?: string
+): Promise<SellerProfile> {
+  return await prisma.sellerProfile.update({
+    where: { id: sellerId },
+    data: {
+      profileStatus: ProfileStatus.APPROVED,
+      profileReviewedAt: new Date(),
+      profileReviewedBy: adminId,
+      profileReviewNotes: notes,
+    },
+  });
+}
+
+// Reject seller profile
+export async function rejectSellerProfile(
+  sellerId: string,
+  adminId: string,
+  notes?: string
+): Promise<SellerProfile> {
+  return await prisma.sellerProfile.update({
+    where: { id: sellerId },
+    data: {
+      profileStatus: ProfileStatus.REJECTED,
+      profileReviewedAt: new Date(),
+      profileReviewedBy: adminId,
+      profileReviewNotes: notes,
+    },
+  });
+}
+
+// Submit profile for approval
+export async function submitForApproval(sellerId: string): Promise<SellerProfile> {
+  return await prisma.sellerProfile.update({
+    where: { id: sellerId },
+    data: {
+      profileStatus: ProfileStatus.PENDING,
+      profileSubmittedAt: new Date(),
+    },
   });
 }
