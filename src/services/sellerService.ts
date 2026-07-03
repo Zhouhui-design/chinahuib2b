@@ -442,3 +442,22 @@ export async function submitForApproval(sellerId: string): Promise<SellerProfile
     },
   });
 }
+
+export async function getSellersByProfileStatus(status: ProfileStatus): Promise<SellerProfile[]> {
+  return await prisma.sellerProfile.findMany({
+    where: {
+      isActive: true,
+      profileStatus: status,
+    },
+    orderBy: { profileSubmittedAt: 'asc' },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
+      },
+    },
+  });
+}

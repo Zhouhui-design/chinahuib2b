@@ -78,6 +78,7 @@ model User {
   aiAuditLogs                AIAuditLog[]
   wallet                     Wallet?
   withdrawalRequests         WithdrawalRequest[]
+  verificationRequests       VerificationRequest[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -855,10 +856,17 @@ enum AuctionBidStatus {
 // NEW FEATURES: Public Chat & Task Hall
 // ========================================
 
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
 // Public Chat Messages - Main public chat area
 model PublicMessage {
   id      String @id @default(cuid())
   content String @db.Text // Message content
+  messageType MessageType @default(TEXT) // TEXT, IMAGE, FILE
 
   // Sender info
   senderId String
@@ -871,7 +879,14 @@ model PublicMessage {
   // Message metadata
   isSystemMessage Boolean @default(false)
   isAnnouncement  Boolean @default(false)
+  isWorldChat     Boolean @default(false) // World chat messages (broadcast to all)
   priority        Int     @default(0) // Higher = more visible
+
+  // File attachments
+  fileUrl   String? // Image or file URL
+  fileName  String? // Original file name
+  fileSize  Int?    // File size in bytes
+  mimeType  String? // MIME type
 
   // Reactions
   reactions Json? // { "like": ["userId1", "userId2"], "fire": [...] }
@@ -881,6 +896,7 @@ model PublicMessage {
   @@index([createdAt])
   @@index([senderId])
   @@index([isAnnouncement])
+  @@index([messageType])
 }
 
 // Private Messages - 1:1 chat
@@ -990,11 +1006,25 @@ model AuctionListing {
   category    String?
   tags        String[]
 
+  // Additional details
+  techSpecs        String? // 技术参数
+  productFeatures  String? // 产品特点
+  applicationScope String? // 适用范围
+  usageMethod      String? // 使用方法
+
+  // Location
+  shippingCountry  String?
+  detailedAddress  String?
+
   // Pricing
   price       Decimal? @db.Decimal(10, 2)
   currency    String   @default("USD")
-  minOrderQty Int?
+  minOrderQty Int?     @default(1)
   maxOrderQty Int?
+
+  // Shipping terms
+  isFob String? // YES, NEGOTIATE, NO
+  isCif String? // YES, NEGOTIATE, NO
 
   // Media
   images    String[]
@@ -1017,8 +1047,13 @@ model AuctionListing {
 
   // Listing cost
   isPaid    Boolean  @default(true)
-  cost      Decimal? @db.Decimal(10, 2) // $0.10 per listing
+  cost      Decimal? @db.Decimal(10, 2)
   paymentId String?
+
+  // Verification
+  verificationStatus VerificationStatus @default(NOT_APPLIED)
+  verificationFee    Decimal?           @db.Decimal(10, 2)
+  verificationNotes  String?
 
   // Status
   status     AuctionStatus @default(ACTIVE)
@@ -1031,7 +1066,8 @@ model AuctionListing {
   updatedAt DateTime  @updatedAt
 
   // Relations
-  bids AuctionBid[]
+  bids               AuctionBid[]
+  verificationRequests VerificationRequest[]
 
   // Digital voucher support
   digitalVoucherId String?
@@ -1043,6 +1079,7 @@ model AuctionListing {
   @@index([category])
   @@index([createdAt])
   @@index([isVerified])
+  @@index([verificationStatus])
 }
 
 enum AuctionListingType {
@@ -1055,6 +1092,13 @@ enum AuctionStatus {
   EXPIRED // Listing expired
   CLOSED // Manually closed
   COMPLETED // Deal completed
+}
+
+enum VerificationStatus {
+  NOT_APPLIED // 未申请审核
+  PENDING // 审核中
+  VERIFIED // 审核通过
+  REJECTED // 审核未通过（真实性继续核实中）
 }
 
 // ========================================
@@ -1494,4 +1538,54 @@ model WithdrawalRequest {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+}
+
+model SystemSetting {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  value           Json
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([key])
+}
+
+model VerificationCountry {
+  id     String @id @default(cuid())
+  name   String // Country name in English
+  nameZh String? // Country name in Chinese
+  isEnabled Boolean @default(true) // Whether verification is enabled for this country
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isEnabled])
+}
+
+model VerificationRequest {
+  id      String @id @default(cuid())
+  userId  String
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  listingId String?
+  listing   AuctionListing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  shippingCountry String
+  detailedAddress String
+  
+  status VerificationStatus @default(PENDING)
+  feeAmount Decimal? @db.Decimal(10, 2)
+  feeCurrency String @default("USD")
+  
+  notes String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([listingId])
+  @@index([status])
 }

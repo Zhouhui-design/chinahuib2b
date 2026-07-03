@@ -7,7 +7,27 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
-import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle } from 'lucide-react'
+import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle, Upload, X, Image as ImageIcon, FileText, File } from 'lucide-react'
+import { useCallback } from 'react'
+
+type Category = {
+  id: string
+  name: string
+  level: number
+  parentId: string | null
+}
+
+// Country list
+const countries = [
+  'China', 'United States', 'Germany', 'Japan', 'South Korea', 'Vietnam', 'India',
+  'Brazil', 'Italy', 'France', 'United Kingdom', 'Canada', 'Australia', 'Mexico',
+  'Indonesia', 'Thailand', 'Malaysia', 'Singapore', 'Hong Kong', 'Taiwan',
+  'Turkey', 'Poland', 'Czech Republic', 'Hungary', 'Romania', 'Spain', 'Portugal',
+  'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Switzerland',
+  'Austria', 'Russia', 'Ukraine', 'Egypt', 'South Africa', 'Nigeria', 'Kenya',
+  'Argentina', 'Chile', 'Colombia', 'Peru', 'Saudi Arabia', 'UAE', 'Israel',
+  'Pakistan', 'Bangladesh', 'Philippines', 'Myanmar', 'Cambodia', 'Laos'
+].sort()
 
 type AuctionListing = {
   id: string
@@ -85,6 +105,27 @@ export default function AuctionScreenPage() {
   const [showBidModal, setShowBidModal] = useState(false)
   const [bidAmount, setBidAmount] = useState('')
   const [currentBid, setCurrentBid] = useState<AuctionDetail | null>(null)
+  const [showFeeModal, setShowFeeModal] = useState(false)
+  const [feeData, setFeeData] = useState<{
+    enabled: boolean
+    fee: {
+      baseAmount: number
+      feeRate: number
+      calculatedFee: number
+      finalFee: number
+      minFee: number
+      currency: string
+    }
+    paymentMethods: {
+      id: string
+      name: string
+      icon: string
+      qrCode?: string
+      details?: string
+    }[]
+  } | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [pendingListingData, setPendingListingData] = useState<any>(null)
   
   const sseRef = useRef<EventSource | null>(null)
 
@@ -607,6 +648,193 @@ export default function AuctionScreenPage() {
           dict={dict}
         />
       )}
+
+      {/* Service Fee Confirmation Modal */}
+      {showFeeModal && feeData && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                💰 平台建设维护费
+              </h2>
+              <button
+                onClick={() => setShowFeeModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              {feeData.enabled ? (
+                <>
+                  <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                    <p className="text-gray-300 text-sm mb-2">货款金额</p>
+                    <p className="text-2xl font-bold text-white">{formData.currency} {feeData.fee.baseAmount.toFixed(2)}</p>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">服务费比例</span>
+                      <span className="text-white">{(feeData.fee.feeRate * 100).toFixed(4)}%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">计算服务费</span>
+                      <span className="text-white">{formData.currency} {feeData.fee.calculatedFee.toFixed(4)}</span>
+                    </div>
+                    {feeData.fee.calculatedFee < feeData.fee.minFee && (
+                      <div className="flex justify-between text-sm text-yellow-400">
+                        <span>⚠️ 最低收费标准</span>
+                        <span>{formData.currency} {feeData.fee.minFee.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-600 pt-3 flex justify-between text-lg font-bold">
+                      <span className="text-white">应付平台建设维护费</span>
+                      <span className="text-green-400">{formData.currency} {feeData.fee.finalFee.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-400 text-sm mb-6">
+                    系统收取平台建设维护费，当服务费计算结果小于 {formData.currency} {feeData.fee.minFee.toFixed(2)} 时，按 {formData.currency} {feeData.fee.minFee.toFixed(2)} 收取。如果认为不合适，可以取消拍卖行服务。
+                  </p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowFeeModal(false)}
+                      className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowFeeModal(false)
+                        setShowPaymentModal(true)
+                      }}
+                      className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
+                    >
+                      确认支付
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center py-8">
+                    <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <p className="text-lg text-white mb-2">平台建设维护费已免除</p>
+                    <p className="text-gray-400">当前平台暂不收取服务费</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowFeeModal(false)}
+                      className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (pendingListingData) {
+                          createListing(pendingListingData)
+                        }
+                      }}
+                      className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
+                    >
+                      发布列表
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && feeData && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                💳 选择支付方式
+              </h2>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-gray-700 rounded-lg p-4 mb-6 text-center">
+                <p className="text-gray-400 text-sm">应付金额</p>
+                <p className="text-3xl font-bold text-green-400">${feeData.fee.finalFee.toFixed(2)}</p>
+              </div>
+
+              {feeData.paymentMethods.length > 0 ? (
+                <div className="space-y-3 mb-6">
+                  {feeData.paymentMethods.map((method) => (
+                    <div
+                      key={method.id}
+                      className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 cursor-pointer transition"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-3xl">{method.icon}</span>
+                        <div className="flex-1">
+                          <p className="text-white font-bold">{method.name}</p>
+                          {method.details && (
+                            <p className="text-gray-400 text-sm whitespace-pre-line">{method.details}</p>
+                          )}
+                        </div>
+                      </div>
+                      {method.qrCode && (
+                        <div className="mt-4 flex justify-center">
+                          <img
+                            src={method.qrCode}
+                            alt={`${method.name} QR Code`}
+                            className="w-48 h-48 rounded-lg"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 mb-6">
+                  <AlertCircle className="w-12 h-12 text-gray-500 mx-auto mb-2" />
+                  <p className="text-gray-400">暂无可用的支付方式</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowPaymentModal(false)
+                    setShowFeeModal(true)
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
+                >
+                  返回
+                </button>
+                <button
+                  onClick={() => {
+                    if (pendingListingData) {
+                      createListing(pendingListingData)
+                    }
+                  }}
+                  className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
+                >
+                  确认支付并发布
+                </button>
+              </div>
+
+              <p className="text-gray-500 text-xs text-center mt-4">
+                支付完成后，请联系客服确认以便快速审核
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -624,40 +852,329 @@ function CreateListingModal({
 }) {
   const { data: session } = useSession() ?? { data: null }
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  
+  // Category cascade selection
+  const [selectedLargeCategory, setSelectedLargeCategory] = useState('')
+  const [selectedMediumCategory, setSelectedMediumCategory] = useState('')
+  const [selectedSmallCategory, setSelectedSmallCategory] = useState('')
+  
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    price: '',
-    currency: 'USD',
-    minOrderQty: '',
-    images: [] as string[],
+    // Basic info
+    productName: '',  // 商品名称（必填）
+    productDescription: '',  // 商品描述（选填）
+    techSpecs: '',  // 技术参数（选填）
+    productFeatures: '',  // 产品特点（选填）
+    applicationScope: '',  // 适用范围（选填）
+    usageMethod: '',  // 使用方法（选填）
+    
+    // Location & Shipping
+    shippingCountry: '',  // 发货国家（必填）
+    detailedAddress: '',  // 货物所在详细地址（必填）
+    
+    // Pricing
+    currency: 'USD',  // 交易货币
+    pickupPrice: '',  // 自提价格（选填）
+    isFob: 'NO',  // 是否可FOB：YES, NEGOTIATE, NO
+    isCif: 'NO',  // 是否可CIF：YES, NEGOTIATE, NO
+    minOrderQty: '1',  // 最小起订量，默认1
+    
+    // Verification
+    verificationStatus: 'NOT_APPLIED',  // 平台审核状态
+    
+    // Contact
     contactEmail: '',
     contactPhone: '',
     contactWhatsApp: '',
+    
+    // Files
+    images: [] as string[],
+    files: [] as string[],
+    drawings: [] as string[],
   })
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/categories?locale=${locale}`)
+        if (res.ok) {
+          const data = await res.json()
+          setCategories(data.categories || [])
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // Get filtered categories by level
+  const largeCategories = categories.filter(c => c.level === 0 || c.level === 1)
+  const mediumCategories = selectedLargeCategory 
+    ? categories.filter(c => c.parentId === selectedLargeCategory)
+    : []
+  const smallCategories = selectedMediumCategory 
+    ? categories.filter(c => c.parentId === selectedMediumCategory)
+    : []
+
+  // Handle category change
+  const handleLargeCategoryChange = (id: string) => {
+    setSelectedLargeCategory(id)
+    setSelectedMediumCategory('')
+    setSelectedSmallCategory('')
+  }
+
+  const handleMediumCategoryChange = (id: string) => {
+    setSelectedMediumCategory(id)
+    setSelectedSmallCategory('')
+  }
+
+  // File upload handlers
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || !session) return
+
+    const uploadedUrls: string[] = []
+    for (const file of Array.from(files)) {
+      try {
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', file)
+        formDataUpload.append('type', 'product_image')
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formDataUpload,
+        })
+        const data = await res.json()
+        if (data.success) {
+          uploadedUrls.push(data.url)
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }))
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || !session) return
+
+    const uploadedUrls: string[] = []
+    for (const file of Array.from(files)) {
+      try {
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', file)
+        formDataUpload.append('type', 'brochure')
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formDataUpload,
+        })
+        const data = await res.json()
+        if (data.success) {
+          uploadedUrls.push(data.url)
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setFormData(prev => ({ ...prev, files: [...prev.files, ...uploadedUrls] }))
+    }
+  }
+
+  const handleDrawingUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || !session) return
+
+    const uploadedUrls: string[] = []
+    for (const file of Array.from(files)) {
+      try {
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', file)
+        formDataUpload.append('type', 'brochure')
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formDataUpload,
+        })
+        const data = await res.json()
+        if (data.success) {
+          uploadedUrls.push(data.url)
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setFormData(prev => ({ ...prev, drawings: [...prev.drawings, ...uploadedUrls] }))
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+  }
+
+  const removeFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      files: prev.files.filter((_, i) => i !== index)
+    }))
+  }
+
+  const removeDrawing = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      drawings: prev.drawings.filter((_, i) => i !== index)
+    }))
+  }
+
+  // Validation
+  const validateForm = () => {
+    if (!formData.productName.trim()) {
+      alert('请输入商品名称')
+      return false
+    }
+    if (!formData.shippingCountry) {
+      alert('请选择发货国家')
+      return false
+    }
+    if (!formData.detailedAddress.trim()) {
+      alert('请输入货物所在详细地址')
+      return false
+    }
+    if (!formData.pickupPrice) {
+      alert('请填写自提价格')
+      return false
+    }
+    return true
+  }
+
+  const handleApplyVerification = async () => {
+    if (!session) return
+    
+    if (!formData.shippingCountry) {
+      alert('请先选择发货国家')
+      return
+    }
+    
+    if (!formData.detailedAddress.trim()) {
+      alert('请先填写货物所在详细地址')
+      return
+    }
+
+    setIsSubmitting(true)
+    
+    try {
+      const res = await fetch('/api/auction/apply-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          shippingCountry: formData.shippingCountry,
+          detailedAddress: formData.detailedAddress,
+        }),
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        if (data.success) {
+          setFormData(prev => ({ ...prev, verificationStatus: 'PENDING' }))
+          alert('申请提交成功，后台将计算审核费用并通知您')
+        } else {
+          alert(data.message || '申请失败，请重试')
+        }
+      } else {
+        const data = await res.json()
+        alert(data.message || '申请失败，请重试')
+      }
+    } catch (error) {
+      console.error('Apply verification error:', error)
+      alert('申请失败，请稍后重试')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!session) return
 
+    if (!validateForm()) return
+
+    const price = parseFloat(formData.pickupPrice) || 0
+
+    const listingData = {
+      type: type.toUpperCase(),
+      title: formData.productName,
+      description: formData.productDescription,
+      category: selectedSmallCategory || selectedMediumCategory || selectedLargeCategory,
+      techSpecs: formData.techSpecs,
+      productFeatures: formData.productFeatures,
+      applicationScope: formData.applicationScope,
+      usageMethod: formData.usageMethod,
+      shippingCountry: formData.shippingCountry,
+      detailedAddress: formData.detailedAddress,
+      currency: formData.currency,
+      price: price,
+      isFob: formData.isFob,
+      isCif: formData.isCif,
+      minOrderQty: parseInt(formData.minOrderQty) || 1,
+      verificationStatus: formData.verificationStatus,
+      images: formData.images,
+      files: formData.files,
+      drawings: formData.drawings,
+      contactEmail: formData.contactEmail,
+      contactPhone: formData.contactPhone,
+      contactWhatsApp: formData.contactWhatsApp,
+    }
+
+    setPendingListingData(listingData)
+
+    try {
+      const res = await fetch(`/api/auction/service-fee?amount=${price}`)
+      if (res.ok) {
+        const data = await res.json()
+        setFeeData(data.data)
+        setShowFeeModal(true)
+      } else {
+        createListing(listingData)
+      }
+    } catch (error) {
+      console.error('Error fetching service fee:', error)
+      createListing(listingData)
+    }
+  }
+
+  const createListing = async (listingData: any) => {
     setIsSubmitting(true)
     try {
       const res = await fetch('/api/auction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: type.toUpperCase(),
-          ...formData,
-          price: formData.price ? parseFloat(formData.price) : null,
-          minOrderQty: formData.minOrderQty ? parseInt(formData.minOrderQty) : null,
-        }),
+        body: JSON.stringify(listingData),
       })
 
       if (res.ok) {
         const data = await res.json()
-        alert(`${dict.auctionScreen.listingCreated}${data.data.cost}`)
+        alert(`${dict.auctionScreen.listingCreated}`)
         onCreated(data.data.listing)
+        setShowFeeModal(false)
+        setShowPaymentModal(false)
       } else {
         alert(dict.auctionScreen.failedToCreate)
       }
@@ -671,8 +1188,8 @@ function CreateListingModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+      <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800">
           <h2 className="text-xl font-bold text-white">
             {dict.auctionScreen.createListing}
           </h2>
@@ -684,65 +1201,405 @@ function CreateListingModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Category Selection - Three Level Cascade */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.titleLabel} *</label>
+            <label className="block text-gray-300 mb-2 font-medium">选择类别 *</label>
+            {loadingCategories ? (
+              <div className="text-gray-400">加载类别中...</div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <select
+                    value={selectedLargeCategory}
+                    onChange={(e) => handleLargeCategoryChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">大类</option>
+                    {largeCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <select
+                    value={selectedMediumCategory}
+                    onChange={(e) => handleMediumCategoryChange(e.target.value)}
+                    disabled={!selectedLargeCategory}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">中类</option>
+                    {mediumCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <select
+                    value={selectedSmallCategory}
+                    onChange={(e) => setSelectedSmallCategory(e.target.value)}
+                    disabled={!selectedMediumCategory}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">小类</option>
+                    {smallCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Product Name */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">商品名称 *</label>
             <input
               required
               type="text"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder={`What are you ${type === 'selling' ? dict.auctionScreen.selling : dict.auctionScreen.buying}?`}
+              value={formData.productName}
+              onChange={(e) => setFormData(prev => ({ ...prev, productName: e.target.value }))}
+              placeholder="请输入商品名称"
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
+          {/* Product Description */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.descriptionLabel}</label>
+            <label className="block text-gray-300 mb-2 font-medium">商品描述</label>
             <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe your product or requirements..."
+              value={formData.productDescription}
+              onChange={(e) => setFormData(prev => ({ ...prev, productDescription: e.target.value }))}
+              placeholder="请详细描述您的商品..."
               rows={4}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.category}</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">{dict.auctionScreen.selectCategory}</option>
-                {[
-                  'Electronics', 'Textiles', 'Machinery', 'Chemicals',
-                  'Furniture', 'Toys', 'Beauty', 'Sports', 'Automotive', 'Services',
-                ].map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+          {/* Tech Specs */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">技术参数描述</label>
+            <textarea
+              value={formData.techSpecs}
+              onChange={(e) => setFormData(prev => ({ ...prev, techSpecs: e.target.value }))}
+              placeholder="请输入尺寸规格，颜色，材质，等物性参数和化学性质参数等的等等，让买家能更了解您的商品"
+              rows={4}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Location Info - Required */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">发货国家 *</label>
+            <select
+              required
+              value={formData.shippingCountry}
+              onChange={(e) => setFormData(prev => ({ ...prev, shippingCountry: e.target.value }))}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">选择国家</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">货物所在详细地址 *</label>
+            <input
+              required
+              type="text"
+              value={formData.detailedAddress}
+              onChange={(e) => setFormData(prev => ({ ...prev, detailedAddress: e.target.value }))}
+              placeholder="请输入详细地址，如：广东省深圳市南山区科技园路88号"
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Pricing */}
+          <div>
+            <h3 className="text-lg font-bold text-white mb-3">价格信息</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">交易货币 *</label>
+                <select
+                  required
+                  value={formData.currency}
+                  onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="CNY">离岸人民币 (CNY)</option>
+                  <option value="USD">美元 (USD)</option>
+                  <option value="EUR">欧元 (EUR)</option>
+                  <option value="JPY">日元 (JPY)</option>
+                  <option value="KRW">韩元 (KRW)</option>
+                  <option value="GBP">英镑 (GBP)</option>
+                  <option value="AUD">澳元 (AUD)</option>
+                  <option value="CAD">加元 (CAD)</option>
+                  <option value="SGD">新加坡元 (SGD)</option>
+                  <option value="HKD">港币 (HKD)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">自提价格 *</label>
+                <input
+                  required
+                  type="number"
+                  value={formData.pickupPrice}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pickupPrice: e.target.value }))}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.price} ({type === 'selling' ? dict.auctionScreen.asking : dict.auctionScreen.budget})</label>
+            {/* FOB & CIF Options */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">是否可FOB</label>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isFob"
+                      value="YES"
+                      checked={formData.isFob === 'YES'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">是</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isFob"
+                      value="NEGOTIATE"
+                      checked={formData.isFob === 'NEGOTIATE'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">需洽谈</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isFob"
+                      value="NO"
+                      checked={formData.isFob === 'NO'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">否</span>
+                  </label>
+                </div>
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">是否可CIF</label>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isCif"
+                      value="YES"
+                      checked={formData.isCif === 'YES'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">是</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isCif"
+                      value="NEGOTIATE"
+                      checked={formData.isCif === 'NEGOTIATE'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">需洽谈</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="isCif"
+                      value="NO"
+                      checked={formData.isCif === 'NO'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
+                      className="text-blue-500"
+                    />
+                    <span className="text-gray-300">否</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Min Order Qty */}
+            <div className="mt-4">
+              <label className="block text-gray-300 mb-2 font-medium">最小起订量</label>
               <input
                 type="number"
-                value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                placeholder="0.00"
+                value={formData.minOrderQty}
+                onChange={(e) => setFormData(prev => ({ ...prev, minOrderQty: e.target.value }))}
+                placeholder="1"
+                min="1"
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
+          
+
+          {/* Product Features, Application, Usage */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">产品特点</label>
+              <textarea
+                value={formData.productFeatures}
+                onChange={(e) => setFormData(prev => ({ ...prev, productFeatures: e.target.value }))}
+                placeholder="请描述产品的主要特点"
+                rows={3}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">适用范围</label>
+              <textarea
+                value={formData.applicationScope}
+                onChange={(e) => setFormData(prev => ({ ...prev, applicationScope: e.target.value }))}
+                placeholder="请描述产品的适用范围"
+                rows={3}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">使用方法</label>
+            <textarea
+              value={formData.usageMethod}
+              onChange={(e) => setFormData(prev => ({ ...prev, usageMethod: e.target.value }))}
+              placeholder="请描述产品的使用方法"
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">上传图片</label>
+            <div className="flex items-center gap-3">
+              <label className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                选择图片
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-gray-400 text-sm">支持 JPG、PNG、GIF、WebP 格式</span>
+            </div>
+            {formData.images.length > 0 && (
+              <div className="grid grid-cols-4 gap-3 mt-3">
+                {formData.images.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <Image
+                      src={url}
+                      alt={`Image ${index + 1}`}
+                      width={100}
+                      height={100}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* File Upload */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">上传文件（如产品手册、规格书等）</label>
+            <div className="flex items-center gap-3">
+              <label className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                选择文件
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-gray-400 text-sm">支持 PDF、Word、Excel 格式</span>
+            </div>
+            {formData.files.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {formData.files.map((url, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-700 rounded-lg p-3">
+                    <span className="text-gray-300 truncate">{url.split('/').pop()}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Drawing Upload */}
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">上传图纸（如CAD图纸、设计图等）</label>
+            <div className="flex items-center gap-3">
+              <label className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
+                <File className="w-4 h-4" />
+                选择图纸
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleDrawingUpload}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-gray-400 text-sm">支持 PDF、DWG、DXF、PNG、JPG 格式</span>
+            </div>
+            {formData.drawings.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {formData.drawings.map((url, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-700 rounded-lg p-3">
+                    <span className="text-gray-300 truncate">{url.split('/').pop()}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeDrawing(index)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Contact Info */}
           <div className="border-t border-gray-700 pt-4">
-            <h3 className="text-lg font-bold text-white mb-4">{dict.auctionScreen.contact}</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-lg font-bold text-white mb-4">联系方式</h3>
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.email}</label>
+                <label className="block text-gray-300 mb-2 font-medium">邮箱</label>
                 <input
                   type="email"
                   value={formData.contactEmail}
@@ -752,7 +1609,17 @@ function CreateListingModal({
                 />
               </div>
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.whatsapp}</label>
+                <label className="block text-gray-300 mb-2 font-medium">电话</label>
+                <input
+                  type="text"
+                  value={formData.contactPhone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                  placeholder="+86 138..."
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">WhatsApp</label>
                 <input
                   type="text"
                   value={formData.contactWhatsApp}
@@ -764,7 +1631,47 @@ function CreateListingModal({
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-gray-700">
+          {/* Verification Info */}
+          <div className="border-t border-gray-700 pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">平台审核</h3>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                formData.verificationStatus === 'VERIFIED' ? 'bg-green-500 text-white' :
+                formData.verificationStatus === 'PENDING' ? 'bg-yellow-500 text-white' :
+                formData.verificationStatus === 'REJECTED' ? 'bg-red-500 text-white' :
+                'bg-gray-600 text-gray-300'
+              }`}>
+                {formData.verificationStatus === 'VERIFIED' ? '是' :
+                 formData.verificationStatus === 'PENDING' ? '审核中' :
+                 formData.verificationStatus === 'REJECTED' ? '真实性继续核实中' : '否'}
+              </span>
+            </div>
+            
+            <p className="text-gray-400 text-sm mb-4">
+              {formData.verificationStatus === 'VERIFIED' ? '平台已为您的商品真实性进行信任背书' :
+               formData.verificationStatus === 'PENDING' ? '平台正在审核您的商品信息，请耐心等待' :
+               formData.verificationStatus === 'REJECTED' ? '平台审核未通过，请完善商品信息后重新申请' :
+               '未申请平台审核，平台不承担信息真实性责任'}
+            </p>
+            
+            {formData.verificationStatus !== 'VERIFIED' && formData.verificationStatus !== 'PENDING' && (
+              <button
+                type="button"
+                onClick={handleApplyVerification}
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
+              >
+                申请平台审核
+              </button>
+            )}
+            
+            {formData.verificationStatus === 'PENDING' && (
+              <p className="text-yellow-400 text-sm mt-2 text-center">审核中，请勿重复申请</p>
+            )}
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-gray-700 sticky bottom-0 bg-gray-800">
             <button
               type="button"
               onClick={onClose}

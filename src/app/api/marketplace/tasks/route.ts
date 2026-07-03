@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { TaskType, TaskStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { performTaskMatching } from '@/lib/ai-matching-service'
+import { sendTaskMatchNotifications, sendMatchNotificationsToSellers } from '@/lib/system-notification-service'
 
 /**
  * GET /api/marketplace/tasks
@@ -152,6 +154,34 @@ export async function POST(request: NextRequest) {
         status: TaskStatus.OPEN,
       },
     })
+
+    setTimeout(async () => {
+      try {
+        const matchingResult = await performTaskMatching(task.id)
+        
+        if (matchingResult.success && matchingResult.matches.length > 0) {
+          const buyerUser = await prisma.user.findUnique({
+            where: { id: session.user.id }
+          })
+          
+          await sendTaskMatchNotifications(
+            session.user.id,
+            task.title,
+            matchingResult.matches
+          )
+          
+          await sendMatchNotificationsToSellers(
+            matchingResult.matches,
+            task.title,
+            buyerUser?.displayName || buyerUser?.username || '买家'
+          )
+          
+          console.log(`AI matching completed for task ${task.id}: ${matchingResult.matches.length} matches found`)
+        }
+      } catch (error) {
+        console.error('Error in AI matching for task:', error)
+      }
+    }, 100)
     
     return NextResponse.json({
       success: true,

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db"
 import { redis } from "@/lib/redis"
 import { z } from "zod"
 import { translateText, autoTranslateToAllLanguages } from "@/lib/translation-service"
+import { performProductMatching } from "@/lib/ai-matching-service"
+import { sendProductMatchNotifications, sendMatchNotificationsToBuyers } from "@/lib/system-notification-service"
 
 
 const productSchema = z.object({
@@ -98,6 +100,34 @@ export async function POST(request: NextRequest) {
         seller: true
       }
     })
+
+    setTimeout(async () => {
+      try {
+        const matchingResult = await performProductMatching(product.id)
+        
+        if (matchingResult.success && matchingResult.matches.length > 0) {
+          const sellerUser = await prisma.user.findUnique({
+            where: { id: session.user.id }
+          })
+          
+          await sendProductMatchNotifications(
+            session.user.id,
+            product.title,
+            matchingResult.matches
+          )
+          
+          await sendMatchNotificationsToBuyers(
+            matchingResult.matches,
+            product.title,
+            sellerUser?.displayName || seller.companyName || '卖家'
+          )
+          
+          console.log(`AI matching completed for product ${product.id}: ${matchingResult.matches.length} matches found`)
+        }
+      } catch (error) {
+        console.error('Error in AI matching for product:', error)
+      }
+    }, 100)
 
     return NextResponse.json({
       success: true,

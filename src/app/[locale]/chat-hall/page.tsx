@@ -152,6 +152,23 @@ function ChatHallContent() {
   const [messageCooldown, setMessageCooldown] = useState(0)
   const [canSendMessage, setCanSendMessage] = useState(true)
 
+  // Emoji picker
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+
+  // File upload refs
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingFile, setUploadingFile] = useState(false)
+
+  // Common emojis
+  const commonEmojis = [
+    '😀', '😂', '🥰', '😎', '🤔', '😴', '🥳', '😢',
+    '👍', '👎', '👏', '🙏', '💪', '❤️', '🔥', '✨',
+    '🎉', '🏆', '💰', '📦', '🛒', '💼', '📱', '💻',
+    '🌍', '⭐', '✅', '❌', '⚠️', '💡', '🎯', '🚀',
+  ]
+
   useEffect(() => {
     setMounted(true)
     fetch('/api/auth/session')
@@ -362,6 +379,144 @@ function ChatHallContent() {
     }
   }, [lastMessageTime])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
+
+  const handleEmojiClick = (emoji: string) => {
+    setNewMessage(prev => prev + emoji)
+    setShowEmojiPicker(false)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !session?.user) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      return
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Image too large (max 20MB)')
+      return
+    }
+
+    setUploadingFile(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'chat_image')
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to upload image')
+      }
+
+      const messageRes = await fetch('/api/chat/public', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: newMessage.trim() || '',
+          messageType: 'IMAGE',
+          fileUrl: data.url,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+          language: selectedLanguage,
+        }),
+      })
+
+      if (messageRes.ok) {
+        const messageData = await messageRes.json()
+        setPublicMessages(prev => [...(prev || []), messageData.data])
+        setNewMessage('')
+        setLastMessageTime(Date.now())
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      alert('Failed to upload image')
+    } finally {
+      setUploadingFile(false)
+      if (imageInputRef.current) {
+        imageInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !session?.user) return
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert('File too large (max 20MB)')
+      return
+    }
+
+    setUploadingFile(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', 'chat_file')
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to upload file')
+      }
+
+      const messageRes = await fetch('/api/chat/public', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: newMessage.trim() || file.name,
+          messageType: 'FILE',
+          fileUrl: data.url,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+          language: selectedLanguage,
+        }),
+      })
+
+      if (messageRes.ok) {
+        const messageData = await messageRes.json()
+        setPublicMessages(prev => [...(prev || []), messageData.data])
+        setNewMessage('')
+        setLastMessageTime(Date.now())
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      alert('Failed to upload file')
+    } finally {
+      setUploadingFile(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!session?.user || !newMessage.trim()) return
@@ -493,6 +648,13 @@ function ChatHallContent() {
     if (hours < 24) return `${hours}${dict.chatHall.hoursAgo}`
     if (days < 7) return `${days}${dict.chatHall.daysAgo}`
     return date.toLocaleDateString()
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
   }
 
   if (!mounted || status === 'loading' || isLoading) {
@@ -857,7 +1019,38 @@ function ChatHallContent() {
                                   </span>
                                 </div>
                                 <div className="bg-slate-700/80 rounded-xl p-3 backdrop-blur">
-                                  <p className="text-white whitespace-pre-wrap">{message.content}</p>
+                                  {message.messageType === 'IMAGE' ? (
+                                    <div>
+                                      {message.content && <p className="text-white whitespace-pre-wrap mb-2">{message.content}</p>}
+                                      <img
+                                        src={message.fileUrl}
+                                        alt={message.fileName || 'image'}
+                                        className="max-w-full max-h-96 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => window.open(message.fileUrl, '_blank')}
+                                      />
+                                    </div>
+                                  ) : message.messageType === 'FILE' ? (
+                                    <div>
+                                      {message.content && <p className="text-white whitespace-pre-wrap mb-2">{message.content}</p>}
+                                      <a
+                                        href={message.fileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-3 p-3 bg-slate-600/50 rounded-lg hover:bg-slate-600 transition-colors"
+                                      >
+                                        <Paperclip className="w-8 h-8 text-blue-400" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-white font-medium truncate">{message.fileName || 'File'}</p>
+                                          <p className="text-slate-400 text-xs">
+                                            {message.fileSize ? formatFileSize(message.fileSize) : ''}
+                                            {message.mimeType ? ` · ${message.mimeType}` : ''}
+                                          </p>
+                                        </div>
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <p className="text-white whitespace-pre-wrap">{message.content}</p>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -869,38 +1062,82 @@ function ChatHallContent() {
                 </div>
 
                 <div className="p-4 border-t border-slate-700">
-                  <form onSubmit={sendMessage} className="flex gap-3">
+                  <form onSubmit={sendMessage} className="flex gap-3 relative">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={!session?.user || uploadingFile}
+                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Upload Image"
                       >
                         <Image className="w-5 h-5" />
                       </button>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
                       <button
                         type="button"
-                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={!session?.user || uploadingFile}
+                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Upload File"
                       >
                         <Paperclip className="w-5 h-5" />
                       </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
                     </div>
                     <input
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={session?.user ? dict.chatHall.typeMessage : dict.chatHall.signInToChat}
+                      placeholder={session?.user ? (uploadingFile ? 'Uploading...' : dict.chatHall.typeMessage) : dict.chatHall.signInToChat}
                       className="flex-1 px-4 py-3 bg-slate-700/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={!session?.user || sendingMessage || !canSendMessage}
+                      disabled={!session?.user || sendingMessage || !canSendMessage || uploadingFile}
                     />
-                    <button
-                      type="button"
-                      className="p-3 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"
-                    >
-                      <Smile className="w-5 h-5" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        disabled={!session?.user}
+                        className="p-3 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Emoji"
+                      >
+                        <Smile className="w-5 h-5" />
+                      </button>
+                      {showEmojiPicker && (
+                        <div
+                          ref={emojiPickerRef}
+                          className="absolute bottom-16 right-0 bg-slate-800 border border-slate-600 rounded-xl p-3 shadow-2xl z-50"
+                          style={{ width: '280px' }}
+                        >
+                          <div className="grid grid-cols-8 gap-1">
+                            {commonEmojis.map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => handleEmojiClick(emoji)}
+                                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-slate-700 rounded transition-colors"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <button
                       type="submit"
-                      disabled={!session?.user || sendingMessage || !newMessage.trim() || !canSendMessage}
+                      disabled={!session?.user || sendingMessage || !newMessage.trim() || !canSendMessage || uploadingFile}
                       className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                     >
                       <Send className="w-5 h-5" />

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 // Get public messages - GET /api/chat/public
@@ -81,11 +81,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { content, linkedSellerId } = await request.json()
+    const { content, linkedSellerId, messageType, fileUrl, fileName, fileSize, mimeType } = await request.json()
 
-    if (!content || content.trim().length === 0) {
+    if (!messageType || messageType === 'TEXT') {
+      if (!content || content.trim().length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Message content is required' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if ((messageType === 'IMAGE' || messageType === 'FILE') && !fileUrl) {
       return NextResponse.json(
-        { success: false, error: 'Message content is required' },
+        { success: false, error: 'File URL is required for image/file messages' },
         { status: 400 }
       )
     }
@@ -93,9 +102,14 @@ export async function POST(request: NextRequest) {
     // Create message
     const message = await db.publicMessage.create({
       data: {
-        content: content.trim(),
+        content: content?.trim() || '',
+        messageType: messageType || 'TEXT',
         senderId: session.user.id,
         linkedSellerId: linkedSellerId || null,
+        fileUrl: fileUrl || null,
+        fileName: fileName || null,
+        fileSize: fileSize || null,
+        mimeType: mimeType || null,
       },
       include: {
         sender: {
