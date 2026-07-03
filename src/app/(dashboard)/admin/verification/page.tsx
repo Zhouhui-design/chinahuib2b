@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Check, X, Eye, Globe, Plus, Search, RefreshCw } from 'lucide-react'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 
 export default function VerificationPage() {
   const [requests, setRequests] = useState<any[]>([])
