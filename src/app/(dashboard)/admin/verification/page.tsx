@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Check, X, Eye, Globe, Plus, Search, RefreshCw } from 'lucide-react'
-import { prisma } from '@/lib/db'
 
 export default function VerificationPage() {
   const [requests, setRequests] = useState<any[]>([])
@@ -18,28 +17,15 @@ export default function VerificationPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      if (activeTab === 'requests') {
-        const data = await prisma.verificationRequest.findMany({
-          include: {
-            user: {
-              select: {
-                username: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        })
-        setRequests(data)
-      } else {
-        const data = await prisma.verificationCountry.findMany({
-          orderBy: {
-            name: 'asc',
-          },
-        })
-        setCountries(data)
+      const type = activeTab === 'requests' ? '' : 'countries'
+      const res = await fetch(`/api/admin/verification?type=${type}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (activeTab === 'requests') {
+          setRequests(data.data)
+        } else {
+          setCountries(data.data)
+        }
       }
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -49,12 +35,10 @@ export default function VerificationPage() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      await prisma.verificationRequest.update({
-        where: { id },
-        data: {
-          status,
-          reviewedAt: new Date(),
-        },
+      await fetch('/api/admin/verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateRequestStatus', id, status }),
       })
       fetchData()
     } catch (error) {
@@ -64,9 +48,10 @@ export default function VerificationPage() {
 
   const handleToggleCountry = async (id: string, isEnabled: boolean) => {
     try {
-      await prisma.verificationCountry.update({
-        where: { id },
-        data: { isEnabled: !isEnabled },
+      await fetch('/api/admin/verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggleCountry', id }),
       })
       fetchData()
     } catch (error) {
@@ -79,12 +64,10 @@ export default function VerificationPage() {
     const nameZh = prompt('请输入国家名称（中文）：')
     if (name) {
       try {
-        await prisma.verificationCountry.create({
-          data: {
-            name: name.trim(),
-            nameZh: nameZh?.trim(),
-            isEnabled: true,
-          },
+        await fetch('/api/admin/verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'addCountry', name, nameZh }),
         })
         fetchData()
       } catch (error) {
