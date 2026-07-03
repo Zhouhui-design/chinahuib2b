@@ -856,9 +856,11 @@ function CreateListingModal({
   const [loadingCategories, setLoadingCategories] = useState(true)
   
   // Category cascade selection
-  const [selectedLargeCategory, setSelectedLargeCategory] = useState('')
-  const [selectedMediumCategory, setSelectedMediumCategory] = useState('')
-  const [selectedSmallCategory, setSelectedSmallCategory] = useState('')
+  const [selectedLevel1, setSelectedLevel1] = useState('')
+  const [selectedLevel2, setSelectedLevel2] = useState('')
+  const [selectedLevel3, setSelectedLevel3] = useState('')
+  const [selectedLevel4, setSelectedLevel4] = useState('')
+  const [selectedLevel5, setSelectedLevel5] = useState('')
   
   const [formData, setFormData] = useState({
     // Basic info
@@ -913,24 +915,45 @@ function CreateListingModal({
   }, [])
 
   // Get filtered categories by level
-  const largeCategories = categories.filter(c => c.level === 0 || c.level === 1)
-  const mediumCategories = selectedLargeCategory 
-    ? categories.filter(c => c.parentId === selectedLargeCategory)
+  const level1Categories = categories.filter(c => c.level === 1)
+  const level2Categories = selectedLevel1 
+    ? categories.filter(c => c.level === 2 && c.parentId === selectedLevel1)
     : []
-  const smallCategories = selectedMediumCategory 
-    ? categories.filter(c => c.parentId === selectedMediumCategory)
+  const level3Categories = selectedLevel2 
+    ? categories.filter(c => c.level === 3 && c.parentId === selectedLevel2)
+    : []
+  const level4Categories = selectedLevel3 
+    ? categories.filter(c => c.level === 4 && c.parentId === selectedLevel3)
+    : []
+  const level5Categories = selectedLevel4 
+    ? categories.filter(c => c.level === 5 && c.parentId === selectedLevel4)
     : []
 
   // Handle category change
-  const handleLargeCategoryChange = (id: string) => {
-    setSelectedLargeCategory(id)
-    setSelectedMediumCategory('')
-    setSelectedSmallCategory('')
+  const handleLevel1Change = (id: string) => {
+    setSelectedLevel1(id)
+    setSelectedLevel2('')
+    setSelectedLevel3('')
+    setSelectedLevel4('')
+    setSelectedLevel5('')
   }
 
-  const handleMediumCategoryChange = (id: string) => {
-    setSelectedMediumCategory(id)
-    setSelectedSmallCategory('')
+  const handleLevel2Change = (id: string) => {
+    setSelectedLevel2(id)
+    setSelectedLevel3('')
+    setSelectedLevel4('')
+    setSelectedLevel5('')
+  }
+
+  const handleLevel3Change = (id: string) => {
+    setSelectedLevel3(id)
+    setSelectedLevel4('')
+    setSelectedLevel5('')
+  }
+
+  const handleLevel4Change = (id: string) => {
+    setSelectedLevel4(id)
+    setSelectedLevel5('')
   }
 
   // File upload handlers
@@ -1122,7 +1145,7 @@ function CreateListingModal({
       type: type.toUpperCase(),
       title: formData.productName,
       description: formData.productDescription,
-      category: selectedSmallCategory || selectedMediumCategory || selectedLargeCategory,
+      category: selectedLevel5 || selectedLevel4 || selectedLevel3 || selectedLevel2 || selectedLevel1,
       techSpecs: formData.techSpecs,
       productFeatures: formData.productFeatures,
       applicationScope: formData.applicationScope,
@@ -1202,47 +1225,73 @@ function CreateListingModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Category Selection - Three Level Cascade */}
+          {/* Category Selection - Five Level Cascade */}
           <div>
             <label className="block text-gray-300 mb-2 font-medium">选择类别 *</label>
             {loadingCategories ? (
               <div className="text-gray-400">加载类别中...</div>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div>
                   <select
-                    value={selectedLargeCategory}
-                    onChange={(e) => handleLargeCategoryChange(e.target.value)}
+                    value={selectedLevel1}
+                    onChange={(e) => handleLevel1Change(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">大类</option>
-                    {largeCategories.map((cat) => (
+                    <option value="">1级分类</option>
+                    {level1Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <select
-                    value={selectedMediumCategory}
-                    onChange={(e) => handleMediumCategoryChange(e.target.value)}
-                    disabled={!selectedLargeCategory}
+                    value={selectedLevel2}
+                    onChange={(e) => handleLevel2Change(e.target.value)}
+                    disabled={!selectedLevel1}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">中类</option>
-                    {mediumCategories.map((cat) => (
+                    <option value="">2级分类</option>
+                    {level2Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <select
-                    value={selectedSmallCategory}
-                    onChange={(e) => setSelectedSmallCategory(e.target.value)}
-                    disabled={!selectedMediumCategory}
+                    value={selectedLevel3}
+                    onChange={(e) => handleLevel3Change(e.target.value)}
+                    disabled={!selectedLevel2}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">小类</option>
-                    {smallCategories.map((cat) => (
+                    <option value="">3级分类</option>
+                    {level3Categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <select
+                    value={selectedLevel4}
+                    onChange={(e) => handleLevel4Change(e.target.value)}
+                    disabled={!selectedLevel3}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">4级分类</option>
+                    {level4Categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <select
+                    value={selectedLevel5}
+                    onChange={(e) => setSelectedLevel5(e.target.value)}
+                    disabled={!selectedLevel4}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">5级分类</option>
+                    {level5Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
