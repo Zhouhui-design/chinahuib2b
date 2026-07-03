@@ -646,6 +646,7 @@ export default function AuctionScreenPage() {
             setShowCreateModal(false)
           }}
           dict={dict}
+          locale={locale}
         />
       )}
 
@@ -844,11 +845,13 @@ function CreateListingModal({
   onClose,
   onCreated,
   dict,
+  locale,
 }: {
   type: 'selling' | 'buying'
   onClose: () => void
   onCreated: (listing: AuctionListing) => void
   dict: typeof dictionaries.en
+  locale: LanguageCode
 }) {
   const { data: session } = useSession() ?? { data: null }
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -912,7 +915,7 @@ function CreateListingModal({
       }
     }
     fetchCategories()
-  }, [])
+  }, [locale])
 
   // Get filtered categories by level
   const level1Categories = categories.filter(c => c.level === 1)
