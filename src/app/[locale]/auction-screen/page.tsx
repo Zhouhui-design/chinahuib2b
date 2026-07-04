@@ -1558,11 +1558,9 @@ function CreateListingModal({
               <div className="grid grid-cols-4 gap-3 mt-3">
                 {formData.images.map((url, index) => (
                   <div key={index} className="relative group">
-                    <Image
+                    <img
                       src={url}
                       alt={`Image ${index + 1}`}
-                      width={100}
-                      height={100}
                       className="w-full h-24 object-cover rounded-lg"
                     />
                     <button
