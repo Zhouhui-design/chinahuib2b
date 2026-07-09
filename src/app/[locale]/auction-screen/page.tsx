@@ -857,6 +857,8 @@ function CreateListingModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [loadingCategories, setLoadingCategories] = useState(true)
+  const [units, setUnits] = useState<any[]>([])
+  const [loadingUnits, setLoadingUnits] = useState(true)
   
   // Category cascade selection
   const [selectedLevel1, setSelectedLevel1] = useState('')
@@ -880,6 +882,7 @@ function CreateListingModal({
     
     // Pricing
     currency: 'USD',  // 交易货币
+    unitId: '',  // 计量单位
     pickupPrice: '',  // 自提价格（选填）
     isFob: 'NO',  // 是否可FOB：YES, NEGOTIATE, NO
     isCif: 'NO',  // 是否可CIF：YES, NEGOTIATE, NO
@@ -916,6 +919,24 @@ function CreateListingModal({
     }
     fetchCategories()
   }, [locale])
+
+  // Fetch units on mount
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await fetch('/api/units')
+        if (res.ok) {
+          const data = await res.json()
+          setUnits(data.data || [])
+        }
+      } catch (error) {
+        console.error('Error fetching units:', error)
+      } finally {
+        setLoadingUnits(false)
+      }
+    }
+    fetchUnits()
+  }, [])
 
   // Get filtered categories by level
   const level1Categories = categories.filter(c => c.level === 1)
@@ -1082,6 +1103,10 @@ function CreateListingModal({
       alert('请输入货物所在详细地址')
       return false
     }
+    if (!formData.unitId) {
+      alert('请选择计量单位')
+      return false
+    }
     if (!formData.pickupPrice) {
       alert('请填写自提价格')
       return false
@@ -1156,6 +1181,7 @@ function CreateListingModal({
       shippingCountry: formData.shippingCountry,
       detailedAddress: formData.detailedAddress,
       currency: formData.currency,
+      unitId: formData.unitId,
       price: price,
       isFob: formData.isFob,
       isCif: formData.isCif,
@@ -1390,6 +1416,23 @@ function CreateListingModal({
                   <option value="CAD">加元 (CAD)</option>
                   <option value="SGD">新加坡元 (SGD)</option>
                   <option value="HKD">港币 (HKD)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">计量单位 *</label>
+                <select
+                  required
+                  value={formData.unitId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, unitId: e.target.value }))}
+                  disabled={loadingUnits}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  <option value="">选择计量单位</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name} ({unit.symbol || unit.nameEn})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>

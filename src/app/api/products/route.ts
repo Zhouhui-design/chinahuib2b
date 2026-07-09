@@ -25,6 +25,19 @@ const productSchema = z.object({
     (val) => !val || val.startsWith('/uploads/') || /^https?:\/\//.test(val),
     { message: 'mainImageUrl must be a valid URL or a relative path starting with /uploads/' }
   ),
+  videos: z.array(z.string().refine(
+    (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+    { message: 'Video URL must be a valid URL or a relative path starting with /uploads/' }
+  )).optional(),
+  documents: z.array(z.object({
+    url: z.string().refine(
+      (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+      { message: 'Document URL must be a valid URL or a relative path starting with /uploads/' }
+    ),
+    name: z.string().optional(),
+    type: z.string().optional(),
+    size: z.number().optional(),
+  })).optional(),
   isFeatured: z.boolean().optional().default(false),
   autoTranslate: z.boolean().optional().default(false),
   sourceLanguage: z.string().optional().default('en'),
@@ -92,6 +105,8 @@ export async function POST(request: NextRequest) {
         supplyCapacity: data.supplyCapacity,
         images: data.images || [],
         mainImageUrl: data.mainImageUrl || '',
+        videos: data.videos || [],
+        documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
         isFeatured: data.isFeatured,
         isActive: true,
       },

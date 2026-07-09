@@ -6,79 +6,69 @@ datasource db {
   provider = "postgresql"
 }
 
-// User accounts (buyers and sellers, humans and AI agents)
 model User {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  username    String    @unique
-  password    String
-  role        UserRole  @default(BUYER)
-  isActive    Boolean   @default(true)
-  lastLoginAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Contact information for buyers
-  displayName String? // Display name
-  company     String? // Company name
-  phone       String? // Phone number
-  website     String? // Personal/Business website
-  location    String? // City, Country
-  bio         String? // Short bio/description
-  avatarUrl   String? // Profile picture
-
-  // AI Agent specific fields
-  aiProvider     String? // OpenAI, Claude, Gemini, etc.
-  aiModel        String? // GPT-4, Claude-3, etc.
-  aiCapabilities Json? // What this AI can do
-  isSystemAI     Boolean @default(false) // True for platform-owned AI
-  isAI           Boolean @default(false) // True if this is an AI agent account
-  ownerId        String? // The human user who owns this AI account
-  owner          User?   @relation("AIOwner", fields: [ownerId], references: [id])
-  aiAccounts     User[]  @relation("AIOwner")
-
-  // New features for user vision
-  dailyShoutOuts   Int       @default(10) // Daily shout out counter
-  lastShoutOutDate DateTime? // Last shout out date
-  isOnline         Boolean   @default(false) // Online status
-  lastSeenAt       DateTime? // Last seen timestamp
-  balance          Decimal?  @db.Decimal(10, 2) // User balance for paid features
-  receiveNotices   Boolean   @default(true) // Whether to receive notices
-
-  // Password reset
-  resetToken       String?
-  resetTokenExpiry DateTime?
-
-  // Chat system integration
-  chatSystemToken    String? // JWT token for chat-system
-  chatSystemUserId   String? // User ID in chat-system
-  chatSystemLinkedAt DateTime? // When linked to chat-system
-
-  // Relations
-  sellerProfile              SellerProfile?
-  inquiries                  Inquiry[]
-  brochuresDownloaded        BrochureDownload[]
-  contactViews               ContactView[]
-  paymentProofs              PaymentProof[]
+  id                         String                      @id @default(cuid())
+  email                      String                      @unique
+  username                   String                      @unique
+  password                   String
+  role                       UserRole                    @default(BUYER)
+  isActive                   Boolean                     @default(true)
+  lastLoginAt                DateTime?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  avatarUrl                  String?
+  bio                        String?
+  company                    String?
+  displayName                String?
+  location                   String?
+  phone                      String?
+  website                    String?
+  aiCapabilities             Json?
+  aiModel                    String?
+  aiProvider                 String?
+  dailyShoutOuts             Int                         @default(10)
+  isOnline                   Boolean                     @default(false)
+  isSystemAI                 Boolean                     @default(false)
+  lastSeenAt                 DateTime?
+  lastShoutOutDate           DateTime?
+  resetToken                 String?
+  resetTokenExpiry           DateTime?
+  balance                    Decimal?                    @db.Decimal(10, 2)
+  chatSystemLinkedAt         DateTime?
+  chatSystemToken            String?
+  chatSystemUserId           String?
+  isAI                       Boolean                     @default(false)
+  ownerId                    String?
+  receiveNotices             Boolean                     @default(true)
+  aiAuditLogs                AIAuditLog[]
+  aiPermissions              AIPermission[]
   apiKeys                    APIKey[]
   apiUsageLogs               APIUsageLog[]
-  marketplaceTasks           MarketplaceTask[]
-  taskApplications           TaskApplication[]
-  publicMessagesSent         PublicMessage[]             @relation("PublicMessagesSent")
-  privateMessagesSent        PrivateMessage[]            @relation("PrivateMessagesSent")
-  privateMessagesReceived    PrivateMessage[]            @relation("PrivateMessagesReceived")
+  auctionBids                AuctionBid[]
   auctionListings            AuctionListing[]
-  auctionBids               AuctionBid[]
-  shoutOuts                  ShoutOut[]
-  worldChatMessages          WorldChatMessage[]
-  notices                    Notice[]
   boothViews                 BoothView[]
+  brochuresDownloaded        BrochureDownload[]
+  contactViews               ContactView[]
   digitalVoucherTransactions DigitalVoucherTransaction[]
-  aiPermissions              AIPermission[]
-  aiAuditLogs                AIAuditLog[]
+  inquiries                  Inquiry[]
+  marketplaceTasks           MarketplaceTask[]
+  notices                    Notice[]
+  paymentProofs              PaymentProof[]
+  privateMessagesReceived    PrivateMessage[]            @relation("PrivateMessagesReceived")
+  privateMessagesSent        PrivateMessage[]            @relation("PrivateMessagesSent")
+  publicMessagesSent         PublicMessage[]             @relation("PublicMessagesSent")
+  sellerProfile              SellerProfile?
+  shoutOuts                  ShoutOut[]
+  taskApplications           TaskApplication[]
+  owner                      User?                       @relation("AIOwner", fields: [ownerId], references: [id])
+  aiAccounts                 User[]                      @relation("AIOwner")
+  verificationRequests       VerificationRequest[]
   wallet                     Wallet?
   withdrawalRequests         WithdrawalRequest[]
-  verificationRequests       VerificationRequest[]
+  worldChatMessages          WorldChatMessage[]
+  topics                     Topic[]
+  topicComments              TopicComment[]
+  topicLikes                 TopicLike[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -87,265 +77,185 @@ model User {
   @@index([dailyShoutOuts])
 }
 
-enum UserRole {
-  BUYER
-  SELLER
-  ADMIN
-  AI_BUYER // AI buyer agent
-  AI_SELLER // AI seller agent
-  AI_ASSISTANT // System AI assistant (platform-owned)
-}
-
-// Seller/Store profiles
 model SellerProfile {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  companyName    String
-  companyType    CompanyType
-  country        String
-  city           String
-  address        String?
-  phone          String?
-  email          String?
-  website        String?
-  whatsapp       String? // WhatsApp number
-  wechat         String? // WeChat ID
-  telegram       String? // Telegram username
-  linkedin       String? // LinkedIn profile URL
-  facebook       String? // Facebook page URL
-  instagram      String? // Instagram profile
-  youtube        String? // YouTube channel URL
-  tiktok         String? // TikTok profile URL
-  twitter        String? // Twitter/X profile URL
-  pinterest      String? // Pinterest profile URL
-  douyin         String? // 抖音/Douyin profile URL
-  xiaohongshu    String? // 小红书/RED profile URL
-  qq             String? // QQ number or group
-  dingtalk       String? // 钉钉/DingTalk ID
-  lark           String? // 飞书/Lark ID
-  wechatVideo    String? // 微信视频号/WeChat Channels URL
-  weibo          String? // 微博/Weibo profile URL
-  kuaishou       String? // 快手/Kuaishou profile URL
-  bilibili       String? // B站/Bilibili profile URL
-  reddit         String? // Reddit profile URL
-  snapchat       String? // Snapchat profile URL
-  tumblr         String? // Tumblr profile URL
-  chatSystem     String? // Chat system account (email or username)
-  description    String? // Rich text (stored as HTML) - deprecated, use descriptions instead
-  descriptions   Json? // Multi-language descriptions { "zh": "...", "en": "...", "ja": "..." }
-  logoUrl        String?
-  bannerUrl      String?
-  certifications String[] // Array of certification names
-
-  // Organization Profile - Enhanced for user vision
-  organizationType OrganizationType @default(ENTERPRISE) // 组织形式：企业/个体户/国企/个人
-  registeredCapital  String? // 注册资金
-  registeredAddress  String? // 注册地址
-  businessAddress    String? // 经营地址
-  employeeCount      String? // 公司人数
-  patents            String[] // 专利列表
-  awards             String[] // 奖章/荣誉列表
-  companyPhotos      String[] // 公司照片
-  teamPhotos         String[] // 团队照片
-  mapLatitude        Float?  // 地图纬度
-  mapLongitude       Float?  // 地图经度
-  mapAddress         String? // 地图显示地址
-  foundingYear       String? // 成立年份
-  businessScope      String? // 经营范围
-  legalRepresentative String? // 法定代表人
-  registrationNumber String? // 注册号/统一社会信用代码
-  bankAccount        String? // 银行账户
-  taxNumber          String? // 税号
-
-  // Booth customization - Enhanced for user vision
-  boothName       String? // Custom exhibitor booth name (deprecated, use boothNames instead)
-  boothNames      Json?   // Multi-language booth names { "zh": "...", "en": "...", "ja": "..." }
-  boothCategories String[] // Product categories (multi-select)
-  isCustomizable  Boolean  @default(false) // Whether products can be customized
-
-  // Advanced Booth Customization
-  boothTheme       String? // Light/Dark/Vibrant/etc
-  boothLayout      String? // Layout type (modern/classic/grid)
-  boothColor       String? // Primary color (hex)
-  boothBgImage     String? // Background image URL
-  boothAccentImage String? // Accent/decorative image
-  boothFont        String? // Custom font choice
-  boothAnimations  Boolean  @default(false) // Enable smooth animations
-  booth3DPreview   Boolean  @default(false) // 3D booth preview
-  boothTags        String[] // Tags for discoverability
-
-  subscriptionStatus SubscriptionStatus @default(FREE_TRIAL)
-  subscriptionExpiry DateTime?
-  subscriptionAmount Decimal?           @db.Decimal(10, 2) // Amount paid in USD
-  lastPaymentAt      DateTime?
-
-  isVerified Boolean @default(false)
-  isActive   Boolean @default(true)
-
-  // Profile approval status for organization info visibility
-  profileStatus       ProfileStatus @default(DRAFT) // DRAFT/PENDING/APPROVED/REJECTED
-  profileSubmittedAt DateTime? // When seller submitted for review
-  profileReviewedAt  DateTime? // When admin reviewed
-  profileReviewedBy  String? // Admin user ID who reviewed
-  profileReviewNotes String? // Admin notes for rejection/approval
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id                   String                   @id @default(cuid())
+  userId               String                   @unique
+  companyName          String
+  companyType          CompanyType
+  country              String
+  city                 String
+  address              String?
+  phone                String?
+  email                String?
+  website              String?
+  description          String?
+  logoUrl              String?
+  bannerUrl            String?
+  certifications       String[]
+  subscriptionStatus   SubscriptionStatus       @default(FREE_TRIAL)
+  subscriptionExpiry   DateTime?
+  isVerified           Boolean                  @default(false)
+  isActive             Boolean                  @default(true)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  boothCategories      String[]
+  boothName            String?
+  isCustomizable       Boolean                  @default(false)
+  lastPaymentAt        DateTime?
+  subscriptionAmount   Decimal?                 @db.Decimal(10, 2)
+  facebook             String?
+  instagram            String?
+  linkedin             String?
+  telegram             String?
+  wechat               String?
+  whatsapp             String?
+  booth3DPreview       Boolean                  @default(false)
+  boothAccentImage     String?
+  boothAnimations      Boolean                  @default(false)
+  boothBgImage         String?
+  boothColor           String?
+  boothFont            String?
+  boothLayout          String?
+  boothTags            String[]
+  boothTheme           String?
+  descriptions         Json?
+  awards               String[]
+  bankAccount          String?
+  bilibili             String?
+  boothNames           Json?
+  businessAddress      String?
+  businessScope        String?
+  chatSystem           String?
+  companyPhotos        String[]
+  dingtalk             String?
+  douyin               String?
+  employeeCount        String?
+  foundingYear         String?
+  kuaishou             String?
+  lark                 String?
+  legalRepresentative  String?
+  mapAddress           String?
+  mapLatitude          Float?
+  mapLongitude         Float?
+  organizationType     OrganizationType         @default(ENTERPRISE)
+  patents              String[]
+  pinterest            String?
+  profileReviewNotes   String?
+  profileReviewedAt    DateTime?
+  profileReviewedBy    String?
+  profileStatus        ProfileStatus            @default(DRAFT)
+  profileSubmittedAt   DateTime?
+  qq                   String?
+  reddit               String?
+  registeredAddress    String?
+  registeredCapital    String?
+  registrationNumber   String?
+  snapchat             String?
+  taxNumber            String?
+  teamPhotos           String[]
+  tiktok               String?
+  tumblr               String?
+  twitter              String?
+  wechatVideo          String?
+  weibo                String?
+  xiaohongshu          String?
+  youtube              String?
+  auctionListings      AuctionListing[]
   booths               Booth[]
-  products             Product[]
-  storeBrochures       StoreBrochure[]
-  inquiries            Inquiry[]
-  contactViews         ContactView[]
-  paymentProofs        PaymentProof[]
-  verificationFiles    SellerVerificationFile[]
   boothCustomizations  BoothCustomization[]
   boothViews           BoothView[]
-  auctionListings      AuctionListing[]
+  contactViews         ContactView[]
   digitalVouchers      DigitalVoucher[]
+  inquiries            Inquiry[]
+  paymentProofs        PaymentProof[]
+  products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
+  user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationFiles    SellerVerificationFile[]
+  storeBrochures       StoreBrochure[]
 
   @@index([companyName])
   @@index([country])
 }
 
-enum CompanyType {
-  MANUFACTURER
-  TRADER
-  BOTH
-}
-
-enum OrganizationType {
-  ENTERPRISE    // 企业
-  INDIVIDUAL    // 个体户
-  STATE_OWNED   // 国企
-  PERSONAL      // 个人
-}
-
-enum SubscriptionStatus {
-  FREE_TRIAL
-  ACTIVE
-  EXPIRED
-  CANCELLED
-}
-
-enum ProfileStatus {
-  DRAFT     // 未提交，草稿状态
-  PENDING   // 已提交，等待审核
-  APPROVED  // 已批准，信息公开
-  REJECTED  // 已拒绝，需要修改
-}
-
-// Product categories (3-level hierarchy)
 model Category {
-  id          String     @id @default(cuid())
-  name        String
-  nameEn      String?
-  slug        String     @unique
-  level       Int // 1, 2, 3, 4, or 5
-  parentId    String?
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
-  
-  hsCode      String?    // HS编码
-  model       String?    // Model (型号)
-  modelEn     String?    // Model (English)
-  series      String?    // Series (系列)
-  seriesEn    String?    // Series (English)
-  description String?    // Description (分类描述)
-  descriptionEn String?  // Description (English)
-
-  products    Product[]
+  id            String     @id @default(cuid())
+  name          String
+  nameEn        String?
+  slug          String     @unique
+  level         Int
+  parentId      String?
+  model         String?
+  modelEn       String?
+  series        String?
+  seriesEn      String?
+  description   String?
+  descriptionEn String?
+  hsCode        String?
+  parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryHierarchy")
+  products      Product[]
 
   @@index([slug])
   @@index([parentId])
 }
 
-// ========================================
-// Exhibition Booth Models
-// ========================================
-
 model Booth {
-  id          String        @id @default(cuid())
-  sellerId    String
-  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  
-  boothNumber String        @unique // System-generated booth number, e.g. BTH-000001
-  name        String        // Booth name (e.g., "2024 Spring Fair")
-  names       Json?         // Multi-language booth names
-  
-  // Exhibition info
-  exhibitionName String     // Name of the exhibition/event
-  exhibitionDates Json?     // {"start": "2024-03-01", "end": "2024-03-15"}
-  location       String?    // Physical location or virtual
-  
-  // Booth branding
-  logoUrl     String?      // Booth logo URL
-  bannerUrl   String?      // Booth banner URL
-  keywords    Json?        // Keywords for SEO (max 10)
-  
-  // Booth status
-  isActive     Boolean      @default(true)
-  isPublished  Boolean      @default(false)
-  
-  // Booth customization (embedded for simplicity)
-  theme        String?      // Light/Dark/Vibrant
-  colorScheme  String?      // Primary color hex
-  layout       String?      // modern/classic/grid
-  
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  // Relations
-  products    Product[]
-  
+  id              String        @id @default(cuid())
+  sellerId        String
+  boothNumber     String        @unique
+  name            String
+  names           Json?
+  exhibitionName  String
+  exhibitionDates Json?
+  location        String?
+  logoUrl         String?
+  bannerUrl       String?
+  keywords        Json?
+  isActive        Boolean       @default(true)
+  isPublished     Boolean       @default(false)
+  theme           String?
+  colorScheme     String?
+  layout          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  seller          SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  products        Product[]
+
   @@index([sellerId])
   @@index([isActive])
   @@index([isPublished])
 }
 
-// Products (exhibition items)
 model Product {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  boothId  String?
-  booth    Booth? @relation(fields: [boothId], references: [id])
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
+  id             String           @id @default(cuid())
+  sellerId       String
+  categoryId     String
   title          String
-  titleEn        String? // English title (deprecated, use titles instead)
-  titles         Json?   // Multi-language titles { "zh": "...", "en": "...", "ja": "..." }
-  description    String? // Rich text (deprecated, use descriptions instead)
-  descriptions   Json?   // Multi-language descriptions { "zh": "...", "en": "...", "ja": "..." }
-  specifications Json? // JSON object for specs
-
+  titleEn        String?
+  description    String?
+  specifications Json?
   minOrderQty    Int?
   supplyCapacity String?
-
-  mainImageUrl String
-  images       String[] // Array of image URLs
-
-  hasBrochure Boolean @default(false)
-
-  viewCount    Int @default(0)
-  inquiryCount Int @default(0)
-
-  isActive   Boolean @default(true)
-  isFeatured Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  brochure  ProductBrochure?
-  inquiries Inquiry[]
+  mainImageUrl   String
+  images         String[]
+  videos         String[]
+  documents      Json?
+  hasBrochure    Boolean          @default(false)
+  viewCount      Int              @default(0)
+  inquiryCount   Int              @default(0)
+  isActive       Boolean          @default(true)
+  isFeatured     Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  boothId        String?
+  descriptions   Json?
+  titles         Json?
+  inquiries      Inquiry[]
+  booth          Booth?           @relation(fields: [boothId], references: [id])
+  category       Category         @relation(fields: [categoryId], references: [id])
+  seller         SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  brochure       ProductBrochure?
 
   @@index([sellerId])
   @@index([boothId])
@@ -354,268 +264,180 @@ model Product {
   @@index([createdAt])
 }
 
-// Product-level brochures
 model ProductBrochure {
-  id        String  @id @default(cuid())
-  productId String  @unique
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
+  id            String   @id @default(cuid())
+  productId     String   @unique
   fileUrl       String
   fileName      String
-  fileSize      Int // in bytes
-  downloadCount Int    @default(0)
-
-  uploadedAt DateTime @default(now())
+  fileSize      Int
+  downloadCount Int      @default(0)
+  uploadedAt    DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
 }
 
-// Store-level brochures
 model StoreBrochure {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  title    String
-  fileUrl  String
-  fileName String
-  fileSize Int
-
-  sortOrder     Int @default(0)
-  downloadCount Int @default(0)
-
-  createdAt DateTime @default(now())
+  id            String        @id @default(cuid())
+  sellerId      String
+  title         String
+  fileUrl       String
+  fileName      String
+  fileSize      Int
+  sortOrder     Int           @default(0)
+  downloadCount Int           @default(0)
+  createdAt     DateTime      @default(now())
+  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   @@index([sellerId])
 }
 
-// Brochure download tracking
 model BrochureDownload {
-  id     String  @id @default(cuid())
-  userId String? // Nullable for guest downloads
-  user   User?   @relation(fields: [userId], references: [id])
-
+  id           String       @id @default(cuid())
+  userId       String?
   brochureType BrochureType
-  brochureId   String // productId or storeBrochureId
-
-  downloadedAt DateTime @default(now())
+  brochureId   String
+  downloadedAt DateTime     @default(now())
   ipAddress    String?
+  user         User?        @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([downloadedAt])
 }
 
-enum BrochureType {
-  PRODUCT
-  STORE
-}
-
-// Inquiries (traditional form-based)
 model Inquiry {
-  id      String @id @default(cuid())
-  buyerId String
-  buyer   User   @relation(fields: [buyerId], references: [id])
-
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id])
-
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-
+  id          String        @id @default(cuid())
+  buyerId     String
+  sellerId    String
+  productId   String?
   message     String
-  contactInfo String // Buyer's contact info
-
-  status InquiryStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  contactInfo String
+  status      InquiryStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  buyer       User          @relation(fields: [buyerId], references: [id])
+  product     Product?      @relation(fields: [productId], references: [id])
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
 
   @@index([sellerId])
   @@index([buyerId])
   @@index([status])
 }
 
-enum InquiryStatus {
-  PENDING
-  REPLIED
-  CLOSED
-}
-
-// Contact view tracking (business card collection)
 model ContactView {
-  id       String @id @default(cuid())
+  id       String        @id @default(cuid())
   viewerId String
-  viewer   User   @relation(fields: [viewerId], references: [id])
-
   sellerId String
+  viewedAt DateTime      @default(now())
   seller   SellerProfile @relation(fields: [sellerId], references: [id])
-
-  viewedAt DateTime @default(now())
+  viewer   User          @relation(fields: [viewerId], references: [id])
 
   @@unique([viewerId, sellerId])
   @@index([sellerId])
 }
 
-// Payment proof submission
 model PaymentProof {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id              String         @id @default(cuid())
+  userId          String
   sellerProfileId String?
+  amount          Decimal        @db.Decimal(10, 2)
+  currency        String         @default("USD")
+  transactionId   String?
+  paymentMethod   String         @default("ALIPAY")
+  screenshotUrl   String?
+  notes           String?
+  status          PaymentStatus  @default(PENDING)
+  adminNotes      String?
+  submittedAt     DateTime       @default(now())
+  reviewedAt      DateTime?
   sellerProfile   SellerProfile? @relation(fields: [sellerProfileId], references: [id])
-
-  amount        Decimal @db.Decimal(10, 2)
-  currency      String  @default("USD")
-  transactionId String?
-  paymentMethod String  @default("ALIPAY")
-  screenshotUrl String?
-  notes         String?
-
-  status     PaymentStatus @default(PENDING)
-  adminNotes String?
-
-  submittedAt DateTime  @default(now())
-  reviewedAt  DateTime?
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
   @@index([submittedAt])
 }
 
-enum PaymentStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-// Seller verification files (business license, ID, etc.)
 model SellerVerificationFile {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  fileType VerificationFileType
-  fileUrl  String
-  fileName String
-  fileSize Int // in bytes
-  mimeType String? // e.g., image/jpeg, application/pdf
-
-  isVerified Boolean   @default(false)
-  verifiedAt DateTime?
-  verifiedBy String? // Admin user ID who verified
-
-  sortOrder   Int     @default(0)
-  description String? // Optional description
-
-  // Enterprise certificate fields
-  certificateNumber String? // 证书编号
-  issuingAuthority  String? // 颁发机构
-  issueDate         String? // 颁发日期
-  expiryDate        String? // 有效期至
-  certificateName   String? // 自定义证书名称
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String               @id @default(cuid())
+  sellerId          String
+  fileType          VerificationFileType
+  fileUrl           String
+  fileName          String
+  fileSize          Int
+  mimeType          String?
+  isVerified        Boolean              @default(false)
+  verifiedAt        DateTime?
+  verifiedBy        String?
+  sortOrder         Int                  @default(0)
+  description       String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  certificateName   String?
+  certificateNumber String?
+  expiryDate        String?
+  issueDate         String?
+  issuingAuthority  String?
+  seller            SellerProfile        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   @@index([sellerId])
   @@index([fileType])
   @@index([isVerified])
 }
 
-enum VerificationFileType {
-  BUSINESS_LICENSE       // 营业执照
-  OPERATING_LICENSE      // 经营许可证
-  TAX_REGISTRATION       // 税务登记证
-  ORG_CODE_CERTIFICATE   // 组织机构代码证
-  ISO_CERTIFICATION      // ISO认证
-  CE_CERTIFICATION       // CE认证
-  FDA_CERTIFICATION      // FDA认证
-  EXPORT_LICENSE         // 出口许可证
-  IMPORT_LICENSE         // 进口许可证
-  COUNTRY_REGISTRATION   // 其他国家企业注册证明
-  ID_CARD                // 身份证
-  DRIVER_LICENSE         // 驾驶证
-  CREDIT_CARD            // 信用卡（脱敏）
-  PHOTO                  // 照片
-  VIDEO                  // 视频
-  OTHER                  // 其他
-}
-
-// SEO - TDK (Title/Description/Keywords) configuration
 model SEOConfig {
-  id       String @id @default(cuid())
-  pagePath String @unique // e.g., "/", "/en", "/products/[id]"
-
-  title         String? // Page title
+  id            String   @id @default(cuid())
+  pagePath      String   @unique
+  title         String?
   titleEn       String?
-  description   String? // Meta description
+  description   String?
   descriptionEn String?
-  keywords      String? // Meta keywords (comma-separated)
+  keywords      String?
   keywordsEn    String?
-
-  // Page type for easier management
-  pageType PageType @default(STATIC)
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  pageType      PageType @default(STATIC)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([pageType])
   @@index([isActive])
 }
 
-enum PageType {
-  STATIC // Static pages (home, about, etc.)
-  PRODUCT // Product detail pages
-  STORE // Store pages
-  CATEGORY // Category pages
-  CUSTOM // Custom pages
-}
-
-// Dead link tracking
 model DeadLink {
-  id  String @id @default(cuid())
-  url String @unique
-
-  sourceUrl  String? // Where the dead link was found
-  statusCode Int // 404, 500, etc.
-
-  isResolved Boolean   @default(false)
-  resolvedAt DateTime?
-
-  detectedAt    DateTime @default(now())
-  lastCheckedAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  url           String    @unique
+  sourceUrl     String?
+  statusCode    Int
+  isResolved    Boolean   @default(false)
+  resolvedAt    DateTime?
+  detectedAt    DateTime  @default(now())
+  lastCheckedAt DateTime  @default(now())
 
   @@index([isResolved])
   @@index([detectedAt])
 }
 
-// API Keys for AI Agents
 model APIKey {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   userId      String
-  key         String    @unique
-  name        String    @default("AI Agent Key")
-  role        String // buyer, seller, admin
-  permissions Json      @default("{}")
-  rateLimit   Int       @default(1000) // requests per hour
-  isActive    Boolean   @default(true)
+  key         String        @unique
+  name        String        @default("AI Agent Key")
+  role        String
+  permissions Json          @default("{}")
+  rateLimit   Int           @default(1000)
+  isActive    Boolean       @default(true)
   lastUsedAt  DateTime?
   expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  usageLogs APIUsageLog[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageLogs   APIUsageLog[]
 
   @@index([userId])
   @@index([key])
   @@index([isActive])
 }
 
-// API Usage Logs for audit trail
 model APIUsageLog {
   id           String   @id @default(cuid())
   apiKeyId     String
@@ -623,59 +445,44 @@ model APIUsageLog {
   endpoint     String
   method       String
   statusCode   Int?
-  responseTime Int? // milliseconds
+  responseTime Int?
   ipAddress    String?
   userAgent    String?
   metadata     Json?
   createdAt    DateTime @default(now())
-
-  apiKey APIKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey       APIKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([apiKeyId])
   @@index([createdAt])
   @@index([endpoint])
 }
 
-// Marketplace Tasks (Task Hall)
 model MarketplaceTask {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  type        TaskType
-
-  // Pricing
-  budget      Decimal? @db.Decimal(10, 2)
-  price       Decimal? @db.Decimal(10, 2)
-  currency    String   @default("USD")
-  unit        String? // e.g., "per unit", "per hour"
-  minOrderQty Int?
-
-  // Timeline
-  deadline DateTime?
-
-  // Status
-  status TaskStatus @default(OPEN)
-
-  // Metadata
-  postedById   String // User ID who posted the task
-  postedBy     User     @relation(fields: [postedById], references: [id])
-  contactInfo  String? // Contact email/phone
-  applications Int      @default(0)
-  views        Int      @default(0)
-  rating       Decimal? @db.Decimal(3, 2) // For service providers
-
-  // Attachments
-  attachments Json? // Array of file URLs
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
+  id               String            @id @default(cuid())
+  title            String
+  description      String
+  type             TaskType
+  budget           Decimal?          @db.Decimal(10, 2)
+  price            Decimal?          @db.Decimal(10, 2)
+  currency         String            @default("USD")
+  unit             String?
+  minOrderQty      Int?
+  deadline         DateTime?
+  status           TaskStatus        @default(OPEN)
+  postedById       String
+  contactInfo      String?
+  applications     Int               @default(0)
+  views            Int               @default(0)
+  rating           Decimal?          @db.Decimal(3, 2)
+  attachments      Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  postedBy         User              @relation(fields: [postedById], references: [id])
   taskApplications TaskApplication[]
-  taskMilestones   TaskMilestone[]
   taskDeliverables TaskDeliverable[]
   taskEscrow       TaskEscrow?
+  taskMilestones   TaskMilestone[]
 
   @@index([status])
   @@index([type])
@@ -683,215 +490,111 @@ model MarketplaceTask {
   @@index([createdAt])
 }
 
-enum TaskType {
-  MANUFACTURING // Looking for factory/manufacturer
-  PRODUCT_SALE // Selling products
-  SERVICE // Offering services
-}
-
-enum TaskStatus {
-  OPEN // Accepting applications
-  IN_PROGRESS // Negotiating or working
-  COMPLETED // Task completed
-  CANCELLED // Cancelled by poster
-}
-
-// Task Applications
 model TaskApplication {
-  id     String          @id @default(cuid())
-  taskId String
-  task   MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  applicantId  String // User ID who applied
-  applicant    User     @relation(fields: [applicantId], references: [id])
-  message      String // Application message
-  quote        Decimal? @db.Decimal(10, 2) // Quoted price
-  deliveryTime String? // Estimated delivery time
-
-  status ApplicationStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String            @id @default(cuid())
+  taskId       String
+  applicantId  String
+  message      String
+  quote        Decimal?          @db.Decimal(10, 2)
+  deliveryTime String?
+  status       ApplicationStatus @default(PENDING)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  applicant    User              @relation(fields: [applicantId], references: [id])
+  task         MarketplaceTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@index([applicantId])
   @@index([status])
 }
 
-enum ApplicationStatus {
-  PENDING // Awaiting review
-  ACCEPTED // Application accepted
-  REJECTED // Application rejected
-  WITHDRAWN // Applicant withdrew
-}
-
-// Task Milestones - Milestone tracking for tasks
 model TaskMilestone {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   taskId      String
-  task        MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
   title       String
   description String?
-  amount      Decimal @db.Decimal(10, 2) // Amount to be released when milestone is completed
-  order       Int     // Order of milestone in sequence
-  
+  amount      Decimal         @db.Decimal(10, 2)
+  order       Int
   status      MilestoneStatus @default(PENDING)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  task        MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
   @@index([taskId])
   @@index([status])
 }
 
-enum MilestoneStatus {
-  PENDING    // Milestone not yet reached
-  COMPLETED  // Milestone completed, awaiting payment
-  PAID       // Payment released
-}
-
-// Task Deliverables - Submitted deliverables for review
 model TaskDeliverable {
-  id           String   @id @default(cuid())
-  taskId       String
-  task         MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
-  title        String
-  description  String?
-  files        Json? // Array of file URLs
-  
-  submittedAt  DateTime?
-  status       DeliverableStatus @default(DRAFT)
-  reviewNotes  String? // Notes from reviewer
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  id          String            @id @default(cuid())
+  taskId      String
+  title       String
+  description String?
+  files       Json?
+  submittedAt DateTime?
+  status      DeliverableStatus @default(DRAFT)
+  reviewNotes String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  task        MarketplaceTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
   @@index([taskId])
   @@index([status])
 }
 
-enum DeliverableStatus {
-  DRAFT     // Being worked on
-  SUBMITTED // Submitted for review
-  APPROVED  // Approved by task poster
-  REJECTED  // Rejected, needs revision
-}
-
-// Task Escrow - Escrow service for task payments
 model TaskEscrow {
-  id           String       @id @default(cuid())
-  taskId       String       @unique
-  task         MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
-  // Amounts
-  amount       Decimal      @db.Decimal(10, 2) // Total escrow amount
-  currency     String       @default("USD")
-  holdAmount   Decimal      @db.Decimal(10, 2) // Amount currently held
-  releaseAmount Decimal     @db.Decimal(10, 2) // Amount released to provider
-  
-  // Status
-  status       EscrowStatus @default(PENDING)
+  id            String          @id @default(cuid())
+  taskId        String          @unique
+  amount        Decimal         @db.Decimal(10, 2)
+  currency      String          @default("USD")
+  holdAmount    Decimal         @db.Decimal(10, 2)
+  releaseAmount Decimal         @db.Decimal(10, 2)
+  status        EscrowStatus    @default(PENDING)
   transactionId String?
-  
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  task          MarketplaceTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
   @@index([taskId])
   @@index([status])
 }
 
-enum EscrowStatus {
-  PENDING    // Funds not deposited yet
-  FUNDED     // Funds deposited
-  RELEASING  // Partial release in progress
-  COMPLETED  // All funds released
-  DISPUTED   // Dispute initiated
-  REFUNDED   // Funds refunded to poster
-}
-
-// ========================================
-// AUCTION SYSTEM
-// ========================================
-
-// Auction Bid - Bids placed on auction listings
 model AuctionBid {
-  id          String           @id @default(cuid())
-  listingId   String
-  listing     AuctionListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  id         String           @id @default(cuid())
+  listingId  String
+  bidderId   String
+  amount     Decimal          @db.Decimal(10, 2)
+  currency   String           @default("USD")
+  isAutoBid  Boolean          @default(false)
+  maxAutoBid Decimal?         @db.Decimal(10, 2)
+  status     AuctionBidStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  bidder     User             @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+  listing    AuctionListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  bidderId    String
-  bidder      User             @relation(fields: [bidderId], references: [id], onDelete: Cascade)
-  
-  // Bid details
-  amount      Decimal          @db.Decimal(10, 2)
-  currency    String           @default("USD")
-  
-  // Auto-bid settings
-  isAutoBid   Boolean          @default(false)
-  maxAutoBid  Decimal?         @db.Decimal(10, 2) // Maximum amount for auto-bid
-  
-  // Status
-  status      AuctionBidStatus @default(PENDING)
-  
-  createdAt   DateTime         @default(now())
-  
   @@index([listingId])
   @@index([bidderId])
   @@index([status])
   @@index([createdAt])
 }
 
-enum AuctionBidStatus {
-  PENDING    // Bid placed, awaiting confirmation
-  ACCEPTED   // Bid accepted as current highest
-  OUTBID     // Outbid by another bidder
-  CANCELLED  // Bid cancelled by bidder
-  WON        // Won the auction
-  LOST       // Lost the auction
-}
-
-// ========================================
-// NEW FEATURES: Public Chat & Task Hall
-// ========================================
-
-enum MessageType {
-  TEXT
-  IMAGE
-  FILE
-}
-
-// Public Chat Messages - Main public chat area
 model PublicMessage {
-  id      String @id @default(cuid())
-  content String @db.Text // Message content
-  messageType MessageType @default(TEXT) // TEXT, IMAGE, FILE
-
-  // Sender info
-  senderId String
-  sender   User   @relation("PublicMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
-
-  // Optional booth link - clicking username opens seller's booth
-  linkedSellerId String?
-  linkedSeller   SellerProfile? @relation("LinkedPublicMessages", fields: [linkedSellerId], references: [id], onDelete: Cascade)
-
-  // Message metadata
-  isSystemMessage Boolean @default(false)
-  isAnnouncement  Boolean @default(false)
-  isWorldChat     Boolean @default(false) // World chat messages (broadcast to all)
-  priority        Int     @default(0) // Higher = more visible
-
-  // File attachments
-  fileUrl   String? // Image or file URL
-  fileName  String? // Original file name
-  fileSize  Int?    // File size in bytes
-  mimeType  String? // MIME type
-
-  // Reactions
-  reactions Json? // { "like": ["userId1", "userId2"], "fire": [...] }
-
-  createdAt DateTime @default(now())
+  id              String         @id @default(cuid())
+  content         String
+  senderId        String
+  linkedSellerId  String?
+  isSystemMessage Boolean        @default(false)
+  isAnnouncement  Boolean        @default(false)
+  priority        Int            @default(0)
+  reactions       Json?
+  createdAt       DateTime       @default(now())
+  fileName        String?
+  fileSize        Int?
+  fileUrl         String?
+  isWorldChat     Boolean        @default(false)
+  messageType     MessageType    @default(TEXT)
+  mimeType        String?
+  linkedSeller    SellerProfile? @relation("LinkedPublicMessages", fields: [linkedSellerId], references: [id], onDelete: Cascade)
+  sender          User           @relation("PublicMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([senderId])
@@ -899,179 +602,139 @@ model PublicMessage {
   @@index([messageType])
 }
 
-// Private Messages - 1:1 chat
 model PrivateMessage {
-  id      String @id @default(cuid())
-  content String @db.Text
-
-  // Participants
+  id         String    @id @default(cuid())
+  content    String
   senderId   String
-  sender     User   @relation("PrivateMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId String
-  receiver   User   @relation("PrivateMessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  // Read status
-  isRead Boolean   @default(false)
-  readAt DateTime?
-
-  createdAt DateTime @default(now())
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  receiver   User      @relation("PrivateMessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User      @relation("PrivateMessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([senderId, receiverId])
   @@index([receiverId, senderId])
   @@index([createdAt])
 }
 
-// Public Shout Outs - Public announcements with cost
 model ShoutOut {
-  id       String @id @default(cuid())
-  content  String @db.Text
-  senderId String
-  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
-
-  // Payment info
-  isFree    Boolean  @default(true)
-  cost      Decimal? @db.Decimal(10, 2) // $0.10 per paid shout out
-  paymentId String?
-
-  // Display settings
-  priority  Int       @default(1) // Display priority
-  expiresAt DateTime? // When shout out expires
-
-  // Engagement
-  viewCount  Int   @default(0)
-  clickCount Int   @default(0)
+  id         String    @id @default(cuid())
+  content    String
+  senderId   String
+  isFree     Boolean   @default(true)
+  cost       Decimal?  @db.Decimal(10, 2)
+  paymentId  String?
+  priority   Int       @default(1)
+  expiresAt  DateTime?
+  viewCount  Int       @default(0)
+  clickCount Int       @default(0)
   reactions  Json?
-
-  // Metadata
-  type     String @default("general") // product, service, demand, general
-  tags     String[]
-  location String?
-
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
+  location   String?
+  tags       String[]
+  type       String    @default("general")
+  sender     User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
   @@index([createdAt])
   @@index([priority])
 }
 
-// World Chat Messages - Global broadcast messages
 model WorldChatMessage {
-  id       String @id @default(cuid())
-  content  String @db.Text
-
-  senderId String
-  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
-
-  // Payment info
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
   isFree    Boolean  @default(true)
-  cost      Decimal? @db.Decimal(10, 2) // $0.10 per paid world message
-
-  createdAt DateTime @default(now())
-
-  @@index([senderId])
-  @@index([createdAt])
-}
-
-// Notices - System notices that get pushed to users
-model Notice {
-  id       String @id @default(cuid())
-  title    String
-  content  String @db.Text
-
-  senderId String
-  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
-
-  priority String @default("medium") // low, medium, high, urgent
-  isGlobal Boolean @default(true)
-  expiresAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@index([senderId])
-  @@index([createdAt])
-  @@index([priority])
-}
-
-// ========================================
-// Auction Screen - Sell & Buy Listings
-// ========================================
-
-model AuctionListing {
-  id   String             @id @default(cuid())
-  type AuctionListingType // SELLING or BUYING
-
-  // Listing details
-  title       String
-  description String?
-  category    String?
-  tags        String[]
-
-  // Additional details
-  techSpecs        String? // 技术参数
-  productFeatures  String? // 产品特点
-  applicationScope String? // 适用范围
-  usageMethod      String? // 使用方法
-
-  // Location
-  shippingCountry  String?
-  detailedAddress  String?
-
-  // Pricing
-  price       Decimal? @db.Decimal(10, 2)
-  currency    String   @default("USD")
-  minOrderQty Int?     @default(1)
-  maxOrderQty Int?
-
-  // Shipping terms
-  isFob String? // YES, NEGOTIATE, NO
-  isCif String? // YES, NEGOTIATE, NO
-
-  // Media
-  images    String[]
-  videos    String[]
-  documents String[]
-
-  // Contact
-  contactEmail    String?
-  contactPhone    String?
-  contactWeChat   String?
-  contactWhatsApp String?
-
-  // Seller/Buyer info
-  posterId String
-  poster   User   @relation(fields: [posterId], references: [id], onDelete: Cascade)
-
-  // Optional seller profile link
-  sellerId String?
-  seller   SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  // Listing cost
-  isPaid    Boolean  @default(true)
   cost      Decimal? @db.Decimal(10, 2)
-  paymentId String?
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  // Verification
-  verificationStatus VerificationStatus @default(NOT_APPLIED)
-  verificationFee    Decimal?           @db.Decimal(10, 2)
-  verificationNotes  String?
+  @@index([senderId])
+  @@index([createdAt])
+}
 
-  // Status
-  status     AuctionStatus @default(ACTIVE)
-  views      Int           @default(0)
-  inquiries  Int           @default(0)
-  isVerified Boolean       @default(false)
-
+model Notice {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  senderId  String
+  priority  String    @default("medium")
+  isGlobal  Boolean   @default(true)
   expiresAt DateTime?
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  // Relations
-  bids               AuctionBid[]
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([priority])
+}
+
+model Unit {
+  id              String           @id @default(cuid())
+  name            String
+  nameEn          String
+  symbol          String?
+  description     String?
+  isEnabled       Boolean          @default(true)
+  sortOrder       Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  auctionListings AuctionListing[]
+
+  @@index([name])
+  @@index([isEnabled])
+}
+
+model AuctionListing {
+  id                   String                @id @default(cuid())
+  type                 AuctionListingType
+  title                String
+  description          String?
+  category             String?
+  tags                 String[]
+  price                Decimal?              @db.Decimal(10, 2)
+  currency             String                @default("USD")
+  minOrderQty          Int?                  @default(1)
+  maxOrderQty          Int?
+  images               String[]
+  videos               String[]
+  documents            String[]
+  contactEmail         String?
+  contactPhone         String?
+  contactWeChat        String?
+  contactWhatsApp      String?
+  posterId             String
+  sellerId             String?
+  isPaid               Boolean               @default(true)
+  cost                 Decimal?              @db.Decimal(10, 2)
+  paymentId            String?
+  status               AuctionStatus         @default(ACTIVE)
+  views                Int                   @default(0)
+  inquiries            Int                   @default(0)
+  isVerified           Boolean               @default(false)
+  expiresAt            DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  digitalVoucherId     String?
+  techSpecs            String?
+  productFeatures      String?
+  applicationScope     String?
+  usageMethod          String?
+  shippingCountry      String?
+  detailedAddress      String?
+  isFob                String?
+  isCif                String?
+  verificationStatus   VerificationStatus    @default(NOT_APPLIED)
+  verificationFee      Decimal?              @db.Decimal(10, 2)
+  verificationNotes    String?
+  unitId               String?
+  bids                 AuctionBid[]
+  digitalVoucher       DigitalVoucher?       @relation(fields: [digitalVoucherId], references: [id])
+  poster               User                  @relation(fields: [posterId], references: [id], onDelete: Cascade)
+  seller               SellerProfile?        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  unit                 Unit?                 @relation(fields: [unitId], references: [id])
   verificationRequests VerificationRequest[]
-
-  // Digital voucher support
-  digitalVoucherId String?
-  digitalVoucher   DigitalVoucher? @relation(fields: [digitalVoucherId], references: [id])
 
   @@index([type])
   @@index([status])
@@ -1082,28 +745,473 @@ model AuctionListing {
   @@index([verificationStatus])
 }
 
+model DigitalVoucher {
+  id                  String                      @id @default(cuid())
+  sellerId            String
+  title               String
+  description         String?
+  value               Decimal                     @db.Decimal(10, 2)
+  currency            String                      @default("USD")
+  redemptionCode      String                      @unique
+  isRedeemed          Boolean                     @default(false)
+  redeemedById        String?
+  redeemedAt          DateTime?
+  validFrom           DateTime
+  validUntil          DateTime?
+  isVerified          Boolean                     @default(false)
+  securityHash        String?
+  images              String[]
+  terms               String?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+  certificateNumber   String?                     @unique
+  documents           Json?
+  goodsCategory       String?
+  goodsDescription    String?
+  goodsDimensions     String?
+  goodsName           String?
+  goodsOrigin         String?
+  goodsQuantity       Int?
+  goodsSpecifications Json?
+  goodsWeight         Float?
+  hashAlgorithm       String?
+  hashGeneratedAt     DateTime?
+  issueDate           DateTime                    @default(now())
+  logisticsStatus     String?
+  status              VoucherStatus               @default(CREATED)
+  trackingNumber      String?
+  verificationStatus  GoodsVerificationStatus     @default(PENDING)
+  auctionListings     AuctionListing[]
+  seller              SellerProfile               @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  transactions        DigitalVoucherTransaction[]
+  verificationRecords GoodsVerificationRecord[]
+  logisticsUpdates    LogisticsUpdate[]
+
+  @@index([sellerId])
+  @@index([redemptionCode])
+  @@index([certificateNumber])
+  @@index([isRedeemed])
+  @@index([isVerified])
+  @@index([status])
+  @@index([verificationStatus])
+}
+
+model DigitalVoucherTransaction {
+  id              String                   @id @default(cuid())
+  voucherId       String
+  buyerId         String?
+  amount          Decimal                  @db.Decimal(10, 2)
+  currency        String                   @default("USD")
+  transactionId   String?
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  deliveryInfo    Json?
+  status          VoucherTransactionStatus @default(PENDING)
+  createdAt       DateTime                 @default(now())
+  transactionType String?
+  buyer           User?                    @relation(fields: [buyerId], references: [id])
+  voucher         DigitalVoucher           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+model GoodsVerificationRecord {
+  id         String                  @id @default(cuid())
+  voucherId  String
+  verifiedBy String?
+  status     GoodsVerificationStatus @default(PENDING)
+  notes      String?
+  images     Json?
+  createdAt  DateTime                @default(now())
+  voucher    DigitalVoucher          @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+}
+
+model LogisticsUpdate {
+  id          String         @id @default(cuid())
+  voucherId   String
+  status      String
+  location    String?
+  description String?
+  timestamp   DateTime       @default(now())
+  createdAt   DateTime       @default(now())
+  voucher     DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+}
+
+model BoothCustomization {
+  id        String                 @id @default(cuid())
+  sellerId  String
+  type      BoothCustomizationType
+  value     String?
+  config    Json?
+  isActive  Boolean                @default(true)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  seller    SellerProfile          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@index([type])
+}
+
+model BoothView {
+  id           String        @id @default(cuid())
+  sellerId     String
+  viewerId     String?
+  duration     Int?
+  interactions Json?
+  referrer     String?
+  deviceType   String?
+  country      String?
+  city         String?
+  viewedAt     DateTime      @default(now())
+  seller       SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  viewer       User?         @relation(fields: [viewerId], references: [id])
+
+  @@index([sellerId])
+  @@index([viewerId])
+  @@index([viewedAt])
+}
+
+model AIPermission {
+  id         String    @id @default(cuid())
+  userId     String
+  permission String
+  isAllowed  Boolean   @default(true)
+  scope      Json?
+  grantedAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([permission])
+}
+
+model AIAuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  target    String?
+  result    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model AIAgent {
+  id           String            @id @default(cuid())
+  name         String
+  description  String?
+  capabilities String[]
+  status       AIAgentStatus     @default(PENDING)
+  ownerId      String
+  ownerType    OwnerType
+  apiKey       String            @unique
+  secretKey    String
+  webhookUrl   String?
+  permissions  Json
+  lastActiveAt DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  auditLogs    AIAgentAuditLog[]
+
+  @@index([apiKey])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model AIAgentAuditLog {
+  id        String   @id @default(cuid())
+  agentId   String
+  action    String
+  status    String
+  reason    String?
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  agent     AIAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model Wallet {
+  id             String              @id @default(cuid())
+  userId         String              @unique
+  balance        Decimal             @default(0) @db.Decimal(10, 2)
+  currency       String              @default("USD")
+  totalDeposited Decimal             @default(0) @db.Decimal(10, 2)
+  totalWithdrawn Decimal             @default(0) @db.Decimal(10, 2)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   WalletTransaction[]
+}
+
+model WalletTransaction {
+  id          String            @id @default(cuid())
+  walletId    String
+  type        TransactionType
+  amount      Decimal           @db.Decimal(10, 2)
+  status      TransactionStatus @default(PENDING)
+  currency    String            @default("USD")
+  reference   String?
+  description String?
+  gateway     PaymentGateway?
+  gatewayTxId String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PlatformFee {
+  id          String   @id @default(cuid())
+  feeType     FeeType  @unique
+  amount      Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  userId          String
+  amount          Decimal          @db.Decimal(10, 2)
+  currency        String           @default("USD")
+  gateway         PaymentGateway
+  gatewayDetails  Json?
+  status          WithdrawalStatus @default(PENDING)
+  reviewedByAdmin String?
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  gatewayTxId     String?
+  completedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+model VerificationCountry {
+  id        String   @id @default(cuid())
+  name      String
+  nameZh    String?
+  isEnabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isEnabled])
+}
+
+model VerificationRequest {
+  id              String             @id @default(cuid())
+  userId          String
+  listingId       String?
+  shippingCountry String
+  detailedAddress String
+  status          VerificationStatus @default(PENDING)
+  feeAmount       Decimal?           @db.Decimal(10, 2)
+  feeCurrency     String             @default("USD")
+  notes           String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  listing         AuctionListing?    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([listingId])
+  @@index([status])
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+  AI_BUYER
+  AI_SELLER
+  AI_ASSISTANT
+}
+
+enum CompanyType {
+  MANUFACTURER
+  TRADER
+  BOTH
+}
+
+enum OrganizationType {
+  ENTERPRISE
+  INDIVIDUAL
+  STATE_OWNED
+  PERSONAL
+}
+
+enum SubscriptionStatus {
+  FREE_TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum ProfileStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BrochureType {
+  PRODUCT
+  STORE
+}
+
+enum InquiryStatus {
+  PENDING
+  REPLIED
+  CLOSED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VerificationFileType {
+  BUSINESS_LICENSE
+  ID_CARD
+  DRIVER_LICENSE
+  CREDIT_CARD
+  PHOTO
+  VIDEO
+  OTHER
+  OPERATING_LICENSE
+  TAX_REGISTRATION
+  ORG_CODE_CERTIFICATE
+  ISO_CERTIFICATION
+  CE_CERTIFICATION
+  FDA_CERTIFICATION
+  EXPORT_LICENSE
+  IMPORT_LICENSE
+  COUNTRY_REGISTRATION
+}
+
+enum PageType {
+  STATIC
+  PRODUCT
+  STORE
+  CATEGORY
+  CUSTOM
+}
+
+enum TaskType {
+  MANUFACTURING
+  PRODUCT_SALE
+  SERVICE
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum MilestoneStatus {
+  PENDING
+  COMPLETED
+  PAID
+}
+
+enum DeliverableStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum EscrowStatus {
+  PENDING
+  FUNDED
+  RELEASING
+  COMPLETED
+  DISPUTED
+  REFUNDED
+}
+
+enum AuctionBidStatus {
+  PENDING
+  ACCEPTED
+  OUTBID
+  CANCELLED
+  WON
+  LOST
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
 enum AuctionListingType {
-  SELLING // Selling products/services
-  BUYING // Looking to buy products/services
+  SELLING
+  BUYING
 }
 
 enum AuctionStatus {
-  ACTIVE // Currently listed
-  EXPIRED // Listing expired
-  CLOSED // Manually closed
-  COMPLETED // Deal completed
+  ACTIVE
+  EXPIRED
+  CLOSED
+  COMPLETED
 }
 
 enum VerificationStatus {
-  NOT_APPLIED // 未申请审核
-  PENDING // 审核中
-  VERIFIED // 审核通过
-  REJECTED // 审核未通过（真实性继续核实中）
+  NOT_APPLIED
+  PENDING
+  VERIFIED
+  REJECTED
 }
-
-// ========================================
-// Digital Voucher System
-// ========================================
 
 enum VoucherStatus {
   CREATED
@@ -1122,159 +1230,12 @@ enum GoodsVerificationStatus {
   REJECTED
 }
 
-model DigitalVoucher {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  // Voucher details
-  title       String
-  description String?
-  value       Decimal @db.Decimal(10, 2)
-  currency    String  @default("USD")
-
-  // Goods information (for hash generation)
-  goodsName           String?
-  goodsDescription    String?
-  goodsQuantity       Int?
-  goodsWeight         Float?
-  goodsDimensions     String?
-  goodsCategory       String?
-  goodsOrigin         String?
-  goodsSpecifications Json?
-
-  // Redemption
-  redemptionCode String    @unique
-  isRedeemed     Boolean   @default(false)
-  redeemedById   String?
-  redeemedAt     DateTime?
-
-  // Validity & status
-  validFrom  DateTime
-  validUntil DateTime?
-  status     VoucherStatus             @default(CREATED)
-  verificationStatus GoodsVerificationStatus @default(PENDING)
-  issueDate  DateTime                  @default(now())
-
-  // Security
-  isVerified      Boolean  @default(false)
-  securityHash    String?
-  hashAlgorithm   String?  // SHA-256
-  hashGeneratedAt DateTime?
-  certificateNumber String? @unique
-
-  // Metadata
-  images    String[]
-  documents Json?
-  terms     String?
-
-  // Logistics
-  trackingNumber  String?
-  logisticsStatus String?  // PENDING, IN_TRANSIT, DELIVERED
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  transactions        DigitalVoucherTransaction[]
-  auctionListings     AuctionListing[]
-  verificationRecords GoodsVerificationRecord[]
-  logisticsUpdates    LogisticsUpdate[]
-
-  @@index([sellerId])
-  @@index([redemptionCode])
-  @@index([certificateNumber])
-  @@index([isRedeemed])
-  @@index([isVerified])
-  @@index([status])
-  @@index([verificationStatus])
-}
-
-model DigitalVoucherTransaction {
-  id        String         @id @default(cuid())
-  voucherId String
-  voucher   DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-
-  buyerId String?
-  buyer   User?   @relation(fields: [buyerId], references: [id])
-
-  amount        Decimal @db.Decimal(10, 2)
-  currency      String  @default("USD")
-  transactionId String?
-  transactionType String? // TRANSFER, REDEEM, VERIFY
-
-  verifiedBy String?
-  verifiedAt DateTime?
-
-  deliveryInfo Json?
-
-  status VoucherTransactionStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-
-  @@index([voucherId])
-  @@index([buyerId])
-  @@index([status])
-}
-
 enum VoucherTransactionStatus {
   PENDING
   VERIFIED
   IN_TRANSIT
   DELIVERED
   CANCELLED
-}
-
-model GoodsVerificationRecord {
-  id        String         @id @default(cuid())
-  voucherId String
-  voucher   DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-
-  verifiedBy String?
-  status     GoodsVerificationStatus @default(PENDING)
-  notes      String?
-  images     Json?
-
-  createdAt DateTime @default(now())
-
-  @@index([voucherId])
-}
-
-model LogisticsUpdate {
-  id        String         @id @default(cuid())
-  voucherId String
-  voucher   DigitalVoucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-
-  status      String  // PENDING, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED
-  location    String?
-  description String?
-  timestamp   DateTime @default(now())
-
-  createdAt DateTime @default(now())
-
-  @@index([voucherId])
-}
-
-// ========================================
-// Booth Customization & Analytics
-// ========================================
-
-model BoothCustomization {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  // Customization types
-  type   BoothCustomizationType
-  value  String?
-  config Json? // Detailed configuration
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([sellerId])
-  @@index([type])
 }
 
 enum BoothCustomizationType {
@@ -1288,122 +1249,85 @@ enum BoothCustomizationType {
   BACKGROUND
 }
 
-model BoothView {
-  id       String        @id @default(cuid())
-  sellerId String
-  seller   SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  viewerId String?
-  viewer   User?   @relation(fields: [viewerId], references: [id])
-
-  // Analytics
-  duration     Int? // Time spent in booth (seconds)
-  interactions Json? // Which products were clicked
-  referrer     String? // Where user came from
-
-  // Device info
-  deviceType String?
-  country    String?
-  city       String?
-
-  viewedAt DateTime @default(now())
-
-  @@index([sellerId])
-  @@index([viewerId])
-  @@index([viewedAt])
-}
-
-// ========================================
-// AI Agent Permissions & Audit
-// ========================================
-
-model AIPermission {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  permission String // What the AI can do
-  isAllowed  Boolean @default(true)
-  scope      Json? // Limits/constraints
-
-  grantedAt DateTime  @default(now())
-  expiresAt DateTime?
-
-  @@index([userId])
-  @@index([permission])
-}
-
-model AIAuditLog {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  action   String // What the AI did
-  target   String? // What was acted upon
-  result   String? // Success/failure
-  metadata Json? // Additional data
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-  @@index([action])
-}
-
-model AIAgent {
-  id          String  @id @default(cuid())
-  name        String
-  description String?
-
-  capabilities String[] // What the AI can do
-  status       AIAgentStatus @default(PENDING)
-
-  ownerId   String
-  ownerType OwnerType // USER, SELLER, SYSTEM
-
-  apiKey    String @unique
-  secretKey String
-
-  webhookUrl String?
-
-  permissions Json // AIPermission data
-
-  lastActiveAt DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  auditLogs AIAgentAuditLog[]
-
-  @@index([apiKey])
-  @@index([ownerId])
-  @@index([status])
-}
-
-model AIAgentAuditLog {
-  id      String  @id @default(cuid())
-  agentId String
-  agent   AIAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
-
-  action  String
-  status  String // SUCCESS, DENIED, ERROR
-  reason  String?
-  details String?
-
-  ipAddress String?
-  userAgent String?
-
-  createdAt DateTime @default(now())
-
-  @@index([agentId])
-  @@index([createdAt])
-  @@index([action])
-}
-
 enum AIAgentStatus {
   PENDING
   ACTIVE
   SUSPENDED
   REVOKED
+}
+
+enum TopicCategory {
+  INDUSTRY
+  HOT_TOPIC
+  PRODUCT
+  NEWS
+  RECRUITMENT
+  ARTICLE
+  OTHER
+}
+
+model Topic {
+  id                 String          @id @default(cuid())
+  userId             String
+  title              String
+  content            String
+  category           TopicCategory   @default(OTHER)
+  images             String[]
+  videos             String[]
+  documents          Json?
+  link               String?
+  phone              String?
+  viewCount          Int             @default(0)
+  likeCount          Int             @default(0)
+  commentCount       Int             @default(0)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments           TopicComment[]
+  likes              TopicLike[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TopicComment {
+  id                 String          @id @default(cuid())
+  topicId            String
+  userId             String
+  content            String
+  parentId           String?
+  likeCount          Int             @default(0)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  topic              Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent             TopicComment?   @relation("TopicCommentParent", fields: [parentId], references: [id])
+  replies            TopicComment[]  @relation("TopicCommentParent")
+  likes              TopicLike[]
+
+  @@index([topicId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model TopicLike {
+  id                 String          @id @default(cuid())
+  userId             String
+  topicId            String?
+  commentId          String?
+  createdAt          DateTime        @default(now())
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic              Topic?          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  comment            TopicComment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([commentId])
+
+  @@unique([userId, topicId], name: "TopicLike_userId_topicId_key")
+  @@unique([userId, commentId], name: "TopicLike_userId_commentId_key")
 }
 
 enum OwnerType {
@@ -1412,9 +1336,6 @@ enum OwnerType {
   SYSTEM
 }
 
-// ==================== Wallet & Payment System ====================
-
-// Payment gateways
 enum PaymentGateway {
   ALIPAY
   WECHAT
@@ -1422,7 +1343,6 @@ enum PaymentGateway {
   MANUAL
 }
 
-// Fee types
 enum FeeType {
   SHOUT_OUT
   BOOTH_SUBSCRIPTION
@@ -1431,24 +1351,6 @@ enum FeeType {
   WITHDRAWAL
 }
 
-// User wallet
-model Wallet {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  balance        Decimal  @db.Decimal(10, 2) @default(0)
-  currency       String   @default("USD")
-  totalDeposited Decimal  @db.Decimal(10, 2) @default(0)
-  totalWithdrawn Decimal  @db.Decimal(10, 2) @default(0)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  transactions WalletTransaction[]
-}
-
-// Transaction type
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
@@ -1464,128 +1366,9 @@ enum TransactionStatus {
   CANCELLED
 }
 
-// Wallet transactions
-model WalletTransaction {
-  id          String            @id @default(cuid())
-  walletId    String
-  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  
-  type        TransactionType
-  amount      Decimal           @db.Decimal(10, 2)
-  status      TransactionStatus @default(PENDING)
-  currency    String            @default("USD")
-  
-  reference   String?  // Related order/voucher/shout-out ID
-  description String?
-  gateway     PaymentGateway?
-  gatewayTxId String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([walletId])
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// Platform fee configuration
-model PlatformFee {
-  id            String  @id @default(cuid())
-  feeType       FeeType // SHOUT_OUT, BOOTH_SUBSCRIPTION, etc.
-  amount        Decimal @db.Decimal(10, 2)
-  currency      String  @default("USD")
-  description   String?
-  isActive      Boolean @default(true)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@unique([feeType])
-}
-
 enum WithdrawalStatus {
   PENDING
   APPROVED
   REJECTED
   COMPLETED
-}
-
-// Withdrawal requests
-model WithdrawalRequest {
-  id              String           @id @default(cuid())
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  amount          Decimal          @db.Decimal(10, 2)
-  currency        String           @default("USD")
-  gateway         PaymentGateway
-  gatewayDetails  Json?
-  
-  status          WithdrawalStatus @default(PENDING)
-  
-  // Admin review (use String for admin ID, no separate relation to avoid complexity)
-  reviewedByAdmin String?
-  reviewedAt      DateTime?
-  reviewNotes     String?
-  
-  gatewayTxId     String?
-  completedAt     DateTime?
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model SystemSetting {
-  id              String   @id @default(cuid())
-  key             String   @unique
-  value           Json
-  description     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([key])
-}
-
-model VerificationCountry {
-  id     String @id @default(cuid())
-  name   String // Country name in English
-  nameZh String? // Country name in Chinese
-  isEnabled Boolean @default(true) // Whether verification is enabled for this country
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([name])
-  @@index([isEnabled])
-}
-
-model VerificationRequest {
-  id      String @id @default(cuid())
-  userId  String
-  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  listingId String?
-  listing   AuctionListing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
-  shippingCountry String
-  detailedAddress String
-  
-  status VerificationStatus @default(PENDING)
-  feeAmount Decimal? @db.Decimal(10, 2)
-  feeCurrency String @default("USD")
-  
-  notes String?
-  reviewedBy String?
-  reviewedAt DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([listingId])
-  @@index([status])
 }

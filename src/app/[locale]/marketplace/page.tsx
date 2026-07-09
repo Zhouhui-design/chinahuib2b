@@ -10,6 +10,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
+import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone } from 'lucide-react'
 
 // Sample task data (will be replaced with real API calls)
 const sampleTasks = [
@@ -87,6 +88,47 @@ const taskTypes = [
   { value: 'service', icon: '🔧', key: 'service' },
 ]
 
+const topicCategories = [
+  { value: 'all', label: { zh: '全部', en: 'All', ja: 'すべて', ko: '전체' } },
+  { value: 'INDUSTRY', label: { zh: '行业讨论', en: 'Industry', ja: '産業', ko: '산업' } },
+  { value: 'HOT_TOPIC', label: { zh: '热点话题', en: 'Hot Topic', ja: 'ホットトピック', ko: '핫 토픽' } },
+  { value: 'PRODUCT', label: { zh: '产品评价', en: 'Product', ja: '製品', ko: '제품' } },
+  { value: 'NEWS', label: { zh: '行业新闻', en: 'News', ja: 'ニュース', ko: '뉴스' } },
+  { value: 'RECRUITMENT', label: { zh: '招聘信息', en: 'Recruitment', ja: '採用', ko: '채용' } },
+  { value: 'ARTICLE', label: { zh: '文章分享', en: 'Article', ja: '記事', ko: '기사' } },
+]
+
+interface Topic {
+  id: string
+  userId: string
+  title: string
+  content: string
+  category: string
+  images: string[]
+  videos: string[]
+  documents: any[]
+  link: string | null
+  phone: string | null
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  user: {
+    id: string
+    username: string
+    displayName: string | null
+    avatarUrl: string | null
+    role: string
+    sellerProfile: {
+      companyName: string | null
+      logoUrl: string | null
+      isVerified: boolean
+    } | null
+  }
+}
+
 export default function MarketplacePage() {
   const params = useParams()
   const locale = (params.locale as LanguageCode) || 'en'
@@ -102,9 +144,12 @@ export default function MarketplacePage() {
     applications?: number
   }
   const [tasks, setTasks] = useState<Task[]>([])
+  const [topics, setTopics] = useState<Topic[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedType, setSelectedType] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
+  const [activeTab, setActiveTab] = useState<'tasks' | 'topics'>('tasks')
+  const [selectedTopicCategory, setSelectedTopicCategory] = useState('all')
   const [stats, setStats] = useState({
     activeTasks: 0,
     completedTasks: 0,
@@ -175,6 +220,40 @@ export default function MarketplacePage() {
     fetchTasks()
   }, [selectedType, sortBy])
 
+  // Fetch topics from API
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        setLoading(true)
+        const params = new URLSearchParams({
+          limit: '10',
+        })
+        
+        if (selectedTopicCategory !== 'all') {
+          params.set('category', selectedTopicCategory)
+        }
+        
+        const response = await fetch(`/api/topics?${params}`)
+        const data = await response.json()
+        
+        if (data.success) {
+          setTopics(data.data.topics)
+        }
+      } catch (error) {
+        console.error('Error fetching topics:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchTopics()
+  }, [selectedTopicCategory])
+
+  const getTopicCategoryLabel = (value: string) => {
+    const category = topicCategories.find(c => c.value === value)
+    return category?.label[locale as keyof typeof category.label] || value
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -218,45 +297,99 @@ export default function MarketplacePage() {
         </div>
       </section>
 
+      {/* Tab Switcher */}
+      <section className="py-6 bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'tasks'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              📋 {locale === 'zh' ? '任务大厅' : 'Task Hall'}
+            </button>
+            <button
+              onClick={() => setActiveTab('topics')}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                activeTab === 'topics'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              💬 {locale === 'zh' ? '社区话题' : 'Community Topics'}
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Filter Section */}
       <section className="py-8 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-2 overflow-x-auto">
-              {taskTypes.map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setSelectedType(type.value)}
-                  className={`px-4 py-2 rounded-lg border transition-colors whitespace-nowrap ${
-                    selectedType === type.value
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 hover:bg-gray-100'
-                  }`}
+          {activeTab === 'tasks' ? (
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex gap-2 overflow-x-auto">
+                {taskTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    onClick={() => setSelectedType(type.value)}
+                    className={`px-4 py-2 rounded-lg border transition-colors whitespace-nowrap ${
+                      selectedType === type.value
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="mr-2">{type.icon}</span>
+                    {dict.marketplace.taskTypes[type.key as keyof typeof dict.marketplace.taskTypes]}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <select 
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
                 >
-                  <span className="mr-2">{type.icon}</span>
-                  {dict.marketplace.taskTypes[type.key as keyof typeof dict.marketplace.taskTypes]}
-                </button>
-              ))}
+                  <option value="newest">{dict.marketplace.sortBy}</option>
+                  <option value="budget_high">Budget: High to Low</option>
+                  <option value="budget_low">Budget: Low to High</option>
+                  <option value="applications">Most Applications</option>
+                </select>
+                <Link
+                  href={`/${locale}/marketplace/post`}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {dict.marketplace.postTask}
+                </Link>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <select 
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="newest">{dict.marketplace.sortBy}</option>
-                <option value="budget_high">Budget: High to Low</option>
-                <option value="budget_low">Budget: Low to High</option>
-                <option value="applications">Most Applications</option>
-              </select>
+          ) : (
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex gap-2 overflow-x-auto">
+                {topicCategories.map((category) => (
+                  <button
+                    key={category.value}
+                    onClick={() => setSelectedTopicCategory(category.value)}
+                    className={`px-4 py-2 rounded-lg border transition-colors whitespace-nowrap ${
+                      selectedTopicCategory === category.value
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-100'
+                    }`}
+                  >
+                    {getTopicCategoryLabel(category.value)}
+                  </button>
+                ))}
+              </div>
               <Link
-                href={`/${locale}/marketplace/post`}
+                href={`/${locale}/marketplace/topic/post`}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                {dict.marketplace.postTask}
+                {locale === 'zh' ? '发表话题' : 'Post Topic'}
               </Link>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -268,99 +401,212 @@ export default function MarketplacePage() {
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">{dict.marketplace.loading}</p>
             </div>
-          ) : tasks.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">{dict.marketplace.noTasksFound}</p>
-            </div>
-          ) : (
-            <div className="grid gap-6">
-              {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                        task.type === 'manufacturing' ? 'bg-blue-100 text-blue-800' :
-                        task.type === 'product_sale' ? 'bg-green-100 text-green-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {task.type === 'manufacturing' ? '🏭 ' :
-                         task.type === 'product_sale' ? '🛍️ ' : '🔧 '}
-                         {task.type === 'manufacturing' ? dict.marketplace.taskTypes.manufacturing :
-                         task.type === 'product_sale' ? dict.marketplace.taskTypes.productSale : dict.marketplace.taskTypes.service}
-                      </span>
-                      <span className="text-sm text-gray-500">Posted {task.postedAt}</span>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      {task.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{task.description}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-6">
-                    {task.budget && (
-                      <div>
-                        <div className="text-sm text-gray-500">{dict.marketplace.budget}</div>
-                        <div className="text-lg font-semibold text-green-600">
-                          ${task.budget.toLocaleString()} {task.currency}
-                        </div>
-                      </div>
-                    )}
-                    {task.price && (
-                      <div>
-                        <div className="text-sm text-gray-500">{dict.marketplace.price}</div>
-                        <div className="text-lg font-semibold text-blue-600">
-                          ${task.price} {task.currency}
-                          {task.unit && <span className="text-sm text-gray-500">/{task.unit}</span>}
-                        </div>
-                      </div>
-                    )}
-                    {task.deadline && (
-                      <div>
-                        <div className="text-sm text-gray-500">{dict.marketplace.deadline}</div>
-                        <div className="text-lg font-semibold text-gray-900">
-                          {task.deadline}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">{dict.marketplace.postedBy}</div>
-                      <div className="font-medium text-gray-900">{task.postedBy}</div>
-                    </div>
-                    <Link
-                      href={`/${locale}/marketplace/${task.id}`}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {dict.marketplace.viewDetails}
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-                  {task.applications !== undefined && (
-                    <span>📝 {task.applications} {dict.marketplace.applications}</span>
-                  )}
-                  {task.views !== undefined && (
-                    <span>👁️ {task.views} {dict.marketplace.views}</span>
-                  )}
-                  {task.rating && (
-                    <span>⭐ {task.rating} {dict.marketplace.rating}</span>
-                  )}
-                  {task.minOrderQty && (
-                    <span>📦 {dict.marketplace.minOrder}: {task.minOrderQty} units</span>
-                  )}
-                </div>
+          ) : activeTab === 'tasks' ? (
+            tasks.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">{dict.marketplace.noTasksFound}</p>
               </div>
-            ))}
-            </div>
+            ) : (
+              <div className="grid gap-6">
+                {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                          task.type === 'manufacturing' ? 'bg-blue-100 text-blue-800' :
+                          task.type === 'product_sale' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {task.type === 'manufacturing' ? '🏭 ' :
+                           task.type === 'product_sale' ? '🛍️ ' : '🔧 '}
+                           {task.type === 'manufacturing' ? dict.marketplace.taskTypes.manufacturing :
+                           task.type === 'product_sale' ? dict.marketplace.taskTypes.productSale : dict.marketplace.taskTypes.service}
+                        </span>
+                        <span className="text-sm text-gray-500">Posted {task.postedAt}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        {task.title}
+                      </h3>
+                      <p className="text-gray-600 mb-4">{task.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="flex items-center gap-6">
+                      {task.budget && (
+                        <div>
+                          <div className="text-sm text-gray-500">{dict.marketplace.budget}</div>
+                          <div className="text-lg font-semibold text-green-600">
+                            ${task.budget.toLocaleString()} {task.currency}
+                          </div>
+                        </div>
+                      )}
+                      {task.price && (
+                        <div>
+                          <div className="text-sm text-gray-500">{dict.marketplace.price}</div>
+                          <div className="text-lg font-semibold text-blue-600">
+                            ${task.price} {task.currency}
+                            {task.unit && <span className="text-sm text-gray-500">/{task.unit}</span>}
+                          </div>
+                        </div>
+                      )}
+                      {task.deadline && (
+                        <div>
+                          <div className="text-sm text-gray-500">{dict.marketplace.deadline}</div>
+                          <div className="text-lg font-semibold text-gray-900">
+                            {task.deadline}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-sm text-gray-500">{dict.marketplace.postedBy}</div>
+                        <div className="font-medium text-gray-900">{task.postedBy}</div>
+                      </div>
+                      <Link
+                        href={`/${locale}/marketplace/${task.id}`}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {dict.marketplace.viewDetails}
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
+                    {task.applications !== undefined && (
+                      <span>📝 {task.applications} {dict.marketplace.applications}</span>
+                    )}
+                    {task.views !== undefined && (
+                      <span>👁️ {task.views} {dict.marketplace.views}</span>
+                    )}
+                    {task.rating && (
+                      <span>⭐ {task.rating} {dict.marketplace.rating}</span>
+                    )}
+                    {task.minOrderQty && (
+                      <span>📦 {dict.marketplace.minOrder}: {task.minOrderQty} units</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+              </div>
+            )
+          ) : (
+            topics.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">{locale === 'zh' ? '暂无话题，快来发表第一个话题吧！' : 'No topics yet, be the first to post!'}</p>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {topics.map((topic) => (
+                  <div
+                    key={topic.id}
+                    className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={topic.user.avatarUrl || `/api/users/${topic.userId}/avatar`}
+                          alt={topic.user.displayName || topic.user.username}
+                          className="w-12 h-12 rounded-full object-cover bg-gray-200"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                            topic.category === 'INDUSTRY' ? 'bg-blue-100 text-blue-800' :
+                            topic.category === 'HOT_TOPIC' ? 'bg-red-100 text-red-800' :
+                            topic.category === 'PRODUCT' ? 'bg-green-100 text-green-800' :
+                            topic.category === 'NEWS' ? 'bg-yellow-100 text-yellow-800' :
+                            topic.category === 'RECRUITMENT' ? 'bg-purple-100 text-purple-800' :
+                            topic.category === 'ARTICLE' ? 'bg-indigo-100 text-indigo-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {getTopicCategoryLabel(topic.category)}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {new Date(topic.createdAt).toLocaleDateString(locale)}
+                          </span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                          {topic.title}
+                        </h3>
+                        <p className="text-gray-600 mb-4 line-clamp-3">{topic.content}</p>
+                        
+                        {topic.images.length > 0 && (
+                          <div className="flex gap-2 mb-4">
+                            {topic.images.slice(0, 3).map((img, index) => (
+                              <img key={index} src={img} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                            ))}
+                            {topic.images.length > 3 && (
+                              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+                                +{topic.images.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            <span>{topic.viewCount}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Heart className="w-4 h-4" />
+                            <span>{topic.likeCount}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{topic.commentCount}</span>
+                          </div>
+                          {topic.videos.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Video className="w-4 h-4 text-purple-500" />
+                              <span>{topic.videos.length}</span>
+                            </div>
+                          )}
+                          {topic.documents && (topic.documents as any[]).length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <FileText className="w-4 h-4 text-blue-500" />
+                              <span>{(topic.documents as any[]).length}</span>
+                            </div>
+                          )}
+                          {topic.link && (
+                            <div className="flex items-center gap-1">
+                              <Link2 className="w-4 h-4 text-green-500" />
+                            </div>
+                          )}
+                          {topic.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="w-4 h-4 text-orange-500" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 font-medium">
+                          {topic.user.displayName || topic.user.username}
+                        </span>
+                        {topic.user.sellerProfile?.isVerified && (
+                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">✓ Verified</span>
+                        )}
+                      </div>
+                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        {locale === 'zh' ? '查看详情' : 'View Details'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           )}
 
           {/* Load More */}

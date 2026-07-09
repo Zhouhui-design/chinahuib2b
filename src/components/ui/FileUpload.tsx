@@ -5,7 +5,7 @@ import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle } fro
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface FileUploadProps {
-  type: 'product_image' | 'brochure' | 'store_brochure' | 'logo' | 'banner'
+  type: 'product_image' | 'product_video' | 'product_document' | 'brochure' | 'store_brochure' | 'logo' | 'banner'
   productId?: string
   title?: string
   onUploadSuccess?: (data: any) => void
@@ -33,11 +33,35 @@ export default function FileUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Set default accept and max size based on type
-  const defaultAccept = type === 'brochure' || type === 'store_brochure' ? '.pdf' : 'image/*'
-  const defaultMaxSize = type === 'brochure' || type === 'store_brochure' ? 20 : 5
+  const getDefaultAccept = () => {
+    switch (type) {
+      case 'brochure':
+      case 'store_brochure':
+        return '.pdf'
+      case 'product_video':
+        return 'video/*'
+      case 'product_document':
+        return '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z'
+      default:
+        return 'image/*'
+    }
+  }
   
-  const fileAccept = accept || defaultAccept
-  const maxFileSize = maxSizeMB || defaultMaxSize
+  const getDefaultMaxSize = () => {
+    switch (type) {
+      case 'product_video':
+        return 100
+      case 'product_document':
+      case 'brochure':
+      case 'store_brochure':
+        return 50
+      default:
+        return 5
+    }
+  }
+  
+  const fileAccept = accept || getDefaultAccept()
+  const maxFileSize = maxSizeMB || getDefaultMaxSize()
 
   const t = {
     uploadPDFBrochure: language === 'zh' ? '上传PDF手册' :
@@ -123,6 +147,62 @@ export default function FileUpload({
                 language === 'th' ? 'อัปโหลดไฟล์' :
                 language === 'vi' ? 'Tải lên Tệp' :
                 'Upload File',
+    
+    uploadProductVideo: language === 'zh' ? '上传产品视频' :
+                        language === 'ja' ? '製品ビデオをアップロード' :
+                        language === 'ar' ? 'رفع فيديو المنتج' :
+                        language === 'es' ? 'Subir video del producto' :
+                        language === 'fr' ? 'Télécharger la vidéo du produit' :
+                        language === 'de' ? 'Produktvideo hochladen' :
+                        language === 'ko' ? '제품 비디오 업로드' :
+                        language === 'ru' ? 'Загрузить видео товара' :
+                        language === 'pt' ? 'Enviar vídeo do produto' :
+                        language === 'hi' ? 'उत्पाद वीडियो अपलोड करें' :
+                        language === 'th' ? 'อัปโหลดวิดีโอสินค้า' :
+                        language === 'vi' ? 'Tải lên Video sản phẩm' :
+                        'Upload Product Video',
+    
+    uploadProductVideos: language === 'zh' ? '上传产品视频' :
+                         language === 'ja' ? '製品ビデオをアップロード' :
+                         language === 'ar' ? 'رفع فيديوهات المنتج' :
+                         language === 'es' ? 'Subir videos del producto' :
+                         language === 'fr' ? 'Télécharger les vidéos du produit' :
+                         language === 'de' ? 'Produktvideos hochladen' :
+                         language === 'ko' ? '제품 비디오 업로드' :
+                         language === 'ru' ? 'Загрузить видео товаров' :
+                         language === 'pt' ? 'Enviar vídeos do produto' :
+                         language === 'hi' ? 'उत्पाद वीडियो अपलोड करें' :
+                         language === 'th' ? 'อัปโหลดวิดีโอสินค้า' :
+                         language === 'vi' ? 'Tải lên Video sản phẩm' :
+                         'Upload Product Videos',
+    
+    uploadProductDocument: language === 'zh' ? '上传产品文档' :
+                           language === 'ja' ? '製品ドキュメントをアップロード' :
+                           language === 'ar' ? 'رفع وثيقة المنتج' :
+                           language === 'es' ? 'Subir documento del producto' :
+                           language === 'fr' ? 'Télécharger le document du produit' :
+                           language === 'de' ? 'Produktdokument hochladen' :
+                           language === 'ko' ? '제품 문서 업로드' :
+                           language === 'ru' ? 'Загрузить документ товара' :
+                           language === 'pt' ? 'Enviar documento do produto' :
+                           language === 'hi' ? 'उत्पाद दस्तावेज अपलोड करें' :
+                           language === 'th' ? 'อัปโหลดเอกสารสินค้า' :
+                           language === 'vi' ? 'Tải lên Tài liệu sản phẩm' :
+                           'Upload Product Document',
+    
+    uploadProductDocuments: language === 'zh' ? '上传产品文档' :
+                            language === 'ja' ? '製品ドキュメントをアップロード' :
+                            language === 'ar' ? 'رفع وثائق المنتج' :
+                            language === 'es' ? 'Subir documentos del producto' :
+                            language === 'fr' ? 'Télécharger les documents du produit' :
+                            language === 'de' ? 'Produktdokumente hochladen' :
+                            language === 'ko' ? '제품 문서 업로드' :
+                            language === 'ru' ? 'Загрузить документы товара' :
+                            language === 'pt' ? 'Enviar documentos do produto' :
+                            language === 'hi' ? 'उत्पाद दस्तावेज अपलोड करें' :
+                            language === 'th' ? 'อัปโหลดเอกสารสินค้า' :
+                            language === 'vi' ? 'Tải lên Tài liệu sản phẩm' :
+                            'Upload Product Documents',
     
     uploading: language === 'zh' ? '上传中...' :
                language === 'ja' ? 'アップロード中...' :
@@ -295,11 +375,17 @@ export default function FileUpload({
   const getIcon = () => {
     switch (type) {
       case 'brochure':
+      case 'product_document':
         return <FileText className="w-8 h-8" />
       case 'logo':
       case 'banner':
       case 'product_image':
         return <ImageIcon className="w-8 h-8" />
+      case 'product_video':
+        return <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
       default:
         return <Upload className="w-8 h-8" />
     }
@@ -315,6 +401,10 @@ export default function FileUpload({
         return t.uploadStoreBanner
       case 'product_image':
         return multiple ? t.uploadProductImages : t.uploadProductImage
+      case 'product_video':
+        return multiple ? t.uploadProductVideos : t.uploadProductVideo
+      case 'product_document':
+        return multiple ? t.uploadProductDocuments : t.uploadProductDocument
       default:
         return t.uploadFile
     }
@@ -573,7 +663,15 @@ export default function FileUpload({
               {uploading ? t.uploading : getLabel()}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {fileAccept.includes('pdf') ? t.pdfOnly : t.imageTypes} • {t.maxSize(maxFileSize)}
+              {type === 'product_video' ? (language === 'zh' ? 'MP4, MOV, AVI, WMV' :
+                                           language === 'ja' ? 'MP4、MOV、AVI、WMV' :
+                                           language === 'ar' ? 'MP4، MOV، AVI، WMV' :
+                                           'MP4, MOV, AVI, WMV') :
+               type === 'product_document' ? (language === 'zh' ? 'PDF, DOC, XLS, PPT, ZIP, RAR' :
+                                              language === 'ja' ? 'PDF、DOC、XLS、PPT、ZIP、RAR' :
+                                              language === 'ar' ? 'PDF، DOC، XLS، PPT، ZIP، RAR' :
+                                              'PDF, DOC, XLS, PPT, ZIP, RAR') :
+               fileAccept.includes('pdf') ? t.pdfOnly : t.imageTypes} • {t.maxSize(maxFileSize)}
               {multiple && ' ' + t.multipleAllowed}
             </p>
           </div>

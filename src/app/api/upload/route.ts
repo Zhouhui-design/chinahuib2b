@@ -48,15 +48,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
 
-    // Validate file size (20MB max)
+    // Validate file size based on type
     const fileSize = file.size
-    if (fileSize > 20 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 })
+    let maxFileSize = 20 * 1024 * 1024 // 20MB default
+    
+    if (type === 'product_video') {
+      maxFileSize = 100 * 1024 * 1024 // 100MB for videos
+    } else if (type === 'product_document') {
+      maxFileSize = 50 * 1024 * 1024 // 50MB for documents
+    }
+    
+    if (fileSize > maxFileSize) {
+      const maxSizeMB = maxFileSize / (1024 * 1024)
+      return NextResponse.json({ error: `File too large (max ${maxSizeMB}MB)` }, { status: 400 })
     }
 
     // Determine subdirectory based on type
     let subDir = 'others'
     if (type === 'product_image') subDir = 'products'
+    else if (type === 'product_video') subDir = 'videos'
+    else if (type === 'product_document') subDir = 'documents'
     else if (type === 'logo') subDir = 'logos'
     else if (type === 'banner') subDir = 'banners'
     else if (type === 'brochure' || type === 'store_brochure') subDir = 'brochures'
@@ -255,6 +266,18 @@ function getFileExtension(mimeType: string): string {
     'application/pdf': '.pdf',
     'application/msword': '.doc',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.ms-excel': '.xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'video/mp4': '.mp4',
+    'video/quicktime': '.mov',
+    'video/x-msvideo': '.avi',
+    'video/x-ms-wmv': '.wmv',
+    'video/webm': '.webm',
+    'application/zip': '.zip',
+    'application/x-rar-compressed': '.rar',
+    'application/x-7z-compressed': '.7z',
   }
   return extensions[mimeType] || '.bin'
 }

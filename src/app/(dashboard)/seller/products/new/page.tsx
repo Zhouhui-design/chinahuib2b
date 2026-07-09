@@ -34,6 +34,8 @@ export default function AddProductPage() {
   const [supplyCapacity, setSupplyCapacity] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [mainImageUrl, setMainImageUrl] = useState('')
+  const [videos, setVideos] = useState<string[]>([])
+  const [documents, setDocuments] = useState<Array<{url: string, name: string, type: string, size: number}>>([])
   const [specifications, setSpecifications] = useState<Array<{key: string, value: string}>>([
     { key: '', value: '' }
   ])
@@ -55,7 +57,7 @@ export default function AddProductPage() {
       autoSaveDraft()
     }, 5000)
     return () => clearTimeout(timer)
-  }, [title, categoryId, description, minOrderQty, supplyCapacity, images, specifications])
+  }, [title, categoryId, description, minOrderQty, supplyCapacity, images, videos, documents, specifications])
 
   const loadDraft = async (id: string) => {
     try {
@@ -75,6 +77,8 @@ export default function AddProductPage() {
             setSupplyCapacity(pd.supplyCapacity || '')
             setImages(pd.images || [])
             setMainImageUrl(pd.mainImageUrl || '')
+            setVideos(pd.videos || [])
+            setDocuments(pd.documents || [])
             setSpecifications(pd.specifications || [{ key: '', value: '' }])
             setDraftId(draft.id)
           }
@@ -88,6 +92,7 @@ export default function AddProductPage() {
   const autoSaveDraft = async () => {
     const productData = {
       title, categoryId, description, minOrderQty, supplyCapacity, images, mainImageUrl,
+      videos, documents,
       specifications: specifications.filter(s => s.key.trim() && s.value.trim())
     }
     if (!title.trim() && !description.trim()) return
@@ -524,6 +529,22 @@ export default function AddProductPage() {
     }
   }
 
+  const handleVideoUpload = (data: UploadedFile | UploadedFile[]) => {
+    const newVideos = Array.isArray(data) ? data.map((d) => d.url) : [data.url]
+    setVideos(prev => [...prev, ...newVideos])
+  }
+
+  const handleDocumentUpload = (data: any | any[]) => {
+    const newDocs = Array.isArray(data) ? data : [data]
+    const docObjects = newDocs.map(d => ({
+      url: d.url,
+      name: d.filename || d.name || 'document',
+      type: d.type || 'document',
+      size: d.size || 0
+    }))
+    setDocuments(prev => [...prev, ...docObjects])
+  }
+
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
@@ -531,6 +552,16 @@ export default function AddProductPage() {
     if (mainImageUrl === images[index]) {
       setMainImageUrl(newImages[0] || '')
     }
+  }
+
+  const removeVideo = (index: number) => {
+    const newVideos = videos.filter((_, i) => i !== index)
+    setVideos(newVideos)
+  }
+
+  const removeDocument = (index: number) => {
+    const newDocs = documents.filter((_, i) => i !== index)
+    setDocuments(newDocs)
   }
 
   const setAsMainImage = (index: number) => {
@@ -591,6 +622,8 @@ export default function AddProductPage() {
         supplyCapacity: supplyCapacity || undefined,
         images,
         mainImageUrl,
+        videos: videos.length > 0 ? videos : undefined,
+        documents: documents.length > 0 ? documents : undefined,
         specifications: Object.keys(specsObj).length > 0 ? specsObj : undefined,
       }
 
@@ -753,6 +786,136 @@ export default function AddProductPage() {
                       {t.main}
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {language === 'zh' ? '产品视频' :
+             language === 'ja' ? '製品ビデオ' :
+             language === 'ar' ? 'فيديو المنتج' :
+             language === 'es' ? 'Video del producto' :
+             language === 'fr' ? 'Vidéo du produit' :
+             language === 'de' ? 'Produktvideo' :
+             language === 'ko' ? '제품 비디오' :
+             language === 'ru' ? 'Видео товара' :
+             language === 'pt' ? 'Vídeo do produto' :
+             language === 'hi' ? 'उत्पाद वीडियो' :
+             language === 'th' ? 'วิดีโอสินค้า' :
+             language === 'vi' ? 'Video sản phẩm' :
+             'Product Videos'}
+          </h2>
+          <p className="text-xs text-gray-500">
+            {language === 'zh' ? '支持 MP4、MOV、AVI 等格式，最大 100MB（选填）' :
+             language === 'ja' ? 'MP4、MOV、AVIなどの形式に対応、最大100MB（任意）' :
+             language === 'ar' ? 'يدعم تنسيقات MP4 و MOV و AVI، الحد الأقصى 100 ميجابايت (اختياري)' :
+             'Supports MP4, MOV, AVI, max 100MB (optional)'}
+          </p>
+
+          <FileUpload
+            type="product_video"
+            multiple={true}
+            onUploadSuccess={handleVideoUpload}
+          />
+
+          {videos.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              {videos.map((video, index) => (
+                <div key={index} className="relative group">
+                  <div className="w-full aspect-video bg-gray-900 rounded-lg border-2 border-gray-200 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => removeVideo(index)}
+                      className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded truncate">
+                    {language === 'zh' ? '视频' : 'Video'} {index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {language === 'zh' ? '产品文档' :
+             language === 'ja' ? '製品ドキュメント' :
+             language === 'ar' ? 'وثائق المنتج' :
+             language === 'es' ? 'Documentos del producto' :
+             language === 'fr' ? 'Documents du produit' :
+             language === 'de' ? 'Produktdokumente' :
+             language === 'ko' ? '제품 문서' :
+             language === 'ru' ? 'Документы товара' :
+             language === 'pt' ? 'Documentos do produto' :
+             language === 'hi' ? 'उत्पाद दस्तावेज' :
+             language === 'th' ? 'เอกสารสินค้า' :
+             language === 'vi' ? 'Tài liệu sản phẩm' :
+             'Product Documents'}
+          </h2>
+          <p className="text-xs text-gray-500">
+            {language === 'zh' ? '支持 PDF、DOC、XLS、PPT、ZIP、RAR 等格式，最大 50MB（选填）' :
+             language === 'ja' ? 'PDF、DOC、XLS、PPT、ZIP、RARなどの形式に対応、最大50MB（任意）' :
+             language === 'ar' ? 'يدعم تنسيقات PDF و DOC و XLS و PPT و ZIP و RAR، الحد الأقصى 50 ميجابايت (اختياري)' :
+             'Supports PDF, DOC, XLS, PPT, ZIP, RAR, max 50MB (optional)'}
+          </p>
+
+          <FileUpload
+            type="product_document"
+            multiple={true}
+            onUploadSuccess={handleDocumentUpload}
+          />
+
+          {documents.length > 0 && (
+            <div className="space-y-2 mt-4">
+              {documents.map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 truncate max-w-xs">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {doc.size > 1024 * 1024 
+                          ? `${(doc.size / (1024 * 1024)).toFixed(2)} MB` 
+                          : `${(doc.size / 1024).toFixed(1)} KB`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700 text-sm"
+                    >
+                      {language === 'zh' ? '下载' :
+                       language === 'ja' ? 'ダウンロード' :
+                       language === 'ar' ? 'تنزيل' :
+                       'Download'}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeDocument(index)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

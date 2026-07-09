@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { db } from '@/lib/db'
+
+export async function POST(request: NextRequest, { params }: { params: { id: string; commentId: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const existingLike = await db.topicLike.findUnique({
+      where: {
+        TopicLike_userId_commentId_key: {
+          userId: session.user.id,
+          commentId: params.commentId,
+        },
+      },
+    })
+
+    if (existingLike) {
+      await db.topicLike.delete({
+        where: { id: existingLike.id },
+      })
+
+      await db.topicComment.update({
+        where: { id: params.commentId },
+        data: { likeCount: { decrement: 1 } },
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: { liked: false },
+      })
+    } else {
+      await db.topicLike.create({
+        data: {
+          userId: session.user.id,
+          commentId: params.commentId,
+        },
+      })
+
+      await db.topicComment.update({
+        where: { id: params.commentId },
+        data: { likeCount: { increment: 1 } },
+      })
+
+      return NextResponse.json({
+        success: true,
+        data: { liked: true },
+      })
+    }
+  } catch (error) {
+    console.error('Error toggling comment like:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to toggle like' },
+      { status: 500 }
+    )
+  }
+}

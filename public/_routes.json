@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": ["/api/*"],
+  "error_pages": {
+    "404": "/404.html",
+    "500": "/500.html"
+  },
+  "routing": [
+    {
+      "pattern": "/*",
+      "origin": "https://x2xhub.com",
+      "scheduled": {
+        "stale": {
+          "timeout": 86400,
+          "while_revalidate": 604800
+        }
+      }
+    },
+    {
+      "pattern": "/_next/static/*",
+      "origin": "https://x2xhub.com",
+      "cache": {
+        "browser": {
+          "max_age": 31536000,
+          "service_worker_max_age": 31536000
+        },
+        "edge": {
+          "max_age": 31536000
+        }
+      }
+    },
+    {
+      "pattern": "/uploads/*",
+      "origin": "https://x2xhub.com",
+      "cache": {
+        "browser": {
+          "max_age": 31536000,
+          "service_worker_max_age": 31536000
+        },
+        "edge": {
+          "max_age": 31536000
+        }
+      }
+    },
+    {
+      "pattern": "/images/*",
+      "origin": "https://x2xhub.com",
+      "cache": {
+        "browser": {
+          "max_age": 31536000,
+          "service_worker_max_age": 31536000
+        },
+        "edge": {
+          "max_age": 31536000
+        }
+      }
+    },
+    {
+      "pattern": "/fonts/*",
+      "origin": "https://x2xhub.com",
+      "cache": {
+        "browser": {
+          "max_age": 31536000,
+          "service_worker_max_age": 31536000
+        },
+        "edge": {
+          "max_age": 31536000
+        }
+      }
+    },
+    {
+      "pattern": "/api/*",
+      "origin": "https://x2xhub.com",
+      "cache": {
+        "browser": {
+          "max_age": 0,
+          "no_store": true
+        },
+        "edge": {
+          "max_age": 0,
+          "bypass_cache": true
+        }
+      }
+    }
+  ]
+}
