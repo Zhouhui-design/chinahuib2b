@@ -11,18 +11,22 @@ echo "Cloudflare Geo Optimization for $DOMAIN"
 echo "=========================================="
 echo ""
 
-if [ -z "$CF_API_TOKEN" ]; then
-    echo "❌ Error: CF_API_TOKEN environment variable is not set"
+if [ -z "$CF_API_KEY" ] || [ -z "$CF_API_EMAIL" ]; then
+    echo "❌ Error: CF_API_KEY or CF_API_EMAIL environment variable is not set"
     echo ""
-    echo "Please set your Cloudflare API Token:"
-    echo "export CF_API_TOKEN='your_token_here'"
+    echo "Please set your Cloudflare Global API Key:"
+    echo "export CF_API_KEY='your_global_api_key'"
+    echo "export CF_API_EMAIL='your_email@example.com'"
     echo ""
     exit 1
 fi
 
+AUTH_HEADER="-H \"X-Auth-Email: $CF_API_EMAIL\" -H \"X-Auth-Key: $CF_API_KEY\""
+
 echo "Step 1: Getting Zone ID..."
 ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" | \
      jq -r '.result[0].id')
 
@@ -36,7 +40,8 @@ echo ""
 
 echo "Step 2: Enabling Geo Location Header"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/geo" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"on"}' > /dev/null
 echo "✅ Geo Location Header: Enabled"
@@ -46,8 +51,9 @@ echo "Step 3: Creating Regional Cache Rules"
 echo ""
 
 echo "Rule 1: US Region - English Content"
-US_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+US_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rules/cache" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "description": "US Region - English Content Cache",
@@ -73,8 +79,9 @@ fi
 echo ""
 
 echo "Rule 2: EU Region (FR, DE, UK) - Localized Content"
-EU_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+EU_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rules/cache" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "description": "EU Region (FR, DE, UK) - Localized Content Cache",
@@ -100,8 +107,9 @@ fi
 echo ""
 
 echo "Rule 3: Japan Region - Japanese Content"
-JP_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+JP_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rules/cache" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "description": "Japan Region - Japanese Content Cache",
@@ -127,8 +135,9 @@ fi
 echo ""
 
 echo "Rule 4: South Korea Region - Korean Content"
-KR_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+KR_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rules/cache" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "description": "South Korea Region - Korean Content Cache",
@@ -154,8 +163,9 @@ fi
 echo ""
 
 echo "Rule 5: Australia Region - English Content"
-AU_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+AU_RULE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rules/cache" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "description": "Australia Region - English Content Cache",
@@ -239,7 +249,8 @@ EOF
 
 echo "Creating worker 'geo-redirector'..."
 WORKER_CREATE=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/ced5d8fd71b99398a4f21c65f1cc485e/workers/scripts/geo-redirector" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/javascript" \
      --data "$WORKER_CODE")
 
@@ -254,7 +265,8 @@ echo ""
 
 echo "Step 5: Creating Route for Worker"
 ROUTE_CREATE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/workers/routes" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{
        "pattern": "x2xhub.com/*",
@@ -272,7 +284,8 @@ echo ""
 
 echo "Step 6: Setting Security Level to Medium"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/security_level" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"medium"}' > /dev/null
 echo "✅ Security Level: Medium"
@@ -280,7 +293,8 @@ echo ""
 
 echo "Step 7: Enabling Bot Management"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/bot_management" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"on"}' > /dev/null
 echo "✅ Bot Management: Enabled"
@@ -288,7 +302,8 @@ echo ""
 
 echo "Step 8: Purging Cache"
 PURGE_RESULT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"purge_everything":true}')
 
