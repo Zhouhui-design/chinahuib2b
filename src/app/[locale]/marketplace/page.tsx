@@ -599,9 +599,12 @@ export default function MarketplacePage() {
                           <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">✓ Verified</span>
                         )}
                       </div>
-                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                      <Link
+                        href={`/${locale}/marketplace/topic/${topic.id}`}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
                         {locale === 'zh' ? '查看详情' : 'View Details'}
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ))}
