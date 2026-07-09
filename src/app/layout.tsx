@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Script from "next/script";
 import { languages } from "@/lib/languages";
 import { generateWebsiteSchema, generateLocalBusinessSchema } from "@/lib/schema-org";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -122,6 +123,8 @@ export default function RootLayout({
         <LanguageProvider>
           {children}
         </LanguageProvider>
+        
+        <CookieConsent />
         
         <Script
           id="register-sw"
