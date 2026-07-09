@@ -1,142 +1,175 @@
-/**
- * Schema.org Structured Data for x2xhub.com
- * AI-First B2B Platform - Enhanced for AI Agent Discovery
- */
-
-export const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "China Hui B2B",
-  "alternateName": [
-    "x2xhub.com",
-    "Global Expo Network"
-  ],
-  "url": "https://x2xhub.com",
-  "logo": "https://x2xhub.com/logo.png",
-  "description": "AI-first global B2B marketplace connecting buyers and sellers worldwide with AI-powered tools",
-  "sameAs": [
-    "https://twitter.com/x2xhub",
-    "https://linkedin.com/company/x2xhub"
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer service",
-    "availableLanguage": ["English", "Chinese", "Spanish", "Arabic", "French", "German", "Russian", "Japanese", "Korean", "Portuguese"]
-  },
-  "areaServed": "Worldwide",
-  "knowsAbout": [
-    "B2B E-commerce",
-    "International Trade",
-    "Wholesale",
-    "Manufacturing",
-    "Supply Chain",
-    "AI-Powered Commerce"
-  ]
+export interface ProductSchema {
+  id: string
+  name: string
+  description: string
+  image: string
+  brand?: string
+  sku?: string
+  price?: number
+  currency?: string
+  category?: string
+  rating?: number
+  reviewCount?: number
 }
 
-export const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "China Hui B2B",
-  "url": "https://x2xhub.com",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://x2xhub.com/products?search={search_term_string}"
+export interface OrganizationSchema {
+  id: string
+  name: string
+  description: string
+  logo?: string
+  url?: string
+  email?: string
+  phone?: string
+  address?: string
+}
+
+export interface EventSchema {
+  id: string
+  name: string
+  description: string
+  startDate: string
+  endDate: string
+  location?: string
+  image?: string
+  organizer?: OrganizationSchema
+}
+
+export interface BreadcrumbItem {
+  name: string
+  url: string
+}
+
+export function generateProductSchema(product: ProductSchema): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    '@id': `https://x2xhub.com/products/${product.id}`,
+    name: product.name,
+    description: product.description,
+    image: product.image,
+    ...(product.brand && { brand: product.brand }),
+    ...(product.sku && { sku: product.sku }),
+    ...(product.price && {
+      offers: {
+        '@type': 'Offer',
+        price: product.price,
+        priceCurrency: product.currency || 'USD',
+        availability: 'https://schema.org/InStock',
+      },
+    }),
+    ...(product.category && { category: product.category }),
+    ...(product.rating && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: product.rating,
+        reviewCount: product.reviewCount || 0,
+      },
+    }),
+  }
+}
+
+export function generateOrganizationSchema(org: OrganizationSchema): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `https://x2xhub.com/stores/${org.id}`,
+    name: org.name,
+    description: org.description,
+    ...(org.logo && { logo: org.logo }),
+    ...(org.url && { url: org.url }),
+    ...(org.email && { email: org.email }),
+    ...(org.phone && { telephone: org.phone }),
+    ...(org.address && {
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: org.address,
+      },
+    }),
+  }
+}
+
+export function generateEventSchema(event: EventSchema): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    '@id': `https://x2xhub.com/exhibitions/${event.id}`,
+    name: event.name,
+    description: event.description,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    ...(event.location && { location: event.location }),
+    ...(event.image && { image: event.image }),
+    ...(event.organizer && {
+      organizer: {
+        '@type': 'Organization',
+        name: event.organizer.name,
+        ...(event.organizer.logo && { logo: event.organizer.logo }),
+        ...(event.organizer.url && { url: event.organizer.url }),
+      },
+    }),
+  }
+}
+
+export function generateBreadcrumbSchema(items: BreadcrumbItem[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  }
+}
+
+export function generateWebsiteSchema(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'X2XHub - Global B2B Trade Exhibition Platform',
+    url: 'https://x2xhub.com',
+    description: 'Connect global buyers and sellers. Discover quality products and verified suppliers for international trade.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'X2XHub',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://x2xhub.com/logo.png',
+      },
     },
-    "query-input": "required name=search_term_string"
-  },
-  "inLanguage": ["en", "zh", "es", "ar", "fr", "de", "ru", "ja", "ko", "pt", "hi", "tr", "th", "id", "vi"],
-  "description": "AI-driven B2B marketplace for global trade with multi-language support"
-}
-
-export const marketplaceSchema = {
-  "@context": "https://schema.org",
-  "@type": "OnlineMarketplace",
-  "name": "China Hui B2B Marketplace",
-  "url": "https://x2xhub.com/marketplace",
-  "description": "Task marketplace where anyone or any AI can post and complete business tasks",
-  "provider": {
-    "@type": "Organization",
-    "name": "China Hui B2B",
-    "url": "https://x2xhub.com"
-  },
-  "offers": {
-    "@type": "AggregateOffer",
-    "priceCurrency": "USD",
-    "lowPrice": "0",
-    "highPrice": "999999",
-    "offerCount": "1000+"
+    inLanguage: 'en',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://x2xhub.com/products?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
   }
 }
 
-export const productSchema = (product: any) => ({
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": product.title,
-  "description": product.description || "",
-  "image": product.mainImageUrl || "https://x2xhub.com/default-product.jpg",
-  "brand": {
-    "@type": "Brand",
-    "name": product.seller?.companyName || "Unknown Seller"
-  },
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": product.currency || "USD",
-    "price": product.price || "0",
-    "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    "seller": {
-      "@type": "Organization",
-      "name": product.seller?.companyName || ""
-    }
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": product.rating || "4.5",
-    "reviewCount": product.reviewCount || "0"
+export function generateLocalBusinessSchema(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: 'X2XHub',
+    url: 'https://x2xhub.com',
+    description: 'Global B2B trade exhibition platform connecting buyers and sellers worldwide',
+    image: 'https://x2xhub.com/logo.png',
+    telephone: '+86-400-888-8888',
+    email: 'contact@x2xhub.com',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'No. 88 Innovation Avenue',
+      addressLocality: 'Shenzhen',
+      addressRegion: 'Guangdong',
+      postalCode: '518000',
+      addressCountry: 'CN',
+    },
+    openingHours: 'Mo-Su 00:00-24:00',
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 22.5431,
+      longitude: 114.0579,
+    },
   }
-})
-
-export const sellerSchema = (seller: any) => ({
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": seller.companyName,
-  "description": seller.companyDescription || "",
-  "url": `https://x2xhub.com/stores/${seller.id}`,
-  "logo": seller.logoUrl || "",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": seller.address || "",
-    "addressLocality": seller.city || "",
-    "addressCountry": seller.country || ""
-  },
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "sales",
-    "email": seller.email || "",
-    "telephone": seller.phone || ""
-  },
-  "sameAs": seller.website ? [seller.website] : []
-})
-
-export const apiDocumentationSchema = {
-  "@context": "https://schema.org",
-  "@type": "TechArticle",
-  "headline": "China Hui B2B API Documentation",
-  "description": "Complete API documentation for AI agents to integrate with China Hui B2B platform",
-  "url": "https://x2xhub.com/docs",
-  "author": {
-    "@type": "Organization",
-    "name": "China Hui B2B"
-  },
-  "datePublished": "2026-05-21",
-  "dateModified": "2026-05-21",
-  "articleSection": "API Documentation",
-  "keywords": ["API", "B2B", "AI Integration", "MCP", "REST", "WebSocket"]
-}
-
-// Helper function to generate JSON-LD script tag
-export const generateJsonLd = (schema: any) => {
-  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
 }
