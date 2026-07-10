@@ -35,10 +35,18 @@ function generateSitemapXml(entries: SitemapEntry[]): string {
 }
 
 function createAlternates(path: string, isDefault = false): { lang: string; href: string }[] {
-  return languages.map(lang => ({
-    lang: lang.code,
-    href: lang.code === 'en' && !isDefault ? `${BASE_URL}${path}` : `${BASE_URL}/${lang.code}${path}`
-  }))
+  const links: { lang: string; href: string }[] = []
+  
+  languages.forEach(lang => {
+    const href = lang.code === 'en' 
+      ? `${BASE_URL}${path}` 
+      : `${BASE_URL}/${lang.code}${path}`
+    links.push({ lang: lang.code, href })
+  })
+  
+  links.push({ lang: 'x-default', href: `${BASE_URL}${path}` })
+  
+  return links
 }
 
 export async function GET(request: NextRequest) {

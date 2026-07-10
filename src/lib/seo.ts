@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import type { Metadata } from 'next'
 import { languages } from './languages'
+import { getSeoMeta } from './seo-meta'
 
 const BASE_URL = 'https://x2xhub.com'
 
@@ -38,23 +39,35 @@ export function getSupportedRegions(): { code: string; name: string; country: st
 
 export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
   try {
-    const config = await prisma.sEOConfig.findUnique({
-      where: { 
-        pagePath,
-        isActive: true
-      }
-    })
-
-    if (!config) {
-      return null
+    const languageCode = extractLanguageFromPath(pagePath)
+    
+    let config
+    try {
+      config = await prisma.sEOConfig.findUnique({
+        where: { 
+          pagePath,
+          isActive: true
+        }
+      })
+    } catch (prismaError) {
+      console.warn('SEO config not found in database, using default SEO meta')
     }
 
-    const languageCode = extractLanguageFromPath(pagePath)
-    const isEnglish = languageCode === 'en'
-    
-    const title = isEnglish ? (config.titleEn || config.title) : (config.title || config.titleEn)
-    const description = isEnglish ? (config.descriptionEn || config.description) : (config.description || config.descriptionEn)
-    const keywords = isEnglish ? (config.keywordsEn || config.keywords) : (config.keywords || config.keywordsEn)
+    let title: string | undefined
+    let description: string | undefined
+    let keywords: string[] | undefined
+
+    if (config) {
+      const isEnglish = languageCode === 'en'
+      title = isEnglish ? (config.titleEn || config.title) : (config.title || config.titleEn)
+      description = isEnglish ? (config.descriptionEn || config.description) : (config.description || config.descriptionEn)
+      keywords = (isEnglish ? (config.keywordsEn || config.keywords) : (config.keywords || config.keywordsEn))?.split(',').map(k => k.trim())
+    }
+
+    const defaultMeta = getSeoMeta(languageCode)
+    title = title || defaultMeta.title
+    description = description || defaultMeta.description
+    keywords = keywords || defaultMeta.keywords
 
     const alternates: Record<string, string> = {}
     languages.forEach(lang => {
@@ -65,21 +78,21 @@ export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
     })
 
     const metadata: Metadata = {
-      title: title || undefined,
-      description: description || undefined,
-      keywords: keywords ? keywords.split(',').map(k => k.trim()) : undefined,
+      title,
+      description,
+      keywords,
       alternates: {
         canonical: `${BASE_URL}${pagePath}`,
         languages: alternates,
       },
       openGraph: {
-        title: title || undefined,
-        description: description || undefined,
+        title,
+        description,
         url: `${BASE_URL}${pagePath}`,
       },
       twitter: {
-        title: title || undefined,
-        description: description || undefined,
+        title,
+        description,
       },
     }
 
