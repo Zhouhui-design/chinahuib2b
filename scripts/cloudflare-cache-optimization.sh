@@ -13,18 +13,20 @@ echo "Cloudflare Cache Optimization for $DOMAIN"
 echo "=========================================="
 echo ""
 
-if [ -z "$CF_API_TOKEN" ]; then
-    echo "❌ Error: CF_API_TOKEN environment variable is not set"
+if [ -z "$CF_API_KEY" ] || [ -z "$CF_API_EMAIL" ]; then
+    echo "❌ Error: CF_API_KEY or CF_API_EMAIL environment variable is not set"
     echo ""
-    echo "Please set your Cloudflare API Token:"
-    echo "export CF_API_TOKEN='your_token_here'"
+    echo "Please set your Cloudflare credentials:"
+    echo "export CF_API_KEY='your_global_api_key'"
+    echo "export CF_API_EMAIL='your_email@example.com'"
     echo ""
     exit 1
 fi
 
 echo "Step 1: Getting Zone ID..."
 ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" | \
      jq -r '.result[0].id')
 
@@ -36,168 +38,136 @@ fi
 echo "✅ Zone ID: $ZONE_ID"
 echo ""
 
-echo "Step 2: Enabling Development Mode (temporary)"
-curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/development_mode" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
-     -H "Content-Type: application/json" \
-     --data '{"value":"on"}' > /dev/null
-echo "✅ Development Mode enabled (will be disabled later)"
-echo ""
-
-echo "Step 3: Setting Browser Cache TTL to 4 hours"
+echo "Step 2: Setting Browser Cache TTL to 4 hours"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/browser_cache_ttl" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":14400}' > /dev/null
 echo "✅ Browser Cache TTL: 4 hours"
 echo ""
 
-echo "Step 4: Enabling Cache on Cookie"
-curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/cache_on_cookie" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
-     -H "Content-Type: application/json" \
-     --data '{"value":"on"}' > /dev/null
-echo "✅ Cache on Cookie: Enabled"
-echo ""
-
-echo "Step 5: Setting Edge Cache TTL to 1 hour"
+echo "Step 3: Setting Edge Cache TTL to 1 month (2592000 seconds)"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/edge_cache_ttl" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{"value":3600}' > /dev/null
-echo "✅ Edge Cache TTL: 1 hour"
+     --data '{"value":2592000}' > /dev/null
+echo "✅ Edge Cache TTL: 1 month"
 echo ""
 
-echo "Step 6: Enabling Polish (Image Optimization)"
+echo "Step 4: Setting Cache Level to Standard"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/cache_level" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
+     -H "Content-Type: application/json" \
+     --data '{"value":"standard"}' > /dev/null
+echo "✅ Cache Level: Standard"
+echo ""
+
+echo "Step 5: Enabling Polish (Lossless Image Optimization)"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/polish" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{"value":"lossy"}' > /dev/null
-echo "✅ Polish: Enabled (lossy compression)"
+     --data '{"value":"lossless"}' > /dev/null
+echo "✅ Polish: Enabled (lossless)"
 echo ""
 
-echo "Step 7: Enabling Mirage (Mobile Optimization)"
+echo "Step 6: Enabling Mirage (Mobile Optimization)"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/mirage" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"on"}' > /dev/null
 echo "✅ Mirage: Enabled"
 echo ""
 
-echo "Step 8: Enabling Rocket Loader (JavaScript Optimization)"
+echo "Step 7: Disabling Rocket Loader (may conflict with React)"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/rocket_loader" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{"value":"on"}' > /dev/null
-echo "✅ Rocket Loader: Enabled"
+     --data '{"value":"off"}' > /dev/null
+echo "✅ Rocket Loader: Disabled (avoids React conflicts)"
 echo ""
 
-echo "Step 9: Setting Always Online to On"
-curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/always_online" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+echo "Step 8: Enabling Brotli Compression"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/brotli" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"on"}' > /dev/null
-echo "✅ Always Online: Enabled"
+echo "✅ Brotli Compression: Enabled"
 echo ""
 
-echo "Step 10: Setting Tiered Cache to On"
+echo "Step 9: Enabling Auto Minify for JS, CSS, HTML"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/autominify" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
+     -H "Content-Type: application/json" \
+     --data '{"value":{"js":"on","css":"on","html":"on"}}' > /dev/null
+echo "✅ Auto Minify: JS, CSS, HTML - Enabled"
+echo ""
+
+echo "Step 10: Enabling Tiered Cache"
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/tiered_cache" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"value":"on"}' > /dev/null
 echo "✅ Tiered Cache: Enabled"
 echo ""
 
-echo "Step 11: Creating Cache Rules"
-echo ""
-
-echo "Rule 1: Cache Static Assets"
-CACHE_RULE_1=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+echo "Step 11: Setting Always Online to On"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/always_online" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{
-       "description": "Cache static assets (JS, CSS, images, fonts)",
-       "expression": "(http.request.uri.path matches \"^/(_next/static|/uploads|/images|/fonts)/.*\") and (http.request.method eq \"GET\")",
-       "action": {
-         "cache": true,
-         "edge_ttl": { "mode": "override", "value": 31536000 },
-         "browser_ttl": { "mode": "override", "value": 31536000 },
-         "cache_key": { "cache_deception_armor": true }
-       },
-       "priority": 1,
-       "status": "active"
-     }')
-
-success=$(echo "$CACHE_RULE_1" | jq -r '.success')
-if [ "$success" = "true" ]; then
-    echo "✅ Rule 1: Cache Static Assets - Created"
-else
-    echo "⚠️  Rule 1: $(echo "$CACHE_RULE_1" | jq -r '.errors[0].message')"
-fi
-
+     --data '{"value":"on"}' > /dev/null
+echo "✅ Always Online: Enabled"
 echo ""
 
-echo "Rule 2: Cache HTML Pages"
-CACHE_RULE_2=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+echo "Step 12: Setting SSL/TLS to Full (strict)"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/ssl" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{
-       "description": "Cache HTML pages with stale-while-revalidate",
-       "expression": "(http.request.uri.path matches \"^/(en|zh|about|products|exhibitions|stores|auction-screen)(/.*)?$\") and (http.request.method eq \"GET\") and (not http.request.uri.path matches \"^/api/.*\")",
-       "action": {
-         "cache": true,
-         "edge_ttl": { "mode": "override", "value": 600 },
-         "browser_ttl": { "mode": "override", "value": 60 },
-         "stale_while_revalidate": { "mode": "override", "value": 86400 },
-         "cache_key": { "cache_deception_armor": true }
-       },
-       "priority": 2,
-       "status": "active"
-     }')
-
-success=$(echo "$CACHE_RULE_2" | jq -r '.success')
-if [ "$success" = "true" ]; then
-    echo "✅ Rule 2: Cache HTML Pages - Created"
-else
-    echo "⚠️  Rule 2: $(echo "$CACHE_RULE_2" | jq -r '.errors[0].message')"
-fi
-
+     --data '{"value":"strict"}' > /dev/null
+echo "✅ SSL/TLS: Full (strict)"
 echo ""
 
-echo "Rule 3: No Cache for API"
-CACHE_RULE_3=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/cache_rules" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+echo "Step 13: Enabling Always Use HTTPS"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/always_use_https" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{
-       "description": "No cache for API routes",
-       "expression": "(http.request.uri.path matches \"^/api/.*\")",
-       "action": {
-         "cache": false
-       },
-       "priority": 3,
-       "status": "active"
-     }')
-
-success=$(echo "$CACHE_RULE_3" | jq -r '.success')
-if [ "$success" = "true" ]; then
-    echo "✅ Rule 3: No Cache for API - Created"
-else
-    echo "⚠️  Rule 3: $(echo "$CACHE_RULE_3" | jq -r '.errors[0].message')"
-fi
-
+     --data '{"value":"on"}' > /dev/null
+echo "✅ Always Use HTTPS: Enabled"
 echo ""
 
-echo "Step 12: Disabling Development Mode"
-curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/development_mode" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+echo "Step 14: Enabling HTTP Strict Transport Security (HSTS)"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/hsts" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
-     --data '{"value":"off"}' > /dev/null
-echo "✅ Development Mode disabled"
+     --data '{"value":{"enabled":true,"max_age":31536000,"include_subdomains":true,"preload":false}}' > /dev/null
+echo "✅ HSTS: Enabled (1 year)"
 echo ""
 
-echo "Step 13: Purging Cache"
+echo "Step 15: Enabling Bot Fight Mode"
+curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/settings/bot_fight_mode" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
+     -H "Content-Type: application/json" \
+     --data '{"value":"on"}' > /dev/null
+echo "✅ Bot Fight Mode: Enabled"
+echo ""
+
+echo "Step 16: Purging Cache"
 PURGE_RESULT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
-     -H "Authorization: Bearer $CF_API_TOKEN" \
+     -H "X-Auth-Email: $CF_API_EMAIL" \
+     -H "X-Auth-Key: $CF_API_KEY" \
      -H "Content-Type: application/json" \
      --data '{"purge_everything":true}')
 
