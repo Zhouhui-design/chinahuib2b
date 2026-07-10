@@ -5,7 +5,7 @@
  * - Server-side data fetching
  * - Incremental Static Regeneration (ISR)
  * - Automatic cache invalidation
- * - SEO optimized
+ * - SEO optimized with geolocation keywords
  * - Fast initial load
  */
 
@@ -16,6 +16,8 @@ import { ArrowLeft, Download, MessageCircle, Eye, Calendar, Package, Globe, Buil
 import { getProductById } from '@/lib/api/products'
 import ChatWidget from '@/components/chat/ChatWidget'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo/StructuredData'
+import type { Metadata } from 'next'
+import { languages } from '@/lib/languages'
 
 interface Props {
   params: Promise<{ id: string; locale: string }>
@@ -26,9 +28,61 @@ export const revalidate = 3600 // Revalidate every hour
 
 // Generate static params for SSG
 export async function generateStaticParams() {
-  // In production, fetch popular products and pre-render them
-  // For now, return empty array (will be generated on-demand)
   return []
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id, locale } = await params
+  const product = await getProductById(id)
+
+  if (!product) {
+    return {}
+  }
+
+  const title = locale === 'zh' ? product.title : (product.titleEn || product.title)
+  const description = product.description || ''
+  const sellerCity = product.seller.city
+  const sellerCountry = product.seller.country
+  const categoryName = locale === 'zh' ? product.category.name : (product.category.nameEn || product.category.name)
+
+  const geoKeywords = [sellerCity, sellerCountry, `${sellerCity} manufacturer`, `${sellerCountry} supplier`, `${categoryName} ${sellerCountry}`]
+  const baseKeywords = [product.title, categoryName, 'wholesale', 'B2B', 'supplier', 'manufacturer']
+  const keywords = [...baseKeywords, ...geoKeywords]
+
+  const alternates: Record<string, string> = {}
+  const baseUrl = 'https://x2xhub.com'
+  
+  languages.forEach(lang => {
+    const langPath = lang.code === 'en' 
+      ? `/products/${id}`
+      : `/${lang.code}/products/${id}`
+    alternates[lang.code] = `${baseUrl}${langPath}`
+  })
+
+  return {
+    title: `${title} - ${sellerCity}, ${sellerCountry} ${categoryName} Supplier | X2XHub`,
+    description: `${description.substring(0, 150)}... - ${title} from ${sellerCity}, ${sellerCountry} manufacturer. Wholesale B2B platform.`,
+    keywords,
+    alternates: {
+      canonical: `${baseUrl}/products/${id}`,
+      languages: alternates,
+    },
+    openGraph: {
+      title: `${title} - ${sellerCity}, ${sellerCountry}`,
+      description: `${description.substring(0, 150)}...`,
+      url: `${baseUrl}/products/${id}`,
+      images: [product.mainImageUrl],
+      locale: locale === 'zh' ? 'zh_CN' : `${locale}_${locale.toUpperCase()}`,
+    },
+    twitter: {
+      title: `${title} - ${sellerCity}, ${sellerCountry}`,
+      description: `${description.substring(0, 150)}...`,
+    },
+    other: {
+      'geo.region': sellerCountry.toUpperCase(),
+      'geo.placename': sellerCity,
+    },
+  }
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -47,6 +101,8 @@ export default async function ProductDetailPage({ params }: Props) {
     { name: locale === 'zh' ? '产品' : 'Products', url: `/${locale}/products` },
     { name: product.title, url: undefined as any } // Last item has no URL
   ]
+
+  const imageAltText = `${title}, ${categoryName} from ${product.seller.city}, ${product.seller.country} - ${product.seller.companyName}`
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,7 +131,7 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-lg">
               <Image
                 src={product.mainImageUrl}
-                alt={product.title}
+                alt={imageAltText}
                 width={800}
                 height={800}
                 className="w-full h-full object-cover"
@@ -93,7 +149,7 @@ export default async function ProductDetailPage({ params }: Props) {
                   <div key={idx} className="aspect-square bg-white rounded-lg overflow-hidden shadow">
                     <Image
                       src={img}
-                      alt={`${product.title} ${idx + 1}`}
+                      alt={`${imageAltText} - view ${idx + 1}`}
                       width={200}
                       height={200}
                       className="w-full h-full object-cover"

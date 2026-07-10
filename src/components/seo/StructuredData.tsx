@@ -9,14 +9,28 @@ export function ProductSchema({ product }: { product: any }) {
   const schema: Product = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: product.name,
+    name: product.titleEn || product.name || product.title,
     description: product.description,
-    image: product.images?.[0] || '',
+    image: product.images?.[0] || product.mainImageUrl || '',
     sku: product.id,
     brand: {
       '@type': 'Brand',
-      name: product.brand || product.storeName,
+      name: product.brand || product.storeName || product.seller?.companyName || 'X2XHub',
     },
+    manufacturer: product.seller ? {
+      '@type': 'Organization',
+      name: product.seller.companyName,
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: product.seller.country,
+        addressLocality: product.seller.city,
+      },
+      geo: product.seller.mapLatitude && product.seller.mapLongitude ? {
+        '@type': 'GeoCoordinates',
+        latitude: product.seller.mapLatitude,
+        longitude: product.seller.mapLongitude,
+      } : undefined,
+    } : undefined,
     offers: {
       '@type': 'Offer',
       price: product.price,
@@ -27,16 +41,17 @@ export function ProductSchema({ product }: { product: any }) {
       url: `https://x2xhub.com/products/${product.id}`,
       seller: {
         '@type': 'Organization',
-        name: product.storeName,
+        name: product.storeName || product.seller?.companyName || 'X2XHub',
       },
       priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      minOrderQuantity: product.minOrderQty || 1,
     },
     aggregateRating: product.averageRating ? {
       '@type': 'AggregateRating',
       ratingValue: product.averageRating,
       reviewCount: product.reviewCount || 0,
     } : undefined,
-    category: product.category,
+    category: product.category?.name || product.category,
     material: product.specifications?.material,
     color: product.specifications?.color,
     weight: product.specifications?.weight,
