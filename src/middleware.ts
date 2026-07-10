@@ -61,7 +61,7 @@ export function middleware(request: any) {
 
 export const config = {
   matcher: [
-    // Match all paths except static files, API routes, and uploads
-    '/((?!api|_next/static|_next/image|favicon.ico|uploads|.*\\..*).*)',
+    // Match all paths except static files, API routes, sitemap, robots, and uploads
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|.*\\..*).*)',
   ]
 }
