@@ -54,7 +54,6 @@ export async function GET(request: NextRequest) {
     const entries: SitemapEntry[] = []
     const now = new Date().toISOString().split('T')[0]
 
-    // Homepage
     entries.push({
       loc: `${BASE_URL}/`,
       lastmod: now,
@@ -63,7 +62,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/', true)
     })
 
-    // Marketplace
     entries.push({
       loc: `${BASE_URL}/marketplace`,
       lastmod: now,
@@ -72,7 +70,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/marketplace')
     })
 
-    // Products
     entries.push({
       loc: `${BASE_URL}/products`,
       lastmod: now,
@@ -81,7 +78,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/products')
     })
 
-    // Stores
     entries.push({
       loc: `${BASE_URL}/stores`,
       lastmod: now,
@@ -90,7 +86,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/stores')
     })
 
-    // Exhibitions
     entries.push({
       loc: `${BASE_URL}/exhibitions`,
       lastmod: now,
@@ -99,7 +94,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/exhibitions')
     })
 
-    // About
     entries.push({
       loc: `${BASE_URL}/about`,
       lastmod: now,
@@ -108,7 +102,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/about')
     })
 
-    // Contact
     entries.push({
       loc: `${BASE_URL}/contact`,
       lastmod: now,
@@ -117,7 +110,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/contact')
     })
 
-    // Investment
     entries.push({
       loc: `${BASE_URL}/investment`,
       lastmod: now,
@@ -126,7 +118,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/investment')
     })
 
-    // Auth pages
     entries.push({
       loc: `${BASE_URL}/auth/login`,
       lastmod: now,
@@ -143,7 +134,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/auth/register')
     })
 
-    // API Docs
     entries.push({
       loc: `${BASE_URL}/api/docs`,
       lastmod: now,
@@ -152,7 +142,6 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/api/docs')
     })
 
-    // Privacy & Terms
     entries.push({
       loc: `${BASE_URL}/privacy`,
       lastmod: now,
@@ -169,75 +158,86 @@ export async function GET(request: NextRequest) {
       alternates: createAlternates('/terms')
     })
 
-    // Dynamic content: Products
-    const products = await prisma.product.findMany({
-      where: { isActive: true, isPublished: true },
-      select: { id: true, slug: true, updatedAt: true },
-      take: 1000
-    })
-
-    products.forEach(product => {
-      entries.push({
-        loc: `${BASE_URL}/products/${product.id}`,
-        lastmod: new Date(product.updatedAt).toISOString().split('T')[0],
-        changefreq: 'weekly',
-        priority: 0.85,
-        alternates: createAlternates(`/products/${product.id}`)
+    try {
+      const products = await prisma.product.findMany({
+        where: { isActive: true, isPublished: true },
+        select: { id: true, slug: true, updatedAt: true },
+        take: 1000
       })
-    })
 
-    // Dynamic content: Stores
-    const stores = await prisma.sellerProfile.findMany({
-      where: { isActive: true },
-      select: { id: true, updatedAt: true },
-      take: 500
-    })
-
-    stores.forEach(store => {
-      entries.push({
-        loc: `${BASE_URL}/stores/${store.id}`,
-        lastmod: new Date(store.updatedAt).toISOString().split('T')[0],
-        changefreq: 'weekly',
-        priority: 0.8,
-        alternates: createAlternates(`/stores/${store.id}`)
+      products.forEach(product => {
+        entries.push({
+          loc: `${BASE_URL}/products/${product.id}`,
+          lastmod: new Date(product.updatedAt).toISOString().split('T')[0],
+          changefreq: 'weekly',
+          priority: 0.85,
+          alternates: createAlternates(`/products/${product.id}`)
+        })
       })
-    })
+    } catch (error) {
+      console.warn('Failed to fetch products for sitemap:', error)
+    }
 
-    // Dynamic content: Booths
-    const booths = await prisma.booth.findMany({
-      where: { isActive: true, isPublished: true },
-      select: { id: true, updatedAt: true },
-      take: 500
-    })
-
-    booths.forEach(booth => {
-      entries.push({
-        loc: `${BASE_URL}/exhibitions/${booth.id}`,
-        lastmod: new Date(booth.updatedAt).toISOString().split('T')[0],
-        changefreq: 'weekly',
-        priority: 0.85,
-        alternates: createAlternates(`/exhibitions/${booth.id}`)
+    try {
+      const stores = await prisma.sellerProfile.findMany({
+        where: { isActive: true },
+        select: { id: true, updatedAt: true },
+        take: 500
       })
-    })
 
-    // Dynamic content: Topics
-    const topics = await prisma.topic.findMany({
-      where: { isActive: true },
-      select: { id: true, updatedAt: true },
-      take: 500
-    })
-
-    topics.forEach(topic => {
-      entries.push({
-        loc: `${BASE_URL}/marketplace/topic/${topic.id}`,
-        lastmod: new Date(topic.updatedAt).toISOString().split('T')[0],
-        changefreq: 'hourly',
-        priority: 0.75,
-        alternates: createAlternates(`/marketplace/topic/${topic.id}`)
+      stores.forEach(store => {
+        entries.push({
+          loc: `${BASE_URL}/stores/${store.id}`,
+          lastmod: new Date(store.updatedAt).toISOString().split('T')[0],
+          changefreq: 'weekly',
+          priority: 0.8,
+          alternates: createAlternates(`/stores/${store.id}`)
+        })
       })
-    })
+    } catch (error) {
+      console.warn('Failed to fetch stores for sitemap:', error)
+    }
 
-    // Regional market pages for target countries
+    try {
+      const booths = await prisma.booth.findMany({
+        where: { isActive: true, isPublished: true },
+        select: { id: true, updatedAt: true },
+        take: 500
+      })
+
+      booths.forEach(booth => {
+        entries.push({
+          loc: `${BASE_URL}/exhibitions/${booth.id}`,
+          lastmod: new Date(booth.updatedAt).toISOString().split('T')[0],
+          changefreq: 'weekly',
+          priority: 0.85,
+          alternates: createAlternates(`/exhibitions/${booth.id}`)
+        })
+      })
+    } catch (error) {
+      console.warn('Failed to fetch booths for sitemap:', error)
+    }
+
+    try {
+      const topics = await prisma.topic.findMany({
+        where: { isActive: true },
+        select: { id: true, updatedAt: true },
+        take: 500
+      })
+
+      topics.forEach(topic => {
+        entries.push({
+          loc: `${BASE_URL}/marketplace/topic/${topic.id}`,
+          lastmod: new Date(topic.updatedAt).toISOString().split('T')[0],
+          changefreq: 'hourly',
+          priority: 0.75,
+          alternates: createAlternates(`/marketplace/topic/${topic.id}`)
+        })
+      })
+    } catch (error) {
+      console.warn('Failed to fetch topics for sitemap:', error)
+    }
+
     const regionalPages = [
       { path: '/marketplace?region=us', region: 'US', priority: 0.85 },
       { path: '/marketplace?region=eu', region: 'EU', priority: 0.85 },
