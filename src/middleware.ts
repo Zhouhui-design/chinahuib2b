@@ -8,6 +8,21 @@ const supportedLanguages = languages.map(lang => lang.code)
 export function middleware(request: any) {
   const pathname = request.nextUrl.pathname
   
+  // Skip middleware for Service Worker files - they need to bypass language redirection
+  if (
+    pathname.startsWith('/sw.js') ||
+    pathname.startsWith('/service-worker') ||
+    pathname.includes('service-worker') ||
+    pathname.includes('pwa-sw-worker') ||
+    pathname.includes('pwa-worker') ||
+    pathname.includes('worker.js') ||
+    pathname.includes('pwa-js.js') ||
+    pathname.startsWith('/pwasw')
+  ) {
+    const response = NextResponse.next()
+    return addSecurityHeaders(response)
+  }
+  
   // Skip middleware for dashboard routes (seller, admin)
   // These routes don't need language prefix and handle their own i18n
   if (
@@ -15,6 +30,15 @@ export function middleware(request: any) {
     pathname.startsWith('/admin')
   ) {
     const response = NextResponse.next()
+    return addSecurityHeaders(response)
+  }
+
+  // Fix double language prefix (e.g., /de/de -> /de)
+  const doubleLocaleMatch = pathname.match(/^\/([a-z]{2})\/\1(\/.*)?$/)
+  if (doubleLocaleMatch) {
+    const newPathname = `/${doubleLocaleMatch[1]}${doubleLocaleMatch[2] || ''}`
+    const newUrl = new URL(newPathname, request.url)
+    const response = NextResponse.redirect(newUrl, 301)
     return addSecurityHeaders(response)
   }
   
@@ -61,7 +85,6 @@ export function middleware(request: any) {
 
 export const config = {
   matcher: [
-    // Match all paths except static files, API routes, sitemap, robots, and uploads
-    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|.*\\..*).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|sw.js|pwasw|service-worker|.*\\..*).*)',
   ]
 }

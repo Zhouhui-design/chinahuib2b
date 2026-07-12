@@ -39,7 +39,7 @@ class PWAManager {
     }
 
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
+      const registration = await navigator.serviceWorker.register('/pwasw', {
         scope: '/'
       });
 
@@ -48,24 +48,38 @@ class PWAManager {
 
       console.log('[PWA] Service Worker registered:', registration.scope);
 
-      // Listen for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content available, prompt user to refresh
               this.notifyUpdate();
             }
           });
         }
       });
 
+      await this.forceUpdate(registration);
+
       return registration;
     } catch (error) {
       console.error('[PWA] Service Worker registration failed:', error);
       return null;
+    }
+  }
+
+  /**
+   * Force update check for service worker
+   */
+  async forceUpdate(registration: ServiceWorkerRegistration): Promise<void> {
+    try {
+      const updateFound = await registration.update();
+      if (updateFound) {
+        console.log('[PWA] New Service Worker found, updating...');
+      }
+    } catch (e) {
+      console.warn('[PWA] Force update check failed:', e);
     }
   }
 
