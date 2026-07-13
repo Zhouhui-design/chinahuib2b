@@ -16,10 +16,6 @@ const BASE_URL = "https://x2xhub.com";
 export const metadata: Metadata = {
   title: "X2XHub - Global B2B Trade Exhibition Platform",
   description: "Connect global buyers and sellers. Discover quality products and verified suppliers for international trade across 13 languages.",
-  verification: {
-    google: "google1234567890abcdef",
-    bing: "x2xhub-bing-verification-code",
-  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

@@ -6,8 +6,6 @@ import { languages, type LanguageCode } from '@/lib/languages';
 import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import Footer from '@/components/Footer';
-import MobileBottomNav from '@/components/MobileBottomNav';
-import GA4Script from '@/components/GA4Script';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
@@ -397,12 +395,6 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
 
       {/* Footer */}
       <Footer locale={locale} />
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav locale={locale} />
-
-      {/* GA4 Analytics Script */}
-      <GA4Script />
     </div>
   );
 }

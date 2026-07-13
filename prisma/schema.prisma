@@ -69,11 +69,6 @@ model User {
   topics                     Topic[]
   topicComments              TopicComment[]
   topicLikes                 TopicLike[]
-  blogPosts                  Blog[]
-  blogComments               BlogComment[]
-  blogLikes                  BlogLike[]
-  reviews                    Review[]
-  reviewHelpfulVotes         ReviewHelpfulVote[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -175,7 +170,6 @@ model SellerProfile {
   paymentProofs        PaymentProof[]
   products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
-  reviews              Review[]
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
@@ -258,7 +252,6 @@ model Product {
   descriptions   Json?
   titles         Json?
   inquiries      Inquiry[]
-  reviews        Review[]
   booth          Booth?           @relation(fields: [boothId], references: [id])
   category       Category         @relation(fields: [categoryId], references: [id])
   seller         SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
@@ -1378,129 +1371,4 @@ enum WithdrawalStatus {
   APPROVED
   REJECTED
   COMPLETED
-}
-
-enum BlogCategory {
-  INDUSTRY_NEWS
-  MARKET_TRENDS
-  PRODUCT_GUIDES
-  COMPANY_UPDATES
-  SUCCESS_STORIES
-  TIPS_ADVICE
-  OTHER
-}
-
-enum ReviewRating {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
-}
-
-model Blog {
-  id            String        @id @default(cuid())
-  title         String
-  titleEn       String?
-  slug          String        @unique
-  content       String
-  contentEn     String?
-  excerpt       String?
-  excerptEn     String?
-  category      BlogCategory  @default(OTHER)
-  tags          String[]
-  images        String[]
-  featuredImage String?
-  authorId      String
-  isPublished   Boolean       @default(true)
-  viewCount     Int           @default(0)
-  likeCount     Int           @default(0)
-  commentCount  Int           @default(0)
-  seoTitle      String?
-  seoTitleEn    String?
-  seoDescription String?
-  seoDescriptionEn String?
-  seoKeywords   String[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  author        User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments      BlogComment[]
-  likes         BlogLike[]
-
-  @@index([slug])
-  @@index([category])
-  @@index([isPublished])
-  @@index([createdAt])
-}
-
-model BlogComment {
-  id         String   @id @default(cuid())
-  blogId     String
-  userId     String
-  content    String
-  parentId   String?
-  likeCount  Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  blog       Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent     BlogComment? @relation("BlogCommentParent", fields: [parentId], references: [id])
-  replies    BlogComment[] @relation("BlogCommentParent")
-  likes      BlogLike[]
-
-  @@index([blogId])
-  @@index([userId])
-}
-
-model BlogLike {
-  id        String   @id @default(cuid())
-  userId    String
-  blogId    String?
-  commentId String?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  blog      Blog?    @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  comment   BlogComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, blogId], name: "BlogLike_userId_blogId_key")
-  @@unique([userId, commentId], name: "BlogLike_userId_commentId_key")
-}
-
-model Review {
-  id           String       @id @default(cuid())
-  productId    String?
-  sellerId     String?
-  userId       String
-  rating       ReviewRating
-  title        String
-  content      String
-  images       String[]
-  isVerified   Boolean      @default(false)
-  isActive     Boolean      @default(true)
-  helpfulCount Int          @default(0)
-  replyContent String?
-  repliedAt    DateTime?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product      Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  seller       SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  helpfulVotes ReviewHelpfulVote[]
-
-  @@index([productId])
-  @@index([sellerId])
-  @@index([userId])
-  @@index([rating])
-  @@index([isActive])
-}
-
-model ReviewHelpfulVote {
-  id      String   @id @default(cuid())
-  reviewId String
-  userId   String
-  createdAt DateTime @default(now())
-  review  Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, reviewId], name: "ReviewHelpfulVote_userId_reviewId_key")
 }
