@@ -39,7 +39,7 @@ class PWAManager {
     }
 
     try {
-      const registration = await navigator.serviceWorker.register('/pwasw', {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/'
       });
 
