@@ -193,7 +193,95 @@ async function main() {
     }
   })
 
-  console.log('✓ Buyer created')
+  // Create test reviews
+  console.log('Creating test reviews...')
+  
+  const products = await prisma.product.findMany({ take: 10 })
+  const buyers = await prisma.user.findMany({ where: { role: 'BUYER' } })
+  
+  const reviewsData = [
+    {
+      title: 'Excellent Product Quality',
+      titleEn: 'Excellent Product Quality',
+      content: 'The product exceeded our expectations. The build quality is outstanding and the delivery was fast. We have been using this product for 6 months now and it still works perfectly. Highly recommend to anyone looking for reliable products.',
+      contentEn: 'The product exceeded our expectations. The build quality is outstanding and the delivery was fast. We have been using this product for 6 months now and it still works perfectly. Highly recommend to anyone looking for reliable products.',
+      rating: 5,
+      isVerified: true,
+    },
+    {
+      title: 'Good Value for Money',
+      titleEn: 'Good Value for Money',
+      content: 'Great product at a competitive price. The supplier was very responsive to our inquiries and provided excellent after-sales service. Will definitely order again in the future.',
+      contentEn: 'Great product at a competitive price. The supplier was very responsive to our inquiries and provided excellent after-sales service. Will definitely order again in the future.',
+      rating: 4,
+      isVerified: true,
+    },
+    {
+      title: 'Fast Delivery',
+      titleEn: 'Fast Delivery',
+      content: 'The shipment arrived earlier than expected. The packaging was secure and the product was in perfect condition. The communication with the seller was smooth throughout the process.',
+      contentEn: 'The shipment arrived earlier than expected. The packaging was secure and the product was in perfect condition. The communication with the seller was smooth throughout the process.',
+      rating: 5,
+      isVerified: true,
+    },
+    {
+      title: 'Quality meets expectations',
+      titleEn: 'Quality meets expectations',
+      content: 'The product is exactly as described. We have placed multiple orders with this supplier and have always been satisfied with the quality and service. Professional team to work with.',
+      contentEn: 'The product is exactly as described. We have placed multiple orders with this supplier and have always been satisfied with the quality and service. Professional team to work with.',
+      rating: 4,
+      isVerified: true,
+    },
+    {
+      title: 'Highly Recommended',
+      titleEn: 'Highly Recommended',
+      content: 'Working with this supplier has been a great experience. They understand our requirements well and always deliver on time. The product quality is consistent and the prices are fair.',
+      contentEn: 'Working with this supplier has been a great experience. They understand our requirements well and always deliver on time. The product quality is consistent and the prices are fair.',
+      rating: 5,
+      isVerified: true,
+    },
+    {
+      title: 'Smooth Transaction',
+      titleEn: 'Smooth Transaction',
+      content: 'From inquiry to delivery, everything went smoothly. The sales team was knowledgeable and provided all the information we needed. We look forward to our next collaboration.',
+      contentEn: 'From inquiry to delivery, everything went smoothly. The sales team was knowledgeable and provided all the information we needed. We look forward to our next collaboration.',
+      rating: 5,
+      isVerified: true,
+    },
+    {
+      title: 'Good communication',
+      titleEn: 'Good communication',
+      content: 'The supplier was very responsive to all our questions. They provided samples quickly and the quality was good. We are happy with our purchase and would recommend to others.',
+      contentEn: 'The supplier was very responsive to all our questions. They provided samples quickly and the quality was good. We are happy with our purchase and would recommend to others.',
+      rating: 4,
+      isVerified: true,
+    },
+    {
+      title: 'Reliable supplier',
+      titleEn: 'Reliable supplier',
+      content: 'We have been doing business with this supplier for over a year now. They are reliable, professional, and always deliver quality products. Great partner for our business.',
+      contentEn: 'We have been doing business with this supplier for over a year now. They are reliable, professional, and always deliver quality products. Great partner for our business.',
+      rating: 5,
+      isVerified: true,
+    },
+  ]
+  
+  for (let i = 0; i < Math.min(products.length, reviewsData.length); i++) {
+    await prisma.review.create({
+      data: {
+        productId: products[i].id,
+        sellerId: products[i].sellerId,
+        userId: buyers[0]?.id || sellers[0].userId,
+        title: reviewsData[i].title,
+        content: reviewsData[i].content,
+        rating: reviewsData[i].rating,
+        isVerified: reviewsData[i].isVerified,
+        helpfulCount: Math.floor(Math.random() * 50),
+      }
+    })
+  }
+  
+  console.log('✓ Reviews created')
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
   console.log('Sellers:')

@@ -6,9 +6,10 @@ import * as auctionService from '@/services/auctionService';
 // POST /api/auction/[id]/bid - Place a bid
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +19,7 @@ export async function POST(
     const { amount, isAutoBid, maxAutoBid } = body;
 
     const result = await auctionService.placeBid(
-      params.id,
+      id,
       session.user.id,
       amount,
       isAutoBid || false,
@@ -39,15 +40,16 @@ export async function POST(
 // GET /api/auction/[id]/bid - Get all bids for listing
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const bids = await auctionService.getBidsForListing(params.id);
+    const bids = await auctionService.getBidsForListing(id);
     return NextResponse.json(bids);
   } catch (error) {
     console.error('Error fetching bids:', error);

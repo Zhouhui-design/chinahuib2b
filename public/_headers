@@ -62,6 +62,12 @@
 /auction-screen/*
   Cache-Control: public, s-maxage=600, stale-while-revalidate=3600
 
+# Service Worker - no caching
+/sw.js
+  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+  Pragma: no-cache
+  Expires: 0
+
 # Enable ETag for better caching
 /*
   ETag: "generated"

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { ArrowLeft, Edit2, Trash2, Plus, X } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 import ProductSelector from '@/components/ProductSelector'
@@ -39,8 +40,9 @@ interface Booth {
   products: Product[]
 }
 
-export default function BoothDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params
+export default function BoothDetailPage() {
+  const params = useParams()
+  const id = params['id'] as string
   const language = useSellerLanguage()
   const [booth, setBooth] = useState<Booth | null>(null)
   const [isLoading, setIsLoading] = useState(true)

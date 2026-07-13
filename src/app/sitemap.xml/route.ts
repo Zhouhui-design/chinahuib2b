@@ -95,6 +95,14 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
+      loc: `${BASE_URL}/blog`,
+      lastmod: now,
+      changefreq: 'daily',
+      priority: 0.85,
+      alternates: createAlternates('/blog')
+    })
+
+    entries.push({
       loc: `${BASE_URL}/about`,
       lastmod: now,
       changefreq: 'monthly',

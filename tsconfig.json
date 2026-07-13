@@ -28,21 +28,20 @@
       ]
     },
     // Enhanced strict mode options
-    "noUncheckedIndexedAccess": true,     // 检查数组/对象索引访问
-    "noImplicitOverride": true,           // 要求显式 override 关键字
+    "noUncheckedIndexedAccess": true, // 检查数组/对象索引访问
+    "noImplicitOverride": true, // 要求显式 override 关键字
     "noPropertyAccessFromIndexSignature": true, // 禁止通过索引签名访问属性
-    "exactOptionalPropertyTypes": true,   // 精确可选属性类型
-    "noUnusedLocals": false,              // 暂时关闭（开发阶段）
-    "noUnusedParameters": false,          // 暂时关闭（开发阶段）
+    "exactOptionalPropertyTypes": true, // 精确可选属性类型
+    "noUnusedLocals": false, // 暂时关闭（开发阶段）
+    "noUnusedParameters": false, // 暂时关闭（开发阶段）
     "forceConsistentCasingInFileNames": true // 强制文件名大小写一致
   },
   "include": [
-    "next-env.d.ts",
+    "**/*.mts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
