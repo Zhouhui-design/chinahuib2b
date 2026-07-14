@@ -37,12 +37,22 @@ export default function ProductGrid({ products, locale = 'en' }: ProductGridProp
           {/* Product Image */}
           <div className="relative h-56 bg-gray-100 overflow-hidden">
             {product.mainImageUrl && !product.mainImageUrl.includes('placeholder') ? (
-              <Image
-                src={product.mainImageUrl}
-                alt={product.title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+              product.mainImageUrl.startsWith('/uploads/') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={product.mainImageUrl}
+                  alt={product.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <Image
+                  src={product.mainImageUrl}
+                  alt={product.title}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              )
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-200">
                 <div className="text-center">
