@@ -36,12 +36,20 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: '139.59.108.156',
       },
+      {
+        protocol: 'https',
+        hostname: 'x2xhub.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.x2xhub.com',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1 year cache for optimized images
     dangerouslyAllowSVG: false,
     contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none';",
   },
   
   // Compression and performance optimizations
