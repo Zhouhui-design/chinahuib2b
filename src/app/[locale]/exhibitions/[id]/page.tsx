@@ -8,7 +8,7 @@ import {
   Check, X, Star, Truck, Shield, Award, Users, Clock, Package,
   Building2, ExternalLink, Loader2, ArrowLeft, Copy, CheckCircle2,
   Layers, Ruler, Box, Hash, Weight, Edit3, MessageSquare, Briefcase,
-  Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book
+  Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book, Download
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
@@ -39,6 +39,13 @@ interface Product {
   }
   mainImageUrl: string
   images: string[]
+  videos?: string[]
+  documents?: {
+    url: string
+    name?: string
+    type?: string
+    size?: number
+  }[]
   category?: {
     id?: string
     name: string
@@ -1545,6 +1552,72 @@ function ProductDetailModal({
                   <BooleanSpec label="OEM" value={!!specs.oem} />
                   <BooleanSpec label="ODM" value={!!specs.odm} />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Product Videos Section */}
+          {product.videos && product.videos.length > 0 && (
+            <div className="px-6 pb-6">
+              <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center">
+                <Video className="w-4 h-4 mr-2 text-blue-600" />
+                Product Videos
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {product.videos.map((video, idx) => (
+                  <div key={idx} className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                    <video
+                      src={video}
+                      controls
+                      className="w-full h-full"
+                      poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23374151'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Product Documents Section */}
+          {product.documents && product.documents.length > 0 && (
+            <div className="px-6 pb-6">
+              <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center">
+                <Book className="w-4 h-4 mr-2 text-blue-600" />
+                Product Documents
+              </h3>
+              <div className="space-y-2">
+                {product.documents.map((doc, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Book className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                          {doc.name || 'Document'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {doc.size && doc.size > 1024 * 1024
+                            ? `${(doc.size / (1024 * 1024)).toFixed(2)} MB`
+                            : doc.size
+                            ? `${(doc.size / 1024).toFixed(1)} KB`
+                            : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={doc.url}
+                      download
+                      className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Download
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
           )}

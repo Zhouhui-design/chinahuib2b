@@ -12,7 +12,23 @@ const productUpdateSchema = z.object({
   minOrderQty: z.number().min(1).optional(),
   supplyCapacity: z.string().optional(),
   images: z.array(z.string()).optional(),
-  mainImageUrl: z.string().url().optional(),
+  mainImageUrl: z.string().optional().refine(
+    (val) => !val || val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+    { message: 'mainImageUrl must be a valid URL or a relative path starting with /uploads/' }
+  ),
+  videos: z.array(z.string().refine(
+    (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+    { message: 'Video URL must be a valid URL or a relative path starting with /uploads/' }
+  )).optional(),
+  documents: z.array(z.object({
+    url: z.string().refine(
+      (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
+      { message: 'Document URL must be a valid URL or a relative path starting with /uploads/' }
+    ),
+    name: z.string().optional(),
+    type: z.string().optional(),
+    size: z.number().optional(),
+  })).optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
   boothId: z.string().optional(),

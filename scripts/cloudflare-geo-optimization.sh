@@ -202,7 +202,7 @@ async function handleRequest(request) {
   const url = new URL(request.url)
   const path = url.pathname
   
-  if (path.startsWith('/api/') || path.startsWith('/_next/') || path.startsWith('/uploads/')) {
+  if (path.startsWith('/api/') || path.startsWith('/_next/') || path.startsWith('/uploads/') || path.startsWith('/sitemap.xml') || path.startsWith('/robots.txt') || path.startsWith('/google') || path.startsWith('/favicon.ico') || path.startsWith('/icons/') || path.startsWith('/sw.js')) {
     return fetch(request)
   }
   
@@ -237,7 +237,7 @@ async function handleRequest(request) {
     return Response.redirect(`https://x2xhub.com${targetPath}`, 302)
   }
   
-  if (!path.match(/^\/[a-z]{2}\//)) {
+  if (!path.match(/^\/[a-z]{2}(\/|$)/)) {
     const targetPath = `/${defaultLang}${path}`
     return Response.redirect(`https://x2xhub.com${targetPath}`, 302)
   }

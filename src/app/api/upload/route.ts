@@ -99,13 +99,12 @@ export async function POST(request: NextRequest) {
         ext = '.webp'
       } catch (error) {
         console.error('Image processing error:', error)
-        // If processing fails, use original extension
-        ext = getFileExtension(file.name)
+        ext = getExtensionFromFilename(file.name) || getFileExtension(file.type)
       }
     } else if (file.type === 'application/pdf') {
       ext = '.pdf'
     } else {
-      ext = getFileExtension(file.name)
+      ext = getExtensionFromFilename(file.name) || getFileExtension(file.type)
     }
 
     // Upload to DigitalOcean Spaces if configured, otherwise use local storage
@@ -280,4 +279,13 @@ function getFileExtension(mimeType: string): string {
     'application/x-7z-compressed': '.7z',
   }
   return extensions[mimeType] || '.bin'
+}
+
+// Helper function to get file extension from filename
+function getExtensionFromFilename(filename: string): string {
+  const parts = filename.split('.')
+  if (parts.length > 1) {
+    return '.' + parts[parts.length - 1].toLowerCase()
+  }
+  return ''
 }

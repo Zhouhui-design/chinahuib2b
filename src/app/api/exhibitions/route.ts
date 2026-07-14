@@ -34,12 +34,10 @@ export async function GET(request: NextRequest) {
               linkedin: true,
               facebook: true,
               instagram: true,
-              youtube: true,
               tiktok: true,
               twitter: true,
               pinterest: true,
               douyin: true,
-              xiaohongshu: true,
               qq: true,
               dingtalk: true,
               lark: true,
@@ -103,7 +101,24 @@ export async function GET(request: NextRequest) {
           },
           products: {
             where: { isActive: true },
-            include: {
+            select: {
+              id: true,
+              title: true,
+              titleEn: true,
+              titles: true,
+              description: true,
+              descriptions: true,
+              specifications: true,
+              mainImageUrl: true,
+              images: true,
+              videos: true,
+              documents: true,
+              viewCount: true,
+              inquiryCount: true,
+              minOrderQty: true,
+              supplyCapacity: true,
+              hasBrochure: true,
+              categoryId: true,
               category: {
                 select: {
                   id: true,

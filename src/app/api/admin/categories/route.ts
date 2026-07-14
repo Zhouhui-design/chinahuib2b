@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { invalidateCategoryCaches } from "@/lib/cache"
 
 export async function GET(request: Request) {
   try {
@@ -103,6 +104,8 @@ export async function POST(request: Request) {
       },
     })
 
+    await invalidateCategoryCaches()
+
     return NextResponse.json({
       success: true,
       category,
@@ -172,6 +175,8 @@ export async function PUT(request: Request) {
       },
     })
 
+    await invalidateCategoryCaches()
+
     return NextResponse.json({
       success: true,
       category,
@@ -217,6 +222,8 @@ export async function DELETE(request: Request) {
     await prisma.category.delete({
       where: { id },
     })
+
+    await invalidateCategoryCaches()
 
     return NextResponse.json({
       success: true,

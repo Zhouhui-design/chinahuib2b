@@ -14,7 +14,7 @@ export async function GET(
     const product = await cacheGetOrSet(
       cacheKey,
       async () => {
-        return await prisma.product.findUnique({
+        const result = await prisma.product.findUnique({
           where: { 
             id,
             isActive: true 
@@ -36,6 +36,15 @@ export async function GET(
             brochure: true
           }
         })
+        
+        if (result) {
+          return {
+            ...result,
+            videos: result.videos || [],
+            documents: result.documents || []
+          }
+        }
+        return null
       },
       CACHE_TTL.LONG // Cache for 1 hour
     )

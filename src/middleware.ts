@@ -32,14 +32,25 @@ export function middleware(request: any) {
     const response = NextResponse.next()
     return addSecurityHeaders(response)
   }
-
-  // Fix double language prefix (e.g., /de/de -> /de)
-  const doubleLocaleMatch = pathname.match(/^\/([a-z]{2})\/\1(\/.*)?$/)
-  if (doubleLocaleMatch) {
-    const newPathname = `/${doubleLocaleMatch[1]}${doubleLocaleMatch[2] || ''}`
+  
+  // Handle language-prefixed dashboard routes (e.g., /de/seller -> /seller)
+  const localeDashboardMatch = pathname.match(/^\/([a-z]{2})\/(seller|admin)(\/.*)?$/)
+  if (localeDashboardMatch) {
+    const [, , dashboardRoute, rest] = localeDashboardMatch
+    const newPathname = `/${dashboardRoute}${rest || ''}`
     const newUrl = new URL(newPathname, request.url)
-    const response = NextResponse.redirect(newUrl, 301)
-    return addSecurityHeaders(response)
+    return NextResponse.rewrite(newUrl)
+  }
+
+  // Handle Cloudflare Worker adding wrong locale prefix (e.g., /zh/de -> /de)
+  const localePrefixMatch = pathname.match(/^\/([a-z]{2})\/([a-z]{2})(\/.*)?$/)
+  if (localePrefixMatch) {
+    const [, firstLang, secondLang, rest] = localePrefixMatch
+    if (supportedLanguages.includes(firstLang) && supportedLanguages.includes(secondLang)) {
+      const newPathname = rest ? `/${secondLang}${rest}` : `/${secondLang}`
+      const newUrl = new URL(newPathname, request.url)
+      return NextResponse.rewrite(newUrl)
+    }
   }
   
   // Check if pathname has a language prefix

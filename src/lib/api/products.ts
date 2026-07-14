@@ -14,6 +14,8 @@ export interface Product {
   supplyCapacity?: string;
   mainImageUrl: string;
   images: string[];
+  videos?: string[];
+  documents?: Array<{url: string, name: string, type: string, size: number}>;
   viewCount: number;
   inquiryCount: number;
   createdAt: string;

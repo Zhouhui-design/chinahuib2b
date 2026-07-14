@@ -105,7 +105,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "img-src 'self' data: https: blob:; " +
     "font-src 'self' https://fonts.gstatic.com; " +
-    "connect-src 'self' https: wss://* https://www.google-analytics.com https://analytics.google.com; " +
+    "connect-src 'self' https: wss://* https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://www.googleoptimize.com; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self';"
@@ -128,8 +128,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   
   // Cross-Origin policies
   response.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
-  response.headers.set('Cross-Origin-Resource-Policy', 'same-origin')
-  response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp')
+  response.headers.set('Cross-Origin-Resource-Policy', 'same-site')
   
   return response
 }

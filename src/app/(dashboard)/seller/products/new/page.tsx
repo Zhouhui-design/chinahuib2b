@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import FileUpload from '@/components/ui/FileUpload'
 import MultilingualInput from '@/components/ui/MultilingualInput'
-import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, X, Plus, Trash2, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
@@ -12,6 +12,9 @@ interface Category {
   id: string
   name: string
   nameEn?: string
+  level: number
+  parentId?: string | null
+  children?: Category[]
 }
 
 interface UploadedFile {
@@ -24,6 +27,12 @@ export default function AddProductPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [selectedLevel1, setSelectedLevel1] = useState('')
+  const [selectedLevel2, setSelectedLevel2] = useState('')
+  const [selectedLevel3, setSelectedLevel3] = useState('')
+  const [selectedLevel4, setSelectedLevel4] = useState('')
+  const [selectedLevel5, setSelectedLevel5] = useState('')
 
   const [title, setTitle] = useState('')
   const [titles, setTitles] = useState<Record<string, string>>({})
@@ -510,7 +519,7 @@ export default function AddProductPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`/api/categories?locale=${language}`)
+      const response = await fetch(`/api/categories/tree?locale=${language}`)
       if (response.ok) {
         const data = await response.json()
         setCategories(data.categories)
@@ -519,6 +528,62 @@ export default function AddProductPage() {
       console.error('Failed to fetch categories:', err)
     }
   }
+
+  useEffect(() => {
+    setSelectedLevel2('')
+    setSelectedLevel3('')
+    setSelectedLevel4('')
+    setSelectedLevel5('')
+    setCategoryId('')
+  }, [selectedLevel1])
+
+  useEffect(() => {
+    setSelectedLevel3('')
+    setSelectedLevel4('')
+    setSelectedLevel5('')
+    setCategoryId('')
+  }, [selectedLevel2])
+
+  useEffect(() => {
+    setSelectedLevel4('')
+    setSelectedLevel5('')
+    setCategoryId('')
+  }, [selectedLevel3])
+
+  useEffect(() => {
+    setSelectedLevel5('')
+    setCategoryId('')
+  }, [selectedLevel4])
+
+  useEffect(() => {
+    if (selectedLevel5) {
+      setCategoryId(selectedLevel5)
+    } else if (selectedLevel4) {
+      setCategoryId(selectedLevel4)
+    } else if (selectedLevel3) {
+      setCategoryId(selectedLevel3)
+    } else if (selectedLevel2) {
+      setCategoryId(selectedLevel2)
+    } else if (selectedLevel1) {
+      setCategoryId(selectedLevel1)
+    }
+  }, [selectedLevel1, selectedLevel2, selectedLevel3, selectedLevel4, selectedLevel5])
+
+  const getChildren = (parentId: string): Category[] => {
+    const findChildren = (nodes: Category[]): Category[] => {
+      for (const node of nodes) {
+        if (node.id === parentId) {
+          return node.children || []
+        }
+        const found = findChildren(node.children || [])
+        if (found.length > 0) return found
+      }
+      return []
+    }
+    return findChildren(categories)
+  }
+
+  const getLevel1Categories = () => categories.filter(c => c.level === 1)
 
   const handleImageUpload = (data: UploadedFile | UploadedFile[]) => {
     const newImages = Array.isArray(data) ? data.map((d) => d.url) : [data.url]
@@ -695,22 +760,98 @@ export default function AddProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {t.category}
             </label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">{t.selectCategory}</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-500 font-medium w-12">L1</span>
+                <select
+                  value={selectedLevel1}
+                  onChange={(e) => setSelectedLevel1(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '选择一级分类' : 'Select L1 category'}</option>
+                  {getLevel1Categories().map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedLevel1 && (
+                <div className="flex items-center space-x-2 pl-4">
+                  <span className="text-xs text-gray-500 font-medium w-12">L2</span>
+                  <select
+                    value={selectedLevel2}
+                    onChange={(e) => setSelectedLevel2(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{language === 'zh' ? '选择二级分类' : 'Select L2 category'}</option>
+                    {getChildren(selectedLevel1).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedLevel2 && getChildren(selectedLevel2).length > 0 && (
+                <div className="flex items-center space-x-2 pl-8">
+                  <span className="text-xs text-gray-500 font-medium w-12">L3</span>
+                  <select
+                    value={selectedLevel3}
+                    onChange={(e) => setSelectedLevel3(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{language === 'zh' ? '选择三级分类' : 'Select L3 category'}</option>
+                    {getChildren(selectedLevel2).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedLevel3 && getChildren(selectedLevel3).length > 0 && (
+                <div className="flex items-center space-x-2 pl-12">
+                  <span className="text-xs text-gray-500 font-medium w-12">L4</span>
+                  <select
+                    value={selectedLevel4}
+                    onChange={(e) => setSelectedLevel4(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{language === 'zh' ? '选择四级分类' : 'Select L4 category'}</option>
+                    {getChildren(selectedLevel3).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {selectedLevel4 && getChildren(selectedLevel4).length > 0 && (
+                <div className="flex items-center space-x-2 pl-16">
+                  <span className="text-xs text-gray-500 font-medium w-12">L5</span>
+                  <select
+                    value={selectedLevel5}
+                    onChange={(e) => setSelectedLevel5(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{language === 'zh' ? '选择五级分类' : 'Select L5 category'}</option>
+                    {getChildren(selectedLevel4).map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
@@ -754,13 +895,23 @@ export default function AddProductPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               {images.map((img, index) => (
                 <div key={index} className="relative group">
-                  <img
-                    src={img}
-                    alt={`${t.productImage} ${index + 1}`}
-                    className={`w-full aspect-square object-cover rounded-lg border-2 ${
-                      mainImageUrl === img ? 'border-blue-500' : 'border-gray-200'
-                    }`}
-                  />
+                  <div className={`w-full aspect-square rounded-lg border-2 overflow-hidden ${
+                    mainImageUrl === img ? 'border-blue-500' : 'border-gray-200'
+                  }`}>
+                    <img
+                      src={img}
+                      alt={`${t.productImage} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        target.parentElement?.querySelector('.image-placeholder')?.classList.remove('hidden')
+                      }}
+                    />
+                    <div className="image-placeholder hidden w-full h-full flex items-center justify-center bg-gray-100">
+                      <ImageIcon className="w-10 h-10 text-gray-400" />
+                    </div>
+                  </div>
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <div className="flex space-x-2">
                       {mainImageUrl !== img && (
@@ -825,10 +976,13 @@ export default function AddProductPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               {videos.map((video, index) => (
                 <div key={index} className="relative group">
-                  <div className="w-full aspect-video bg-gray-900 rounded-lg border-2 border-gray-200 flex items-center justify-center">
-                    <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
+                  <div className="w-full aspect-video bg-gray-900 rounded-lg border-2 border-gray-200 overflow-hidden">
+                    <video
+                      src={video}
+                      controls
+                      className="w-full h-full"
+                      poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23374151'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E"
+                    />
                   </div>
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <button
@@ -899,8 +1053,7 @@ export default function AddProductPage() {
                   <div className="flex items-center space-x-2">
                     <a
                       href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      download
                       className="text-blue-600 hover:text-blue-700 text-sm"
                     >
                       {language === 'zh' ? '下载' :

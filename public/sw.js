@@ -2,7 +2,7 @@
  * Service Worker for PWA Offline Support
  */
 
-const CACHE_NAME = 'x2xhub-v6';
+const CACHE_NAME = 'x2xhub-v7';
 const OFFLINE_PAGE = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -66,7 +66,7 @@ async function handleHTMLRequest(request) {
   try {
     const response = await fetch(request);
     
-    if (response && response.ok) {
+    if (response && response.ok && response.status === 200) {
       try {
         const clonedResponse = response.clone();
         const cache = await caches.open(CACHE_NAME);
@@ -79,7 +79,8 @@ async function handleHTMLRequest(request) {
     return response;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached || (await caches.match(OFFLINE_PAGE));
+    const offline = await caches.match(OFFLINE_PAGE);
+    return cached || offline || new Response('Offline', { status: 503 });
   }
 }
 
@@ -107,7 +108,7 @@ async function handleStaticAsset(request) {
     return networkResponse;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached;
+    return cached || new Response('Not found', { status: 404 });
   }
 }
 
@@ -135,7 +136,7 @@ async function handleAPIRequest(request) {
     return networkResponse;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached;
+    return cached || new Response(JSON.stringify({ error: 'Network error' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
