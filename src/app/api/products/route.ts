@@ -42,7 +42,7 @@ const productSchema = z.object({
   isFeatured: z.boolean().optional().default(false),
   acceptsOEM: z.boolean().optional().default(false),
   youtubeUrl: z.string().optional().refine(
-    (val) => !val || /^https?:\/\/(www\.)?youtube\.com\/watch\?v=.+$/i.test(val) || /^https?:\/\/youtu\.be\/.+$/i.test(val),
+    (val) => !val || /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)/i.test(val),
     { message: 'YouTube URL must be a valid YouTube video link' }
   ),
   autoTranslate: z.boolean().optional().default(false),
