@@ -640,6 +640,9 @@ export default function BoothsPage() {
     }
   }
 
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set())
+
   const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (!files || files.length === 0) return
@@ -651,6 +654,11 @@ export default function BoothsPage() {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      const fileKey = `${file.name}-${Date.now()}`
+      
+      setUploadingFiles(prev => new Set([...prev, fileKey]))
+      setUploadProgress(prev => ({ ...prev, [fileKey]: 0 }))
+
       const uploadFormData = new FormData()
       uploadFormData.append('file', file)
       uploadFormData.append('type', 'boothDocument')
@@ -658,7 +666,7 @@ export default function BoothsPage() {
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
-          body: uploadFormData
+          body: uploadFormData,
         })
         const data = await res.json()
         if (data.url) {
@@ -681,6 +689,17 @@ export default function BoothsPage() {
       } catch (error) {
         console.error('Document upload failed:', error)
         alert(language === 'zh' ? '上传失败，请重试' : 'Upload failed, please try again')
+      } finally {
+        setUploadingFiles(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(fileKey)
+          return newSet
+        })
+        setUploadProgress(prev => {
+          const newProgress = { ...prev }
+          delete newProgress[fileKey]
+          return newProgress
+        })
       }
     }
   }
@@ -1183,11 +1202,17 @@ export default function BoothsPage() {
                 <label
                   htmlFor="booth-document-upload"
                   className={`block border border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors cursor-pointer ${
-                    formData.documents.length >= 10 ? 'cursor-not-allowed opacity-50' : ''
+                    formData.documents.length >= 10 || uploadingFiles.size > 0 ? 'cursor-not-allowed opacity-50' : ''
                   }`}
                   style={{ backgroundColor: formData.documents.length >= 10 ? '#f9fafb' : undefined }}
                 >
-                  {formData.documents.length === 0 ? (
+                  {uploadingFiles.size > 0 ? (
+                    <div className="text-blue-600">
+                      <div className="text-3xl mb-1">⏳</div>
+                      <div>{language === 'zh' ? '上传中...' : 'Uploading...'}</div>
+                      <div className="text-xs mt-1">{uploadingFiles.size} {language === 'zh' ? '个文件' : 'file(s)'}</div>
+                    </div>
+                  ) : formData.documents.length === 0 ? (
                     <div className="text-gray-400">
                       <div className="text-3xl mb-1">📎</div>
                       <div>{language === 'zh' ? '点击或拖拽上传文件' : 'Click or drag to upload files'}</div>
