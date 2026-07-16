@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     
     if (type === 'product_video') {
       maxFileSize = 100 * 1024 * 1024 // 100MB for videos
-    } else if (type === 'product_document') {
+    } else if (type === 'product_document' || type === 'boothDocument') {
       maxFileSize = 50 * 1024 * 1024 // 50MB for documents
     }
     
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
     if (type === 'product_image') subDir = 'products'
     else if (type === 'product_video') subDir = 'videos'
     else if (type === 'product_document') subDir = 'documents'
+    else if (type === 'boothDocument') subDir = 'booth-documents'
     else if (type === 'logo') subDir = 'logos'
     else if (type === 'banner') subDir = 'banners'
     else if (type === 'brochure' || type === 'store_brochure') subDir = 'brochures'
@@ -238,6 +239,9 @@ export async function POST(request: NextRequest) {
       result.url = publicUrl
     } else if (type === 'boothBanner') {
       // Just return the URL for booth banner (booth will be created/updated separately)
+      result.url = publicUrl
+    } else if (type === 'boothDocument') {
+      // Just return the URL for booth document (booth will be created/updated separately)
       result.url = publicUrl
     }
 
