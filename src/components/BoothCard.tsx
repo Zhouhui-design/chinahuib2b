@@ -49,7 +49,7 @@ export default function BoothCard({ booth, locale }: { booth: Booth; locale: Lan
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer">
-      <div className="relative h-32 overflow-hidden">
+      <div className="relative h-28 overflow-hidden">
         {booth.bannerUrl ? (
           <img
             src={booth.bannerUrl}
@@ -61,26 +61,27 @@ export default function BoothCard({ booth, locale }: { booth: Booth; locale: Lan
             <span className="text-white text-lg font-semibold">{booth.exhibitionName}</span>
           </div>
         )}
-        <div className="absolute bottom-3 left-3 flex items-center gap-3">
-          {booth.logoUrl ? (
-            <img
-              src={booth.logoUrl}
-              alt="Logo"
-              className="h-12 w-12 rounded-lg object-contain bg-white p-1 shadow-lg"
-            />
-          ) : (
-            <div className="h-12 w-12 rounded-lg bg-white p-2 shadow-lg flex items-center justify-center">
-              <span className="text-xl">🏢</span>
-            </div>
-          )}
-          <div>
-            <h3 className="text-white font-semibold text-sm drop-shadow-lg line-clamp-1">{booth.name}</h3>
-            <p className="text-blue-100 text-xs drop-shadow">{booth.seller.companyName}</p>
+      </div>
+
+      <div className="p-3 bg-gray-50 flex items-center gap-3">
+        {booth.logoUrl ? (
+          <img
+            src={booth.logoUrl}
+            alt="Logo"
+            className="h-10 w-10 rounded-lg object-contain bg-white p-1 shadow-md"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-lg bg-white p-2 shadow-md flex items-center justify-center">
+            <span className="text-xl">🏢</span>
           </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-gray-800 font-semibold text-sm line-clamp-1">{booth.name}</h3>
+          <p className="text-gray-500 text-xs line-clamp-1">{booth.seller.companyName}</p>
         </div>
       </div>
 
-      <div className="relative h-48 bg-gray-50">
+      <div className="relative h-48 bg-gray-100">
         {productImages.length > 0 ? (
           <img
             src={currentImage}

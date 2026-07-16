@@ -167,6 +167,7 @@ model SellerProfile {
   contactViews         ContactView[]
   digitalVouchers      DigitalVoucher[]
   inquiries            Inquiry[]
+  visitors             Visitor[]
   paymentProofs        PaymentProof[]
   products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
@@ -242,6 +243,8 @@ model Product {
   videos         String[]
   documents      Json?
   hasBrochure    Boolean          @default(false)
+  acceptsOEM     Boolean          @default(false)
+  youtubeUrl     String?
   viewCount      Int              @default(0)
   inquiryCount   Int              @default(0)
   isActive       Boolean          @default(true)
@@ -256,6 +259,7 @@ model Product {
   category       Category         @relation(fields: [categoryId], references: [id])
   seller         SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   brochure       ProductBrochure?
+  visitors       Visitor[]
 
   @@index([sellerId])
   @@index([boothId])
@@ -275,6 +279,30 @@ model ProductBrochure {
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
+}
+
+model Visitor {
+  id          String        @id @default(cuid())
+  ipHash      String
+  productId   String?
+  sellerId    String?
+  country     String
+  countryCode String
+  city        String
+  region      String?
+  timezone    String?
+  isp         String?
+  userAgent   String?
+  url         String?
+  createdAt   DateTime      @default(now())
+  product     Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  seller      SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([sellerId])
+  @@index([country])
+  @@index([countryCode])
+  @@index([createdAt])
 }
 
 model StoreBrochure {

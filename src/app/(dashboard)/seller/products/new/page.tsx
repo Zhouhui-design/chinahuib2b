@@ -51,6 +51,8 @@ export default function AddProductPage() {
   const [draftId, setDraftId] = useState<string | null>(null)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
+  const [acceptsOEM, setAcceptsOEM] = useState(false)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -411,6 +413,58 @@ export default function AddProductPage() {
                                language === 'th' ? 'เช่น: 10000 ชิ้น/เดือน' :
                                language === 'vi' ? 'ví dụ: 10000 cái/tháng' :
                                'e.g., 10000 pieces/month',
+    acceptsOEM: language === 'zh' ? '是否接受OEM' :
+                language === 'ja' ? 'OEM受け入れ可' :
+                language === 'ar' ? 'قبول OEM' :
+                language === 'es' ? 'Acepta OEM' :
+                language === 'fr' ? 'Accepte OEM' :
+                language === 'de' ? 'OEM akzeptieren' :
+                language === 'ko' ? 'OEM 수용 여부' :
+                language === 'ru' ? 'Принимает OEM' :
+                language === 'pt' ? 'Aceita OEM' :
+                language === 'hi' ? 'OEM स्वीकार करता है' :
+                language === 'th' ? 'ยอมรับ OEM หรือไม่' :
+                language === 'vi' ? 'Chấp nhận OEM' :
+                'Accepts OEM',
+    youtubeUrl: language === 'zh' ? 'YouTube链接' :
+                language === 'ja' ? 'YouTubeリンク' :
+                language === 'ar' ? 'رابط YouTube' :
+                language === 'es' ? 'Enlace de YouTube' :
+                language === 'fr' ? 'Lien YouTube' :
+                language === 'de' ? 'YouTube-Link' :
+                language === 'ko' ? 'YouTube 링크' :
+                language === 'ru' ? 'Ссылка на YouTube' :
+                language === 'pt' ? 'Link do YouTube' :
+                language === 'hi' ? 'YouTube लिंक' :
+                language === 'th' ? 'ลิงก์ YouTube' :
+                language === 'vi' ? 'Liên kết YouTube' :
+                'YouTube URL',
+    yes: language === 'zh' ? '是' :
+         language === 'ja' ? 'はい' :
+         language === 'ar' ? 'نعم' :
+         language === 'es' ? 'Sí' :
+         language === 'fr' ? 'Oui' :
+         language === 'de' ? 'Ja' :
+         language === 'ko' ? '예' :
+         language === 'ru' ? 'Да' :
+         language === 'pt' ? 'Sim' :
+         language === 'hi' ? 'हां' :
+         language === 'th' ? 'ใช่' :
+         language === 'vi' ? 'Có' :
+         'Yes',
+    no: language === 'zh' ? '否' :
+        language === 'ja' ? 'いいえ' :
+        language === 'ar' ? 'لا' :
+        language === 'es' ? 'No' :
+        language === 'fr' ? 'Non' :
+        language === 'de' ? 'Nein' :
+        language === 'ko' ? '아니요' :
+        language === 'ru' ? 'Нет' :
+        language === 'pt' ? 'Não' :
+        language === 'hi' ? 'नहीं' :
+        language === 'th' ? 'ไม่' :
+        language === 'vi' ? 'Không' :
+        'No',
     cancel: language === 'zh' ? '取消' :
             language === 'ja' ? 'キャンセル' :
             language === 'ar' ? 'إلغاء' :
@@ -690,6 +744,8 @@ export default function AddProductPage() {
         videos: videos.length > 0 ? videos : undefined,
         documents: documents.length > 0 ? documents : undefined,
         specifications: Object.keys(specsObj).length > 0 ? specsObj : undefined,
+        acceptsOEM,
+        youtubeUrl: youtubeUrl || undefined,
       }
 
       const response = await fetch('/api/products', {
@@ -1149,6 +1205,49 @@ export default function AddProductPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.acceptsOEM}
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="acceptsOEM"
+                  value="yes"
+                  checked={acceptsOEM === true}
+                  onChange={() => setAcceptsOEM(true)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{t.yes}</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="acceptsOEM"
+                  value="no"
+                  checked={acceptsOEM === false}
+                  onChange={() => setAcceptsOEM(false)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{t.no}</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.youtubeUrl}
+            </label>
+            <input
+              type="url"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 

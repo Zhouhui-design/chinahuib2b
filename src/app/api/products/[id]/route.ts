@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
+import { handleSEOEvent } from "@/lib/seo-automation"
 
 
 const productUpdateSchema = z.object({
@@ -30,6 +31,11 @@ const productUpdateSchema = z.object({
     size: z.number().optional(),
   })).optional(),
   isFeatured: z.boolean().optional(),
+  acceptsOEM: z.boolean().optional(),
+  youtubeUrl: z.string().optional().refine(
+    (val) => !val || /^https?:\/\/(www\.)?youtube\.com\/watch\?v=.+$/i.test(val) || /^https?:\/\/youtu\.be\/.+$/i.test(val),
+    { message: 'YouTube URL must be a valid YouTube video link' }
+  ),
   isActive: z.boolean().optional(),
   boothId: z.string().optional(),
 })
@@ -137,6 +143,28 @@ export async function PUT(
         seller: true
       }
     })
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'product_update',
+          data: {
+            id: product.id,
+            url: `https://x2xhub.com/products/${product.id}`,
+            title: product.title,
+            description: product.description,
+            imageUrl: product.mainImageUrl ? `https://x2xhub.com${product.mainImageUrl}` : undefined,
+          },
+        })
+        
+        console.log(`SEO automation completed for product ${product.id} update:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for product update:', error)
+      }
+    }, 500)
 
     return NextResponse.json({
       success: true,

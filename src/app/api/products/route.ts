@@ -6,6 +6,7 @@ import { z } from "zod"
 import { translateText, autoTranslateToAllLanguages } from "@/lib/translation-service"
 import { performProductMatching } from "@/lib/ai-matching-service"
 import { sendProductMatchNotifications, sendMatchNotificationsToBuyers } from "@/lib/system-notification-service"
+import { handleSEOEvent } from "@/lib/seo-automation"
 
 
 const productSchema = z.object({
@@ -39,6 +40,11 @@ const productSchema = z.object({
     size: z.number().optional(),
   })).optional(),
   isFeatured: z.boolean().optional().default(false),
+  acceptsOEM: z.boolean().optional().default(false),
+  youtubeUrl: z.string().optional().refine(
+    (val) => !val || /^https?:\/\/(www\.)?youtube\.com\/watch\?v=.+$/i.test(val) || /^https?:\/\/youtu\.be\/.+$/i.test(val),
+    { message: 'YouTube URL must be a valid YouTube video link' }
+  ),
   autoTranslate: z.boolean().optional().default(false),
   sourceLanguage: z.string().optional().default('en'),
 })
@@ -108,6 +114,8 @@ export async function POST(request: NextRequest) {
         videos: data.videos || [],
         documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
         isFeatured: data.isFeatured,
+        acceptsOEM: data.acceptsOEM,
+        youtubeUrl: data.youtubeUrl,
         isActive: true,
       },
       include: {
@@ -143,6 +151,28 @@ export async function POST(request: NextRequest) {
         console.error('Error in AI matching for product:', error)
       }
     }, 100)
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'product_create',
+          data: {
+            id: product.id,
+            url: `https://x2xhub.com/products/${product.id}`,
+            title: product.title,
+            description: product.description,
+            imageUrl: product.mainImageUrl ? `https://x2xhub.com${product.mainImageUrl}` : undefined,
+          },
+        })
+        
+        console.log(`SEO automation completed for product ${product.id}:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for product:', error)
+      }
+    }, 500)
 
     return NextResponse.json({
       success: true,

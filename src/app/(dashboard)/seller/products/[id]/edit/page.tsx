@@ -41,6 +41,8 @@ export default function EditProductPage() {
   const [specifications, setSpecifications] = useState<Array<{key: string, value: string}>>([
     { key: '', value: '' }
   ])
+  const [acceptsOEM, setAcceptsOEM] = useState(false)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
 
   // Fetch categories and product data
   useEffect(() => {
@@ -83,6 +85,8 @@ export default function EditProductPage() {
       setSupplyCapacity(product.supplyCapacity || '')
       setVideos(product.videos || [])
       setDocuments(product.documents || [])
+      setAcceptsOEM(product.acceptsOEM || false)
+      setYoutubeUrl(product.youtubeUrl || '')
 
       // Convert specifications object to array
       if (product.specifications && Object.keys(product.specifications).length > 0) {
@@ -206,6 +210,8 @@ export default function EditProductPage() {
         videos: videos.length > 0 ? videos : undefined,
         documents: documents.length > 0 ? documents : undefined,
         specifications: Object.keys(specsObj).length > 0 ? specsObj : undefined,
+        acceptsOEM,
+        youtubeUrl: youtubeUrl || undefined,
       }
 
       const response = await fetch(`/api/products/${productId}`, {
@@ -557,10 +563,53 @@ export default function EditProductPage() {
               />
             </div>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'zh' ? '是否接受OEM' : 'Accepts OEM'}
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="acceptsOEM"
+                  value="yes"
+                  checked={acceptsOEM === true}
+                  onChange={() => setAcceptsOEM(true)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{language === 'zh' ? '是' : 'Yes'}</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="acceptsOEM"
+                  value="no"
+                  checked={acceptsOEM === false}
+                  onChange={() => setAcceptsOEM(false)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{language === 'zh' ? '否' : 'No'}</span>
+              </label>
+            </div>
+          </div>
         </div>
 
-        {/* Submit Buttons */}
-        <div className="flex items-center justify-end space-x-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'zh' ? 'YouTube链接' : 'YouTube URL'}
+            </label>
+            <input
+              type="url"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex items-center justify-end space-x-4">
           <Link
             href="/seller/products"
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
