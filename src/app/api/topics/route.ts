@@ -17,6 +17,7 @@ const topicSchema = z.object({
   })).optional(),
   link: z.string().url().optional(),
   phone: z.string().optional(),
+  keywords: z.array(z.string().min(1).max(50)).optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { title: { contains: search } },
         { content: { contains: search } },
+        { keywords: { has: search } },
       ]
     }
 
@@ -112,7 +114,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, content, category, images, videos, documents, link, phone } = validation.data
+    const { title, content, category, images, videos, documents, link, phone, keywords } = validation.data
 
     const topic = await db.topic.create({
       data: {
@@ -125,6 +127,7 @@ export async function POST(request: NextRequest) {
         documents: documents ? JSON.parse(JSON.stringify(documents)) : null,
         link,
         phone,
+        keywords: keywords || [],
       },
       include: {
         user: {

@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { sendTaskMatchNotifications, sendMatchNotificationsToSellers } from '@/lib/system-notification-service'
+import { handleSEOEvent } from '@/lib/seo-automation'
 
 /**
  * GET /api/marketplace/tasks
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const order = searchParams.get('order') || 'desc'
+    const search = searchParams.get('search')
     
     // Build where clause
     const where: any = {}
@@ -34,6 +36,14 @@ export async function GET(request: NextRequest) {
     } else {
       // Default to open tasks
       where.status = TaskStatus.OPEN
+    }
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { keywords: { has: search } },
+      ]
     }
     
     // Get total count
@@ -151,6 +161,7 @@ export async function POST(request: NextRequest) {
         postedById: session.user.id,
         contactInfo: body.contactInfo || null,
         attachments: body.attachments || [],
+        keywords: body.keywords || [],
         status: TaskStatus.OPEN,
       },
     })
@@ -182,6 +193,27 @@ export async function POST(request: NextRequest) {
         console.error('Error in AI matching for task:', error)
       }
     }, 100)
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'task_create',
+          data: {
+            id: task.id,
+            url: `https://x2xhub.com/de/marketplace`,
+            title: task.title,
+            description: task.description,
+          },
+        })
+        
+        console.log(`SEO automation completed for task ${task.id}:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for task:', error)
+      }
+    }, 500)
     
     return NextResponse.json({
       success: true,

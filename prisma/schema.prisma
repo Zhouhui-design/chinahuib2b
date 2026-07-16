@@ -504,6 +504,7 @@ model MarketplaceTask {
   views            Int               @default(0)
   rating           Decimal?          @db.Decimal(3, 2)
   attachments      Json?
+  keywords         String[]          @default([])
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   postedBy         User              @relation(fields: [postedById], references: [id])
@@ -1305,6 +1306,7 @@ model Topic {
   documents          Json?
   link               String?
   phone              String?
+  keywords           String[]        @default([])
   viewCount          Int             @default(0)
   likeCount          Int             @default(0)
   commentCount       Int             @default(0)

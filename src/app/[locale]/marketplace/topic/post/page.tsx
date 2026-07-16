@@ -13,6 +13,7 @@ interface FormDataType {
   category: string
   link: string
   phone: string
+  keywords: string
 }
 
 interface UploadedFile {
@@ -36,6 +37,7 @@ export default function PostTopicPage() {
     category: 'OTHER',
     link: '',
     phone: '',
+    keywords: '',
   })
   
   const [loading, setLoading] = useState(false)
@@ -192,6 +194,12 @@ export default function PostTopicPage() {
     try {
       setLoading(true)
       
+      const keywordsArray = formData.keywords
+        .split(/[,，]/)
+        .map(k => k.trim())
+        .filter(k => k.length > 0)
+        .slice(0, 10)
+
       const response = await fetch('/api/topics', {
         method: 'POST',
         headers: {
@@ -206,6 +214,7 @@ export default function PostTopicPage() {
           documents,
           link: formData.link || undefined,
           phone: formData.phone || undefined,
+          keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
         }),
       })
       
@@ -286,6 +295,24 @@ export default function PostTopicPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {locale === 'zh' ? '关键词' : 'Keywords'}
+            </label>
+            <input
+              type="text"
+              name="keywords"
+              value={formData.keywords}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={locale === 'zh' ? '请输入关键词，用逗号分隔，最多10个' : 'Enter keywords separated by commas, up to 10'}
+              maxLength={200}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {locale === 'zh' ? '关键词有助于提高话题被搜索到的概率' : 'Keywords help improve the chances of your topic being found'}
+            </p>
           </div>
 
           <div>

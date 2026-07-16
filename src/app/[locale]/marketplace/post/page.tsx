@@ -23,6 +23,7 @@ interface FormDataType {
   minOrderQty: string
   deadline: string
   contactInfo: string
+  keywords: string
 }
 
 interface Attachment {
@@ -51,6 +52,7 @@ export default function PostTaskPage() {
     minOrderQty: '',
     deadline: '',
     contactInfo: '',
+    keywords: '',
   })
   
   const [loading, setLoading] = useState(false)
@@ -281,6 +283,12 @@ Contact us today to discuss your requirements and get a custom quote.`
       
       const attachmentUrls = attachments.map(att => att.url)
       
+      const keywordsArray = formData.keywords
+        .split(/[,，]/)
+        .map(k => k.trim())
+        .filter(k => k.length > 0)
+        .slice(0, 10)
+      
       const response = await fetch('/api/marketplace/tasks', {
         method: 'POST',
         headers: {
@@ -293,6 +301,7 @@ Contact us today to discuss your requirements and get a custom quote.`
           price: formData.price ? parseFloat(formData.price) : null,
           minOrderQty: formData.minOrderQty ? parseInt(formData.minOrderQty) : null,
           deadline: formData.deadline || null,
+          keywords: keywordsArray,
         }),
       })
       
@@ -362,6 +371,24 @@ Contact us today to discuss your requirements and get a custom quote.`
               <option value="PRODUCT_SALE">{t.productSale}</option>
               <option value="SERVICE">{t.service}</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.keywords || (locale === 'zh' ? '关键词' : 'Keywords')}
+            </label>
+            <input
+              type="text"
+              name="keywords"
+              value={formData.keywords}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={t.keywordsPlaceholder || (locale === 'zh' ? '请输入关键词，用逗号分隔，最多10个' : 'Enter keywords separated by commas, up to 10')}
+              maxLength={200}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {t.keywordsNote || (locale === 'zh' ? '关键词有助于提高任务被搜索到的概率' : 'Keywords help improve the chances of your task being found')}
+            </p>
           </div>
 
           <div>
