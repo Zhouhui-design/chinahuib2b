@@ -54,8 +54,10 @@ export async function POST(request: NextRequest) {
     
     if (type === 'product_video') {
       maxFileSize = 100 * 1024 * 1024 // 100MB for videos
-    } else if (type === 'product_document' || type === 'boothDocument') {
-      maxFileSize = 50 * 1024 * 1024 // 50MB for documents
+    } else if (type === 'product_document') {
+      maxFileSize = 50 * 1024 * 1024 // 50MB for product documents
+    } else if (type === 'boothDocument') {
+      maxFileSize = 100 * 1024 * 1024 // 100MB for booth documents
     }
     
     if (fileSize > maxFileSize) {

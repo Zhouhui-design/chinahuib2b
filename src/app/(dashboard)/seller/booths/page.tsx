@@ -1191,7 +1191,7 @@ export default function BoothsPage() {
                     <div className="text-gray-400">
                       <div className="text-3xl mb-1">📎</div>
                       <div>{language === 'zh' ? '点击或拖拽上传文件' : 'Click or drag to upload files'}</div>
-                      <div className="text-xs mt-1">PDF, DOC, XLS, PPT, ZIP • Max 50MB each</div>
+                      <div className="text-xs mt-1">PDF, DOC, XLS, PPT, ZIP • Max 100MB each</div>
                     </div>
                   ) : (
                     <div className="text-blue-600">
