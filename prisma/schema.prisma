@@ -213,6 +213,7 @@ model Booth {
   logoUrl         String?
   bannerUrl       String?
   keywords        Json?
+  documents       Json?
   isActive        Boolean       @default(true)
   isPublished     Boolean       @default(false)
   theme           String?

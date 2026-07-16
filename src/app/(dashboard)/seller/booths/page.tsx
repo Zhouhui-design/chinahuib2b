@@ -15,6 +15,7 @@ interface Booth {
   logoUrl?: string
   bannerUrl?: string
   keywords?: string[]
+  documents?: Array<{ url: string; name: string; type: string; size: number }>
   theme?: string
   colorScheme?: string
   layout?: string
@@ -562,6 +563,7 @@ export default function BoothsPage() {
     logoUrl: '',
     bannerUrl: '',
     keywords: [] as string[],
+    documents: [] as Array<{ url: string; name: string; type: string; size: number }>,
     theme: '',
     colorScheme: '',
     layout: ''
@@ -638,6 +640,51 @@ export default function BoothsPage() {
     }
   }
 
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    if (formData.documents.length + files.length > 10) {
+      alert(language === 'zh' ? '最多只能上传10个文件' : 'Maximum 10 files allowed')
+      return
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      uploadFormData.append('type', 'boothDocument')
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData
+        })
+        const data = await res.json()
+        if (data.url) {
+          setFormData(prev => ({
+            ...prev,
+            documents: [...prev.documents, {
+              url: data.url,
+              name: file.name,
+              type: file.type,
+              size: file.size
+            }]
+          }))
+        }
+      } catch (error) {
+        console.error('Document upload failed:', error)
+      }
+    }
+  }
+
+  const removeDocument = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, i) => i !== index)
+    }))
+  }
+
   const addKeyword = (keyword: string) => {
     if (!keyword.trim()) return
     if (formData.keywords.length >= 10) return
@@ -683,6 +730,7 @@ export default function BoothsPage() {
           logoUrl: '',
           bannerUrl: '',
           keywords: [],
+          documents: [],
           theme: '',
           colorScheme: '',
           layout: ''
@@ -748,6 +796,7 @@ export default function BoothsPage() {
       logoUrl: booth.logoUrl || '',
       bannerUrl: booth.bannerUrl || '',
       keywords: booth.keywords || [],
+      documents: (booth.documents as Array<{ url: string; name: string; type: string; size: number }>) || [],
       theme: booth.theme || '',
       colorScheme: booth.colorScheme || '',
       layout: booth.layout || ''
@@ -1120,27 +1169,97 @@ export default function BoothsPage() {
                 </p>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'zh' ? '上传文件（最多10个）' : 'Upload Files (max 10)'}
+                </label>
+                <label
+                  htmlFor="booth-document-upload"
+                  className={`block border border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors cursor-pointer ${
+                    formData.documents.length >= 10 ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                  style={{ backgroundColor: formData.documents.length >= 10 ? '#f9fafb' : undefined }}
+                >
+                  {formData.documents.length === 0 ? (
+                    <div className="text-gray-400">
+                      <div className="text-3xl mb-1">📎</div>
+                      <div>{language === 'zh' ? '点击或拖拽上传文件' : 'Click or drag to upload files'}</div>
+                      <div className="text-xs mt-1">PDF, DOC, XLS, PPT, ZIP • Max 50MB each</div>
+                    </div>
+                  ) : (
+                    <div className="text-blue-600">
+                      <div className="text-2xl mb-1">📎</div>
+                      <div>{language === 'zh' ? '添加更多文件' : 'Add more files'}</div>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
+                    multiple
+                    onChange={handleDocumentUpload}
+                    className="hidden"
+                    id="booth-document-upload"
+                    disabled={formData.documents.length >= 10}
+                  />
+                </label>
+
+                {formData.documents.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {formData.documents.map((doc, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">📄</span>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800 truncate max-w-[200px]">
+                              {doc.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(doc.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeDocument(index)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title={language === 'zh' ? '删除文件' : 'Remove file'}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-400 mt-2">
+                  {language === 'zh' ? `已上传 ${formData.documents.length}/10 个文件` : `${formData.documents.length}/10 files uploaded`}
+                </p>
+              </div>
+
               <div className="p-6 border-t border-gray-200 bg-white rounded-b-xl">
                 <div className="flex items-center justify-end gap-3">
                   <button
                     onClick={() => {
-                      setShowCreateModal(false)
-                      setEditingBooth(null)
-                      setFormData({
-                        name: '',
-                        exhibitionName: '',
-                        location: '',
-                        logoUrl: '',
-                        bannerUrl: '',
-                        keywords: [],
-                        theme: '',
-                        colorScheme: '',
-                        layout: ''
-                      })
-                      setLogoPreview('')
-                      setBannerPreview('')
-                      setNewKeyword('')
-                    }}
+                    setShowCreateModal(false)
+                    setEditingBooth(null)
+                    setFormData({
+                      name: '',
+                      exhibitionName: '',
+                      location: '',
+                      logoUrl: '',
+                      bannerUrl: '',
+                      keywords: [],
+                      documents: [],
+                      theme: '',
+                      colorScheme: '',
+                      layout: ''
+                    })
+                    setLogoPreview('')
+                    setBannerPreview('')
+                    setNewKeyword('')
+                  }}
                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     {t.cancel}

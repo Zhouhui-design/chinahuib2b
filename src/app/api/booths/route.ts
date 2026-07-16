@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
+import { handleSEOEvent } from "@/lib/seo-automation"
 
 async function generateBoothNumber(): Promise<string> {
   const lastBooth = await prisma.booth.findFirst({
@@ -18,6 +19,13 @@ async function generateBoothNumber(): Promise<string> {
   return `BTH-${nextNum.toString().padStart(6, '0')}`
 }
 
+const documentSchema = z.object({
+  url: z.string(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  size: z.number().optional(),
+})
+
 const createBoothSchema = z.object({
   name: z.string().min(2).max(200),
   names: z.record(z.string(), z.string()).optional(),
@@ -30,6 +38,7 @@ const createBoothSchema = z.object({
   logoUrl: z.string().optional(),
   bannerUrl: z.string().optional(),
   keywords: z.array(z.string()).max(10).optional(),
+  documents: z.array(documentSchema).max(10).optional(),
   theme: z.string().optional(),
   colorScheme: z.string().optional(),
   layout: z.string().optional(),
@@ -47,6 +56,7 @@ const updateBoothSchema = z.object({
   logoUrl: z.string().optional(),
   bannerUrl: z.string().optional(),
   keywords: z.array(z.string()).max(10).optional(),
+  documents: z.array(documentSchema).max(10).optional(),
   theme: z.string().optional(),
   colorScheme: z.string().optional(),
   layout: z.string().optional(),
@@ -206,6 +216,28 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'booth_create',
+          data: {
+            id: booth.id,
+            url: `https://x2xhub.com/exhibitions/${booth.id}`,
+            title: booth.name,
+            description: booth.exhibitionName,
+            imageUrl: booth.bannerUrl ? `https://x2xhub.com${booth.bannerUrl}` : booth.logoUrl ? `https://x2xhub.com${booth.logoUrl}` : undefined,
+          },
+        })
+        
+        console.log(`SEO automation completed for booth ${booth.id}:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for booth:', error)
+      }
+    }, 500)
+
     return NextResponse.json({
       success: true,
       booth,
@@ -285,6 +317,28 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: updateData
     })
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'booth_update',
+          data: {
+            id: updatedBooth.id,
+            url: `https://x2xhub.com/exhibitions/${updatedBooth.id}`,
+            title: updatedBooth.name,
+            description: updatedBooth.exhibitionName,
+            imageUrl: updatedBooth.bannerUrl ? `https://x2xhub.com${updatedBooth.bannerUrl}` : updatedBooth.logoUrl ? `https://x2xhub.com${updatedBooth.logoUrl}` : undefined,
+          },
+        })
+        
+        console.log(`SEO automation completed for booth ${updatedBooth.id} update:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for booth update:', error)
+      }
+    }, 500)
 
     return NextResponse.json({
       success: true,

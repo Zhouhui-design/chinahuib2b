@@ -24,6 +24,7 @@ interface Booth {
   logoUrl?: string
   bannerUrl?: string
   keywords?: string[]
+  documents?: Array<{ url: string; name: string; type: string; size: number }>
   theme?: string
   colorScheme?: string
   layout?: string
@@ -314,6 +315,34 @@ export default function BoothDetailPage() {
                   >
                     {keyword}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {booth.documents && booth.documents.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-sm font-medium text-gray-500 mb-3">
+                {language === 'zh' ? '上传文件' : 'Documents'}
+              </h3>
+              <div className="space-y-2">
+                {booth.documents.map((doc, index) => (
+                  <a
+                    key={index}
+                    href={doc.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="text-2xl">📄</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(doc.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <span className="text-gray-400">↗</span>
+                  </a>
                 ))}
               </div>
             </div>
