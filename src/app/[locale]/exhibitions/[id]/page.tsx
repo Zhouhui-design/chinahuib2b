@@ -10,6 +10,7 @@ import {
   Layers, Ruler, Box, Hash, Weight, Edit3, MessageSquare, Briefcase,
   Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book, Download
 } from 'lucide-react'
+import { SocialShare } from '@/components/seo/SocialShare'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 
@@ -1569,7 +1570,8 @@ function ProductDetailModal({
                     <video
                       src={video}
                       controls
-                      className="w-full h-full"
+                      playsInline
+                      className="w-full h-full object-contain"
                       poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23374151'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E"
                     />
                   </div>
@@ -1621,6 +1623,16 @@ function ProductDetailModal({
               </div>
             </div>
           )}
+
+          {/* Social Share */}
+          <div className="px-6 pb-6 border-t border-gray-200 pt-4">
+            <SocialShare
+              url={`https://x2xhub.com/products/${product.id}`}
+              title={product.title}
+              description={product.description}
+              imageUrl={product.mainImageUrl ? `https://x2xhub.com${product.mainImageUrl}` : undefined}
+            />
+          </div>
         </div>
 
         {/* Modal Footer - Sticky */}

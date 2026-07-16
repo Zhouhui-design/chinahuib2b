@@ -24,6 +24,12 @@ export async function GET(request: NextRequest) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - periodDays)
 
+    const sellerProducts = await prisma.product.findMany({
+      where: { sellerId: seller.id },
+      select: { id: true }
+    })
+    const productIds = sellerProducts.map(p => p.id)
+
     const [
       products,
       totalProducts,
@@ -31,7 +37,8 @@ export async function GET(request: NextRequest) {
       totalInquiries,
       recentInquiries,
       recentProducts,
-      categoryBreakdown
+      categoryBreakdown,
+      visitorByCountry
     ] = await Promise.all([
       prisma.product.findMany({
         where: { sellerId: seller.id },
@@ -104,6 +111,16 @@ export async function GET(request: NextRequest) {
         _count: true,
         orderBy: { _count: { categoryId: 'desc' } }
       }),
+
+      prisma.visitor.groupBy({
+        by: ['country', 'countryCode'],
+        where: {
+          productId: { in: productIds },
+          createdAt: { gte: startDate }
+        },
+        _count: true,
+        orderBy: { _count: { country: 'desc' } }
+      }),
     ])
 
     const categories = await prisma.category.findMany({
@@ -143,6 +160,11 @@ export async function GET(request: NextRequest) {
           productCount: c._count
         })),
         dailyStats,
+        visitorByCountry: visitorByCountry.map(v => ({
+          country: v.country,
+          countryCode: v.countryCode,
+          count: v._count
+        })),
         period: periodDays
       }
     })

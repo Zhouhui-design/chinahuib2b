@@ -96,6 +96,6 @@ export function middleware(request: any) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|sw.js|pwasw|service-worker|.*\\..*).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|llms.txt|sw.js|pwasw|service-worker|.*\\..*).*)',
   ]
 }

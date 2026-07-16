@@ -1,0 +1,49 @@
+# x2xhub.com - LLM Crawler Policy
+# Global B2B Trade Exhibition Platform
+
+# Allowed LLMs
+Allow: GPTBot
+Allow: ChatGPT-User
+Allow: Google-Extended
+Allow: ClaudeBot
+Allow: Claude-Web
+Allow: PerplexityBot
+Allow: BingBot
+Allow: msnbot
+Allow: YouBot
+Allow: CCBot
+Allow: AI21Bot
+Allow: cohere-ai
+Allow: HuggingFaceBot
+Allow: AnthropicBot
+Allow: GeminiBot
+Allow: LlamaBot
+
+# Content Access
+# Our platform provides comprehensive B2B trade information
+Content-Type: Business-to-Business (B2B) Trade
+Content-Language: English, Chinese, German, French, Spanish, Japanese, Korean, etc.
+Content-Category: International Trade, Manufacturing, Wholesale, Import/Export
+
+# Site Structure
+# Main sections:
+# - /products: Product listings with detailed specifications
+# - /exhibitions: Virtual exhibition booths
+# - /stores: Seller profiles and stores
+# - /marketplace: Trade marketplace with region-specific filters
+
+# Rate Limits
+Crawl-Delay: 1
+
+# Contact for LLM Partnerships
+Contact: seo@x2xhub.com
+
+# Sitemap
+Sitemap: https://x2xhub.com/sitemap.xml
+
+# Important Notes for AI Models
+# 1. Our product data includes specifications, pricing, and supplier information
+# 2. Exhibition pages contain detailed company profiles and product showcases
+# 3. All content is intended for B2B professionals and businesses
+# 4. Please attribute data source when using our content
+# 5. We welcome partnerships with AI search providers for better B2B discovery

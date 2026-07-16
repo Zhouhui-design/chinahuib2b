@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
+import { handleSEOEvent } from '@/lib/seo-automation'
 
 /**
  * GET /api/marketplace/tasks/[id]
@@ -123,6 +124,27 @@ export async function PUT(
         attachments: body.attachments !== undefined ? body.attachments : existingTask.attachments,
       },
     })
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'task_update',
+          data: {
+            id: updatedTask.id,
+            url: `https://x2xhub.com/de/marketplace`,
+            title: updatedTask.title,
+            description: updatedTask.description,
+          },
+        })
+        
+        console.log(`SEO automation completed for task update ${updatedTask.id}:`, JSON.stringify({
+          cloudflare: seoResult.cloudflare.success,
+          pingResults: seoResult.pingResults.filter(r => r.status === 'success').length,
+        }))
+      } catch (error) {
+        console.error('Error in SEO automation for task update:', error)
+      }
+    }, 500)
     
     return NextResponse.json({
       success: true,

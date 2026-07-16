@@ -27,7 +27,8 @@ import {
   Calendar,
   RefreshCw,
   Users,
-  ShoppingBag
+  ShoppingBag,
+  Globe
 } from 'lucide-react'
 
 interface DashboardData {
@@ -77,6 +78,11 @@ interface DashboardData {
     views: number
     inquiries: number
     products: number
+  }>
+  visitorByCountry: Array<{
+    country: string
+    countryCode: string
+    count: number
   }>
   period: number
 }
@@ -319,30 +325,69 @@ export default function AnalyticsDashboard() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-500" />
-            Recently Added Products
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.recentProducts.map((product) => (
-              <div key={product.id} className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium text-gray-900 mb-2 truncate">{product.title}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" /> {product.viewCount}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="w-4 h-4" /> {product.inquiryCount}
-                  </span>
-                  <span>{new Date(product.createdAt).toLocaleDateString()}</span>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-500" />
+              Recently Added Products
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data.recentProducts.map((product) => (
+                <div key={product.id} className="p-4 bg-gray-50 rounded-lg">
+                  <p className="font-medium text-gray-900 mb-2 truncate">{product.title}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-4 h-4" /> {product.viewCount}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="w-4 h-4" /> {product.inquiryCount}
+                    </span>
+                    <span>{new Date(product.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
+              ))}
+              {data.recentProducts.length === 0 && (
+                <p className="text-gray-500 text-center py-8 col-span-3">No recent products</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-indigo-500" />
+              Visitors by Country
+            </h2>
+            {data.visitorByCountry && data.visitorByCountry.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data.visitorByCountry.slice(0, 10).map((v, i) => ({
+                        name: v.country,
+                        value: v.count,
+                        color: COLORS[i % COLORS.length]
+                      }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      dataKey="value"
+                      label={({ name, percent }: { name: string; percent?: number }) => `${name} (${(percent || 0) * 100 > 0 ? ((percent || 0) * 100).toFixed(0) : '0'}%)`}
+                    >
+                      {data.visitorByCountry.slice(0, 10).map((v, i) => (
+                        <Cell key={`cell-${v.countryCode}`} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-            {data.recentProducts.length === 0 && (
-              <p className="text-gray-500 text-center py-8 col-span-3">No recent products</p>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No visitor location data available yet</p>
+              </div>
             )}
           </div>
-        </div>
       </div>
     </div>
   )

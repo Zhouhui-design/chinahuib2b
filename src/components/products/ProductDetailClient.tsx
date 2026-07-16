@@ -27,7 +27,23 @@ export default function ProductDetailClient({
   
   const { trackProductView, trackProductInquiry, trackProductFavorite } = useBehaviorTracker(userId)
 
-  // Track how long user views the product
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        await fetch('/api/visitors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId }),
+          keepalive: true
+        })
+      } catch (error) {
+        console.error('[Visitor Tracker] Failed to track:', error)
+      }
+    }
+
+    trackVisitor()
+  }, [productId])
+
   useEffect(() => {
     if (!userId || !productId) return
 
@@ -35,9 +51,8 @@ export default function ProductDetailClient({
       setViewDuration(prev => prev + 1)
     }, 1000)
 
-    // When user leaves, send final duration
     return () => {
-      if (viewDuration > 5) { // Only track if viewed for more than 5 seconds
+      if (viewDuration > 5) {
         trackProductView(productId, viewDuration)
       }
       clearInterval(interval)

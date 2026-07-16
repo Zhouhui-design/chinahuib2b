@@ -865,7 +865,7 @@ export default function ProductsPage() {
                 <option value="">{t.selectBooth}</option>
                 {booths.map((booth) => (
                   <option key={booth.id} value={booth.id}>
-                    {booth.exhibitionName || booth.name}
+                    {booth.name}
                   </option>
                 ))}
               </select>
