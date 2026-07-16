@@ -671,9 +671,16 @@ export default function BoothsPage() {
               size: file.size
             }]
           }))
+        } else if (data.error) {
+          console.error('Upload error:', data.error)
+          alert(`${language === 'zh' ? '上传失败' : 'Upload failed'}: ${data.error}`)
+        } else {
+          console.error('Upload failed, no URL returned:', data)
+          alert(language === 'zh' ? '上传失败，请重试' : 'Upload failed, please try again')
         }
       } catch (error) {
         console.error('Document upload failed:', error)
+        alert(language === 'zh' ? '上传失败，请重试' : 'Upload failed, please try again')
       }
     }
   }
