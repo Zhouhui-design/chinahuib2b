@@ -210,6 +210,7 @@ export async function POST(request: NextRequest) {
         logoUrl: data.logoUrl,
         bannerUrl: data.bannerUrl,
         keywords: data.keywords,
+        documents: data.documents,
         theme: data.theme,
         colorScheme: data.colorScheme,
         layout: data.layout,
