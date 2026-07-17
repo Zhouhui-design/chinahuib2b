@@ -342,7 +342,7 @@ export default function SellerDashboardClientLayout({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
           {/* Sidebar Navigation */}
-          <aside className="w-64 flex-shrink-0">
+          <aside className="w-56 flex-shrink-0">
             <nav className="space-y-1">
               <Link
                 href="/seller"
@@ -440,30 +440,6 @@ export default function SellerDashboardClientLayout({
                 {t.settings}
               </Link>
             </nav>
-
-            {/* Quick Stats - Will be populated by child components */}
-            <div className="mt-8 p-4 bg-white rounded-lg border border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                {t.quickStats}
-              </h3>
-              <div className="space-y-2 text-sm">
-                <p className="text-gray-500 text-xs">
-                  {language === 'zh' ? '统计数据将在仪表板页面显示' :
-                   language === 'ja' ? '統計データはダッシュボードページに表示されます' :
-                   language === 'ar' ? 'ستظهر الإحصائيات على صفحة لوحة التحكم' :
-                   language === 'es' ? 'Las estadísticas aparecerán en la página del panel' :
-                   language === 'fr' ? 'Les statistiques apparaîtront sur la page du tableau de bord' :
-                   language === 'de' ? 'Statistiken werden auf der Dashboard-Seite angezeigt' :
-                   language === 'ko' ? '통계 데이터가 대시보드 페이지에 표시됩니다' :
-                   language === 'ru' ? 'Статистика будет отображена на странице панели управления' :
-                   language === 'pt' ? 'Estatísticas aparecerão na página do painel' :
-                   language === 'hi' ? 'डैशबोर्ड पेज पर आंकड़े दिखाई देंगे' :
-                   language === 'th' ? 'สถิติจะปรากฏบนหน้าดัชบอร์ด' :
-                   language === 'vi' ? 'Thống kê sẽ xuất hiện trên trang bảng điều khiển' :
-                   'Stats will appear on dashboard page'}
-                </p>
-              </div>
-            </div>
           </aside>
 
           {/* Main Content */}
