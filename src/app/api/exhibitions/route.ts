@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
           isPublished: true
         },
         include: {
-          documents: true,
           seller: {
             select: {
               id: true,
