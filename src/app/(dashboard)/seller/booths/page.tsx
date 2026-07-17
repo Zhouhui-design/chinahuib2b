@@ -368,18 +368,18 @@ export default function BoothsPage() {
             language === 'hi' ? 'बूथ बैनर' :
             'Booth Banner',
     
-    keywords: language === 'zh' ? '关键词（最多10个）' :
-              language === 'ja' ? 'キーワード（最大10個）' :
-              language === 'ko' ? '키워드 (최대 10개)' :
-              language === 'ar' ? 'كلمات مفتاحية (أقصى 10)' :
-              language === 'es' ? 'Palabras clave (máx. 10)' :
-              language === 'fr' ? 'Mots-clés (max 10)' :
-              language === 'de' ? 'Schlüsselwörter (max 10)' :
-              language === 'it' ? 'Parole chiave (max 10)' :
-              language === 'pt' ? 'Palavras-chave (máx. 10)' :
-              language === 'ru' ? 'Ключевые слова (макс. 10)' :
-              language === 'hi' ? 'कीवर्ड (अधिकतम 10)' :
-              'Keywords (max 10)',
+    keywords: language === 'zh' ? '关键词（最多50个）' :
+              language === 'ja' ? 'キーワード（最大50個）' :
+              language === 'ko' ? '키워드 (최대 50개)' :
+              language === 'ar' ? 'كلمات مفتاحية (أقصى 50)' :
+              language === 'es' ? 'Palabras clave (máx. 50)' :
+              language === 'fr' ? 'Mots-clés (max 50)' :
+              language === 'de' ? 'Schlüsselwörter (max 50)' :
+              language === 'it' ? 'Parole chiave (max 50)' :
+              language === 'pt' ? 'Palavras-chave (máx. 50)' :
+              language === 'ru' ? 'Ключевые слова (макс. 50)' :
+              language === 'hi' ? 'कीवर्ड (अधिकतम 50)' :
+              'Keywords (max 50)',
     
     uploadLogo: language === 'zh' ? '上传 Logo' :
                 language === 'ja' ? 'ロゴをアップロード' :
@@ -713,7 +713,7 @@ export default function BoothsPage() {
 
   const addKeyword = (keyword: string) => {
     if (!keyword.trim()) return
-    if (formData.keywords.length >= 10) return
+    if (formData.keywords.length >= 50) return
     if (formData.keywords.includes(keyword.trim())) return
     
     setFormData(prev => ({
@@ -1161,14 +1161,14 @@ export default function BoothsPage() {
                     }}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="输入关键词后按回车"
-                    disabled={formData.keywords.length >= 10}
+                    disabled={formData.keywords.length >= 50}
                   />
                   <button
                     onClick={() => {
                       addKeyword(newKeyword)
                       setNewKeyword('')
                     }}
-                    disabled={!newKeyword.trim() || formData.keywords.length >= 10}
+                    disabled={!newKeyword.trim() || formData.keywords.length >= 50}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     +
