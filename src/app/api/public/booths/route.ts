@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const booths = await prisma.booth.findMany({
       where: { isPublished: true, isActive: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
       include: {
         seller: {
           select: {
