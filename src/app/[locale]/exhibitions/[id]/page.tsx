@@ -69,6 +69,12 @@ interface Booth {
   logoUrl?: string
   bannerUrl?: string
   keywords?: string[]
+  documents?: {
+    url: string
+    name?: string
+    type?: string
+    size?: number
+  }[]
   theme?: string
   layout?: string
   isActive: boolean
@@ -1215,6 +1221,66 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                             className="w-full aspect-square object-cover rounded-lg border border-gray-200 hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer"
                           />
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Booth Documents */}
+                  {booth.documents?.length > 0 && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                          <Download className="w-5 h-5 mr-2 text-blue-600" />
+                          Download Documents
+                        </h3>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {booth.documents.map((doc, idx) => {
+                          const ext = doc.name?.split('.').pop()?.toLowerCase() || ''
+                          const iconMap: { [key: string]: string } = {
+                            pdf: '📄',
+                            doc: '📝',
+                            docx: '📝',
+                            xls: '📊',
+                            xlsx: '📊',
+                            ppt: '📈',
+                            pptx: '📈',
+                            zip: '📦',
+                            rar: '📦',
+                            jpg: '🖼️',
+                            jpeg: '🖼️',
+                            png: '🖼️',
+                            gif: '🖼️',
+                          }
+                          const icon = iconMap[ext] || '📎'
+                          
+                          const formatSize = (bytes: number) => {
+                            if (bytes < 1024) return bytes + ' B'
+                            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
+                            return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
+                          }
+                          
+                          return (
+                            <a
+                              key={idx}
+                              href={doc.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-4 p-3 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all group"
+                            >
+                              <div className="text-3xl">{icon}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-900 truncate group-hover:text-blue-600">
+                                  {doc.name || 'Document'}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {doc.type || 'Unknown'} • {doc.size ? formatSize(doc.size) : ''}
+                                </p>
+                              </div>
+                              <Download className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+                            </a>
+                          )
+                        })}
                       </div>
                     </div>
                   )}
