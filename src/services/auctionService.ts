@@ -17,16 +17,24 @@ export async function getActiveAuctions(): Promise<AuctionListing[]> {
   const now = new Date();
   return await prisma.auctionListing.findMany({
     where: {
-      isAuction: true,
       status: 'ACTIVE',
-      auctionStartTime: { lte: now },
-      auctionEndTime: { gte: now },
+      verificationStatus: 'VERIFIED',
+      OR: [
+        {
+          isAuction: true,
+          auctionStartTime: { lte: now },
+          auctionEndTime: { gte: now },
+        },
+        {
+          isAuction: false,
+        },
+      ],
     },
     include: {
       poster: true,
       seller: true,
     },
-    orderBy: { auctionEndTime: 'asc' },
+    orderBy: { createdAt: 'desc' },
   });
 }
 
@@ -38,11 +46,11 @@ export async function createAuctionListing(
     description?: string;
     category?: string;
     tags?: string[];
-    startingBid: number;
-    bidIncrement: number;
+    startingBid?: number;
+    bidIncrement?: number;
     reservePrice?: number;
-    auctionStartTime: Date;
-    auctionEndTime: Date;
+    auctionStartTime?: Date;
+    auctionEndTime?: Date;
     autoExtend?: boolean;
     extendedMinutes?: number;
     images?: string[];
@@ -56,28 +64,44 @@ export async function createAuctionListing(
     contactWeChat?: string;
     contactWhatsApp?: string;
     sellerId?: string;
+    type?: string;
+    price?: number;
+    techSpecs?: string;
+    productFeatures?: string;
+    applicationScope?: string;
+    usageMethod?: string;
+    shippingCountry?: string;
+    detailedAddress?: string;
+    isFob?: string;
+    isCif?: string;
+    verificationStatus?: string;
+    unitId?: string;
+    keywords?: string[];
   }
 ): Promise<AuctionListing> {
+  const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
+  
   return await prisma.auctionListing.create({
     data: {
-      type: 'SELLING',
+      type: (data.type as any) || 'SELLING',
       title: data.title,
       description: data.description,
       category: data.category,
       tags: data.tags || [],
-      startingBid: data.startingBid,
-      currentBid: data.startingBid,
-      bidIncrement: data.bidIncrement,
+      keywords: data.keywords || [],
+      startingBid: isAuctionMode ? data.startingBid : data.price || 0,
+      currentBid: isAuctionMode ? data.startingBid : data.price || 0,
+      bidIncrement: isAuctionMode ? (data.bidIncrement || 1) : 0,
       reservePrice: data.reservePrice,
-      auctionStartTime: data.auctionStartTime,
-      auctionEndTime: data.auctionEndTime,
-      autoExtend: data.autoExtend || true,
-      extendedMinutes: data.extendedMinutes || 5,
-      isAuction: true,
-      status: 'ACTIVE',
+      auctionStartTime: isAuctionMode ? data.auctionStartTime! : null,
+      auctionEndTime: isAuctionMode ? data.auctionEndTime! : null,
+      autoExtend: isAuctionMode ? (data.autoExtend || true) : false,
+      extendedMinutes: isAuctionMode ? (data.extendedMinutes || 5) : 0,
+      isAuction: isAuctionMode,
+      status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
       images: data.images || [],
       videos: data.videos || [],
-      documents: data.documents || [],
+      documents: [...(data.documents || []), ...(data.drawings || [])],
       currency: data.currency || 'USD',
       minOrderQty: data.minOrderQty,
       maxOrderQty: data.maxOrderQty,
@@ -87,6 +111,17 @@ export async function createAuctionListing(
       contactWhatsApp: data.contactWhatsApp,
       posterId,
       sellerId: data.sellerId,
+      price: data.price,
+      techSpecs: data.techSpecs,
+      productFeatures: data.productFeatures,
+      applicationScope: data.applicationScope,
+      usageMethod: data.usageMethod,
+      shippingCountry: data.shippingCountry,
+      detailedAddress: data.detailedAddress,
+      isFob: data.isFob,
+      isCif: data.isCif,
+      verificationStatus: (data.verificationStatus as any) || 'NOT_APPLIED',
+      unitId: data.unitId,
     },
   });
 }

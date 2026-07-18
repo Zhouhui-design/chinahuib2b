@@ -126,32 +126,32 @@ export default function RegisterPage() {
                  language === 'th' ? 'ผู้ซื้อ（เรียกดูสินค้า）' :
                  language === 'vi' ? 'Người mua（Xem sản phẩm）' :
                  'Buyer (Browse Products)',
-    sellerOption: language === 'zh' ? '卖家（开设店铺 - $10/月）' :
-                  language === 'ja' ? '卖家（ストアを開く - $10/月）' :
-                  language === 'ar' ? '卖家（فتح متجر - 10 دولار/شهر）' :
-                  language === 'es' ? 'Vendedor (Abrir tienda - $10/mes)' :
-                  language === 'fr' ? 'Vendeur (Ouvrir une boutique - 10$/mois)' :
-                  language === 'de' ? 'Verkäufer (Shop eröffnen - 10$/Monat)' :
-                  language === 'ko' ? '판매자（스토어 개설 - $10/월）' :
-                  language === 'ru' ? 'Продавец (Открыть магазин - 10$/мес)' :
-                  language === 'pt' ? 'Vendedor (Abrir loja - $10/mês)' :
-                  language === 'hi' ? 'विक्रेता（दुकान खोलें - $10/महीना）' :
-                  language === 'th' ? 'ผู้ขาย（เปิดร้านค้า - $10/เดือน）' :
-                  language === 'vi' ? 'Người bán（Mở cửa hàng - $10/tháng）' :
-                  'Seller (Open Store - $10/month)',
-    buyerAndSellerOption: language === 'zh' ? '买家 & 卖家（双重身份 - $10/月）' :
-                          language === 'ja' ? 'バイヤー & セラー（二重の役割 - $10/月）' :
-                          language === 'ar' ? '买家 & 卖家（دور مزدوج - $10/月）' :
-                          language === 'es' ? 'Comprador & Vendedor (Rol dual - $10/mes)' :
-                          language === 'fr' ? 'Acheteur & Vendeur (Double rôle - 10$/mois)' :
-                          language === 'de' ? 'Käufer & Verkäufer (Doppelte Rolle - 10$/Monat)' :
-                          language === 'ko' ? '구매자 & 판매자（이중 역할 - $10/월）' :
-                          language === 'ru' ? 'Покупатель & Продавец (Двойная роль - 10$/мес)' :
-                          language === 'pt' ? 'Comprador & Vendedor (Função dupla - $10/mês)' :
-                          language === 'hi' ? 'खरीदार & विक्रेता（दोहरी भूमिका - $10/महीना）' :
-                          language === 'th' ? 'ผู้ซื้อ & ผู้ขาย（บทบาทคู่ - $10/เดือน）' :
-                          language === 'vi' ? 'Người mua & Người bán（Vai trò kép - $10/tháng）' :
-                          'Buyer & Seller (Dual Role - $10/month)',
+    sellerOption: language === 'zh' ? '卖家（开设店铺）' :
+                  language === 'ja' ? '卖家（ストアを開く）' :
+                  language === 'ar' ? '卖家（فتح متجر）' :
+                  language === 'es' ? 'Vendedor (Abrir tienda)' :
+                  language === 'fr' ? 'Vendeur (Ouvrir une boutique)' :
+                  language === 'de' ? 'Verkäufer (Shop eröffnen)' :
+                  language === 'ko' ? '판매자（스토어 개설）' :
+                  language === 'ru' ? 'Продавец (Открыть магазин)' :
+                  language === 'pt' ? 'Vendedor (Abrir loja)' :
+                  language === 'hi' ? 'विक्रेता（दुकान खोलें）' :
+                  language === 'th' ? 'ผู้ขาย（เปิดร้านค้า）' :
+                  language === 'vi' ? 'Người bán（Mở cửa hàng）' :
+                  'Seller (Open Store)',
+    buyerAndSellerOption: language === 'zh' ? '买家 & 卖家（双重身份）' :
+                          language === 'ja' ? 'バイヤー & セラー（二重の役割）' :
+                          language === 'ar' ? '买家 & 卖家（دور مزدوج）' :
+                          language === 'es' ? 'Comprador & Vendedor (Rol dual)' :
+                          language === 'fr' ? 'Acheteur & Vendeur (Double rôle)' :
+                          language === 'de' ? 'Käufer & Verkäufer (Doppelte Rolle)' :
+                          language === 'ko' ? '구매자 & 판매자（이중 역할）' :
+                          language === 'ru' ? 'Покупатель & Продавец (Двойная роль)' :
+                          language === 'pt' ? 'Comprador & Vendedor (Função dupla)' :
+                          language === 'hi' ? 'खरीदार & विक्रेता（दोहरी भूमिका）' :
+                          language === 'th' ? 'ผู้ซื้อ & ผู้ขาย（บทบาทคู่）' :
+                          language === 'vi' ? 'Người mua & Người bán（Vai trò kép）' :
+                          'Buyer & Seller (Dual Role)',
     policyWarning: language === 'zh' ? '⚠️ 账户活动政策：365天未活跃的账户将被停用。请定期登录以保持账户活跃。' :
                    language === 'ja' ? '⚠️ アカウントアクティビティポリシー：365日間非アクティブなアカウントは停止されます。アカウントを有効に保つために定期的にログインしてください。' :
                    language === 'ar' ? '⚠️ سياسة نشاط الحساب: سيتم إيقاف الحسابات غير النشطة لمدة 365 يومًا. يرجى تسجيل الدخول بانتظام لإبقاء حسابك نشطًا.' :
@@ -248,8 +248,11 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         if (data.details && Array.isArray(data.details)) {
-          const errorMessages = data.details.map((d: any) => d.message).join(', ')
-          throw new Error(errorMessages)
+          const errorMessages = data.details
+            .map((d: any) => d.message || d)
+            .filter((msg: string) => msg && msg.trim())
+            .join(', ')
+          throw new Error(errorMessages || data.error || 'Registration failed')
         }
         throw new Error(data.error || 'Registration failed')
       }

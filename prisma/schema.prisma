@@ -725,6 +725,7 @@ model AuctionListing {
   description          String?
   category             String?
   tags                 String[]
+  keywords             String[]
   price                Decimal?              @db.Decimal(10, 2)
   currency             String                @default("USD")
   minOrderQty          Int?                  @default(1)

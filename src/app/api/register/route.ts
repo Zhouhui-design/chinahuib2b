@@ -87,11 +87,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: "Both email and username already exist",
-          details: {
-            emailExists: true,
-            usernameExists: true,
-            message: "The email and username you entered are already registered. Please use different credentials."
-          }
+          details: [{ message: "The email and username you entered are already registered. Please use different credentials." }]
         },
         { status: 400 }
       )
@@ -99,11 +95,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: "Email already exists",
-          details: {
-            emailExists: true,
-            usernameExists: false,
-            message: "This email address is already registered. Please use a different email or log in with your existing account."
-          }
+          details: [{ message: "This email address is already registered. Please use a different email or log in with your existing account." }]
         },
         { status: 400 }
       )
@@ -111,11 +103,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: "Username already exists",
-          details: {
-            emailExists: false,
-            usernameExists: true,
-            message: "This username is already taken. Please choose a different username."
-          }
+          details: [{ message: "This username is already taken. Please choose a different username." }]
         },
         { status: 400 }
       )
@@ -130,10 +118,17 @@ export async function POST(request: NextRequest) {
     // Check password strength
     const strength = getPasswordStrength(password)
     if (strength.score < 40) {
+      const feedbackMessages = []
+      if (strength.feedback?.suggestions) {
+        feedbackMessages.push(...strength.feedback.suggestions)
+      }
+      if (strength.feedback?.warning) {
+        feedbackMessages.push(strength.feedback.warning)
+      }
       return NextResponse.json(
         {
           error: "Password is too weak",
-          details: strength.feedback,
+          details: feedbackMessages.map(msg => ({ message: msg })),
           strength: strength.level
         },
         { status: 400 }

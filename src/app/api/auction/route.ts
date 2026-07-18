@@ -37,13 +37,13 @@ export async function POST(request: NextRequest) {
       startingBid: body.startingBid,
       bidIncrement: body.bidIncrement,
       reservePrice: body.reservePrice,
-      auctionStartTime: new Date(body.auctionStartTime),
-      auctionEndTime: new Date(body.auctionEndTime),
+      auctionStartTime: body.auctionStartTime ? new Date(body.auctionStartTime) : undefined,
+      auctionEndTime: body.auctionEndTime ? new Date(body.auctionEndTime) : undefined,
       autoExtend: body.autoExtend,
       extendedMinutes: body.extendedMinutes,
       images: body.images,
       videos: body.videos,
-      documents: body.documents,
+      documents: body.files,
       currency: body.currency,
       minOrderQty: body.minOrderQty,
       maxOrderQty: body.maxOrderQty,
@@ -52,9 +52,21 @@ export async function POST(request: NextRequest) {
       contactWeChat: body.contactWeChat,
       contactWhatsApp: body.contactWhatsApp,
       sellerId: body.sellerId,
+      type: body.type,
+      price: body.price,
+      techSpecs: body.techSpecs,
+      productFeatures: body.productFeatures,
+      applicationScope: body.applicationScope,
+      usageMethod: body.usageMethod,
+      shippingCountry: body.shippingCountry,
+      detailedAddress: body.detailedAddress,
+      isFob: body.isFob,
+      isCif: body.isCif,
+      verificationStatus: body.verificationStatus,
+      unitId: body.unitId,
     });
 
-    return NextResponse.json(auction, { status: 201 });
+    return NextResponse.json({ success: true, data: { listing: auction } }, { status: 201 });
   } catch (error) {
     console.error('Error creating auction:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

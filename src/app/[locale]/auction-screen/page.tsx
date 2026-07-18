@@ -159,7 +159,7 @@ export default function AuctionScreenPage() {
         const res = await fetch(`/api/auction?${params}`)
         if (res.ok) {
           const data = await res.json()
-          setListings(data.data.listings)
+          setListings(Array.isArray(data) ? data : data.data?.listings || data.data || [])
         }
       } catch (error) {
         console.error('Error fetching listings:', error)
@@ -875,6 +875,7 @@ function CreateListingModal({
     productFeatures: '',  // 产品特点（选填）
     applicationScope: '',  // 适用范围（选填）
     usageMethod: '',  // 使用方法（选填）
+    keywords: '',  // 关键词，最多50个，用逗号分隔
     
     // Location & Shipping
     shippingCountry: '',  // 发货国家（必填）
@@ -1117,6 +1118,11 @@ function CreateListingModal({
   const handleApplyVerification = async () => {
     if (!session) return
     
+    if (!formData.productName.trim()) {
+      alert('请先填写商品名称')
+      return
+    }
+    
     if (!formData.shippingCountry) {
       alert('请先选择发货国家')
       return
@@ -1127,36 +1133,72 @@ function CreateListingModal({
       return
     }
 
+    if (!formData.unitId) {
+      alert('请先选择计量单位')
+      return
+    }
+
+    if (!formData.pickupPrice) {
+      alert('请先填写自提价格')
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
-      const res = await fetch('/api/auction/apply-verification', {
+      const price = parseFloat(formData.pickupPrice) || 0
+      
+      const keywords = formData.keywords
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k)
+        .slice(0, 50)
+
+      const listingData = {
+        type: type.toUpperCase(),
+        title: formData.productName,
+        description: formData.productDescription,
+        category: selectedLevel5 || selectedLevel4 || selectedLevel3 || selectedLevel2 || selectedLevel1,
+        techSpecs: formData.techSpecs,
+        productFeatures: formData.productFeatures,
+        applicationScope: formData.applicationScope,
+        usageMethod: formData.usageMethod,
+        keywords: keywords,
+        shippingCountry: formData.shippingCountry,
+        detailedAddress: formData.detailedAddress,
+        currency: formData.currency,
+        unitId: formData.unitId,
+        price: price,
+        isFob: formData.isFob,
+        isCif: formData.isCif,
+        minOrderQty: parseInt(formData.minOrderQty) || 1,
+        verificationStatus: 'PENDING',
+        images: formData.images,
+        files: formData.files,
+        drawings: formData.drawings,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        contactWhatsApp: formData.contactWhatsApp,
+      }
+
+      const res = await fetch('/api/auction', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          shippingCountry: formData.shippingCountry,
-          detailedAddress: formData.detailedAddress,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(listingData),
       })
       
       if (res.ok) {
-        const data = await res.json()
-        if (data.success) {
-          setFormData(prev => ({ ...prev, verificationStatus: 'PENDING' }))
-          alert('申请提交成功，后台将计算审核费用并通知您')
-        } else {
-          alert(data.message || '申请失败，请重试')
-        }
+        setIsSubmitting(false)
+        alert('申请提交成功，如果当前页面没自动关闭，请选择手动关闭，然后等待后台管理员审核')
+        onClose()
       } else {
         const data = await res.json()
-        alert(data.message || '申请失败，请重试')
+        alert(data.message || data.error || '申请失败，请重试')
+        setIsSubmitting(false)
       }
     } catch (error) {
       console.error('Apply verification error:', error)
       alert('申请失败，请稍后重试')
-    } finally {
       setIsSubmitting(false)
     }
   }
@@ -1364,6 +1406,23 @@ function CreateListingModal({
               rows={4}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-2 font-medium">关键词（最多50个）</label>
+            <textarea
+              value={formData.keywords}
+              onChange={(e) => setFormData(prev => ({ ...prev, keywords: e.target.value }))}
+              placeholder="请输入关键词，用英文逗号分隔，最多50个。例如：钢材, 建筑材料, 批发, 现货, 低价..."
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-gray-400 text-sm mt-1">
+              当前已输入 {formData.keywords.split(',').filter(k => k.trim()).length} 个关键词
+              {formData.keywords.split(',').filter(k => k.trim()).length > 50 && (
+                <span className="text-red-400"> - 超出限制，请删除多余关键词</span>
+              )}
+            </p>
           </div>
 
           {/* Location Info - Required */}
@@ -1763,23 +1822,7 @@ function CreateListingModal({
             )}
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-gray-700 sticky bottom-0 bg-gray-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
-            >
-              {dict.auctionScreen.cancel}
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
-            >
-              {isSubmitting ? dict.auctionScreen.posting : dict.auctionScreen.postListingCost}
-            </button>
-          </div>
+
         </form>
       </div>
     </div>
