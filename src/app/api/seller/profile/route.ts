@@ -91,6 +91,7 @@ export async function GET() {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.name || 'user_' + session.user.id.slice(0, 8),
+            password: session.user.id,
             role: 'SELLER',
           }
         })
@@ -144,6 +145,7 @@ export async function PUT(request: NextRequest) {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.name || 'user_' + session.user.id.slice(0, 8),
+            password: session.user.id,
             role: 'SELLER',
           }
         })
