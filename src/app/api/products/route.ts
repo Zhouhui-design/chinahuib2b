@@ -10,7 +10,7 @@ import { handleSEOEvent } from "@/lib/seo-automation"
 
 
 const productSchema = z.object({
-  title: z.string().min(3).max(200).optional(),
+  title: z.string().min(3).max(500).optional(),
   titles: z.record(z.string(), z.string()).optional(),
   categoryId: z.string(),
   description: z.string().optional(),
