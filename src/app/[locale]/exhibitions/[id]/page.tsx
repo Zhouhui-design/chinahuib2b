@@ -212,8 +212,8 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
   const updateSEOMeta = (boothData: Booth) => {
     if (typeof document === 'undefined') return
 
-    const pageTitle = `${boothData.name} - ${boothData.seller?.companyName || 'Exhibition Booth'}`
-    const pageDescription = `Explore ${boothData.name} by ${boothData.seller?.companyName || ''}. View products, contact the exhibitor, and more at Global Expo.`
+    const pageTitle = `${boothData.name} at ${boothData.exhibitionName} | X2XHub`
+    const pageDescription = `${boothData.name} is exhibiting at ${boothData.exhibitionName}. ${boothData.seller?.companyName || ''} from ${boothData.seller?.city || ''}, ${boothData.seller?.country || ''}. ${boothData.keywords?.join(', ') || ''}. View products and connect with suppliers.`
     
     document.title = pageTitle
 
@@ -239,13 +239,28 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
 
     setMeta('description', pageDescription)
     
-    if (boothData.keywords && boothData.keywords.length > 0) {
-      setMeta('keywords', boothData.keywords.join(', '))
+    const allKeywords = [
+      ...(boothData.keywords || []),
+      boothData.name,
+      boothData.exhibitionName,
+      boothData.seller?.companyName || '',
+      boothData.seller?.country || '',
+      boothData.seller?.city || '',
+      'exhibition',
+      'trade show',
+      'b2b',
+      'global trade',
+      'products',
+    ].filter(Boolean)
+    if (allKeywords.length > 0) {
+      setMeta('keywords', allKeywords.join(', '))
     }
 
     setProperty('og:title', pageTitle)
     setProperty('og:description', pageDescription)
     setProperty('og:type', 'website')
+    setProperty('og:url', window.location.href)
+    setProperty('og:site_name', 'X2XHub')
     if (boothData.bannerUrl) {
       setProperty('og:image', boothData.bannerUrl)
     }
@@ -257,12 +272,20 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
       setMeta('twitter:image', boothData.bannerUrl)
     }
 
+    setMeta('geo.region', boothData.seller?.country || '')
+    setMeta('geo.placename', boothData.seller?.city || '')
+    if (boothData.seller?.mapLatitude && boothData.seller?.mapLongitude) {
+      setMeta('geo.position', `${boothData.seller.mapLatitude};${boothData.seller.mapLongitude}`)
+    }
+
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'ExhibitionEvent',
       name: boothData.name,
       description: pageDescription,
       image: boothData.bannerUrl || '',
+      url: window.location.href,
+      eventStatus: 'https://schema.org/EventScheduled',
       organizer: {
         '@type': 'Organization',
         name: boothData.seller?.companyName || '',
@@ -276,6 +299,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
           '@type': 'ContactPoint',
           email: boothData.seller?.email || '',
           telephone: boothData.seller?.phone || '',
+          contactType: 'sales',
         },
       },
       location: {
@@ -285,13 +309,24 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
           '@type': 'PostalAddress',
           addressLocality: boothData.seller?.city || '',
           addressCountry: boothData.seller?.country || '',
+          streetAddress: boothData.seller?.address || '',
         },
+        geo: boothData.seller?.mapLatitude && boothData.seller?.mapLongitude ? {
+          '@type': 'GeoCoordinates',
+          latitude: boothData.seller.mapLatitude,
+          longitude: boothData.seller.mapLongitude,
+        } : undefined,
       },
       keywords: boothData.keywords?.join(', ') || '',
       offers: {
         '@type': 'AggregateOffer',
         offerCount: boothData.products?.length || 0,
       },
+      ...(boothData.exhibitionDates && {
+        startDate: boothData.exhibitionDates.start,
+        endDate: boothData.exhibitionDates.end,
+      }),
+      isAccessibleForFree: true,
     }
 
     let script = document.getElementById('booth-jsonld')
