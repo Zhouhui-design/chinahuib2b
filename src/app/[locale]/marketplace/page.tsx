@@ -6,11 +6,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import type { LanguageCode } from '@/lib/languages'
-import { dictionaries } from '@/locales/dictionary'
-import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone } from 'lucide-react'
+  import { useParams } from 'next/navigation'
+  import Link from 'next/link'
+  import type { LanguageCode } from '@/lib/languages'
+  import { dictionaries } from '@/locales/dictionary'
+  import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone, Globe, MapPin } from 'lucide-react'
+  import { COUNTRIES, getCountryFlag, getCountryName } from '@/lib/geo-location'
 
 // Sample task data (will be replaced with real API calls)
 const sampleTasks = [
@@ -131,7 +132,7 @@ interface Topic {
 
 export default function MarketplacePage() {
   const params = useParams()
-  const locale = (params.locale as LanguageCode) || 'en'
+  const locale = (params['locale'] as LanguageCode) || 'en'
   const dict = dictionaries[locale] || dictionaries.en
 
   interface Task {
@@ -140,8 +141,18 @@ export default function MarketplacePage() {
     postedAt: string
     title: string
     description: string
-    budget?: string
+    budget?: number
+    price?: number
+    currency?: string
+    unit?: string
+    minOrderQty?: number
+    deadline?: string
     applications?: number
+    views?: number
+    rating?: number
+    postedBy?: string
+    countryCode?: string
+    countryName?: string
   }
   const [tasks, setTasks] = useState<Task[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
@@ -150,6 +161,7 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState('newest')
   const [activeTab, setActiveTab] = useState<'tasks' | 'topics'>('tasks')
   const [selectedTopicCategory, setSelectedTopicCategory] = useState('all')
+  const [selectedCountry, setSelectedCountry] = useState('all')
   const [stats, setStats] = useState({
     activeTasks: 0,
     completedTasks: 0,
@@ -204,6 +216,10 @@ export default function MarketplacePage() {
           params.set('order', 'desc')
         }
         
+        if (selectedCountry !== 'all') {
+          params.set('country', selectedCountry)
+        }
+        
         const response = await fetch(`/api/marketplace/tasks?${params}`)
         const data = await response.json()
         
@@ -218,7 +234,7 @@ export default function MarketplacePage() {
     }
     
     fetchTasks()
-  }, [selectedType, sortBy])
+  }, [selectedType, sortBy, selectedCountry])
 
   // Fetch topics from API
   useEffect(() => {
@@ -349,6 +365,18 @@ export default function MarketplacePage() {
               <div className="flex gap-2">
                 <select 
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                >
+                  <option value="all">{(dict.marketplace as any).allCountries || 'All Countries'}</option>
+                  {COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {getCountryName(country.code, locale)}
+                    </option>
+                  ))}
+                </select>
+                <select 
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
@@ -426,6 +454,12 @@ export default function MarketplacePage() {
                            {task.type === 'manufacturing' ? dict.marketplace.taskTypes.manufacturing :
                            task.type === 'product_sale' ? dict.marketplace.taskTypes.productSale : dict.marketplace.taskTypes.service}
                         </span>
+                        {task.countryCode && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                            <MapPin className="w-3 h-3" />
+                            {getCountryFlag(task.countryCode)} {getCountryName(task.countryCode, locale)}
+                          </span>
+                        )}
                         <span className="text-sm text-gray-500">Posted {task.postedAt}</span>
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">

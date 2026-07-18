@@ -506,6 +506,8 @@ model MarketplaceTask {
   rating           Decimal?          @db.Decimal(3, 2)
   attachments      Json?
   keywords         String[]          @default([])
+  countryCode      String?
+  countryName      String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   postedBy         User              @relation(fields: [postedById], references: [id])

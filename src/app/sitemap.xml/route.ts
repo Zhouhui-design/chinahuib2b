@@ -238,6 +238,26 @@ export async function GET(request: NextRequest) {
       console.warn('Failed to fetch topics for sitemap:', error)
     }
 
+    try {
+      const tasks = await prisma.marketplaceTask.findMany({
+        where: { status: 'OPEN' },
+        select: { id: true, updatedAt: true },
+        take: 500
+      })
+
+      tasks.forEach(task => {
+        entries.push({
+          loc: `${BASE_URL}/marketplace/${task.id}`,
+          lastmod: new Date(task.updatedAt).toISOString().split('T')[0],
+          changefreq: 'hourly',
+          priority: 0.8,
+          alternates: createAlternates(`/marketplace/${task.id}`)
+        })
+      })
+    } catch (error) {
+      console.warn('Failed to fetch tasks for sitemap:', error)
+    }
+
     const regionalPages = [
       { path: '/marketplace?region=us', region: 'US', priority: 0.85 },
       { path: '/marketplace?region=eu', region: 'EU', priority: 0.85 },

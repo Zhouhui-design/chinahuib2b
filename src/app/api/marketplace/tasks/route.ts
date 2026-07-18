@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { sendTaskMatchNotifications, sendMatchNotificationsToSellers } from '@/lib/system-notification-service'
 import { handleSEOEvent } from '@/lib/seo-automation'
+import { getServerLocation } from '@/lib/geo-location'
 
 /**
  * GET /api/marketplace/tasks
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const order = searchParams.get('order') || 'desc'
     const search = searchParams.get('search')
+    const country = searchParams.get('country')
     
     // Build where clause
     const where: any = {}
@@ -44,6 +46,10 @@ export async function GET(request: NextRequest) {
         { description: { contains: search } },
         { keywords: { has: search } },
       ]
+    }
+    
+    if (country) {
+      where.countryCode = country.toUpperCase()
     }
     
     // Get total count
@@ -146,6 +152,20 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Get client location
+    let countryCode: string | null = null
+    let countryName: string | null = null
+    
+    try {
+      const location = await getServerLocation(request)
+      if (location) {
+        countryCode = location.countryCode
+        countryName = location.country
+      }
+    } catch (error) {
+      console.warn('Failed to get client location:', error)
+    }
+    
     // Create task
     const task = await prisma.marketplaceTask.create({
       data: {
@@ -162,6 +182,8 @@ export async function POST(request: NextRequest) {
         contactInfo: body.contactInfo || null,
         attachments: body.attachments || [],
         keywords: body.keywords || [],
+        countryCode,
+        countryName,
         status: TaskStatus.OPEN,
       },
     })
@@ -200,7 +222,7 @@ export async function POST(request: NextRequest) {
           type: 'task_create',
           data: {
             id: task.id,
-            url: `https://x2xhub.com/de/marketplace`,
+            url: `https://x2xhub.com/de/marketplace/${task.id}`,
             title: task.title,
             description: task.description,
           },

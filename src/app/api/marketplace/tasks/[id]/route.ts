@@ -131,7 +131,7 @@ export async function PUT(
           type: 'task_update',
           data: {
             id: updatedTask.id,
-            url: `https://x2xhub.com/de/marketplace`,
+            url: `https://x2xhub.com/de/marketplace/${updatedTask.id}`,
             title: updatedTask.title,
             description: updatedTask.description,
           },
