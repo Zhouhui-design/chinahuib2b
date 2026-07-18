@@ -81,6 +81,21 @@ export async function GET() {
     })
 
     if (!seller) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id }
+      })
+
+      if (!userExists) {
+        await prisma.user.create({
+          data: {
+            id: session.user.id,
+            email: session.user.email || '',
+            username: session.user.name || 'user_' + session.user.id.slice(0, 8),
+            role: 'SELLER',
+          }
+        })
+      }
+
       seller = await prisma.sellerProfile.create({
         data: {
           userId: session.user.id,
@@ -119,6 +134,21 @@ export async function PUT(request: NextRequest) {
     })
 
     if (!seller) {
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id }
+      })
+
+      if (!userExists) {
+        await prisma.user.create({
+          data: {
+            id: session.user.id,
+            email: session.user.email || '',
+            username: session.user.name || 'user_' + session.user.id.slice(0, 8),
+            role: 'SELLER',
+          }
+        })
+      }
+
       seller = await prisma.sellerProfile.create({
         data: {
           userId: session.user.id,
