@@ -5,9 +5,63 @@ import { prisma } from "@/lib/db";
 import CategorySidebar from "@/components/category/CategorySidebar";
 import ProductGrid from "@/components/product/ProductGrid";
 import { BreadcrumbSchema } from '@/components/seo/StructuredData';
+import type { Metadata } from 'next';
+import { languages } from '@/lib/languages';
 
 // ISR Configuration - Revalidate every 30 minutes
 export const revalidate = 1800;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: LanguageCode }> }): Promise<Metadata> {
+  const { locale } = await params;
+  
+  const baseUrl = 'https://x2xhub.com';
+  
+  const alternates: Record<string, string> = {};
+  languages.forEach(lang => {
+    const langPath = lang.code === 'en' 
+      ? '/products'
+      : `/${lang.code}/products`;
+    alternates[lang.code] = `${baseUrl}${langPath}`;
+  });
+
+  return {
+    title: locale === 'zh' ? '产品列表 - 全球B2B贸易平台 | X2XHub' : 'Products - Global B2B Trade Platform | X2XHub',
+    description: locale === 'zh' 
+      ? '浏览来自全球制造商的精选产品，涵盖电子产品、机械设备、原材料等多个品类。X2XHub - 全球领先的B2B贸易展览平台。' 
+      : 'Browse featured products from global manufacturers across electronics, machinery, raw materials and more. X2XHub - Leading global B2B trade exhibition platform.',
+    keywords: ['B2B', 'products', 'manufacturer', 'supplier', 'wholesale', 'trade', 'global', 'exhibition', '电子产品', '机械设备', '原材料', '供应商'],
+    
+    alternates: {
+      canonical: `${baseUrl}/products`,
+      languages: alternates,
+    },
+    
+    openGraph: {
+      title: locale === 'zh' ? '产品列表 - X2XHub' : 'Products - X2XHub',
+      description: locale === 'zh' 
+        ? '浏览来自全球制造商的精选产品' 
+        : 'Browse featured products from global manufacturers',
+      url: `${baseUrl}/${locale}/products`,
+      type: 'website',
+      siteName: 'X2XHub',
+    },
+    
+    twitter: {
+      card: 'summary_large_image',
+      title: locale === 'zh' ? '产品列表 - X2XHub' : 'Products - X2XHub',
+      description: locale === 'zh' 
+        ? '浏览来自全球制造商的精选产品' 
+        : 'Browse featured products from global manufacturers',
+    },
+    
+    robots: {
+      index: true,
+      follow: true,
+      maxImagePreview: 'large',
+      maxSnippet: -1,
+    },
+  };
+}
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
