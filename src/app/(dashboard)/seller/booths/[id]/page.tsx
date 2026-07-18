@@ -248,7 +248,7 @@ export default function BoothDetailPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div className="relative h-48">
+        <div className="relative h-56">
           {booth.bannerUrl ? (
             <img
               src={booth.bannerUrl}
@@ -260,29 +260,34 @@ export default function BoothDetailPage() {
               <span className="text-white text-2xl font-semibold">{booth.exhibitionName}</span>
             </div>
           )}
-          <div className="absolute bottom-4 left-4 flex items-center gap-4 bg-black/60 backdrop-blur-sm rounded-xl p-4">
-            {booth.logoUrl ? (
-              <img
-                src={booth.logoUrl}
-                alt="Logo"
-                className="h-16 w-16 rounded-lg object-contain bg-white p-2"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-lg bg-white p-3 flex items-center justify-center">
-                <span className="text-2xl">🏢</span>
-              </div>
-            )}
-            <div>
-              <h1 className="text-white text-xl font-bold">{booth.name}</h1>
-              <p className="text-blue-100">{booth.seller.companyName}</p>
-            </div>
-            <span className={`ml-auto px-3 py-1 rounded-full text-sm font-medium ${
+          <div className="absolute top-4 right-4">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
               booth.isPublished 
                 ? 'bg-green-500 text-white' 
                 : 'bg-gray-500 text-white'
             }`}>
               {booth.isPublished ? t.publish : t.unpublish}
             </span>
+          </div>
+        </div>
+        
+        <div className="p-6 -mt-12 relative z-10">
+          <div className="flex items-center gap-4 bg-white rounded-xl shadow-md p-4">
+            {booth.logoUrl ? (
+              <img
+                src={booth.logoUrl}
+                alt="Logo"
+                className="h-20 w-20 rounded-lg object-contain bg-gray-50 p-2 border border-gray-200"
+              />
+            ) : (
+              <div className="h-20 w-20 rounded-lg bg-gray-50 p-3 flex items-center justify-center border border-gray-200">
+                <span className="text-3xl">🏢</span>
+              </div>
+            )}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-800">{booth.name}</h1>
+              <p className="text-gray-600">{booth.seller.companyName}</p>
+            </div>
           </div>
         </div>
 
