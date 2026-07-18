@@ -118,7 +118,7 @@ export default function PostTaskPage() {
     
     if (!formData.description.trim()) {
       newErrors['description'] = t.descriptionRequired
-    } else if (formData.description.length < 50) {
+    } else if (formData.description.length < 1) {
       newErrors['description'] = t.descriptionMinLength
     }
     
