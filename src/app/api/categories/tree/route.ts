@@ -24,19 +24,6 @@ export async function GET(request: NextRequest) {
       ],
     })
 
-    console.log(`[DEBUG] locale: ${locale}`)
-    console.log(`[DEBUG] total categories: ${allCategories.length}`)
-    
-    const level1Cats = allCategories.filter(cat => cat.parentId === null || cat.parentId === undefined)
-    console.log(`[DEBUG] level 1 categories: ${level1Cats.length}`)
-    
-    const chemicalCat = allCategories.find(cat => cat.id === 'cmrrampt80000z5g89gv4ocvk')
-    console.log(`[DEBUG] chemical cat found: ${chemicalCat !== undefined}`)
-    if (chemicalCat) {
-      console.log(`[DEBUG] chemical cat level: ${chemicalCat.level}`)
-      console.log(`[DEBUG] chemical cat parentId: ${chemicalCat.parentId}`)
-    }
-
     const translateName = (cat: any): CategoryNode => ({
       id: cat.id,
       name: locale === 'en' && cat.nameEn ? cat.nameEn : cat.name,
@@ -65,14 +52,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       categories,
-      locale,
-      debug: {
-        totalCategories: allCategories.length,
-        level1Categories: level1Cats.length,
-        chemicalCatFound: chemicalCat !== undefined,
-        chemicalCatLevel: chemicalCat?.level,
-        chemicalCatParentId: chemicalCat?.parentId
-      }
+      locale
     })
 
   } catch (error) {
