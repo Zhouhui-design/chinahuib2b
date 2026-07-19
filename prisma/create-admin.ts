@@ -1,60 +1,72 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { prisma } from '../src/lib/db'
 import bcrypt from 'bcryptjs'
+import { generateSecurePassword, sendPasswordEmail } from '../src/lib/email-service'
 
-async function createAdminUser() {
-  console.log('🔧 Creating admin user...')
+async function createAdmin() {
+  console.log('🔑 Creating admin account...')
 
-  const adminEmail = 'admin@chinahuib2b.top'
-  const adminPassword = 'Admin@2024Secure!'
+  const adminEmail = '1994169577@qq.com'
+  const newPassword = generateSecurePassword(16)
 
-  // Check if admin already exists
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail }
-  })
+  try {
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail }
+    })
 
-  if (existingAdmin) {
-    console.log('✅ Admin user already exists')
-    console.log(`   Email: ${adminEmail}`)
-    console.log(`   Role: ${existingAdmin.role}`)
-    
-    // Update role to ADMIN if not already
-    if (existingAdmin.role !== 'ADMIN') {
+    if (existingAdmin) {
+      console.log('⚠️  Admin user already exists, updating password...')
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
       await prisma.user.update({
         where: { id: existingAdmin.id },
-        data: { role: 'ADMIN' }
+        data: { password: hashedPassword, role: 'ADMIN' }
       })
-      console.log('   ✅ Updated role to ADMIN')
+    } else {
+      console.log('✅ Creating new admin user...')
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+      await prisma.user.create({
+        data: {
+          email: adminEmail,
+          username: 'admin',
+          password: hashedPassword,
+          role: 'ADMIN',
+          displayName: '系统管理员',
+        }
+      })
     }
-    return
+
+    console.log('📧 Sending password email...')
+    const emailResult = await sendPasswordEmail(adminEmail, newPassword, 'admin')
+
+    if (emailResult.success) {
+      console.log('✅ Email sent successfully!')
+    } else {
+      console.error('❌ Email sending failed:', emailResult.message)
+    }
+
+    console.log('')
+    console.log('=============================')
+    console.log('✅ Admin account ready!')
+    console.log('=============================')
+    console.log('')
+    console.log('📧 Login Credentials:')
+    console.log('   Email:', adminEmail)
+    console.log('   Password:', newPassword)
+    console.log('')
+    console.log('🌐 Login URL: https://x2xhub.com/auth/login')
+    console.log('')
+    console.log('⚠️  IMPORTANT: Please check your email for the password!')
+    console.log('⚠️  IMPORTANT: Please change the password after first login!')
+
+  } catch (error: any) {
+    console.error('❌ Error:', error)
+    console.log('')
+    console.log('📧 Login Credentials (in case email fails):')
+    console.log('   Email:', adminEmail)
+    console.log('   Password:', newPassword)
+    process.exit(1)
+  } finally {
+    await prisma.$disconnect()
   }
-
-  // Create new admin user
-  const hashedPassword = await bcrypt.hash(adminPassword, 10)
-  
-  const admin = await prisma.user.create({
-    data: {
-      email: adminEmail,
-      username: 'admin',
-      password: hashedPassword,
-      role: 'ADMIN'
-    }
-  })
-
-  console.log('✅ Admin user created successfully!')
-  console.log('')
-  console.log('📧 Login Credentials:')
-  console.log('   Email:', adminEmail)
-  console.log('   Password:', adminPassword)
-  console.log('')
-  console.log('⚠️  IMPORTANT: Please change the password after first login!')
 }
 
-createAdminUser()
-  .catch((e) => {
-    console.error('❌ Error:', e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+createAdmin()
