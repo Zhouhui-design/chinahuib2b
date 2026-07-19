@@ -9,7 +9,25 @@ const RETENTION_DAYS = 7
 const SPACES_BUCKET = process.env.DO_SPACES_BUCKET || 'global-expo-storage'
 const SPACES_ENDPOINT = process.env.DO_SPACES_ENDPOINT || 'https://sgp1.digitaloceanspaces.com'
 
+function loadEnv(): void {
+  const envPath = path.join(__dirname, '../.env.local')
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8')
+    envContent.split('\n').forEach(line => {
+      const match = line.match(/^([^=]+)=(.+)$/)
+      if (match) {
+        const key = match[1].trim()
+        const value = match[2].trim().replace(/^["']|["']$/g, '')
+        if (!process.env[key]) {
+          process.env[key] = value
+        }
+      }
+    })
+  }
+}
+
 function getDatabaseCredentials(): { user: string; password: string; host: string; port: string; dbname: string } {
+  loadEnv()
   const databaseUrl = process.env.DATABASE_URL || ''
   const match = databaseUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):([^/]+)\/(.+)/)
   
