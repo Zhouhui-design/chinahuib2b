@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/db"
 
 interface CategoryNode {
   id: string
@@ -16,22 +17,34 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const locale = searchParams.get('locale') || 'en'
 
-    const response = await fetch(`http://localhost:3000/api/categories?locale=${locale}`)
-    const data = await response.json()
-    const allCategories: CategoryNode[] = data.categories
+    const allCategories = await prisma.category.findMany({
+      orderBy: [
+        { level: 'asc' },
+        { name: 'asc' },
+      ],
+    })
+
+    const translatedCategories = allCategories.map(cat => ({
+      id: cat.id,
+      name: locale === 'en' && cat.nameEn ? cat.nameEn : cat.name,
+      originalName: cat.name,
+      nameEn: cat.nameEn || cat.name,
+      slug: cat.slug,
+      level: cat.level,
+      parentId: cat.parentId === 'None' ? null : cat.parentId ?? null,
+    }))
 
     const buildTree = (parentId: string | null = null): CategoryNode[] => {
-      return allCategories
-        .filter(cat => {
-          if (parentId === null) {
-            const catParentId = cat.parentId
-            return catParentId === null || catParentId === undefined || catParentId === 'None' || catParentId === ''
-          }
-          const catParentId = cat.parentId === 'None' ? null : cat.parentId ?? null
-          return catParentId === parentId
-        })
+      return translatedCategories
+        .filter(cat => cat.parentId === parentId)
         .map((cat): CategoryNode => ({
-          ...cat,
+          id: cat.id,
+          name: cat.name,
+          nameEn: cat.nameEn,
+          originalName: cat.originalName,
+          slug: cat.slug,
+          level: cat.level,
+          parentId: cat.parentId,
           children: buildTree(cat.id)
         }))
     }
