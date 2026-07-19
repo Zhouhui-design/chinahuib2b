@@ -19,13 +19,8 @@ echo "[2/4] Setting up log directory..."
 mkdir -p "/var/log/backups"
 chown -R www-data:www-data "/var/log/backups"
 
-echo "[3/4] Installing AWS CLI for Spaces upload..."
-if ! command -v aws &> /dev/null; then
-  echo "      Installing AWS CLI..."
-  pip install awscli --quiet
-else
-  echo "      AWS CLI already installed"
-fi
+echo "[3/4] Skipping AWS CLI installation (using Node.js SDK)..."
+echo "      Spaces upload will use @aws-sdk/client-s3 from Node.js"
 
 echo "[4/4] Setting up cron job..."
 
