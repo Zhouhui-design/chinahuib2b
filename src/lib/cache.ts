@@ -147,6 +147,7 @@ export async function invalidateSellerCaches(sellerId: string) {
 export async function invalidateCategoryCaches() {
   await Promise.all([
     cacheDelete(CACHE_KEYS.categoryTree()),
+    cacheDeletePattern('categories:tree:*'),
     cacheDeletePattern('category:*'),
   ])
 }
@@ -197,7 +198,7 @@ export async function getPopularProducts(days: number = 7, limit: number = 10): 
     const productIds = new Set<string>()
     allKeys.flat().forEach(key => {
       const parts = key.split(':')
-      if (parts.length >= 2) {
+      if (parts.length >= 2 && parts[1]) {
         productIds.add(parts[1])
       }
     })

@@ -15,7 +15,8 @@
     "mcp": "tsx src/app/api/mcp/server.ts",
     "version:patch": "node scripts/update-version.js patch",
     "version:minor": "node scripts/update-version.js minor",
-    "version:major": "node scripts/update-version.js major"
+    "version:major": "node scripts/update-version.js major",
+    "maintenance": "tsx scripts/maintenance.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -702,6 +702,32 @@ model Notice {
   @@index([priority])
 }
 
+model MaintenanceNotice {
+  id             String                 @id @default(cuid())
+  title          String
+  titleEn        String?
+  content        String
+  contentEn      String?
+  status         MaintenanceStatus      @default(PENDING)
+  priority       String                 @default("high")
+  scheduledStart DateTime?
+  estimatedDuration Int?
+  actualEndTime  DateTime?
+  notifiedUsers  Int                    @default(0)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([scheduledStart])
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
 model Unit {
   id              String           @id @default(cuid())
   name            String

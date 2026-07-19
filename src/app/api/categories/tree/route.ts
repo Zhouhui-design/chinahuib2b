@@ -17,9 +17,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const locale = searchParams.get('locale') || 'en'
+    const refresh = searchParams.get('refresh') === 'true'
+
+    const cacheKey = `${CACHE_KEYS.categoryTree()}:${locale}`
+    
+    if (refresh) {
+      const { cacheDelete } = await import('@/lib/cache')
+      await cacheDelete(cacheKey)
+    }
 
     const categories = await cacheGetOrSet<CategoryNode[]>(
-      `${CACHE_KEYS.categoryTree()}:${locale}`,
+      cacheKey,
       async () => {
         const allCategories = await prisma.category.findMany({
           orderBy: [

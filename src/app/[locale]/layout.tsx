@@ -7,6 +7,7 @@ import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import Footer from '@/components/Footer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { MaintenanceBanner } from '@/components/MaintenanceBanner';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
@@ -331,6 +332,8 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
           </div>
         </div>
       </nav>
+
+      <MaintenanceBanner />
 
       {/* Mobile Menu */}
       <div className="md:hidden bg-white border-t">
