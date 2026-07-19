@@ -46,7 +46,10 @@ export async function GET(request: NextRequest) {
 
       const buildTree = (parentId: string | null = null): CategoryNode[] => {
         return allCategories
-          .filter(cat => cat.parentId === parentId)
+          .filter(cat => {
+            const catParentId = cat.parentId ?? null
+            return catParentId === parentId
+          })
           .map((cat): CategoryNode => {
             const node = translateName(cat)
             node.children = buildTree(cat.id)

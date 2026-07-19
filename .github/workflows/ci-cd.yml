@@ -185,7 +185,7 @@ jobs:
     
     environment:
       name: production
-      url: https://chinahuib2b.top
+      url: https://x2xhub.com
     
     steps:
       - name: Checkout code
