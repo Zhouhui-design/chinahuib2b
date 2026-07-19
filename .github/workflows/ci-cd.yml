@@ -199,7 +199,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /opt/chinahuib2b
+            cd /var/www/chinahuib2b
             
             # Pull latest changes
             git pull origin main
@@ -214,7 +214,7 @@ jobs:
             npm run build
             
             # Restart PM2
-            pm2 restart chinahuib2b || pm2 start ecosystem.config.js --name chinahuib2b
+            pm2 restart chinahuib2b-prod || pm2 start ecosystem.config.js --name chinahuib2b-prod
             
             # Check health
             sleep 5
