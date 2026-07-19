@@ -1,21 +1,20 @@
-/**
- * Email Service using nodemailer
- * Supports QQ Mail SMTP and other email providers
- */
-
 import nodemailer from 'nodemailer'
 
 const EMAIL_USER = process.env['EMAIL_USER'] || '1994169577@qq.com'
 
 export function createTransporter() {
   return nodemailer.createTransport({
-    sendmail: true,
-    newline: 'unix',
-    path: '/usr/sbin/sendmail',
+    host: 'smtp.office365.com',
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    auth: {
+      user: 'aardenx@outlook.com',
+      pass: 'zH754277289hUi~197547',
+    },
   })
 }
 
-// Generate secure random password (16 characters: numbers + symbols + upper/lowercase letters)
 export function generateSecurePassword(length: number = 16): string {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const lowercase = 'abcdefghijklmnopqrstuvwxyz'
@@ -25,22 +24,18 @@ export function generateSecurePassword(length: number = 16): string {
   const allChars = uppercase + lowercase + numbers + symbols
 
   let password = ''
-  // Ensure at least one character from each category
   password += uppercase[Math.floor(Math.random() * uppercase.length)]
   password += lowercase[Math.floor(Math.random() * lowercase.length)]
   password += numbers[Math.floor(Math.random() * numbers.length)]
   password += symbols[Math.floor(Math.random() * symbols.length)]
 
-  // Fill remaining length with random characters
   for (let i = password.length; i < length; i++) {
     password += allChars[Math.floor(Math.random() * allChars.length)]
   }
 
-  // Shuffle the password
   return password.split('').sort(() => Math.random() - 0.5).join('')
 }
 
-// Send password email
 export async function sendPasswordEmail(
   toEmail: string,
   password: string,
@@ -50,7 +45,7 @@ export async function sendPasswordEmail(
     const transporter = createTransporter()
 
     const mailOptions = {
-      from: '"Global Expo Network 管理系统" <1994169577@qq.com>',
+      from: '"Global Expo Network 管理系统" <aardenx@outlook.com>',
       to: toEmail,
       subject: '管理员账号密码 - Global Expo Network',
       html: `
@@ -141,7 +136,6 @@ Global Expo Network - 连接全球买卖双方
   }
 }
 
-// Verify SMTP connection
 export async function verifyEmailConnection(): Promise<boolean> {
   try {
     const transporter = createTransporter()
