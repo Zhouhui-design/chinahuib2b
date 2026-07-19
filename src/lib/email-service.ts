@@ -5,23 +5,13 @@
 
 import nodemailer from 'nodemailer'
 
-declare module 'nodemailer' {}
-
 const EMAIL_USER = process.env['EMAIL_USER'] || '1994169577@qq.com'
-const EMAIL_PASSWORD = process.env['EMAIL_PASSWORD']
 
 export function createTransporter() {
   return nodemailer.createTransport({
-    host: 'smtp.qq.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
+    sendmail: true,
+    newline: 'unix',
+    path: '/usr/sbin/sendmail',
   })
 }
 
