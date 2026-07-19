@@ -1,7 +1,5 @@
 import { GET } from '@/app/api/health/route'
-import { NextResponse } from 'next/server'
 
-// Mock Prisma and Redis
 jest.mock('@/lib/db', () => ({
   prisma: {
     $queryRaw: jest.fn(),
@@ -30,12 +28,12 @@ describe('Health Check API', () => {
     mockRedis.ping.mockResolvedValue('PONG' as any)
 
     const response = await GET()
-    const data = await response.json()
+    const responseJson = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('healthy')
-    expect(data.services.database).toBe('ok')
-    expect(data.services.redis).toBe('ok')
+    expect(responseJson.status).toBe('healthy')
+    expect(responseJson.services.database).toBe('ok')
+    expect(responseJson.services.redis).toBe('ok')
   })
 
   it('should return unhealthy status when database is down', async () => {
@@ -43,11 +41,11 @@ describe('Health Check API', () => {
     mockRedis.ping.mockResolvedValue('PONG' as any)
 
     const response = await GET()
-    const data = await response.json()
+    const responseJson = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data.status).toBe('unhealthy')
-    expect(data.services.database).toBe('error')
+    expect(responseJson.status).toBe('unhealthy')
+    expect(responseJson.services.database).toBe('error')
   })
 
   it('should return unhealthy status when Redis is down', async () => {
@@ -55,11 +53,11 @@ describe('Health Check API', () => {
     mockRedis.ping.mockRejectedValue(new Error('Redis error'))
 
     const response = await GET()
-    const data = await response.json()
+    const responseJson = await response.json()
 
     expect(response.status).toBe(503)
-    expect(data.status).toBe('unhealthy')
-    expect(data.services.redis).toBe('error')
+    expect(responseJson.status).toBe('unhealthy')
+    expect(responseJson.services.redis).toBe('error')
   })
 
   it('should include uptime and version', async () => {
@@ -67,10 +65,10 @@ describe('Health Check API', () => {
     mockRedis.ping.mockResolvedValue('PONG' as any)
 
     const response = await GET()
-    const data = await response.json()
+    const responseJson = await response.json()
 
-    expect(data.uptime).toBeDefined()
-    expect(typeof data.uptime).toBe('number')
-    expect(data.version).toBeDefined()
+    expect(responseJson.uptime).toBeDefined()
+    expect(typeof responseJson.uptime).toBe('number')
+    expect(responseJson.version).toBeDefined()
   })
 })
