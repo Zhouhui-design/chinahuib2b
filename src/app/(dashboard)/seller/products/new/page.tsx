@@ -573,22 +573,10 @@ export default function AddProductPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`/api/categories?locale=${language}`)
+      const response = await fetch(`/api/categories/tree3?locale=${language}`)
       if (response.ok) {
         const data = await response.json()
-        const allCategories: Category[] = data.categories
-        const buildTree = (parentId: string | null = null): Category[] => {
-          return allCategories
-            .filter((cat: Category) => {
-              const catParentId = cat.parentId === 'None' ? null : cat.parentId ?? null
-              return catParentId === parentId
-            })
-            .map((cat: Category) => ({
-              ...cat,
-              children: buildTree(cat.id)
-            }))
-        }
-        setCategories(buildTree(null))
+        setCategories(data.categories)
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err)
