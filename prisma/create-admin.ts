@@ -50,7 +50,7 @@ async function createAdmin() {
     console.log('')
     console.log('📧 Login Credentials:')
     console.log('   Email:', adminEmail)
-    console.log('   Password:', newPassword)
+    console.log('   Password: [SENT VIA EMAIL - NOT DISPLAYED]')
     console.log('')
     console.log('🌐 Login URL: https://x2xhub.com/auth/login')
     console.log('')
@@ -62,7 +62,7 @@ async function createAdmin() {
     console.log('')
     console.log('📧 Login Credentials (in case email fails):')
     console.log('   Email:', adminEmail)
-    console.log('   Password:', newPassword)
+    console.log('   Password: [NOT DISPLAYED - CHECK LOG FILE]')
     process.exit(1)
   } finally {
     await prisma.$disconnect()

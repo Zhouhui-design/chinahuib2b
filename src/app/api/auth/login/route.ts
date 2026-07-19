@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { rateLimitByIP } from "@/lib/rate-limiter"
+import { checkLoginAttempts, incrementLoginAttempt, resetLoginAttempts } from "@/lib/auth-rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,15 +45,27 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user || !user.password) {
+      await incrementLoginAttempt(input)
       return NextResponse.json(
         { error: "Invalid email/username or password" },
         { status: 401 }
       )
     }
 
+    if (user.role === 'ADMIN') {
+      const loginAttemptCheck = await checkLoginAttempts(input, ip)
+      if (!loginAttemptCheck.allowed) {
+        return NextResponse.json(
+          { error: "Too many login attempts for admin account. Please try again later." },
+          { status: 429 }
+        )
+      }
+    }
+
     const isValid = await bcrypt.compare(password, user.password)
 
     if (!isValid) {
+      await incrementLoginAttempt(input)
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
@@ -70,6 +83,8 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: { lastLoginAt: new Date() }
     })
+
+    await resetLoginAttempts(input)
 
     return NextResponse.json(
       {
