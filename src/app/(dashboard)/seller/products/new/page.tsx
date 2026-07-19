@@ -576,14 +576,14 @@ export default function AddProductPage() {
       const response = await fetch(`/api/categories?locale=${language}`)
       if (response.ok) {
         const data = await response.json()
-        const allCategories = data.categories
-        const buildTree = (parentId: string | null = null): any[] => {
+        const allCategories: Category[] = data.categories
+        const buildTree = (parentId: string | null = null): Category[] => {
           return allCategories
-            .filter(cat => {
+            .filter((cat: Category) => {
               const catParentId = cat.parentId === 'None' ? null : cat.parentId ?? null
               return catParentId === parentId
             })
-            .map((cat: any) => ({
+            .map((cat: Category) => ({
               ...cat,
               children: buildTree(cat.id)
             }))
@@ -656,7 +656,7 @@ export default function AddProductPage() {
     setImages(prev => [...prev, ...newImages])
 
     if (!mainImageUrl && newImages.length > 0) {
-      setMainImageUrl(newImages[0])
+      setMainImageUrl(newImages[0] || '')
     }
   }
 
@@ -696,7 +696,7 @@ export default function AddProductPage() {
   }
 
   const setAsMainImage = (index: number) => {
-    setMainImageUrl(images[index])
+    setMainImageUrl(images[index] || '')
   }
 
   const addSpecification = () => {
