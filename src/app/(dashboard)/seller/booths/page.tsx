@@ -582,7 +582,9 @@ export default function BoothsPage() {
   const fetchBooths = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/booths')
+      const res = await fetch('/api/booths', {
+        credentials: 'include'
+      })
       const data = await res.json()
       if (data.booths) {
         setBooths(data.booths)

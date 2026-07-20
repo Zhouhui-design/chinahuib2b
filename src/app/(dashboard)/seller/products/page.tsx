@@ -419,7 +419,9 @@ export default function ProductsPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/products?page=${page}&limit=20`)
+      const response = await fetch(`/api/products?page=${page}&limit=20`, {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch products')
