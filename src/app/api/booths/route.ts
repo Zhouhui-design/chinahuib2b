@@ -6,7 +6,7 @@ import { handleSEOEvent } from "@/lib/seo-automation"
 
 async function generateBoothNumber(): Promise<string> {
   const lastBooth = await prisma.booth.findFirst({
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
     select: { boothNumber: true }
   })
   
