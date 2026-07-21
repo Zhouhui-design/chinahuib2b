@@ -1010,6 +1010,10 @@ export default function StoreProfilePage() {
                  language === 'ja' ? '削除' :
                  language === 'ko' ? '삭제' :
                  'Delete',
+    confirmDelete: language === 'zh' ? '确定删除此证书吗？' :
+                   language === 'ja' ? 'この証明書を削除してもよろしいですか？' :
+                   language === 'ko' ? '이 증서를 삭제하시겠습니까？' :
+                   'Are you sure you want to delete this certificate?',
     setOnMap: language === 'zh' ? '在地图上设置位置' :
               language === 'ja' ? '地図に位置を設定' :
               language === 'ko' ? '지도에 위치 설정' :
@@ -1584,8 +1588,8 @@ export default function StoreProfilePage() {
         awards: awards.split(',').map(a => a.trim()).filter(a => a),
         companyPhotos: companyPhotos,
         teamPhotos: teamPhotos,
-        mapLatitude: mapLatitude ? parseFloat(mapLatitude) : null,
-        mapLongitude: mapLongitude ? parseFloat(mapLongitude) : null,
+        mapLatitude: mapLatitude,
+        mapLongitude: mapLongitude,
         mapAddress: mapAddress.trim() || null,
         foundingYear: foundingYear.trim() || null,
         businessScope: businessScope.trim() || null,
@@ -1657,14 +1661,96 @@ export default function StoreProfilePage() {
     setError(null)
 
     try {
-      const response = await fetch('/api/seller/profile/submit-approval', {
+      const certsArray = certifications
+        .split(',')
+        .map(cert => cert.trim())
+        .filter(cert => cert.length > 0)
+
+      const payload = {
+        companyName: companyName.trim(),
+        description: description.trim(),
+        descriptions: Object.keys(descriptions).length > 0 ? descriptions : undefined,
+        country: country.trim(),
+        city: city.trim(),
+        address: address.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        website: website.trim(),
+        certifications: certsArray.length > 0 ? certsArray : null,
+        boothName: boothName.trim() || null,
+        boothCategories: boothCategories.split(',').map(c => c.trim()).filter(c => c),
+        isCustomizable: isCustomizable,
+        logoUrl: logoUrl || null,
+        bannerUrl: bannerUrl || null,
+        organizationType: organizationType,
+        registeredCapital: registeredCapital.trim() || null,
+        registeredAddress: registeredAddress.trim() || null,
+        businessAddress: businessAddress.trim() || null,
+        employeeCount: employeeCount.trim() || null,
+        patents: patents.split(',').map(p => p.trim()).filter(p => p),
+        awards: awards.split(',').map(a => a.trim()).filter(a => a),
+        companyPhotos: companyPhotos,
+        teamPhotos: teamPhotos,
+        mapLatitude: mapLatitude,
+        mapLongitude: mapLongitude,
+        mapAddress: mapAddress.trim() || null,
+        foundingYear: foundingYear.trim() || null,
+        businessScope: businessScope.trim() || null,
+        legalRepresentative: legalRepresentative.trim() || null,
+        registrationNumber: registrationNumber.trim() || null,
+        bankAccount: bankAccount.trim() || null,
+        taxNumber: taxNumber.trim() || null,
+        linkedin: linkedin.trim() || null,
+        facebook: facebook.trim() || null,
+        instagram: instagram.trim() || null,
+        youtube: youtube.trim() || null,
+        tiktok: tiktok.trim() || null,
+        twitter: twitter.trim() || null,
+        pinterest: pinterest.trim() || null,
+        douyin: douyin.trim() || null,
+        xiaohongshu: xiaohongshu.trim() || null,
+        qq: qq.trim() || null,
+        dingtalk: dingtalk.trim() || null,
+        lark: lark.trim() || null,
+        wechatVideo: wechatVideo.trim() || null,
+        weibo: weibo.trim() || null,
+        kuaishou: kuaishou.trim() || null,
+        bilibili: bilibili.trim() || null,
+        reddit: reddit.trim() || null,
+        snapchat: snapchat.trim() || null,
+        tumblr: tumblr.trim() || null,
+        whatsapp: whatsapp.trim() || null,
+        wechat: wechat.trim() || null,
+        telegram: telegram.trim() || null,
+        chatSystem: chatSystem.trim() || null,
+      }
+
+      const saveResponse = await fetch('/api/seller/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const saveData = await saveResponse.json()
+
+      if (!saveResponse.ok) {
+        if (saveData.details && Array.isArray(saveData.details)) {
+          const errorMessages = saveData.details.map((d: any) => 
+            `${d.path.join('.')}: ${d.message}`
+          ).join(', ')
+          throw new Error(`${saveData.error}: ${errorMessages}`)
+        }
+        throw new Error(saveData.error || t.failedToSaveProfile)
+      }
+
+      const approvalResponse = await fetch('/api/seller/profile/submit-approval', {
         method: 'POST',
       })
 
-      const data = await response.json()
+      const approvalData = await approvalResponse.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || t.approvalFailed)
+      if (!approvalResponse.ok) {
+        throw new Error(approvalData.error || t.approvalFailed)
       }
 
       setProfileStatus('PENDING')
