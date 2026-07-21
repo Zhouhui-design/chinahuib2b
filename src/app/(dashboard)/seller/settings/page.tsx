@@ -65,10 +65,19 @@ export default function SellerSettingsPage() {
   
   interface VerificationFile {
     id: string
-    name: string
-    type: string
-    url?: string
-    uploadedAt?: string
+    fileName: string
+    fileUrl?: string
+    fileSize?: number
+    fileType?: string
+    mimeType?: string
+    isVerified?: boolean
+    description?: string
+    certificateNumber?: string
+    issuingAuthority?: string
+    issueDate?: string
+    expiryDate?: string
+    certificateName?: string
+    createdAt?: string
   }
   const [verificationFiles, setVerificationFiles] = useState<VerificationFile[]>([])
   const [loadingFiles, setLoadingFiles] = useState(false)
@@ -80,7 +89,7 @@ export default function SellerSettingsPage() {
   
   const loadProfileData = async () => {
     try {
-      const response = await fetch('/api/seller/profile')
+      const response = await fetch('/api/seller/profile', { credentials: 'include' })
       const data = await response.json()
       if (data.success || data.profile) {
         const profile = data.profile
@@ -131,7 +140,7 @@ export default function SellerSettingsPage() {
   const loadVerificationFiles = async () => {
     setLoadingFiles(true)
     try {
-      const response = await fetch('/api/seller/verification/files')
+      const response = await fetch('/api/seller/verification/files', { credentials: 'include' })
       const data = await response.json()
       if (data.success) {
         setVerificationFiles(data.files)
@@ -148,7 +157,8 @@ export default function SellerSettingsPage() {
     
     try {
       const response = await fetch(`/api/seller/verification/delete?id=${fileId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
       const data = await response.json()
       if (data.success) {
@@ -571,6 +581,7 @@ export default function SellerSettingsPage() {
       const response = await fetch('/api/seller/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           companyName: profileData.companyName,
           description: profileData.description,
@@ -1289,7 +1300,7 @@ export default function SellerSettingsPage() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{file.fileName}</p>
                               <p className="text-xs text-gray-500">
-                                {(file.fileSize / 1024).toFixed(1)} KB • {new Date(file.createdAt).toLocaleDateString()}
+                                {file.fileSize ? (file.fileSize / 1024).toFixed(1) : '0'} KB • {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : '-'}
                               </p>
                             </div>
                             {file.isVerified && (
