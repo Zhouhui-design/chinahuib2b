@@ -43,7 +43,7 @@ export default function SEOManagerPage() {
   const loadConfigs = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/admin/seo-configs')
+      const response = await fetch('/api/admin/seo-configs', { credentials: 'include' })
       const data = await response.json()
       if (data.success) {
         setConfigs(data.configs)
