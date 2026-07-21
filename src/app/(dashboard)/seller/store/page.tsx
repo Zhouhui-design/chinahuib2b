@@ -1188,7 +1188,7 @@ export default function StoreProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/seller/profile')
+      const response = await fetch('/api/seller/profile', { credentials: 'include' })
 
       if (!response.ok) {
         throw new Error(t.failedToLoadProfile)
@@ -1271,7 +1271,7 @@ export default function StoreProfilePage() {
 
   const loadCertificates = async () => {
     try {
-      const response = await fetch('/api/seller/verification/files')
+      const response = await fetch('/api/seller/verification/files', { credentials: 'include' })
       if (response.ok) {
         const data = await response.json()
         setCertificateList(data.files || [])
@@ -1316,6 +1316,7 @@ export default function StoreProfilePage() {
       const response = await fetch('/api/seller/verification/upload', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       })
 
       console.log('Upload response status:', response.status)
@@ -1351,10 +1352,9 @@ export default function StoreProfilePage() {
   const handleDeleteCertificate = async (certId: string) => {
     if (!confirm(t.confirmDelete)) return
     try {
-      const response = await fetch('/api/seller/verification/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileId: certId }),
+      const response = await fetch(`/api/seller/verification/delete?id=${certId}`, {
+        method: 'DELETE',
+        credentials: 'include',
       })
 
       if (response.ok) {
@@ -1648,6 +1648,7 @@ export default function StoreProfilePage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include',
       })
 
       const data = await response.json()
@@ -1795,6 +1796,7 @@ export default function StoreProfilePage() {
     try {
       const response = await fetch('/api/seller/profile', {
         method: 'DELETE',
+        credentials: 'include',
       })
 
       const data = await response.json()
