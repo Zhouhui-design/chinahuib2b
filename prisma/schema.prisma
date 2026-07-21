@@ -1119,6 +1119,7 @@ model VerificationRequest {
 enum UserRole {
   BUYER
   SELLER
+  BOTH
   ADMIN
   AI_BUYER
   AI_SELLER
