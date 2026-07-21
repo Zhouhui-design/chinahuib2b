@@ -21,9 +21,9 @@ function validateUsername(username: string): { valid: boolean; error?: string } 
     return { valid: false, error: "Username cannot be empty" }
   }
   
-  // Check length (1-8 characters)
-  if (trimmed.length < 1 || trimmed.length > 8) {
-    return { valid: false, error: "Username must be 1-8 characters long" }
+  // Check length (1-20 characters)
+  if (trimmed.length < 1 || trimmed.length > 20) {
+    return { valid: false, error: "Username must be 1-20 characters long" }
   }
   
   // Single character cannot be a space
