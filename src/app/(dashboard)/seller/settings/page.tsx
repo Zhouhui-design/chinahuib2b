@@ -675,7 +675,7 @@ export default function SellerSettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  {language === 'zh' ? '👋 欢迎加入 ChinaHui B2B！' : '👋 Welcome to ChinaHui B2B!'}
+                  {language === 'zh' ? '👋 欢迎加入 x2xhub！' : '👋 Welcome to x2xhub!'}
                 </h2>
                 <p className="mt-1 text-blue-100">
                   {language === 'zh' ? '完成以下步骤，开始您的销售之旅' : 'Complete the steps below to start selling'}
