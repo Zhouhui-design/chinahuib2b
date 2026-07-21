@@ -122,6 +122,40 @@ export async function GET() {
 }
 
 
+export async function DELETE() {
+  try {
+    const session = await auth()
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { userId: session.user.id }
+    })
+
+    if (!seller) {
+      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
+    }
+
+    await prisma.sellerProfile.delete({
+      where: { id: seller.id }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Profile deleted successfully'
+    })
+
+  } catch (error) {
+    console.error('Delete profile error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to delete profile',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()

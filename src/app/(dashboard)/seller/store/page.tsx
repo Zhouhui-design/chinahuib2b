@@ -16,6 +16,7 @@ export default function StoreProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [submittingForApproval, setSubmittingForApproval] = useState(false)
+  const [deletingProfile, setDeletingProfile] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [profileStatus, setProfileStatus] = useState<string>('DRAFT')
@@ -1014,6 +1015,27 @@ export default function StoreProfilePage() {
                    language === 'ja' ? 'この証明書を削除してもよろしいですか？' :
                    language === 'ko' ? '이 증서를 삭제하시겠습니까？' :
                    'Are you sure you want to delete this certificate?',
+    deleteProfile: language === 'zh' ? '删除店铺资料' :
+                   language === 'ja' ? 'ストアプロフィールを削除' :
+                   language === 'ar' ? 'حذف ملف المتجر' :
+                   language === 'es' ? 'Eliminar perfil de tienda' :
+                   language === 'fr' ? 'Supprimer le profil de magasin' :
+                   language === 'de' ? 'Store-Profil löschen' :
+                   language === 'ko' ? '스토어 프로필 삭제' :
+                   language === 'ru' ? 'Удалить профиль магазина' :
+                   language === 'pt' ? 'Excluir perfil da loja' :
+                   language === 'hi' ? 'स्टोर प्रोफ़ाइल हटाएँ' :
+                   language === 'th' ? 'ลบโปรไฟล์ร้านค้า' :
+                   language === 'vi' ? 'Xóa hồ sơ cửa hàng' :
+                   'Delete Store Profile',
+    deletingProfile: language === 'zh' ? '删除中...' :
+                     language === 'ja' ? '削除中...' :
+                     language === 'ko' ? '삭제 중...' :
+                     'Deleting...',
+    confirmDeleteProfile: language === 'zh' ? '确定要删除您的店铺资料吗？此操作不可撤销。' :
+                          language === 'ja' ? 'ストアプロフィールを削除してもよろしいですか？この操作は元に戻せません。' :
+                          language === 'ko' ? '스토어 프로필을 삭제하시겠습니까？이 작업은 취소할 수 없습니다。' :
+                          'Are you sure you want to delete your store profile? This action cannot be undone.',
     setOnMap: language === 'zh' ? '在地图上设置位置' :
               language === 'ja' ? '地図に位置を設定' :
               language === 'ko' ? '지도에 위치 설정' :
@@ -1761,6 +1783,34 @@ export default function StoreProfilePage() {
       setError(err instanceof Error ? err.message : t.approvalFailed)
     } finally {
       setSubmittingForApproval(false)
+    }
+  }
+
+  const handleDeleteProfile = async () => {
+    if (!confirm(t.confirmDeleteProfile)) return
+
+    setDeletingProfile(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/seller/profile', {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t.failedToSaveProfile)
+      }
+
+      setSuccess(true)
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.failedToSaveProfile)
+    } finally {
+      setDeletingProfile(false)
     }
   }
 
@@ -3097,6 +3147,24 @@ export default function StoreProfilePage() {
               <>
                 <Save className="w-4 h-4 mr-2" />
                 {t.saveChanges}
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteProfile}
+            disabled={deletingProfile}
+            className="flex items-center px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {deletingProfile ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {t.deletingProfile}
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                {t.deleteProfile}
               </>
             )}
           </button>
