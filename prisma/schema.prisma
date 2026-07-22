@@ -60,15 +60,15 @@ model User {
   sellerProfile              SellerProfile?
   shoutOuts                  ShoutOut[]
   taskApplications           TaskApplication[]
+  topics                     Topic[]
+  topicComments              TopicComment[]
+  topicLikes                 TopicLike[]
   owner                      User?                       @relation("AIOwner", fields: [ownerId], references: [id])
   aiAccounts                 User[]                      @relation("AIOwner")
   verificationRequests       VerificationRequest[]
   wallet                     Wallet?
   withdrawalRequests         WithdrawalRequest[]
   worldChatMessages          WorldChatMessage[]
-  topics                     Topic[]
-  topicComments              TopicComment[]
-  topicLikes                 TopicLike[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -167,13 +167,13 @@ model SellerProfile {
   contactViews         ContactView[]
   digitalVouchers      DigitalVoucher[]
   inquiries            Inquiry[]
-  visitors             Visitor[]
   paymentProofs        PaymentProof[]
   products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
+  visitors             Visitor[]
 
   @@index([companyName])
   @@index([country])
@@ -283,7 +283,7 @@ model ProductBrochure {
 }
 
 model Visitor {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   ipHash      String
   productId   String?
   sellerId    String?
@@ -295,8 +295,8 @@ model Visitor {
   isp         String?
   userAgent   String?
   url         String?
-  createdAt   DateTime      @default(now())
-  product     Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  product     Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
   seller      SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
   @@index([productId])
@@ -703,29 +703,23 @@ model Notice {
 }
 
 model MaintenanceNotice {
-  id             String                 @id @default(cuid())
-  title          String
-  titleEn        String?
-  content        String
-  contentEn      String?
-  status         MaintenanceStatus      @default(PENDING)
-  priority       String                 @default("high")
-  scheduledStart DateTime?
+  id                String            @id @default(cuid())
+  title             String
+  titleEn           String?
+  content           String
+  contentEn         String?
+  status            MaintenanceStatus @default(PENDING)
+  priority          String            @default("high")
+  scheduledStart    DateTime?
   estimatedDuration Int?
-  actualEndTime  DateTime?
-  notifiedUsers  Int                    @default(0)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  actualEndTime     DateTime?
+  notifiedUsers     Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([status])
   @@index([priority])
   @@index([scheduledStart])
-}
-
-enum MaintenanceStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
 }
 
 model Unit {
@@ -753,6 +747,10 @@ model AuctionListing {
   tags                 String[]
   keywords             String[]
   price                Decimal?              @db.Decimal(10, 2)
+  startingBid          Decimal?              @db.Decimal(10, 2)
+  currentBid           Decimal?              @db.Decimal(10, 2)
+  bidIncrement         Decimal?              @db.Decimal(10, 2)
+  reservePrice         Decimal?              @db.Decimal(10, 2)
   currency             String                @default("USD")
   minOrderQty          Int?                  @default(1)
   maxOrderQty          Int?
@@ -768,11 +766,17 @@ model AuctionListing {
   isPaid               Boolean               @default(true)
   cost                 Decimal?              @db.Decimal(10, 2)
   paymentId            String?
-  status               AuctionStatus         @default(ACTIVE)
+  status               AuctionStatus         @default(PENDING_VERIFICATION)
   views                Int                   @default(0)
   inquiries            Int                   @default(0)
   isVerified           Boolean               @default(false)
   expiresAt            DateTime?
+  auctionStartTime     DateTime?
+  auctionEndTime       DateTime?
+  autoExtend           Boolean               @default(false)
+  extendedMinutes      Int?                  @default(5)
+  isAuction            Boolean               @default(false)
+  bidCount             Int                   @default(0)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   digitalVoucherId     String?
@@ -802,6 +806,9 @@ model AuctionListing {
   @@index([createdAt])
   @@index([isVerified])
   @@index([verificationStatus])
+  @@index([auctionStartTime])
+  @@index([auctionEndTime])
+  @@index([isAuction])
 }
 
 model DigitalVoucher {
@@ -1116,10 +1123,79 @@ model VerificationRequest {
   @@index([status])
 }
 
+model Topic {
+  id           String         @id @default(cuid())
+  userId       String
+  title        String
+  content      String
+  category     TopicCategory  @default(OTHER)
+  images       String[]
+  videos       String[]
+  documents    Json?
+  link         String?
+  phone        String?
+  keywords     String[]       @default([])
+  viewCount    Int            @default(0)
+  likeCount    Int            @default(0)
+  commentCount Int            @default(0)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments     TopicComment[]
+  likes        TopicLike[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TopicComment {
+  id        String         @id @default(cuid())
+  topicId   String
+  userId    String
+  content   String
+  parentId  String?
+  likeCount Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  parent    TopicComment?  @relation("TopicCommentParent", fields: [parentId], references: [id])
+  replies   TopicComment[] @relation("TopicCommentParent")
+  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     TopicLike[]
+
+  @@index([topicId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model TopicLike {
+  id        String        @id @default(cuid())
+  userId    String
+  topicId   String?
+  commentId String?
+  createdAt DateTime      @default(now())
+  comment   TopicComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  topic     Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId], name: "TopicLike_userId_topicId_key")
+  @@unique([userId, commentId], name: "TopicLike_userId_commentId_key")
+  @@index([userId])
+  @@index([topicId])
+  @@index([commentId])
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum UserRole {
   BUYER
   SELLER
-  BOTH
   ADMIN
   AI_BUYER
   AI_SELLER
@@ -1264,6 +1340,7 @@ enum AuctionStatus {
   EXPIRED
   CLOSED
   COMPLETED
+  PENDING_VERIFICATION
 }
 
 enum VerificationStatus {
@@ -1324,71 +1401,6 @@ enum TopicCategory {
   RECRUITMENT
   ARTICLE
   OTHER
-}
-
-model Topic {
-  id                 String          @id @default(cuid())
-  userId             String
-  title              String
-  content            String
-  category           TopicCategory   @default(OTHER)
-  images             String[]
-  videos             String[]
-  documents          Json?
-  link               String?
-  phone              String?
-  keywords           String[]        @default([])
-  viewCount          Int             @default(0)
-  likeCount          Int             @default(0)
-  commentCount       Int             @default(0)
-  isActive           Boolean         @default(true)
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments           TopicComment[]
-  likes              TopicLike[]
-
-  @@index([userId])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model TopicComment {
-  id                 String          @id @default(cuid())
-  topicId            String
-  userId             String
-  content            String
-  parentId           String?
-  likeCount          Int             @default(0)
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  topic              Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent             TopicComment?   @relation("TopicCommentParent", fields: [parentId], references: [id])
-  replies            TopicComment[]  @relation("TopicCommentParent")
-  likes              TopicLike[]
-
-  @@index([topicId])
-  @@index([userId])
-  @@index([parentId])
-}
-
-model TopicLike {
-  id                 String          @id @default(cuid())
-  userId             String
-  topicId            String?
-  commentId          String?
-  createdAt          DateTime        @default(now())
-  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  topic              Topic?          @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  comment            TopicComment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([topicId])
-  @@index([commentId])
-
-  @@unique([userId, topicId], name: "TopicLike_userId_topicId_key")
-  @@unique([userId, commentId], name: "TopicLike_userId_commentId_key")
 }
 
 enum OwnerType {

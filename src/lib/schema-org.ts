@@ -43,7 +43,7 @@ export function generateProductSchema(product: ProductSchema): Record<string, un
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    '@id': `https://x2xhub.com/products/${product.id}`,
+    '@id': `https://x2xhub.com/de/products/${product.id}`,
     name: product.name,
     description: product.description,
     image: product.image,
@@ -72,7 +72,7 @@ export function generateOrganizationSchema(org: OrganizationSchema): Record<stri
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': `https://x2xhub.com/stores/${org.id}`,
+    '@id': `https://x2xhub.com/de/stores/${org.id}`,
     name: org.name,
     description: org.description,
     ...(org.logo && { logo: org.logo }),
@@ -92,7 +92,7 @@ export function generateEventSchema(event: EventSchema): Record<string, unknown>
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    '@id': `https://x2xhub.com/exhibitions/${event.id}`,
+    '@id': `https://x2xhub.com/de/exhibitions/${event.id}`,
     name: event.name,
     description: event.description,
     startDate: event.startDate,

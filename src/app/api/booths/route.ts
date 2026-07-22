@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
           type: 'booth_create',
           data: {
             id: booth.id,
-            url: `https://x2xhub.com/exhibitions/${booth.id}`,
+            url: `https://x2xhub.com/de/exhibitions/${booth.id}`,
             title: booth.name,
             description: booth.exhibitionName,
             imageUrl: booth.bannerUrl ? `https://x2xhub.com${booth.bannerUrl}` : booth.logoUrl ? `https://x2xhub.com${booth.logoUrl}` : undefined,

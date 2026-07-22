@@ -150,7 +150,7 @@ export async function PUT(
           type: 'product_update',
           data: {
             id: product.id,
-            url: `https://x2xhub.com/products/${product.id}`,
+            url: `https://x2xhub.com/de/products/${product.id}`,
             title: product.title,
             description: product.description,
             imageUrl: product.mainImageUrl ? `https://x2xhub.com${product.mainImageUrl}` : undefined,

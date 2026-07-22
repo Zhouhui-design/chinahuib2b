@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { autoTranslateToAllLanguages } from "@/lib/translation-service"
+import { handleSEOEvent } from "@/lib/seo-automation"
 
 
 const profileUpdateSchema = z.object({
@@ -109,6 +110,23 @@ export async function GET() {
           subscriptionStatus: 'FREE_TRIAL'
         }
       })
+
+      setTimeout(async () => {
+        try {
+          const seoResult = await handleSEOEvent({
+            type: 'store_update',
+            data: {
+              id: seller.id,
+              url: `https://x2xhub.com/de/stores/${seller.id}`,
+              title: seller.companyName,
+              description: seller.description || '',
+            }
+          })
+          console.log('SEO event handled for store creation:', seoResult)
+        } catch (error) {
+          console.error('Failed to handle SEO event for store creation:', error)
+        }
+      }, 1000)
     }
 
     return NextResponse.json({ profile: seller })
@@ -308,6 +326,23 @@ export async function PUT(request: NextRequest) {
       where: { id: seller.id },
       data: updateData
     })
+
+    setTimeout(async () => {
+      try {
+        const seoResult = await handleSEOEvent({
+          type: 'store_update',
+          data: {
+            id: updatedProfile.id,
+            url: `https://x2xhub.com/de/stores/${updatedProfile.id}`,
+            title: updatedProfile.companyName,
+            description: updatedProfile.description || updatedProfile.descriptions?.en || '',
+          }
+        })
+        console.log('SEO event handled for store:', seoResult)
+      } catch (error) {
+        console.error('Failed to handle SEO event for store:', error)
+      }
+    }, 1000)
 
     return NextResponse.json({
       success: true,

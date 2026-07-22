@@ -89,15 +89,17 @@ export async function createAuctionListing(
       category: data.category,
       tags: data.tags || [],
       keywords: data.keywords || [],
-      startingBid: isAuctionMode ? data.startingBid : data.price || 0,
-      currentBid: isAuctionMode ? data.startingBid : data.price || 0,
-      bidIncrement: isAuctionMode ? (data.bidIncrement || 1) : 0,
+      price: data.price || (isAuctionMode ? data.startingBid : 0),
+      startingBid: isAuctionMode ? data.startingBid : undefined,
+      currentBid: isAuctionMode ? data.startingBid : undefined,
+      bidIncrement: isAuctionMode ? (data.bidIncrement || 1) : undefined,
       reservePrice: data.reservePrice,
       auctionStartTime: isAuctionMode ? data.auctionStartTime! : null,
       auctionEndTime: isAuctionMode ? data.auctionEndTime! : null,
       autoExtend: isAuctionMode ? (data.autoExtend || true) : false,
-      extendedMinutes: isAuctionMode ? (data.extendedMinutes || 5) : 0,
+      extendedMinutes: isAuctionMode ? (data.extendedMinutes || 5) : undefined,
       isAuction: isAuctionMode,
+      bidCount: 0,
       status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
       images: data.images || [],
       videos: data.videos || [],
@@ -111,7 +113,6 @@ export async function createAuctionListing(
       contactWhatsApp: data.contactWhatsApp,
       posterId,
       sellerId: data.sellerId,
-      price: data.price,
       techSpecs: data.techSpecs,
       productFeatures: data.productFeatures,
       applicationScope: data.applicationScope,
@@ -146,33 +147,33 @@ export async function placeBid(
   }
 
   const now = new Date();
-  if (listing.auctionStartTime && now < listing.auctionStartTime) {
-    return { success: false, message: 'Auction has not started yet', currentBid: listing.currentBid || 0, isReserveMet: false };
+  if (listing.isAuction && listing.auctionStartTime && now < listing.auctionStartTime) {
+    return { success: false, message: 'Auction has not started yet', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
   }
 
-  if (listing.auctionEndTime && now > listing.auctionEndTime) {
-    return { success: false, message: 'Auction has ended', currentBid: listing.currentBid || 0, isReserveMet: false };
+  if (listing.isAuction && listing.auctionEndTime && now > listing.auctionEndTime) {
+    return { success: false, message: 'Auction has ended', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
   }
 
   // Check minimum bid amount
-  const minimumBid = (listing.currentBid || listing.startingBid || 0) + (listing.bidIncrement || 1);
+  const minimumBid = ((listing.currentBid || listing.startingBid || 0) + (listing.bidIncrement || 1)).toNumber();
   if (amount < minimumBid) {
     return {
       success: false,
       message: `Bid must be at least ${minimumBid} ${listing.currency}`,
-      currentBid: listing.currentBid || 0,
+      currentBid: listing.currentBid?.toNumber() || 0,
       isReserveMet: false,
     };
   }
 
   // Check if bidder is the seller
   if (listing.posterId === bidderId) {
-    return { success: false, message: 'Seller cannot bid on their own auction', currentBid: listing.currentBid || 0, isReserveMet: false };
+    return { success: false, message: 'Seller cannot bid on their own auction', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
   }
 
   // Check for auto-bid conflicts
   if (isAutoBid && maxAutoBid && amount > maxAutoBid) {
-    return { success: false, message: 'Bid amount exceeds maximum auto-bid', currentBid: listing.currentBid || 0, isReserveMet: false };
+    return { success: false, message: 'Bid amount exceeds maximum auto-bid', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
   }
 
   // Create the bid
@@ -199,9 +200,9 @@ export async function placeBid(
   });
 
   // Auto-extend if bid in last minute
-  if (listing.autoExtend && listing.auctionEndTime) {
+  if (listing.isAuction && listing.autoExtend && listing.auctionEndTime) {
     const timeRemaining = listing.auctionEndTime.getTime() - now.getTime();
-    if (timeRemaining < 60000) { // Less than 1 minute
+    if (timeRemaining < 60000) {
       await prisma.auctionListing.update({
         where: { id: listingId },
         data: {
@@ -211,7 +212,7 @@ export async function placeBid(
     }
   }
 
-  const isReserveMet = !listing.reservePrice || amount >= listing.reservePrice;
+  const isReserveMet = !listing.reservePrice || amount >= listing.reservePrice.toNumber();
 
   return {
     success: true,
@@ -242,12 +243,12 @@ export async function getCurrentBid(listingId: string): Promise<{ amount: number
   if (!bid) {
     const listing = await getAuctionListing(listingId);
     if (listing) {
-      return { amount: listing.startingBid || 0 };
+      return { amount: listing.startingBid?.toNumber() || listing.price?.toNumber() || 0 };
     }
     return null;
   }
 
-  return { amount: bid.amount, bidderId: bid.bidderId };
+  return { amount: bid.amount.toNumber(), bidderId: bid.bidderId };
 }
 
 // Close auction
@@ -265,11 +266,11 @@ export async function closeAuction(listingId: string): Promise<AuctionListing> {
 export async function isReserveMet(listingId: string): Promise<boolean> {
   const listing = await getAuctionListing(listingId);
   if (!listing || !listing.reservePrice) {
-    return true; // No reserve price means it's met
+    return true;
   }
 
   const currentBid = await getCurrentBid(listingId);
-  return currentBid ? currentBid.amount >= listing.reservePrice : false;
+  return currentBid ? currentBid.amount >= listing.reservePrice.toNumber() : false;
 }
 
 // Get winning bid
@@ -289,7 +290,6 @@ export async function processAutoBid(
   listingId: string,
   newBidAmount: number
 ): Promise<{ autoBidPlaced: boolean; amount?: number; bidderId?: string }> {
-  // Find all auto-bidders with maxAutoBid >= newBidAmount
   const autoBidders = await prisma.auctionBid.findMany({
     where: {
       listingId,
@@ -305,18 +305,16 @@ export async function processAutoBid(
     return { autoBidPlaced: false };
   }
 
-  // Get the highest auto-bidder
   const topAutoBidder = autoBidders[0];
   const bidIncrement = await prisma.auctionListing.findUnique({
     where: { id: listingId },
     select: { bidIncrement: true },
   });
 
-  const increment = bidIncrement?.bidIncrement || 1;
+  const increment = bidIncrement?.bidIncrement?.toNumber() || 1;
   const nextBid = newBidAmount + increment;
 
-  if (nextBid <= topAutoBidder.maxAutoBid!) {
-    // Place auto-bid
+  if (nextBid <= topAutoBidder.maxAutoBid!.toNumber()) {
     const result = await placeBid(
       listingId,
       topAutoBidder.bidderId,

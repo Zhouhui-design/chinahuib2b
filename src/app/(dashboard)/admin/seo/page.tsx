@@ -72,7 +72,8 @@ export default function SEOManagerPage() {
       const response = await fetch('/api/admin/seo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -111,7 +112,8 @@ export default function SEOManagerPage() {
 
     try {
       const response = await fetch(`/api/admin/seo?pagePath=${encodeURIComponent(pagePath)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
 
       const data = await response.json()
