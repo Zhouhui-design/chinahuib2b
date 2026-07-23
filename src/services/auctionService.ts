@@ -82,18 +82,20 @@ export async function createAuctionListing(
 ): Promise<AuctionListing> {
   const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
   
+  const safeArray = (arr: any): string[] => Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : [];
+  
   const createData: any = {
     type: (data.type as any) || 'SELLING',
     title: data.title,
     description: data.description,
     category: data.category,
-    tags: data.tags || [],
-    keywords: data.keywords || [],
+    tags: safeArray(data.tags),
+    keywords: safeArray(data.keywords),
     price: data.price || (isAuctionMode ? data.startingBid : 0),
     status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
-    images: data.images || [],
-    videos: data.videos || [],
-    documents: [...(data.documents || []), ...(data.drawings || [])],
+    images: safeArray(data.images),
+    videos: safeArray(data.videos),
+    documents: [...safeArray(data.documents), ...safeArray(data.drawings)],
     currency: data.currency || 'USD',
     minOrderQty: data.minOrderQty,
     maxOrderQty: data.maxOrderQty,
@@ -111,7 +113,7 @@ export async function createAuctionListing(
     detailedAddress: data.detailedAddress,
     isFob: data.isFob,
     isCif: data.isCif,
-    verificationStatus: (data.verificationStatus as any) || 'NOT_APPLIED',
+    verificationStatus: ((data.verificationStatus as any) || 'NOT_APPLIED').toString(),
     unitId: data.unitId,
     bidCount: 0,
     isAuction: isAuctionMode,
