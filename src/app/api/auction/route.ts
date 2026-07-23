@@ -29,6 +29,15 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    console.log('Creating auction with data:', JSON.stringify({
+      type: body.type,
+      title: body.title,
+      price: body.price,
+      imagesCount: Array.isArray(body.images) ? body.images.length : 0,
+      filesCount: Array.isArray(body.files) ? body.files.length : 0,
+      drawingsCount: Array.isArray(body.drawings) ? body.drawings.length : 0,
+    }));
+
     const auctionData: any = {
       title: body.title,
       description: body.description,
@@ -41,10 +50,10 @@ export async function POST(request: NextRequest) {
       auctionEndTime: body.auctionEndTime ? new Date(body.auctionEndTime) : undefined,
       autoExtend: body.autoExtend,
       extendedMinutes: body.extendedMinutes,
-      images: body.images,
-      videos: body.videos,
-      documents: body.files,
-      drawings: body.drawings,
+      images: body.images || [],
+      videos: body.videos || [],
+      documents: body.files || [],
+      drawings: body.drawings || [],
       currency: body.currency,
       minOrderQty: body.minOrderQty,
       maxOrderQty: body.maxOrderQty,
@@ -71,8 +80,8 @@ export async function POST(request: NextRequest) {
     const auction = await auctionService.createAuctionListing(session.user.id, auctionData);
 
     return NextResponse.json({ success: true, data: { listing: auction } }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating auction:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', message: error?.message || 'Unknown error' }, { status: 500 });
   }
 }
