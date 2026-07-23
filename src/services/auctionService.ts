@@ -83,11 +83,20 @@ export async function createAuctionListing(
   const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
   
   const safeArray = (arr: any): string[] => Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : [];
+  const cleanObj = (obj: any): any => {
+    const result: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        result[key] = value;
+      }
+    }
+    return result;
+  };
   
-  const createData: any = {
+  const createData: any = cleanObj({
     type: (data.type as any) || 'SELLING',
     title: data.title,
-    description: data.description,
+    description: data.description || '',
     category: data.category,
     tags: safeArray(data.tags),
     keywords: safeArray(data.keywords),
@@ -118,7 +127,7 @@ export async function createAuctionListing(
     unitId: data.unitId,
     bidCount: 0,
     isAuction: isAuctionMode,
-  };
+  });
 
   if (isAuctionMode) {
     createData.startingBid = data.startingBid;
