@@ -81,7 +81,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: { listing: auction } }, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating auction:', error);
+    console.error('=== Error creating auction ===');
+    console.error('Error type:', typeof error);
+    console.error('Error message:', error?.message);
+    console.error('Error stack:', error?.stack);
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    console.error('===============================');
     return NextResponse.json({ error: 'Internal server error', message: error?.message || 'Unknown error' }, { status: 500 });
   }
 }
