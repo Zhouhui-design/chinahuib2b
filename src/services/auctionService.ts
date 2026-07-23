@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/db';
 import { AuctionListing, AuctionBid, AuctionBidStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
 
 // Get auction listing by ID
 export async function getAuctionListing(listingId: string): Promise<AuctionListing | null> {
@@ -94,13 +93,11 @@ export async function createAuctionListing(
     return result;
   };
   
-  const toDecimal = (val: any): Decimal | undefined => {
+  const toDecimal = (val: any): number | undefined => {
     if (val === undefined || val === null || val === '') return undefined;
-    try {
-      return new Decimal(val);
-    } catch {
-      return undefined;
-    }
+    const num = Number(val);
+    if (isNaN(num)) return undefined;
+    return num;
   };
   
   const createData: any = cleanObj({
