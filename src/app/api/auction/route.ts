@@ -16,15 +16,19 @@ const cleanOptionalString = (val: any): string | undefined => {
   return String(val).substring(0, 2000);
 };
 
-// GET /api/auction - Get active auctions
+// GET /api/auction - Get active auctions (public)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { searchParams } = new URL(request.url);
+    const filterParams: { type?: string; category?: string; search?: string } = {};
+    const type = searchParams.get('type');
+    const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    if (type) filterParams.type = type;
+    if (category) filterParams.category = category;
+    if (search) filterParams.search = search;
 
-    const auctions = await auctionService.getActiveAuctions();
+    const auctions = await auctionService.getActiveAuctions(filterParams);
     return NextResponse.json(auctions);
   } catch (error) {
     console.error('Error fetching auctions:', error);

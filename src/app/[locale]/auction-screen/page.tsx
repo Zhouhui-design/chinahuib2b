@@ -137,18 +137,62 @@ export default function AuctionScreenPage() {
   const locale = (params.locale as LanguageCode) || 'en'
   const dict = dictionaries[locale] || dictionaries.en
 
-  const categories = [
-    'Electronics',
-    'Textiles',
-    'Machinery',
-    'Chemicals',
-    'Furniture',
-    'Toys',
-    'Beauty',
-    'Sports',
-    'Automotive',
-    'Services',
-  ]
+  const [dynamicCategories, setDynamicCategories] = useState<{ id: string; name: string; slug: string }[]>([])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/categories?locale=${locale}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.categories && Array.isArray(data.categories)) {
+            const level1Cats = data.categories.filter((c: any) => c.level === 1)
+            setDynamicCategories(level1Cats.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug })))
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load categories', e)
+      }
+    }
+    fetchCategories()
+  }, [locale])
+
+  const categories = dynamicCategories.length > 0
+    ? dynamicCategories.map(c => c.name)
+    : [
+        'Electronics',
+        'Textiles',
+        'Machinery',
+        'Chemicals',
+        'Furniture',
+        'Toys',
+        'Beauty',
+        'Sports',
+        'Automotive',
+        'Services',
+      ]
+
+  const normalizeListing = (raw: any) => {
+    if (!raw) return null
+    return {
+      ...raw,
+      images: Array.isArray(raw.images) ? raw.images : [],
+      price: typeof raw.price?.toNumber === 'function' ? raw.price.toNumber() : (raw.price ?? 0),
+      startingBid: typeof raw.startingBid?.toNumber === 'function' ? raw.startingBid.toNumber() : (raw.startingBid ?? 0),
+      currentBid: typeof raw.currentBid?.toNumber === 'function' ? raw.currentBid.toNumber() : (raw.currentBid ?? 0),
+      bidIncrement: typeof raw.bidIncrement?.toNumber === 'function' ? raw.bidIncrement.toNumber() : (raw.bidIncrement ?? 0),
+      cost: typeof raw.cost?.toNumber === 'function' ? raw.cost.toNumber() : (raw.cost ?? 0),
+      verificationFee: typeof raw.verificationFee?.toNumber === 'function' ? raw.verificationFee.toNumber() : (raw.verificationFee ?? 0),
+      minOrderQty: typeof raw.minOrderQty === 'number' ? raw.minOrderQty : (raw.minOrderQty ?? undefined),
+      maxOrderQty: typeof raw.maxOrderQty === 'number' ? raw.maxOrderQty : (raw.maxOrderQty ?? undefined),
+      isVerified: raw.verificationStatus === 'VERIFIED',
+      poster: raw.poster ? {
+        ...raw.poster,
+        displayName: raw.poster.displayName || raw.poster.username || 'Anonymous',
+      } : { displayName: 'Anonymous', username: 'anonymous' },
+      seller: raw.seller || null,
+    }
+  }
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -163,7 +207,9 @@ export default function AuctionScreenPage() {
         const res = await fetch(`/api/auction?${params}`)
         if (res.ok) {
           const data = await res.json()
-          setListings(Array.isArray(data) ? data : data.data?.listings || data.data || [])
+          const rawListings = Array.isArray(data) ? data : data.data?.listings || data.data || []
+          const normalized = rawListings.map(normalizeListing).filter(Boolean)
+          setListings(normalized)
         }
       } catch (error) {
         console.error('Error fetching listings:', error)
@@ -209,11 +255,16 @@ export default function AuctionScreenPage() {
       const res = await fetch(`/api/auction/${listingId}`)
       if (res.ok) {
         const data = await res.json()
-        setSelectedListing(data)
+        const normalized = normalizeListing(data)
+        setSelectedListing(normalized)
         setShowDetailModal(true)
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        alert(errData.error || 'Failed to load listing details')
       }
     } catch (error) {
       console.error('Error fetching auction:', error)
+      alert('Network error. Please try again.')
     }
   }
 
@@ -471,9 +522,9 @@ export default function AuctionScreenPage() {
                     <p className="text-gray-400 text-sm mb-3 line-clamp-2">{listing.description}</p>
                   )}
                   
-                  {listing.price && (
+                  {listing.price != null && listing.price > 0 && (
                     <p className="text-2xl font-bold text-green-400 mb-2">
-                      {listing.currency} {listing.price.toLocaleString()}
+                      {listing.currency} {Number(listing.price).toLocaleString()}
                       {listing.minOrderQty && <span className="text-gray-500 text-sm ml-1">/ {listing.minOrderQty} {dict.auctionScreen.pcs}</span>}
                     </p>
                   )}
@@ -488,11 +539,11 @@ export default function AuctionScreenPage() {
                   <div className="border-t border-gray-700 pt-3 mt-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                        {listing.poster.displayName?.charAt(0) || listing.poster.username.charAt(0)}
+                        {(listing.poster?.displayName || listing.poster?.username || '?').charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-medium text-sm truncate">
-                          {listing.poster.displayName || listing.poster.username}
+                          {listing.poster?.displayName || listing.poster?.username || 'Anonymous'}
                         </p>
                         {listing.seller && (
                           <p className="text-blue-400 text-xs truncate">
@@ -500,7 +551,7 @@ export default function AuctionScreenPage() {
                           </p>
                         )}
                       </div>
-                      {listing.poster.isOnline && (
+                      {listing.poster?.isOnline && (
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       )}
                     </div>
@@ -727,10 +778,10 @@ export default function AuctionScreenPage() {
                   </span>
                 </div>
 
-                {selectedListing.type === 'SELLING' && selectedListing.price && (
+                {selectedListing.type === 'SELLING' && selectedListing.price != null && selectedListing.price > 0 && (
                   <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-600/30 rounded-xl p-4 mb-4">
                     <p className="text-3xl font-bold text-green-400">
-                      {selectedListing.currency} {selectedListing.price.toLocaleString()}
+                      {selectedListing.currency} {Number(selectedListing.price).toLocaleString()}
                     </p>
                     {selectedListing.minOrderQty && (
                       <p className="text-gray-400 text-sm mt-1">
@@ -824,6 +875,20 @@ export default function AuctionScreenPage() {
                     )}
                     {selectedListing.contactWhatsApp && (
                       <p className="text-gray-300 text-sm">💬 WhatsApp: {selectedListing.contactWhatsApp}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(selectedListing.shippingCountry || selectedListing.detailedAddress) && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-white mb-2">🚚 Shipping Info</h3>
+                  <div className="bg-gray-700 rounded-lg p-3 space-y-1">
+                    {selectedListing.shippingCountry && (
+                      <p className="text-gray-300 text-sm">🌍 From: {selectedListing.shippingCountry}</p>
+                    )}
+                    {selectedListing.detailedAddress && (
+                      <p className="text-gray-300 text-sm truncate">📍 {selectedListing.detailedAddress}</p>
                     )}
                   </div>
                 </div>

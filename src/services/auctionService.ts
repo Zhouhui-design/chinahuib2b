@@ -13,26 +13,56 @@ export async function getAuctionListing(listingId: string): Promise<AuctionListi
 }
 
 // Get all active auctions
-export async function getActiveAuctions(): Promise<AuctionListing[]> {
+export async function getActiveAuctions(filters?: { type?: string; category?: string; search?: string }): Promise<AuctionListing[]> {
   const now = new Date();
+  const where: any = {
+    status: { in: ['ACTIVE', 'PENDING_VERIFICATION'] },
+    OR: [
+      {
+        isAuction: true,
+        auctionStartTime: { lte: now },
+        auctionEndTime: { gte: now },
+      },
+      {
+        isAuction: false,
+      },
+    ],
+  };
+
+  if (filters?.type) {
+    where.type = filters.type;
+  }
+  if (filters?.category) {
+    where.category = filters.category;
+  }
+  if (filters?.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: 'insensitive' } },
+      { description: { contains: filters.search, mode: 'insensitive' } },
+    ];
+  }
+
   return await prisma.auctionListing.findMany({
-    where: {
-      status: 'ACTIVE',
-      verificationStatus: 'VERIFIED',
-      OR: [
-        {
-          isAuction: true,
-          auctionStartTime: { lte: now },
-          auctionEndTime: { gte: now },
-        },
-        {
-          isAuction: false,
-        },
-      ],
-    },
+    where,
     include: {
-      poster: true,
-      seller: true,
+      poster: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+        },
+      },
+      seller: {
+        select: {
+          id: true,
+          companyName: true,
+          logoUrl: true,
+          isVerified: true,
+          country: true,
+          city: true,
+        },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
