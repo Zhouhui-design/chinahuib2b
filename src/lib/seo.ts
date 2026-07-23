@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { languages } from './languages'
 import { getSeoMeta } from './seo-meta'
 
-const BASE_URL = 'https://x2xhub.com'
+export const BASE_URL = 'https://x2xhub.com'
 
 const REGION_CONFIG: Record<string, { country: string; currency: string; timezone: string }> = {
   us: { country: 'United States', currency: 'USD', timezone: 'America/New_York' },
@@ -71,9 +71,10 @@ export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
 
     const alternates: Record<string, string> = {}
     languages.forEach(lang => {
+      const cleanPath = pagePath.replace(/^\/[a-z]{2}/, '') || '/'
       const langPath = lang.code === 'en' 
-        ? pagePath.replace(/^\/en/, '') || '/'
-        : `/${lang.code}${pagePath.replace(/^\/[a-z]{2}/, '')}`
+        ? cleanPath
+        : `/${lang.code}${cleanPath}`
       alternates[lang.code] = `${BASE_URL}${langPath}`
     })
 
