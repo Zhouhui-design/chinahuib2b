@@ -3,6 +3,19 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import * as auctionService from '@/services/auctionService';
 
+const cleanArray = (arr: any): string[] => {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter(x => typeof x === 'string' && x.length > 0)
+    .map(x => x.substring(0, 1000));
+};
+
+const cleanOptionalString = (val: any): string | undefined => {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val === 'string' && val.length === 0) return undefined;
+  return String(val).substring(0, 2000);
+};
+
 // GET /api/auction - Get active auctions
 export async function GET(request: NextRequest) {
   try {
@@ -39,10 +52,12 @@ export async function POST(request: NextRequest) {
     }));
 
     const auctionData: any = {
-      title: body.title,
-      description: body.description,
-      category: body.category,
-      tags: body.tags,
+      type: body.type || 'SELLING',
+      title: cleanOptionalString(body.title) || 'Untitled',
+      description: cleanOptionalString(body.description),
+      category: cleanOptionalString(body.category),
+      tags: cleanArray(body.tags),
+      keywords: cleanArray(body.keywords).slice(0, 50),
       startingBid: body.startingBid,
       bidIncrement: body.bidIncrement,
       reservePrice: body.reservePrice,
@@ -50,31 +65,29 @@ export async function POST(request: NextRequest) {
       auctionEndTime: body.auctionEndTime ? new Date(body.auctionEndTime) : undefined,
       autoExtend: body.autoExtend,
       extendedMinutes: body.extendedMinutes,
-      images: body.images || [],
-      videos: body.videos || [],
-      documents: body.files || [],
-      drawings: body.drawings || [],
-      currency: body.currency,
-      minOrderQty: body.minOrderQty,
-      maxOrderQty: body.maxOrderQty,
-      contactEmail: body.contactEmail,
-      contactPhone: body.contactPhone,
-      contactWeChat: body.contactWeChat,
-      contactWhatsApp: body.contactWhatsApp,
+      images: cleanArray(body.images),
+      videos: cleanArray(body.videos),
+      documents: cleanArray(body.files),
+      drawings: cleanArray(body.drawings),
+      currency: cleanOptionalString(body.currency) || 'USD',
+      minOrderQty: body.minOrderQty ? Number(body.minOrderQty) : undefined,
+      maxOrderQty: body.maxOrderQty ? Number(body.maxOrderQty) : undefined,
+      contactEmail: cleanOptionalString(body.contactEmail),
+      contactPhone: cleanOptionalString(body.contactPhone),
+      contactWeChat: cleanOptionalString(body.contactWeChat),
+      contactWhatsApp: cleanOptionalString(body.contactWhatsApp),
       sellerId: body.sellerId,
-      type: body.type,
-      price: body.price,
-      techSpecs: body.techSpecs,
-      productFeatures: body.productFeatures,
-      applicationScope: body.applicationScope,
-      usageMethod: body.usageMethod,
-      shippingCountry: body.shippingCountry,
-      detailedAddress: body.detailedAddress,
+      price: body.price ? Number(body.price) : undefined,
+      techSpecs: cleanOptionalString(body.techSpecs),
+      productFeatures: cleanOptionalString(body.productFeatures),
+      applicationScope: cleanOptionalString(body.applicationScope),
+      usageMethod: cleanOptionalString(body.usageMethod),
+      shippingCountry: cleanOptionalString(body.shippingCountry),
+      detailedAddress: cleanOptionalString(body.detailedAddress),
       isFob: body.isFob,
       isCif: body.isCif,
-      verificationStatus: body.verificationStatus,
-      unitId: body.unitId,
-      keywords: body.keywords,
+      verificationStatus: cleanOptionalString(body.verificationStatus) || 'NOT_APPLIED',
+      unitId: cleanOptionalString(body.unitId),
     };
 
     const auction = await auctionService.createAuctionListing(session.user.id, auctionData);
@@ -85,8 +98,25 @@ export async function POST(request: NextRequest) {
     console.error('Error type:', typeof error);
     console.error('Error message:', error?.message);
     console.error('Error stack:', error?.stack);
-    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
+    const errorResponse: any = { error: 'Internal server error' };
+    
+    if (error?.message) {
+      errorResponse.message = error.message;
+    }
+    if (error?.code) {
+      errorResponse.code = error.code;
+    }
+    if (error?.meta?.target) {
+      errorResponse.target = error.meta.target;
+    }
+    if (error?.meta?.field_name) {
+      errorResponse.field = error.meta.field_name;
+    }
+    
+    console.error('Error response:', JSON.stringify(errorResponse));
     console.error('===============================');
-    return NextResponse.json({ error: 'Internal server error', message: error?.message || 'Unknown error' }, { status: 500 });
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
