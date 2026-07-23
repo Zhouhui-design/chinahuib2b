@@ -36,25 +36,27 @@ export async function GET(
           },
         },
         unit: true,
-        bids: {
-          include: {
-            bidder: {
-              select: {
-                id: true,
-                username: true,
-                displayName: true,
-              },
-            },
-            orderBy: { createdAt: 'desc' },
-            take: 20,
-          },
-        },
       },
     });
 
     if (!listing) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
+
+    const bids = await prisma.auctionBid.findMany({
+      where: { listingId: id },
+      include: {
+        bidder: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
 
     await prisma.auctionListing.update({
       where: { id },
@@ -70,7 +72,7 @@ export async function GET(
       reservePrice: listing.reservePrice?.toNumber() ?? null,
       cost: listing.cost?.toNumber() ?? null,
       verificationFee: listing.verificationFee?.toNumber() ?? null,
-      bids: listing.bids.map((bid: any) => ({
+      bids: bids.map((bid: any) => ({
         ...bid,
         amount: bid.amount?.toNumber() ?? 0,
         bidderName: bid.bidder?.displayName || bid.bidder?.username || 'Anonymous',
