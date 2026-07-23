@@ -1,6 +1,11 @@
+import * as Sentry from '@sentry/nextjs';
+
 export async function register() {
-  // Sentry temporarily removed — DSN not configured yet
-  // Re-add when ready: https://sentry.io/signup/
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    debug: false,
+  });
 }
 
-export const onRequestError = undefined;
+export const onRequestError = Sentry.captureException;

@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  sentry: {
+    hideSourceMaps: true,
+  },
+ 
   /* config options here */
   // Fix workspace root for monorepo
   outputFileTracingRoot: __dirname,
