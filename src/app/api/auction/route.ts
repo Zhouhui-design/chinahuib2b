@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const auction = await auctionService.createAuctionListing(session.user.id, {
+    const auctionData: any = {
       title: body.title,
       description: body.description,
       category: body.category,
@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       images: body.images,
       videos: body.videos,
       documents: body.files,
+      drawings: body.drawings,
       currency: body.currency,
       minOrderQty: body.minOrderQty,
       maxOrderQty: body.maxOrderQty,
@@ -64,7 +65,10 @@ export async function POST(request: NextRequest) {
       isCif: body.isCif,
       verificationStatus: body.verificationStatus,
       unitId: body.unitId,
-    });
+      keywords: body.keywords,
+    };
+
+    const auction = await auctionService.createAuctionListing(session.user.id, auctionData);
 
     return NextResponse.json({ success: true, data: { listing: auction } }, { status: 201 });
   } catch (error) {

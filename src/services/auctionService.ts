@@ -56,6 +56,7 @@ export async function createAuctionListing(
     images?: string[];
     videos?: string[];
     documents?: string[];
+    drawings?: string[];
     currency?: string;
     minOrderQty?: number;
     maxOrderQty?: number;
@@ -81,49 +82,53 @@ export async function createAuctionListing(
 ): Promise<AuctionListing> {
   const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
   
+  const createData: any = {
+    type: (data.type as any) || 'SELLING',
+    title: data.title,
+    description: data.description,
+    category: data.category,
+    tags: data.tags || [],
+    keywords: data.keywords || [],
+    price: data.price || (isAuctionMode ? data.startingBid : 0),
+    status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
+    images: data.images || [],
+    videos: data.videos || [],
+    documents: [...(data.documents || []), ...(data.drawings || [])],
+    currency: data.currency || 'USD',
+    minOrderQty: data.minOrderQty,
+    maxOrderQty: data.maxOrderQty,
+    contactEmail: data.contactEmail,
+    contactPhone: data.contactPhone,
+    contactWeChat: data.contactWeChat,
+    contactWhatsApp: data.contactWhatsApp,
+    posterId,
+    sellerId: data.sellerId,
+    techSpecs: data.techSpecs,
+    productFeatures: data.productFeatures,
+    applicationScope: data.applicationScope,
+    usageMethod: data.usageMethod,
+    shippingCountry: data.shippingCountry,
+    detailedAddress: data.detailedAddress,
+    isFob: data.isFob,
+    isCif: data.isCif,
+    verificationStatus: (data.verificationStatus as any) || 'NOT_APPLIED',
+    unitId: data.unitId,
+    bidCount: 0,
+    isAuction: isAuctionMode,
+  };
+
+  if (isAuctionMode) {
+    createData.startingBid = data.startingBid;
+    createData.currentBid = data.startingBid;
+    createData.bidIncrement = data.bidIncrement || 1;
+    createData.auctionStartTime = data.auctionStartTime!;
+    createData.auctionEndTime = data.auctionEndTime!;
+    createData.autoExtend = data.autoExtend || true;
+    createData.extendedMinutes = data.extendedMinutes || 5;
+  }
+
   return await prisma.auctionListing.create({
-    data: {
-      type: (data.type as any) || 'SELLING',
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      tags: data.tags || [],
-      keywords: data.keywords || [],
-      price: data.price || (isAuctionMode ? data.startingBid : 0),
-      startingBid: isAuctionMode ? data.startingBid : undefined,
-      currentBid: isAuctionMode ? data.startingBid : undefined,
-      bidIncrement: isAuctionMode ? (data.bidIncrement || 1) : undefined,
-      reservePrice: data.reservePrice,
-      auctionStartTime: isAuctionMode ? data.auctionStartTime! : null,
-      auctionEndTime: isAuctionMode ? data.auctionEndTime! : null,
-      autoExtend: isAuctionMode ? (data.autoExtend || true) : false,
-      extendedMinutes: isAuctionMode ? (data.extendedMinutes || 5) : undefined,
-      isAuction: isAuctionMode,
-      bidCount: 0,
-      status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
-      images: data.images || [],
-      videos: data.videos || [],
-      documents: [...(data.documents || []), ...(data.drawings || [])],
-      currency: data.currency || 'USD',
-      minOrderQty: data.minOrderQty,
-      maxOrderQty: data.maxOrderQty,
-      contactEmail: data.contactEmail,
-      contactPhone: data.contactPhone,
-      contactWeChat: data.contactWeChat,
-      contactWhatsApp: data.contactWhatsApp,
-      posterId,
-      sellerId: data.sellerId,
-      techSpecs: data.techSpecs,
-      productFeatures: data.productFeatures,
-      applicationScope: data.applicationScope,
-      usageMethod: data.usageMethod,
-      shippingCountry: data.shippingCountry,
-      detailedAddress: data.detailedAddress,
-      isFob: data.isFob,
-      isCif: data.isCif,
-      verificationStatus: (data.verificationStatus as any) || 'NOT_APPLIED',
-      unitId: data.unitId,
-    },
+    data: createData,
   });
 }
 
