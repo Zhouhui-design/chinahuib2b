@@ -757,6 +757,7 @@ model AuctionListing {
   images               String[]
   videos               String[]
   documents            String[]
+  drawings             String[]              @default([])
   contactEmail         String?
   contactPhone         String?
   contactWeChat        String?
