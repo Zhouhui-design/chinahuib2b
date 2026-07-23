@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { AuctionListing, AuctionBid, AuctionBidStatus } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // Get auction listing by ID
 export async function getAuctionListing(listingId: string): Promise<AuctionListing | null> {
@@ -93,6 +94,15 @@ export async function createAuctionListing(
     return result;
   };
   
+  const toDecimal = (val: any): Decimal | undefined => {
+    if (val === undefined || val === null || val === '') return undefined;
+    try {
+      return new Decimal(val);
+    } catch {
+      return undefined;
+    }
+  };
+  
   const createData: any = cleanObj({
     type: (data.type as any) || 'SELLING',
     title: data.title,
@@ -100,7 +110,7 @@ export async function createAuctionListing(
     category: data.category,
     tags: safeArray(data.tags),
     keywords: safeArray(data.keywords),
-    price: data.price || (isAuctionMode ? data.startingBid : 0),
+    price: toDecimal(data.price ?? (isAuctionMode ? data.startingBid : 0)),
     status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
     images: safeArray(data.images),
     videos: safeArray(data.videos),
@@ -130,9 +140,9 @@ export async function createAuctionListing(
   });
 
   if (isAuctionMode) {
-    createData.startingBid = data.startingBid;
-    createData.currentBid = data.startingBid;
-    createData.bidIncrement = data.bidIncrement || 1;
+    createData.startingBid = toDecimal(data.startingBid);
+    createData.currentBid = toDecimal(data.startingBid);
+    createData.bidIncrement = toDecimal(data.bidIncrement || 1);
     createData.auctionStartTime = data.auctionStartTime!;
     createData.auctionEndTime = data.auctionEndTime!;
     createData.autoExtend = data.autoExtend || true;
