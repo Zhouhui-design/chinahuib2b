@@ -126,6 +126,10 @@ export default function AuctionScreenPage() {
   } | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [pendingListingData, setPendingListingData] = useState<any>(null)
+  const [selectedListing, setSelectedListing] = useState<any>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [inquiryQty, setInquiryQty] = useState('')
+  const [inquiryMessage, setInquiryMessage] = useState('')
   
   const sseRef = useRef<EventSource | null>(null)
 
@@ -205,23 +209,51 @@ export default function AuctionScreenPage() {
       const res = await fetch(`/api/auction/${listingId}`)
       if (res.ok) {
         const data = await res.json()
-        setSelectedAuction({
-          id: data.id,
-          title: data.title,
-          currentPrice: data.currentPrice?.toNumber() || 0,
-          startingPrice: data.startingPrice.toNumber(),
-          reservePrice: data.reservePrice?.toNumber() || 0,
-          currentWinner: data.currentWinner?.username || null,
-          bids: [],
-          endTime: data.endTime,
-          status: data.status,
-          bidCount: data.bidCount,
-        })
-        setShowBidModal(true)
+        setSelectedListing(data)
+        setShowDetailModal(true)
       }
     } catch (error) {
       console.error('Error fetching auction:', error)
     }
+  }
+
+  const handleSubmitInquiry = async () => {
+    if (!session) {
+      alert('Please login first')
+      return
+    }
+    if (!selectedListing) return
+
+    try {
+      const res = await fetch('/api/buyer/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedListing.id,
+          quantity: parseFloat(inquiryQty) || 1,
+          message: inquiryMessage,
+        }),
+      })
+
+      if (res.ok) {
+        alert('Inquiry sent successfully! The seller will be notified.')
+        setInquiryQty('')
+        setInquiryMessage('')
+        setShowDetailModal(false)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to send inquiry')
+      }
+    } catch (error) {
+      console.error('Error sending inquiry:', error)
+      alert('Failed to send inquiry')
+    }
+  }
+
+  const handleContactSeller = () => {
+    if (!selectedListing?.seller) return
+    const message = encodeURIComponent(`Hello, I'm interested in your listing: ${selectedListing.title}`)
+    window.open(`https://wa.me/${selectedListing.seller.whatsapp || selectedListing.contactWhatsApp || ''}?text=${message}`, '_blank')
   }
 
   const handlePlaceBid = async () => {
@@ -630,6 +662,259 @@ export default function AuctionScreenPage() {
                     <p className="text-gray-400">{dict.auctionScreen.noBidsYet}</p>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Detail Modal with Buy/Order Button */}
+      {showDetailModal && selectedListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
+              <h2 className="text-lg font-bold text-white">
+                {selectedListing.type === 'SELLING' ? '📦 Product Details' : '🔍 Buying Request'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false)
+                  setSelectedListing(null)
+                }}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4">
+              {selectedListing.images && selectedListing.images.length > 0 && (
+                <div className="mb-4">
+                  <div className="relative w-full h-64 bg-gray-700 rounded-xl overflow-hidden">
+                    <Image
+                      src={selectedListing.images[0]}
+                      alt={selectedListing.title}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  {selectedListing.images.length > 1 && (
+                    <div className="flex gap-2 mt-2 overflow-x-auto">
+                      {selectedListing.images.slice(0, 8).map((img: string, idx: number) => (
+                        <div key={idx} className="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image src={img} alt="" width={64} height={64} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mb-4">
+                <h1 className="text-2xl font-bold text-white mb-2">{selectedListing.title}</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  {selectedListing.isVerified && (
+                    <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                      ✓ Verified
+                    </span>
+                  )}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    selectedListing.type === 'SELLING'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-blue-600 text-white'
+                  }`}>
+                    {selectedListing.type === 'SELLING' ? 'For Sale' : 'Buying'}
+                  </span>
+                </div>
+
+                {selectedListing.type === 'SELLING' && selectedListing.price && (
+                  <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-600/30 rounded-xl p-4 mb-4">
+                    <p className="text-3xl font-bold text-green-400">
+                      {selectedListing.currency} {selectedListing.price.toLocaleString()}
+                    </p>
+                    {selectedListing.minOrderQty && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        MOQ: {selectedListing.minOrderQty} {selectedListing.unitId || 'pcs'}
+                        {selectedListing.maxOrderQty && ` - ${selectedListing.maxOrderQty} ${selectedListing.unitId || 'pcs'}`}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {selectedListing.description && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-white mb-2">📝 Description</h3>
+                  <div className="bg-gray-700 rounded-lg p-4 text-gray-300 whitespace-pre-wrap">
+                    {selectedListing.description}
+                  </div>
+                </div>
+              )}
+
+              {(selectedListing.techSpecs || selectedListing.productFeatures || selectedListing.applicationScope) && (
+                <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedListing.techSpecs && (
+                    <div>
+                      <h3 className="text-sm font-bold text-white mb-2">⚙️ Tech Specs</h3>
+                      <div className="bg-gray-700 rounded-lg p-3 text-gray-300 text-sm whitespace-pre-wrap">
+                        {selectedListing.techSpecs}
+                      </div>
+                    </div>
+                  )}
+                  {selectedListing.productFeatures && (
+                    <div>
+                      <h3 className="text-sm font-bold text-white mb-2">✨ Features</h3>
+                      <div className="bg-gray-700 rounded-lg p-3 text-gray-300 text-sm whitespace-pre-wrap">
+                        {selectedListing.productFeatures}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(selectedListing.seller || selectedListing.poster) && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-white mb-2">🏪 Seller Information</h3>
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    {selectedListing.seller ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                          {selectedListing.seller.companyName?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                          <p className="text-white font-bold">{selectedListing.seller.companyName}</p>
+                          <p className="text-gray-400 text-sm">
+                            {selectedListing.seller.country && `${selectedListing.seller.country}`}
+                            {selectedListing.seller.city && `, ${selectedListing.seller.city}`}
+                          </p>
+                          {selectedListing.seller.isVerified && (
+                            <span className="text-yellow-400 text-xs">✓ Verified Seller</span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                          {selectedListing.poster?.displayName?.charAt(0) || selectedListing.poster?.username?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="text-white font-bold">{selectedListing.poster?.displayName || selectedListing.poster?.username}</p>
+                          {selectedListing.poster?.isOnline && (
+                            <span className="text-green-400 text-xs">● Online</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {(selectedListing.contactEmail || selectedListing.contactPhone || selectedListing.contactWeChat || selectedListing.contactWhatsApp) && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-white mb-2">📞 Contact</h3>
+                  <div className="bg-gray-700 rounded-lg p-3 space-y-2">
+                    {selectedListing.contactEmail && (
+                      <p className="text-gray-300 text-sm">📧 {selectedListing.contactEmail}</p>
+                    )}
+                    {selectedListing.contactPhone && (
+                      <p className="text-gray-300 text-sm">📱 {selectedListing.contactPhone}</p>
+                    )}
+                    {selectedListing.contactWeChat && (
+                      <p className="text-gray-300 text-sm">💬 WeChat: {selectedListing.contactWeChat}</p>
+                    )}
+                    {selectedListing.contactWhatsApp && (
+                      <p className="text-gray-300 text-sm">💬 WhatsApp: {selectedListing.contactWhatsApp}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-4 border-t border-gray-700 pt-4">
+                <h3 className="text-lg font-bold text-white mb-3">🛒 Take Action</h3>
+                
+                {!session ? (
+                  <div className="bg-yellow-600/20 border border-yellow-600/40 rounded-lg p-4 mb-3">
+                    <p className="text-yellow-400 text-sm">
+                      ⚠️ Please <Link href={`/${locale}/login`} className="underline font-bold">login</Link> to contact the seller or place an order.
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  {selectedListing.contactWhatsApp && (
+                    <button
+                      onClick={() => {
+                        const msg = encodeURIComponent(`Hello, I'm interested in your product: ${selectedListing.title}`)
+                        window.open(`https://wa.me/${selectedListing.contactWhatsApp}?text=${msg}`, '_blank')
+                      }}
+                      className="px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition flex items-center justify-center gap-2"
+                    >
+                      💬 WhatsApp
+                    </button>
+                  )}
+                  {selectedListing.contactEmail && (
+                    <button
+                      onClick={() => {
+                        window.location.href = `mailto:${selectedListing.contactEmail}?subject=Interested in your product: ${selectedListing.title}`
+                      }}
+                      className="px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition flex items-center justify-center gap-2"
+                    >
+                      📧 Email
+                    </button>
+                  )}
+                  {selectedListing.contactPhone && (
+                    <button
+                      onClick={() => {
+                        window.location.href = `tel:${selectedListing.contactPhone}`
+                      }}
+                      className="px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold transition flex items-center justify-center gap-2"
+                    >
+                      📞 Call
+                    </button>
+                  )}
+                </div>
+
+                {session && selectedListing.type === 'SELLING' && (
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h4 className="text-white font-bold mb-3">📝 Send Inquiry / Place Order</h4>
+                    
+                    <div className="mb-3">
+                      <label className="text-gray-400 text-sm block mb-1">Quantity</label>
+                      <input
+                        type="number"
+                        value={inquiryQty}
+                        onChange={(e) => setInquiryQty(e.target.value)}
+                        placeholder={String(selectedListing.minOrderQty || 1)}
+                        min={1}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    
+                    <div className="mb-3">
+                      <label className="text-gray-400 text-sm block mb-1">Message to Seller</label>
+                      <textarea
+                        value={inquiryMessage}
+                        onChange={(e) => setInquiryMessage(e.target.value)}
+                        placeholder="Tell the seller what you need..."
+                        rows={3}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                    </div>
+
+                    <button
+                      onClick={handleSubmitInquiry}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white rounded-lg font-bold transition text-lg"
+                    >
+                      🛒 Send Inquiry / Place Order
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4 text-gray-500 text-xs pt-3 border-t border-gray-700">
+                <span>👁️ {selectedListing.views || 0} views</span>
+                <span>💬 {selectedListing.inquiries || 0} inquiries</span>
+                <span>📅 Posted: {new Date(selectedListing.createdAt).toLocaleDateString(locale)}</span>
               </div>
             </div>
           </div>
