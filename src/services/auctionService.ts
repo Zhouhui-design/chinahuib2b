@@ -14,19 +14,8 @@ export async function getAuctionListing(listingId: string): Promise<AuctionListi
 
 // Get all active auctions
 export async function getActiveAuctions(filters?: { type?: string; category?: string; search?: string }): Promise<AuctionListing[]> {
-  const now = new Date();
   const where: any = {
     status: { in: ['ACTIVE', 'PENDING_VERIFICATION'] },
-    OR: [
-      {
-        isAuction: true,
-        auctionStartTime: { lte: now },
-        auctionEndTime: { gte: now },
-      },
-      {
-        isAuction: false,
-      },
-    ],
   };
 
   if (filters?.type) {
@@ -121,8 +110,6 @@ export async function createAuctionListing(
     portOfDestination?: string;
   }
 ): Promise<AuctionListing> {
-  const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
-  
   const safeArray = (arr: any): string[] => Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : [];
   const cleanObj = (obj: any): any => {
     const result: any = {};
@@ -147,13 +134,11 @@ export async function createAuctionListing(
     description: data.description || '',
     category: data.category,
     tags: safeArray(data.tags),
-    keywords: safeArray(data.keywords),
-    price: toDecimal(data.price ?? (isAuctionMode ? data.startingBid : 0)),
+    price: toDecimal(data.price ?? 0),
     status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
     images: safeArray(data.images),
     videos: safeArray(data.videos),
     documents: safeArray(data.documents),
-    drawings: safeArray(data.drawings),
     currency: data.currency || 'USD',
     minOrderQty: data.minOrderQty,
     maxOrderQty: data.maxOrderQty,
@@ -173,9 +158,6 @@ export async function createAuctionListing(
     isCif: data.isCif,
     verificationStatus: ((data.verificationStatus as any) || 'NOT_APPLIED').toString(),
     unitId: data.unitId,
-    bidCount: 0,
-    isAuction: isAuctionMode,
-    stockQuantity: data.stockQuantity || 0,
     hsCode: data.hsCode,
     hsCodeDescription: data.hsCodeDescription,
     paymentMethods: safeArray(data.paymentMethods),
@@ -187,16 +169,6 @@ export async function createAuctionListing(
     portOfLoading: data.portOfLoading,
     portOfDestination: data.portOfDestination,
   });
-
-  if (isAuctionMode) {
-    createData.startingBid = toDecimal(data.startingBid);
-    createData.currentBid = toDecimal(data.startingBid);
-    createData.bidIncrement = toDecimal(data.bidIncrement || 1);
-    createData.auctionStartTime = data.auctionStartTime!;
-    createData.auctionEndTime = data.auctionEndTime!;
-    createData.autoExtend = data.autoExtend || true;
-    createData.extendedMinutes = data.extendedMinutes || 5;
-  }
 
   return await prisma.auctionListing.create({
     data: createData,
