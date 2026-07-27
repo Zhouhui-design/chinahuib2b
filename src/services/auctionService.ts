@@ -194,37 +194,25 @@ export async function placeBid(
     return { success: false, message: 'Auction listing not found', currentBid: 0, isReserveMet: false };
   }
 
-  const now = new Date();
-  if (listing.isAuction && listing.auctionStartTime && now < listing.auctionStartTime) {
-    return { success: false, message: 'Auction has not started yet', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
-  }
-
-  if (listing.isAuction && listing.auctionEndTime && now > listing.auctionEndTime) {
-    return { success: false, message: 'Auction has ended', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
-  }
-
-  // Check minimum bid amount
-  const minimumBid = ((listing.currentBid || listing.startingBid || 0) + (listing.bidIncrement || 1)).toNumber();
+  const currentHighestBid = await getCurrentBid(listingId);
+  const minimumBid = (currentHighestBid?.amount || 0) + 1;
   if (amount < minimumBid) {
     return {
       success: false,
       message: `Bid must be at least ${minimumBid} ${listing.currency}`,
-      currentBid: listing.currentBid?.toNumber() || 0,
+      currentBid: currentHighestBid?.amount || 0,
       isReserveMet: false,
     };
   }
 
-  // Check if bidder is the seller
   if (listing.posterId === bidderId) {
-    return { success: false, message: 'Seller cannot bid on their own auction', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
+    return { success: false, message: 'Seller cannot bid on their own auction', currentBid: currentHighestBid?.amount || 0, isReserveMet: false };
   }
 
-  // Check for auto-bid conflicts
   if (isAutoBid && maxAutoBid && amount > maxAutoBid) {
-    return { success: false, message: 'Bid amount exceeds maximum auto-bid', currentBid: listing.currentBid?.toNumber() || 0, isReserveMet: false };
+    return { success: false, message: 'Bid amount exceeds maximum auto-bid', currentBid: currentHighestBid?.amount || 0, isReserveMet: false };
   }
 
-  // Create the bid
   const bid = await prisma.auctionBid.create({
     data: {
       listingId,
@@ -237,37 +225,12 @@ export async function placeBid(
     },
   });
 
-  // Update current bid
-  const updatedListing = await prisma.auctionListing.update({
-    where: { id: listingId },
-    data: {
-      currentBid: amount,
-      bidCount: { increment: 1 },
-      updatedAt: new Date(),
-    },
-  });
-
-  // Auto-extend if bid in last minute
-  if (listing.isAuction && listing.autoExtend && listing.auctionEndTime) {
-    const timeRemaining = listing.auctionEndTime.getTime() - now.getTime();
-    if (timeRemaining < 60000) {
-      await prisma.auctionListing.update({
-        where: { id: listingId },
-        data: {
-          auctionEndTime: new Date(now.getTime() + (listing.extendedMinutes || 5) * 60000),
-        },
-      });
-    }
-  }
-
-  const isReserveMet = !listing.reservePrice || amount >= listing.reservePrice.toNumber();
-
   return {
     success: true,
     bid,
     message: 'Bid placed successfully',
     currentBid: amount,
-    isReserveMet,
+    isReserveMet: true,
   };
 }
 
@@ -291,7 +254,7 @@ export async function getCurrentBid(listingId: string): Promise<{ amount: number
   if (!bid) {
     const listing = await getAuctionListing(listingId);
     if (listing) {
-      return { amount: listing.startingBid?.toNumber() || listing.price?.toNumber() || 0 };
+      return { amount: listing.price?.toNumber() || 0 };
     }
     return null;
   }
@@ -312,13 +275,8 @@ export async function closeAuction(listingId: string): Promise<AuctionListing> {
 
 // Check if reserve price is met
 export async function isReserveMet(listingId: string): Promise<boolean> {
-  const listing = await getAuctionListing(listingId);
-  if (!listing || !listing.reservePrice) {
-    return true;
-  }
-
   const currentBid = await getCurrentBid(listingId);
-  return currentBid ? currentBid.amount >= listing.reservePrice.toNumber() : false;
+  return currentBid ? currentBid.amount > 0 : false;
 }
 
 // Get winning bid
@@ -354,12 +312,7 @@ export async function processAutoBid(
   }
 
   const topAutoBidder = autoBidders[0];
-  const bidIncrement = await prisma.auctionListing.findUnique({
-    where: { id: listingId },
-    select: { bidIncrement: true },
-  });
-
-  const increment = bidIncrement?.bidIncrement?.toNumber() || 1;
+  const increment = 1;
   const nextBid = newBidAmount + increment;
 
   if (nextBid <= topAutoBidder.maxAutoBid!.toNumber()) {
