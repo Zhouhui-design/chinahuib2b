@@ -1218,6 +1218,7 @@ enum AuctionListingType {
 
 enum AuctionStatus {
   ACTIVE
+  PENDING
   EXPIRED
   CLOSED
   COMPLETED

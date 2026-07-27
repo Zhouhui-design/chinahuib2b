@@ -15,7 +15,7 @@ export async function getAuctionListing(listingId: string): Promise<AuctionListi
 // Get all active auctions
 export async function getActiveAuctions(filters?: { type?: string; category?: string; search?: string }): Promise<AuctionListing[]> {
   const where: any = {
-    status: { in: ['ACTIVE', 'PENDING_VERIFICATION'] },
+    status: { in: ['ACTIVE', 'PENDING'] },
   };
 
   if (filters?.type) {
@@ -135,7 +135,7 @@ export async function createAuctionListing(
     category: data.category,
     tags: safeArray(data.tags),
     price: toDecimal(data.price ?? 0),
-    status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING_VERIFICATION',
+    status: data.verificationStatus === 'VERIFIED' ? 'ACTIVE' : 'PENDING',
     images: safeArray(data.images),
     videos: safeArray(data.videos),
     documents: safeArray(data.documents),
