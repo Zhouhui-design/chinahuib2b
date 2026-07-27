@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
 
     const auctions = await auctionService.getActiveAuctions(filterParams);
     return NextResponse.json(auctions);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching auctions:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', details: error?.message, stack: error?.stack }, { status: 500 });
   }
 }
 
