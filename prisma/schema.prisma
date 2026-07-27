@@ -60,15 +60,20 @@ model User {
   sellerProfile              SellerProfile?
   shoutOuts                  ShoutOut[]
   taskApplications           TaskApplication[]
-  topics                     Topic[]
-  topicComments              TopicComment[]
-  topicLikes                 TopicLike[]
   owner                      User?                       @relation("AIOwner", fields: [ownerId], references: [id])
   aiAccounts                 User[]                      @relation("AIOwner")
   verificationRequests       VerificationRequest[]
   wallet                     Wallet?
   withdrawalRequests         WithdrawalRequest[]
   worldChatMessages          WorldChatMessage[]
+  topics                     Topic[]
+  topicComments              TopicComment[]
+  topicLikes                 TopicLike[]
+  blogPosts                  Blog[]
+  blogComments               BlogComment[]
+  blogLikes                  BlogLike[]
+  reviews                    Review[]
+  reviewHelpfulVotes         ReviewHelpfulVote[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -170,10 +175,10 @@ model SellerProfile {
   paymentProofs        PaymentProof[]
   products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
+  reviews              Review[]
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
-  visitors             Visitor[]
 
   @@index([companyName])
   @@index([country])
@@ -213,7 +218,6 @@ model Booth {
   logoUrl         String?
   bannerUrl       String?
   keywords        Json?
-  documents       Json?
   isActive        Boolean       @default(true)
   isPublished     Boolean       @default(false)
   theme           String?
@@ -244,8 +248,6 @@ model Product {
   videos         String[]
   documents      Json?
   hasBrochure    Boolean          @default(false)
-  acceptsOEM     Boolean          @default(false)
-  youtubeUrl     String?
   viewCount      Int              @default(0)
   inquiryCount   Int              @default(0)
   isActive       Boolean          @default(true)
@@ -256,11 +258,11 @@ model Product {
   descriptions   Json?
   titles         Json?
   inquiries      Inquiry[]
+  reviews        Review[]
   booth          Booth?           @relation(fields: [boothId], references: [id])
   category       Category         @relation(fields: [categoryId], references: [id])
   seller         SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   brochure       ProductBrochure?
-  visitors       Visitor[]
 
   @@index([sellerId])
   @@index([boothId])
@@ -280,30 +282,6 @@ model ProductBrochure {
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
-}
-
-model Visitor {
-  id          String         @id @default(cuid())
-  ipHash      String
-  productId   String?
-  sellerId    String?
-  country     String
-  countryCode String
-  city        String
-  region      String?
-  timezone    String?
-  isp         String?
-  userAgent   String?
-  url         String?
-  createdAt   DateTime       @default(now())
-  product     Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  seller      SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-  @@index([sellerId])
-  @@index([country])
-  @@index([countryCode])
-  @@index([createdAt])
 }
 
 model StoreBrochure {
@@ -505,9 +483,6 @@ model MarketplaceTask {
   views            Int               @default(0)
   rating           Decimal?          @db.Decimal(3, 2)
   attachments      Json?
-  keywords         String[]          @default([])
-  countryCode      String?
-  countryName      String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   postedBy         User              @relation(fields: [postedById], references: [id])
@@ -702,26 +677,6 @@ model Notice {
   @@index([priority])
 }
 
-model MaintenanceNotice {
-  id                String            @id @default(cuid())
-  title             String
-  titleEn           String?
-  content           String
-  contentEn         String?
-  status            MaintenanceStatus @default(PENDING)
-  priority          String            @default("high")
-  scheduledStart    DateTime?
-  estimatedDuration Int?
-  actualEndTime     DateTime?
-  notifiedUsers     Int               @default(0)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  @@index([status])
-  @@index([priority])
-  @@index([scheduledStart])
-}
-
 model Unit {
   id              String           @id @default(cuid())
   name            String
@@ -745,19 +700,13 @@ model AuctionListing {
   description          String?
   category             String?
   tags                 String[]
-  keywords             String[]
   price                Decimal?              @db.Decimal(10, 2)
-  startingBid          Decimal?              @db.Decimal(10, 2)
-  currentBid           Decimal?              @db.Decimal(10, 2)
-  bidIncrement         Decimal?              @db.Decimal(10, 2)
-  reservePrice         Decimal?              @db.Decimal(10, 2)
   currency             String                @default("USD")
   minOrderQty          Int?                  @default(1)
   maxOrderQty          Int?
   images               String[]
   videos               String[]
   documents            String[]
-  drawings             String[]              @default([])
   contactEmail         String?
   contactPhone         String?
   contactWeChat        String?
@@ -767,17 +716,11 @@ model AuctionListing {
   isPaid               Boolean               @default(true)
   cost                 Decimal?              @db.Decimal(10, 2)
   paymentId            String?
-  status               AuctionStatus         @default(PENDING_VERIFICATION)
+  status               AuctionStatus         @default(ACTIVE)
   views                Int                   @default(0)
   inquiries            Int                   @default(0)
   isVerified           Boolean               @default(false)
   expiresAt            DateTime?
-  auctionStartTime     DateTime?
-  auctionEndTime       DateTime?
-  autoExtend           Boolean               @default(false)
-  extendedMinutes      Int?                  @default(5)
-  isAuction            Boolean               @default(false)
-  bidCount             Int                   @default(0)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   digitalVoucherId     String?
@@ -807,9 +750,6 @@ model AuctionListing {
   @@index([createdAt])
   @@index([isVerified])
   @@index([verificationStatus])
-  @@index([auctionStartTime])
-  @@index([auctionEndTime])
-  @@index([isAuction])
 }
 
 model DigitalVoucher {
@@ -1124,76 +1064,6 @@ model VerificationRequest {
   @@index([status])
 }
 
-model Topic {
-  id           String         @id @default(cuid())
-  userId       String
-  title        String
-  content      String
-  category     TopicCategory  @default(OTHER)
-  images       String[]
-  videos       String[]
-  documents    Json?
-  link         String?
-  phone        String?
-  keywords     String[]       @default([])
-  viewCount    Int            @default(0)
-  likeCount    Int            @default(0)
-  commentCount Int            @default(0)
-  isActive     Boolean        @default(true)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments     TopicComment[]
-  likes        TopicLike[]
-
-  @@index([userId])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model TopicComment {
-  id        String         @id @default(cuid())
-  topicId   String
-  userId    String
-  content   String
-  parentId  String?
-  likeCount Int            @default(0)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  parent    TopicComment?  @relation("TopicCommentParent", fields: [parentId], references: [id])
-  replies   TopicComment[] @relation("TopicCommentParent")
-  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes     TopicLike[]
-
-  @@index([topicId])
-  @@index([userId])
-  @@index([parentId])
-}
-
-model TopicLike {
-  id        String        @id @default(cuid())
-  userId    String
-  topicId   String?
-  commentId String?
-  createdAt DateTime      @default(now())
-  comment   TopicComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  topic     Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, topicId], name: "TopicLike_userId_topicId_key")
-  @@unique([userId, commentId], name: "TopicLike_userId_commentId_key")
-  @@index([userId])
-  @@index([topicId])
-  @@index([commentId])
-}
-
-enum MaintenanceStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-}
-
 enum UserRole {
   BUYER
   SELLER
@@ -1341,7 +1211,6 @@ enum AuctionStatus {
   EXPIRED
   CLOSED
   COMPLETED
-  PENDING_VERIFICATION
 }
 
 enum VerificationStatus {
@@ -1404,6 +1273,70 @@ enum TopicCategory {
   OTHER
 }
 
+model Topic {
+  id                 String          @id @default(cuid())
+  userId             String
+  title              String
+  content            String
+  category           TopicCategory   @default(OTHER)
+  images             String[]
+  videos             String[]
+  documents          Json?
+  link               String?
+  phone              String?
+  viewCount          Int             @default(0)
+  likeCount          Int             @default(0)
+  commentCount       Int             @default(0)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments           TopicComment[]
+  likes              TopicLike[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TopicComment {
+  id                 String          @id @default(cuid())
+  topicId            String
+  userId             String
+  content            String
+  parentId           String?
+  likeCount          Int             @default(0)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  topic              Topic           @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent             TopicComment?   @relation("TopicCommentParent", fields: [parentId], references: [id])
+  replies            TopicComment[]  @relation("TopicCommentParent")
+  likes              TopicLike[]
+
+  @@index([topicId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model TopicLike {
+  id                 String          @id @default(cuid())
+  userId             String
+  topicId            String?
+  commentId          String?
+  createdAt          DateTime        @default(now())
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic              Topic?          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  comment            TopicComment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([commentId])
+
+  @@unique([userId, topicId], name: "TopicLike_userId_topicId_key")
+  @@unique([userId, commentId], name: "TopicLike_userId_commentId_key")
+}
+
 enum OwnerType {
   USER
   SELLER
@@ -1445,4 +1378,129 @@ enum WithdrawalStatus {
   APPROVED
   REJECTED
   COMPLETED
+}
+
+enum BlogCategory {
+  INDUSTRY_NEWS
+  MARKET_TRENDS
+  PRODUCT_GUIDES
+  COMPANY_UPDATES
+  SUCCESS_STORIES
+  TIPS_ADVICE
+  OTHER
+}
+
+enum ReviewRating {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+model Blog {
+  id            String        @id @default(cuid())
+  title         String
+  titleEn       String?
+  slug          String        @unique
+  content       String
+  contentEn     String?
+  excerpt       String?
+  excerptEn     String?
+  category      BlogCategory  @default(OTHER)
+  tags          String[]
+  images        String[]
+  featuredImage String?
+  authorId      String
+  isPublished   Boolean       @default(true)
+  viewCount     Int           @default(0)
+  likeCount     Int           @default(0)
+  commentCount  Int           @default(0)
+  seoTitle      String?
+  seoTitleEn    String?
+  seoDescription String?
+  seoDescriptionEn String?
+  seoKeywords   String[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  author        User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments      BlogComment[]
+  likes         BlogLike[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isPublished])
+  @@index([createdAt])
+}
+
+model BlogComment {
+  id         String   @id @default(cuid())
+  blogId     String
+  userId     String
+  content    String
+  parentId   String?
+  likeCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  blog       Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     BlogComment? @relation("BlogCommentParent", fields: [parentId], references: [id])
+  replies    BlogComment[] @relation("BlogCommentParent")
+  likes      BlogLike[]
+
+  @@index([blogId])
+  @@index([userId])
+}
+
+model BlogLike {
+  id        String   @id @default(cuid())
+  userId    String
+  blogId    String?
+  commentId String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog      Blog?    @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  comment   BlogComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId], name: "BlogLike_userId_blogId_key")
+  @@unique([userId, commentId], name: "BlogLike_userId_commentId_key")
+}
+
+model Review {
+  id           String       @id @default(cuid())
+  productId    String?
+  sellerId     String?
+  userId       String
+  rating       ReviewRating
+  title        String
+  content      String
+  images       String[]
+  isVerified   Boolean      @default(false)
+  isActive     Boolean      @default(true)
+  helpfulCount Int          @default(0)
+  replyContent String?
+  repliedAt    DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  seller       SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  helpfulVotes ReviewHelpfulVote[]
+
+  @@index([productId])
+  @@index([sellerId])
+  @@index([userId])
+  @@index([rating])
+  @@index([isActive])
+}
+
+model ReviewHelpfulVote {
+  id      String   @id @default(cuid())
+  reviewId String
+  userId   String
+  createdAt DateTime @default(now())
+  review  Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reviewId], name: "ReviewHelpfulVote_userId_reviewId_key")
 }

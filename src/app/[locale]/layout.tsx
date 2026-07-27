@@ -6,6 +6,8 @@ import { languages, type LanguageCode } from '@/lib/languages';
 import { getDictionary } from '@/locales/dictionary';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import Footer from '@/components/Footer';
+import MobileBottomNav from '@/components/MobileBottomNav';
+import GA4Script from '@/components/GA4Script';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { MaintenanceBanner } from '@/components/MaintenanceBanner';
 import { useState, useEffect } from 'react';
@@ -398,6 +400,12 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
 
       {/* Footer */}
       <Footer locale={locale} />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav locale={locale} />
+
+      {/* GA4 Analytics Script */}
+      <GA4Script />
     </div>
   );
 }
