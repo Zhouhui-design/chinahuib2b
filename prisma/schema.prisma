@@ -736,6 +736,16 @@ model AuctionListing {
   verificationFee      Decimal?              @db.Decimal(10, 2)
   verificationNotes    String?
   unitId               String?
+  hsCode               String?
+  hsCodeDescription    String?
+  paymentMethods       Json?
+  freightItems         Json?
+  exportDocuments      Json?
+  hasExportLicense     Boolean               @default(false)
+  exportLicenseNo      String?
+  incoterms            String?
+  portOfLoading        String?
+  portOfDestination    String?
   bids                 AuctionBid[]
   digitalVoucher       DigitalVoucher?       @relation(fields: [digitalVoucherId], references: [id])
   poster               User                  @relation(fields: [posterId], references: [id], onDelete: Cascade)

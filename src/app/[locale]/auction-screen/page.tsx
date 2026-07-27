@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
-import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle, Upload, X, Image as ImageIcon, FileText, File } from 'lucide-react'
+import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle, Upload, X, Image as ImageIcon, FileText, File, Check } from 'lucide-react'
 import { useCallback } from 'react'
 
 type Category = {
@@ -156,6 +156,57 @@ export default function AuctionScreenPage() {
     }
     fetchCategories()
   }, [locale])
+
+  const handleSubmitFee = async (listingData: any) => {
+    setPendingListingData(listingData)
+    try {
+      const res = await fetch('/api/auction/calculate-fee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price: listingData.price, currency: listingData.currency })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setFeeData(data)
+        setShowFeeModal(true)
+      } else {
+        setFeeData({
+          enabled: false,
+          fee: { baseAmount: 0, feeRate: 0, calculatedFee: 0, finalFee: 0, minFee: 0, currency: listingData.currency },
+          paymentMethods: []
+        })
+        setShowFeeModal(true)
+      }
+    } catch (error) {
+      console.error('Error calculating fee:', error)
+      setFeeData({
+        enabled: false,
+        fee: { baseAmount: 0, feeRate: 0, calculatedFee: 0, finalFee: 0, minFee: 0, currency: listingData.currency },
+        paymentMethods: []
+      })
+      setShowFeeModal(true)
+    }
+  }
+
+  const createListing = async (listingData: any) => {
+    try {
+      const res = await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(listingData)
+      })
+      if (res.ok) {
+        const listing = await res.json()
+        setListings(prev => [listing, ...prev])
+        setShowFeeModal(false)
+        setShowPaymentModal(false)
+        setPendingListingData(null)
+      }
+    } catch (error) {
+      console.error('Error creating listing:', error)
+      alert('Failed to create listing')
+    }
+  }
 
   const categories = dynamicCategories.length > 0
     ? dynamicCategories.map(c => c.name)
@@ -995,6 +1046,7 @@ export default function AuctionScreenPage() {
             setListings(prev => [listing, ...prev])
             setShowCreateModal(false)
           }}
+          onSubmitFee={handleSubmitFee}
           dict={dict}
           locale={locale}
         />
@@ -1021,7 +1073,7 @@ export default function AuctionScreenPage() {
                 <>
                   <div className="bg-gray-700 rounded-lg p-4 mb-6">
                     <p className="text-gray-300 text-sm mb-2">货款金额</p>
-                    <p className="text-2xl font-bold text-white">{formData.currency} {feeData.fee.baseAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-white">{pendingListingData?.currency} {feeData.fee.baseAmount.toFixed(2)}</p>
                   </div>
 
                   <div className="space-y-3 mb-6">
@@ -1031,22 +1083,22 @@ export default function AuctionScreenPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">计算服务费</span>
-                      <span className="text-white">{formData.currency} {feeData.fee.calculatedFee.toFixed(4)}</span>
+                      <span className="text-white">{pendingListingData?.currency} {feeData.fee.calculatedFee.toFixed(4)}</span>
                     </div>
                     {feeData.fee.calculatedFee < feeData.fee.minFee && (
                       <div className="flex justify-between text-sm text-yellow-400">
                         <span>⚠️ 最低收费标准</span>
-                        <span>{formData.currency} {feeData.fee.minFee.toFixed(2)}</span>
+                        <span>{pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="border-t border-gray-600 pt-3 flex justify-between text-lg font-bold">
                       <span className="text-white">应付平台建设维护费</span>
-                      <span className="text-green-400">{formData.currency} {feeData.fee.finalFee.toFixed(2)}</span>
+                      <span className="text-green-400">{pendingListingData?.currency} {feeData.fee.finalFee.toFixed(2)}</span>
                     </div>
                   </div>
 
                   <p className="text-gray-400 text-sm mb-6">
-                    系统收取平台建设维护费，当服务费计算结果小于 {formData.currency} {feeData.fee.minFee.toFixed(2)} 时，按 {formData.currency} {feeData.fee.minFee.toFixed(2)} 收取。如果认为不合适，可以取消拍卖行服务。
+                    系统收取平台建设维护费，当服务费计算结果小于 {pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)} 时，按 {pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)} 收取。如果认为不合适，可以取消拍卖行服务。
                   </p>
 
                   <div className="flex gap-3">
@@ -1119,7 +1171,7 @@ export default function AuctionScreenPage() {
             <div className="p-6">
               <div className="bg-gray-700 rounded-lg p-4 mb-6 text-center">
                 <p className="text-gray-400 text-sm">应付金额</p>
-                <p className="text-3xl font-bold text-green-400">${feeData.fee.finalFee.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-green-400">{pendingListingData?.currency} {feeData.fee.finalFee.toFixed(2)}</p>
               </div>
 
               {feeData.paymentMethods.length > 0 ? (
@@ -1194,12 +1246,14 @@ function CreateListingModal({
   type,
   onClose,
   onCreated,
+  onSubmitFee,
   dict,
   locale,
 }: {
   type: 'selling' | 'buying'
   onClose: () => void
   onCreated: (listing: AuctionListing) => void
+  onSubmitFee: (listingData: any) => void
   dict: typeof dictionaries.en
   locale: LanguageCode
 }) {
@@ -1235,6 +1289,7 @@ function CreateListingModal({
     currency: 'USD',  // 交易货币
     unitId: '',  // 计量单位
     pickupPrice: '',  // 自提价格（选填）
+    stockQuantity: '0',  // 实时库存
     isFob: 'NO',  // 是否可FOB：YES, NEGOTIATE, NO
     isCif: 'NO',  // 是否可CIF：YES, NEGOTIATE, NO
     minOrderQty: '1',  // 最小起订量，默认1
@@ -1246,6 +1301,18 @@ function CreateListingModal({
     contactEmail: '',
     contactPhone: '',
     contactWhatsApp: '',
+    
+    // Foreign Trade / Export
+    hsCode: '',
+    hsCodeDescription: '',
+    paymentMethods: [] as string[],
+    freightItems: [] as string[],
+    exportDocuments: [] as string[],
+    hasExportLicense: false,
+    exportLicenseNo: '',
+    incoterms: [] as string[],
+    portOfLoading: '',
+    portOfDestination: '',
     
     // Files
     images: [] as string[],
@@ -1462,6 +1529,10 @@ function CreateListingModal({
       alert('请填写自提价格')
       return false
     }
+    if (type === 'selling' && !formData.hsCode.trim()) {
+      alert('HS Code is required for selling listings')
+      return false
+    }
     return true
   }
 
@@ -1578,6 +1649,7 @@ function CreateListingModal({
       isFob: formData.isFob,
       isCif: formData.isCif,
       minOrderQty: parseInt(formData.minOrderQty) || 1,
+      stockQuantity: parseFloat(formData.stockQuantity) || 0,
       verificationStatus: formData.verificationStatus,
       images: formData.images,
       files: formData.files,
@@ -1585,49 +1657,19 @@ function CreateListingModal({
       contactEmail: formData.contactEmail,
       contactPhone: formData.contactPhone,
       contactWhatsApp: formData.contactWhatsApp,
+      hsCode: formData.hsCode,
+      hsCodeDescription: formData.hsCodeDescription,
+      paymentMethods: formData.paymentMethods,
+      freightItems: formData.freightItems,
+      exportDocuments: formData.exportDocuments,
+      hasExportLicense: formData.hasExportLicense,
+      exportLicenseNo: formData.exportLicenseNo,
+      incoterms: formData.incoterms,
+      portOfLoading: formData.portOfLoading,
+      portOfDestination: formData.portOfDestination,
     }
 
-    setPendingListingData(listingData)
-
-    try {
-      const res = await fetch(`/api/auction/service-fee?amount=${price}`)
-      if (res.ok) {
-        const data = await res.json()
-        setFeeData(data.data)
-        setShowFeeModal(true)
-      } else {
-        createListing(listingData)
-      }
-    } catch (error) {
-      console.error('Error fetching service fee:', error)
-      createListing(listingData)
-    }
-  }
-
-  const createListing = async (listingData: any) => {
-    setIsSubmitting(true)
-    try {
-      const res = await fetch('/api/auction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(listingData),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        alert(`${dict.auctionScreen.listingCreated}`)
-        onCreated(data.data.listing)
-        setShowFeeModal(false)
-        setShowPaymentModal(false)
-      } else {
-        alert(dict.auctionScreen.failedToCreate)
-      }
-    } catch (error) {
-      console.error('Error creating listing:', error)
-      alert(dict.auctionScreen.failedToCreate)
-    } finally {
-      setIsSubmitting(false)
-    }
+    onSubmitFee(listingData)
   }
 
   return (
@@ -1951,9 +1993,189 @@ function CreateListingModal({
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-          </div>
 
-          
+          {/* Foreign Trade Fields */}
+          {type === 'selling' && (
+            <div className="border-t border-gray-700 pt-4 mt-4">
+              <h3 className="text-lg font-bold text-white mb-3">🌍 Foreign Trade / Export Information</h3>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">HS Code *</label>
+                  <input
+                    type="text"
+                    value={formData.hsCode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hsCode: e.target.value }))}
+                    placeholder="e.g. 8471.30.0100"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">HS Code Description</label>
+                  <input
+                    type="text"
+                    value={formData.hsCodeDescription}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hsCodeDescription: e.target.value }))}
+                    placeholder="Description of the HS code"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-2 font-medium">Incoterms</label>
+                <div className="flex flex-wrap gap-2">
+                  {['EXW', 'FCA', 'FOB', 'CIF', 'CFR', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'].map((term) => (
+                    <label key={term} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.incoterms.includes(term) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.incoterms.includes(term)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({ ...prev, incoterms: [...prev.incoterms, term] }))
+                          } else {
+                            setFormData(prev => ({ ...prev, incoterms: prev.incoterms.filter(t => t !== term) }))
+                          }
+                        }}
+                      />
+                      {term}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Port of Loading</label>
+                  <input
+                    type="text"
+                    value={formData.portOfLoading}
+                    onChange={(e) => setFormData(prev => ({ ...prev, portOfLoading: e.target.value }))}
+                    placeholder="e.g. Shanghai Port"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2 font-medium">Port of Destination</label>
+                  <input
+                    type="text"
+                    value={formData.portOfDestination}
+                    onChange={(e) => setFormData(prev => ({ ...prev, portOfDestination: e.target.value }))}
+                    placeholder="e.g. Los Angeles Port"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-2 font-medium">Payment Methods</label>
+                <div className="flex flex-wrap gap-2">
+                  {['T/T', 'L/C', 'D/P', 'D/A', 'O/A', 'Western Union', 'PayPal', 'Cash'].map((method) => (
+                    <label key={method} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.paymentMethods.includes(method) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.paymentMethods.includes(method)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({ ...prev, paymentMethods: [...prev.paymentMethods, method] }))
+                          } else {
+                            setFormData(prev => ({ ...prev, paymentMethods: prev.paymentMethods.filter(m => m !== method) }))
+                          }
+                        }}
+                      />
+                      {method}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-2 font-medium">Freight Items</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Sea Freight', 'Air Freight', 'Rail Freight', 'Road Freight', 'Insurance', 'Packaging', 'Documentation'].map((item) => (
+                    <label key={item} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.freightItems.includes(item) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.freightItems.includes(item)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({ ...prev, freightItems: [...prev.freightItems, item] }))
+                          } else {
+                            setFormData(prev => ({ ...prev, freightItems: prev.freightItems.filter(i => i !== item) }))
+                          }
+                        }}
+                      />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-300 mb-2 font-medium">Export Documents</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Commercial Invoice', 'Packing List', 'Bill of Lading', 'Certificate of Origin', 'CO Form A', 'CO Form B', 'Insurance Policy', 'Quality Certificate'].map((doc) => (
+                    <label key={doc} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.exportDocuments.includes(doc) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.exportDocuments.includes(doc)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({ ...prev, exportDocuments: [...prev.exportDocuments, doc] }))
+                          } else {
+                            setFormData(prev => ({ ...prev, exportDocuments: prev.exportDocuments.filter(d => d !== doc) }))
+                          }
+                        }}
+                      />
+                      {doc}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-4 mb-2">
+                  <label className="block text-gray-300 font-medium">Export License</label>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasExportLicense"
+                        checked={formData.hasExportLicense}
+                        onChange={() => setFormData(prev => ({ ...prev, hasExportLicense: true }))}
+                        className="text-blue-500"
+                      />
+                      <span className="text-gray-300">Yes</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hasExportLicense"
+                        checked={!formData.hasExportLicense}
+                        onChange={() => setFormData(prev => ({ ...prev, hasExportLicense: false }))}
+                        className="text-blue-500"
+                      />
+                      <span className="text-gray-300">No</span>
+                    </label>
+                  </div>
+                </div>
+                {formData.hasExportLicense && (
+                  <input
+                    type="text"
+                    value={formData.exportLicenseNo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, exportLicenseNo: e.target.value }))}
+                    placeholder="Enter export license number"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+          </div>
 
           {/* Product Features, Application, Usage */}
           <div className="grid grid-cols-2 gap-4">

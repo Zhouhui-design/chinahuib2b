@@ -136,6 +136,7 @@ export type Dictionary = {
     teamChat: string;
     signOut: string;
     apiDocs: string;
+    backToHome: string;
   };
   common: {
     loading: string;
@@ -325,35 +326,6 @@ export type Dictionary = {
     registerFailed: string;
     networkError: string;
   };
-  nav: {
-    home: string;
-    products: string;
-    exhibitors: string;
-    sellerPortal: string;
-    login: string;
-    register: string;
-    dashboard: string;
-    logout: string;
-    chatHall: string;
-    marketplace: string;
-    auction: string;
-    wallet: string;
-    notifications: string;
-    api: string;
-    profile: string;
-    accountSettings: string;
-    finances: string;
-    chatAccount: string;
-    myStore: string;
-    aiAgents: string;
-    apiKeys: string;
-    aiAudit: string;
-    aiRegister: string;
-    teamChat: string;
-    signOut: string;
-    apiDocs: string;
-    backToHome: string;
-  };
   auctionScreen: {
     title: string;
     subtitle: string;
@@ -389,6 +361,24 @@ export type Dictionary = {
     failedToCreate: string;
     no: string;
     minOrderQty: string;
+    hsCode: string;
+    hsCodeLabel: string;
+    hsCodeRequired: string;
+    paymentMethods: string;
+    freightItems: string;
+    exportDocuments: string;
+    exportLicense: string;
+    exportLicenseRequired: string;
+    exportLicenseNotRequired: string;
+    portOfLoading: string;
+    portOfDestination: string;
+    fobPort: string;
+    cifPort: string;
+    selfPickup: string;
+    incoterms: string;
+    stockQuantity: string;
+    bid: string;
+    liveAuction: string;
   };
 };
 
@@ -451,18 +441,6 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       wallet: "Wallet",
       notifications: "Notifications",
       api: "API",
-      profile: "Perfil",
-      accountSettings: "Configuración de Cuenta",
-      finances: "Finanzas",
-      chatAccount: "Cuenta de Chat",
-      myStore: "Mi Tienda",
-      aiAgents: "Agentes AI",
-      apiKeys: "Claves API",
-      aiAudit: "Auditoría AI",
-      aiRegister: "Registro AI",
-      teamChat: "Chat de Equipo",
-      signOut: "Cerrar Sesión",
-      apiDocs: "Documentación API",
       profile: "Profile",
       accountSettings: "Account Settings",
       finances: "Finances",
@@ -475,6 +453,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Team Chat",
       signOut: "Sign Out",
       apiDocs: "API/CLI/MCP Docs",
+      backToHome: "Back to Home",
     },
     common: {
       loading: "Loading...",
@@ -664,35 +643,6 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       registerFailed: "Registration failed, please try again",
       networkError: "Network error, please try again",
     },
-    nav: {
-      home: "Home",
-      products: "Products",
-      exhibitors: "Exhibitors",
-      sellerPortal: "Seller Portal",
-      login: "Login",
-      register: "Register",
-      dashboard: "Dashboard",
-      logout: "Logout",
-      chatHall: "Chat Hall",
-      marketplace: "Marketplace",
-      auction: "Auction",
-      wallet: "Wallet",
-      notifications: "Notifications",
-      api: "API",
-      profile: "Profile",
-      accountSettings: "Account Settings",
-      finances: "Finances",
-      chatAccount: "Chat Account",
-      myStore: "My Store",
-      aiAgents: "AI Agents",
-      apiKeys: "API Keys",
-      aiAudit: "AI Audit Log",
-      aiRegister: "AI Identity Register",
-      teamChat: "Team Chat",
-      signOut: "Sign Out",
-      apiDocs: "API/CLI/MCP Docs",
-      backToHome: "Back to Home",
-    },
     auctionScreen: {
       title: "Global Auction Screen",
       subtitle: "Buy & Sell with the World",
@@ -728,6 +678,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Failed to create listing",
       no: "No",
       minOrderQty: "Min Order Qty",
+      hsCode: "HS Code",
+      hsCodeLabel: "HS Code (Required)",
+      hsCodeRequired: "HS Code is required",
+      paymentMethods: "Payment Methods",
+      freightItems: "Freight Items",
+      exportDocuments: "Export Documents",
+      exportLicense: "Export License",
+      exportLicenseRequired: "Export license required",
+      exportLicenseNotRequired: "No export license needed",
+      portOfLoading: "Port of Loading",
+      portOfDestination: "Port of Destination",
+      fobPort: "FOB Port",
+      cifPort: "CIF Port",
+      selfPickup: "Self Pickup",
+      incoterms: "Incoterms",
+      stockQuantity: "Stock Quantity",
+      bid: "Bid",
+      liveAuction: "Live Auction",
     },
     marketplace: {
       title: "Task Marketplace",
@@ -866,6 +834,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "队伍聊天",
       signOut: "退出登录",
       apiDocs: "API/CLI/MCP 文档",
+      backToHome: "返回首页",
     },
     common: {
       loading: "加载中...",
@@ -1055,35 +1024,6 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       registerFailed: "注册失败，请重试",
       networkError: "网络错误，请重试",
     },
-    nav: {
-      home: "首页",
-      products: "产品",
-      exhibitors: "参展商",
-      sellerPortal: "商家后台",
-      login: "登录",
-      register: "注册",
-      dashboard: "仪表板",
-      logout: "退出",
-      chatHall: "聊天室",
-      marketplace: "市场",
-      auction: "拍卖",
-      wallet: "钱包",
-      notifications: "通知",
-      api: "API",
-      profile: "个人资料",
-      accountSettings: "账号设置",
-      finances: "个人资金",
-      chatAccount: "聊天账号",
-      myStore: "我的店铺",
-      aiAgents: "AI 代理",
-      apiKeys: "API 密钥管理",
-      aiAudit: "AI 审计日志",
-      aiRegister: "AI 身份注册",
-      teamChat: "队伍聊天",
-      signOut: "退出登录",
-      apiDocs: "API/CLI/MCP 文档",
-      backToHome: "返回首页",
-    },
     auctionScreen: {
       title: "全球拍卖屏幕",
       subtitle: "与世界买卖",
@@ -1119,6 +1059,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "创建列表失败",
       no: "否",
       minOrderQty: "最小订单量",
+      hsCode: "HS编码",
+      hsCodeLabel: "HS编码（必填）",
+      hsCodeRequired: "HS编码为必填项",
+      paymentMethods: "付款方式",
+      freightItems: "货代费用项目",
+      exportDocuments: "出口文件",
+      exportLicense: "出口许可证",
+      exportLicenseRequired: "需要出口许可证",
+      exportLicenseNotRequired: "无需出口许可证",
+      portOfLoading: "起运港",
+      portOfDestination: "目的港",
+      fobPort: "FOB港口",
+      cifPort: "CIF港口",
+      selfPickup: "自提",
+      incoterms: "贸易术语",
+      stockQuantity: "库存数量",
+      bid: "出价",
+      liveAuction: "实时竞拍",
     },
     marketplace: {
       title: "任务市场",
@@ -1253,6 +1211,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Chat de Equipo",
       signOut: "Cerrar Sesión",
       apiDocs: "Documentación API",
+      backToHome: "Volver a Inicio",
       login: "Iniciar Sesión",
       register: "Registrarse",
       dashboard: "Panel",
@@ -1446,35 +1405,6 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       registerFailed: "Registro fallido, por favor intente nuevamente",
       networkError: "Error de red, por favor intente nuevamente",
     },
-    nav: {
-      home: "Inicio",
-      products: "Productos",
-      exhibitors: "Expositores",
-      sellerPortal: "Portal de Vendedor",
-      login: "Iniciar Sesión",
-      register: "Registrarse",
-      dashboard: "Panel",
-      logout: "Cerrar Sesión",
-      chatHall: "Sala de Chat",
-      marketplace: "Mercado",
-      auction: "Subasta",
-      wallet: "Billetera",
-      notifications: "Notificaciones",
-      api: "API",
-      profile: "Perfil",
-      accountSettings: "Configuración de Cuenta",
-      finances: "Finanzas",
-      chatAccount: "Cuenta de Chat",
-      myStore: "Mi Tienda",
-      aiAgents: "Agentes AI",
-      apiKeys: "Claves API",
-      aiAudit: "Auditoría AI",
-      aiRegister: "Registro AI",
-      teamChat: "Chat de Equipo",
-      signOut: "Cerrar Sesión",
-      apiDocs: "Documentación API",
-      backToHome: "Volver a Inicio",
-    },
     auctionScreen: {
       title: "Pantalla de Subastas Global",
       subtitle: "Compra y Vende con el Mundo",
@@ -1510,6 +1440,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Error al crear el anuncio",
       no: "No",
       minOrderQty: "Cantidad Mínima",
+      hsCode: "Código HS",
+      hsCodeLabel: "Código HS (Obligatorio)",
+      hsCodeRequired: "El código HS es obligatorio",
+      paymentMethods: "Métodos de Pago",
+      freightItems: "Artículos de Fletes",
+      exportDocuments: "Documentos de Exportación",
+      exportLicense: "Licencia de Exportación",
+      exportLicenseRequired: "Licencia de exportación requerida",
+      exportLicenseNotRequired: "No se necesita licencia de exportación",
+      portOfLoading: "Puerto de Carga",
+      portOfDestination: "Puerto de Destino",
+      fobPort: "Puerto FOB",
+      cifPort: "Puerto CIF",
+      selfPickup: "Recogida",
+      incoterms: "Incoterms",
+      stockQuantity: "Cantidad en Stock",
+      bid: "Oferta",
+      liveAuction: "Subasta en Vivo",
     },
     marketplace: {
       title: "Mercado de Tareas",
@@ -1517,6 +1465,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Cualquier persona o cualquier IA puede participar - fabricación, ventas, servicios y más",
       getStarted: "Comenzar",
       learnMore: "Saber Más",
+      partnerRecruitment: "Reclutamiento de Socios",
+      investNow: "Invertir Ahora",
       stats: {
         activeTasks: "Tareas Activas",
         completed: "Completadas",
@@ -1601,6 +1551,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Chat d'Équipe",
       signOut: "Se Déconnecter",
       apiDocs: "Documentation API/CLI/MCP",
+      backToHome: "Retour à l'accueil",
     },
     common: { loading: "Chargement...", error: "Erreur", save: "Sauvegarder", cancel: "Annuler", delete: "Supprimer", edit: "Modifier", search: "Rechercher", noResults: "Aucun résultat", contact: "Contact", verified: "Vérifié", viewAll: "Voir Tout", back: "Retour", next: "Suivant", previous: "Précédent" },
     chatHall: {
@@ -1729,35 +1680,6 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       registerFailed: "Échec de l'inscription, veuillez réessayer",
       networkError: "Erreur réseau, veuillez réessayer",
     },
-    nav: {
-      home: "Accueil",
-      products: "Produits",
-      exhibitors: "Exposants",
-      sellerPortal: "Portail Vendeur",
-      login: "Connexion",
-      register: "Inscription",
-      dashboard: "Tableau de Bord",
-      logout: "Déconnexion",
-      chatHall: "Salle de Chat",
-      marketplace: "Marché",
-      auction: "Enchères",
-      wallet: "Portefeuille",
-      notifications: "Notifications",
-      api: "API",
-      profile: "Profil",
-      accountSettings: "Paramètres du Compte",
-      finances: "Finances",
-      chatAccount: "Compte de Chat",
-      myStore: "Ma Boutique",
-      aiAgents: "Agents IA",
-      apiKeys: "Clés API",
-      aiAudit: "Journal d'Audit IA",
-      aiRegister: "Enregistrement d'Identité IA",
-      teamChat: "Chat d'Équipe",
-      signOut: "Se Déconnecter",
-      apiDocs: "Documentation API/CLI/MCP",
-      backToHome: "Retour à l'accueil",
-    },
     auctionScreen: {
       title: "Écran d'Enchères Global",
       subtitle: "Achetez et Vendez avec le Monde • Publiez pour 0,10$",
@@ -1793,6 +1715,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Échec de la création de l'annonce",
       no: "Non",
       minOrderQty: "Qté Minimum",
+      hsCode: "Code HS",
+      hsCodeLabel: "Code HS (Obligatoire)",
+      hsCodeRequired: "Le code HS est requis",
+      paymentMethods: "Méthodes de Paiement",
+      freightItems: "Articles de Fret",
+      exportDocuments: "Documents d'Exportation",
+      exportLicense: "Licence d'Exportation",
+      exportLicenseRequired: "Licence d'exportation requise",
+      exportLicenseNotRequired: "Pas de licence d'exportation nécessaire",
+      portOfLoading: "Port de Chargement",
+      portOfDestination: "Port de Destinée",
+      fobPort: "Port FOB",
+      cifPort: "Port CIF",
+      selfPickup: "Ramassage",
+      incoterms: "Incoterms",
+      stockQuantity: "Quantité en Stock",
+      bid: "Offre",
+      liveAuction: "Enchère en Direct",
     },
     marketplace: {
       title: "Marché des Tâches",
@@ -1800,6 +1740,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Toute personne ou toute IA peut participer - fabrication, ventes, services et plus",
       getStarted: "Commencer",
       learnMore: "En savoir plus",
+      partnerRecruitment: "Recrutement de Partenaires",
+      investNow: "Investir Maintenant",
       stats: {
         activeTasks: "Tâches actives",
         completed: "Terminées",
@@ -1879,6 +1821,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Team-Chat",
       signOut: "Abmelden",
       apiDocs: "API/CLI/MCP-Dokumentation",
+      backToHome: "Zurück zur Startseite",
     },
     common: { loading: "Laden...", error: "Fehler", save: "Speichern", cancel: "Abbrechen", delete: "Löschen", edit: "Bearbeiten", search: "Suchen", noResults: "Keine Ergebnisse", contact: "Kontakt", verified: "Verifiziert", viewAll: "Alle Ansehen", back: "Zurück", next: "Weiter", previous: "Zurück" },
     chatHall: {
@@ -1992,6 +1935,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Fehler beim Erstellen der Anzeige",
       no: "Nein",
       minOrderQty: "Mindestmenge",
+      hsCode: "HS-Code",
+      hsCodeLabel: "HS-Code (Erforderlich)",
+      hsCodeRequired: "HS-Code ist erforderlich",
+      paymentMethods: "Zahlungsmethoden",
+      freightItems: "Frachtpositionen",
+      exportDocuments: "Exportdokumente",
+      exportLicense: "Exportlizenz",
+      exportLicenseRequired: "Exportlizenz erforderlich",
+      exportLicenseNotRequired: "Keine Exportlizenz benötigt",
+      portOfLoading: "Ladehafen",
+      portOfDestination: "Bestimmungshafen",
+      fobPort: "FOB-Hafen",
+      cifPort: "CIF-Hafen",
+      selfPickup: "Abholung",
+      incoterms: "Incoterms",
+      stockQuantity: "Bestandsmenge",
+      bid: "Gebot",
+      liveAuction: "Live-Auktion",
     },
     marketplace: {
       title: "Aufgabenmarkt",
@@ -1999,6 +1960,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Jede Person oder jede KI kann teilnehmen - Fertigung, Vertrieb, Dienstleistungen und mehr",
       getStarted: "Loslegen",
       learnMore: "Mehr erfahren",
+      partnerRecruitment: "Partnerrekrutierung",
+      investNow: "Jetzt Investieren",
       stats: {
         activeTasks: "Aktive Aufgaben",
         completed: "Abgeschlossen",
@@ -2078,6 +2041,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "チームチャット",
       signOut: "サインアウト",
       apiDocs: "API/CLI/MCPドキュメント",
+      backToHome: "ホームに戻る",
     },
     common: { loading: "読み込み中...", error: "エラー", save: "保存", cancel: "キャンセル", delete: "削除", edit: "編集", search: "検索", noResults: "結果なし", contact: "お問い合わせ", verified: "認証済み", viewAll: "すべて表示", back: "戻る", next: "次へ", previous: "前へ" },
     auth: {
@@ -2191,6 +2155,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "掲載の作成に失敗しました",
       no: "いいえ",
       minOrderQty: "最小注文数",
+      hsCode: "HSコード",
+      hsCodeLabel: "HSコード（必須）",
+      hsCodeRequired: "HSコードは必須です",
+      paymentMethods: "お支払い方法",
+      freightItems: "物流項目",
+      exportDocuments: "輸出書類",
+      exportLicense: "輸出ライセンス",
+      exportLicenseRequired: "輸出ライセンスが必要です",
+      exportLicenseNotRequired: "輸出ライセンスは不要です",
+      portOfLoading: "積み港",
+      portOfDestination: "着港",
+      fobPort: "FOB港",
+      cifPort: "CIF港",
+      selfPickup: "自社引取",
+      incoterms: "インコタームズ",
+      stockQuantity: "在庫数",
+      bid: "入札",
+      liveAuction: "ライブオークション",
     },
     marketplace: {
       title: "タスクマーケット",
@@ -2198,6 +2180,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "誰でも、どんなAIでも参加できます - 製造、販売、サービスなど",
       getStarted: "始める",
       learnMore: "詳細を見る",
+      partnerRecruitment: "パートナー募集",
+      investNow: "今すぐ投資",
       stats: {
         activeTasks: "アクティブなタスク",
         completed: "完了",
@@ -2277,6 +2261,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "팀 채팅",
       signOut: "로그아웃",
       apiDocs: "API/CLI/MCP 문서",
+      backToHome: "홈으로 돌아가기",
     },
     common: { loading: "로딩 중...", error: "오류", save: "저장", cancel: "취소", delete: "삭제", edit: "편집", search: "검색", noResults: "결과 없음", contact: "연락처", verified: "검증됨", viewAll: "모두 보기", back: "뒤로", next: "다음", previous: "이전" },
     chatHall: {
@@ -2390,6 +2375,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "게시물 만들기 실패",
       no: "아니오",
       minOrderQty: "최소 주문수량",
+      hsCode: "HS 코드",
+      hsCodeLabel: "HS 코드 (필수)",
+      hsCodeRequired: "HS 코드는 필수입니다",
+      paymentMethods: "결제 수단",
+      freightItems: "화물 항목",
+      exportDocuments: "수출 서류",
+      exportLicense: "수출 라이선스",
+      exportLicenseRequired: "수출 라이선스 필요",
+      exportLicenseNotRequired: "수출 라이선스 불필요",
+      portOfLoading: "선적항",
+      portOfDestination: "목적항",
+      fobPort: "FOB 항",
+      cifPort: "CIF 항",
+      selfPickup: "직접 수령",
+      incoterms: "인코텀스",
+      stockQuantity: "재고 수량",
+      bid: "입찰",
+      liveAuction: "라이브 경매",
     },
     marketplace: {
       title: "태스크 마켓플레이스",
@@ -2397,6 +2400,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "누구나 어떤 AI든 참여할 수 있습니다 - 제조, 판매, 서비스 등",
       getStarted: "시작하기",
       learnMore: "자세히 알아보기",
+      partnerRecruitment: "파트너 모집",
+      investNow: "지금 투자하기",
       stats: {
         activeTasks: "활성 태스크",
         completed: "완료됨",
@@ -2476,6 +2481,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "دردشة الفريق",
       signOut: "تسجيل الخروج",
       apiDocs: "وثائق API/CLI/MCP",
+      backToHome: "العودة إلى الرئيسية",
     },
     common: { loading: "جاري التحميل...", error: "خطأ", save: "حفظ", cancel: "إلغاء", delete: "حذف", edit: "تحرير", search: "بحث", noResults: "لا توجد نتائج", contact: "اتصل", verified: "موثق", viewAll: "عرض الكل", back: "رجوع", next: "التالي", previous: "السابق" },
     chatHall: {
@@ -2589,6 +2595,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "فشل في إنشاء الإعلان",
       no: "لا",
       minOrderQty: "الحد الأدنى للكمية",
+      hsCode: "كود HS",
+      hsCodeLabel: "كود HS (مطلوب)",
+      hsCodeRequired: "كود HS مطلوب",
+      paymentMethods: "طرق الدفع",
+      freightItems: "بنود الشحن",
+      exportDocuments: "وثائق التصدير",
+      exportLicense: "ترخيص التصدير",
+      exportLicenseRequired: "ترخيص التصدير مطلوب",
+      exportLicenseNotRequired: "ترخيص التصدير غير مطلوب",
+      portOfLoading: "ميناء التحميل",
+      portOfDestination: "ميناء الوجهة",
+      fobPort: "ميناء FOB",
+      cifPort: "ميناء CIF",
+      selfPickup: "الاستلام الذاتي",
+      incoterms: "إنكوتيرمز",
+      stockQuantity: "كمية المخزون",
+      bid: "المزاد",
+      liveAuction: "مزاد مباشر",
     },
     marketplace: {
       title: "سوق المهام",
@@ -2596,6 +2620,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "أي شخص أو أي ذكاء اصطناعي يمكنه المشاركة - التصنيع، المبيعات، الخدمات والمزيد",
       getStarted: "البدء",
       learnMore: "معرفة المزيد",
+      partnerRecruitment: "توظيف الشركاء",
+      investNow: "استثمر الآن",
       stats: {
         activeTasks: "المهام النشطة",
         completed: "مكتملة",
@@ -2675,6 +2701,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Тим-Чат",
       signOut: "Выйти",
       apiDocs: "Документация API/CLI/MCP",
+      backToHome: "Назад на Главную",
     },
     common: { loading: "Загрузка...", error: "Ошибка", save: "Сохранить", cancel: "Отмена", delete: "Удалить", edit: "Редактировать", search: "Поиск", noResults: "Результатов нет", contact: "Контакт", verified: "Проверено", viewAll: "Все", back: "Назад", next: "Далее", previous: "Назад" },
     chatHall: {
@@ -2788,6 +2815,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Не удалось создать объявление",
       no: "Нет",
       minOrderQty: "Мин. Кол-во",
+      hsCode: "Код ТН ВЭД",
+      hsCodeLabel: "Код ТН ВЭД (Обязательно)",
+      hsCodeRequired: "Код ТН ВЭД обязателен",
+      paymentMethods: "Способы Оплаты",
+      freightItems: "Статьи Фрахта",
+      exportDocuments: "Экспортные Документы",
+      exportLicense: "Экспортная Лицензия",
+      exportLicenseRequired: "Требуется экспортная лицензия",
+      exportLicenseNotRequired: "Экспортная лицензия не требуется",
+      portOfLoading: "Порт Отправления",
+      portOfDestination: "Порт Назначения",
+      fobPort: "Порт FOB",
+      cifPort: "Порт CIF",
+      selfPickup: "Самовывоз",
+      incoterms: "Инкотермс",
+      stockQuantity: "Количество на Складе",
+      bid: "Ставка",
+      liveAuction: "Живой Аукцион",
     },
     marketplace: {
       title: "Маркетплейс Задач",
@@ -2795,6 +2840,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Любой человек или ИИ может участвовать - производство, продажи, услуги и многое другое",
       getStarted: "Начать",
       learnMore: "Узнать больше",
+      partnerRecruitment: "Набор Партнеров",
+      investNow: "Инвестировать Сейчас",
       stats: {
         activeTasks: "Активные задачи",
         completed: "Завершено",
@@ -2874,6 +2921,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Chat da Equipe",
       signOut: "Sair",
       apiDocs: "Documentação API/CLI/MCP",
+      backToHome: "Voltar ao Início",
     },
     common: { loading: "Carregando...", error: "Erro", save: "Salvar", cancel: "Cancelar", delete: "Excluir", edit: "Editar", search: "Pesquisar", noResults: "Sem resultados", contact: "Contato", verified: "Verificado", viewAll: "Ver Tudo", back: "Voltar", next: "Próximo", previous: "Anterior" },
     chatHall: {
@@ -2987,6 +3035,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Falha ao criar o anúncio",
       no: "Não",
       minOrderQty: "Qtd Mínima",
+      hsCode: "Código HS",
+      hsCodeLabel: "Código HS (Obrigatório)",
+      hsCodeRequired: "O código HS é obrigatório",
+      paymentMethods: "Métodos de Pagamento",
+      freightItems: "Itens de Frete",
+      exportDocuments: "Documentos de Exportação",
+      exportLicense: "Licença de Exportação",
+      exportLicenseRequired: "Licença de exportação necessária",
+      exportLicenseNotRequired: "Licença de exportação não necessária",
+      portOfLoading: "Porto de Embarque",
+      portOfDestination: "Porto de Destino",
+      fobPort: "Porto FOB",
+      cifPort: "Porto CIF",
+      selfPickup: "Retirada",
+      incoterms: "Incoterms",
+      stockQuantity: "Quantidade em Estoque",
+      bid: "Lance",
+      liveAuction: "Leilão ao Vivo",
     },
     marketplace: {
       title: "Mercado de Tarefas",
@@ -2994,6 +3060,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Qualquer pessoa ou qualquer IA pode participar - fabricação, vendas, serviços e mais",
       getStarted: "Começar",
       learnMore: "Saber Mais",
+      partnerRecruitment: "Recrutamento de Parceiros",
+      investNow: "Investir Agora",
       stats: {
         activeTasks: "Tarefas Ativas",
         completed: "Concluídas",
@@ -3073,6 +3141,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "टीम चैट",
       signOut: "साइन आउट",
       apiDocs: "API/CLI/MCP डॉक्युमेंटेशन",
+      backToHome: "होम पर वापस जाएं",
     },
     common: { loading: "लोड हो रहा है...", error: "त्रुटि", save: "सेव", cancel: "रद्द", delete: "हटाएं", edit: "संपादित", search: "खोज", noResults: "कोई परिणाम नहीं", contact: "संपर्क", verified: "सत्यापित", viewAll: "सभी देखें", back: "वापस", next: "अगला", previous: "पिछला" },
     chatHall: {
@@ -3186,6 +3255,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "लिस्टिंग बनाने में विफल",
       no: "नहीं",
       minOrderQty: "न्यूनतम ऑर्डर",
+      hsCode: "HS कोड",
+      hsCodeLabel: "HS कोड (अनिवार्य)",
+      hsCodeRequired: "HS कोड आवश्यक है",
+      paymentMethods: "भुगतान विधियाँ",
+      freightItems: "माल ढुलाई आइटम",
+      exportDocuments: "निर्यात दस्तावेज़",
+      exportLicense: "निर्यात लाइसेंस",
+      exportLicenseRequired: "निर्यात लाइसेंस आवश्यक",
+      exportLicenseNotRequired: "निर्यात लाइसेंस आवश्यक नहीं",
+      portOfLoading: "लोडिंग पोर्ट",
+      portOfDestination: "गंतव्य पोर्ट",
+      fobPort: "FOB पोर्ट",
+      cifPort: "CIF पोर्ट",
+      selfPickup: "स्वयं उठाव",
+      incoterms: "इनकोटर्म्स",
+      stockQuantity: "स्टॉक मात्रा",
+      bid: "बोली",
+      liveAuction: "लाइव नीलामी",
     },
     marketplace: {
       title: "कार्य बाज़ार",
@@ -3193,6 +3280,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "कोई भी व्यक्ति या कोई भी AI भाग ले सकता है - विनिर्माण, बिक्री, सेवाएं और बहुत कुछ",
       getStarted: "शुरू करें",
       learnMore: "और जानें",
+      partnerRecruitment: "पार्टनर भर्ती",
+      investNow: "अभी निवेश करें",
       stats: {
         activeTasks: "सक्रिय कार्य",
         completed: "पूर्ण",
@@ -3272,6 +3361,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "แชททีม",
       signOut: "ออกจากระบบ",
       apiDocs: "เอกสาร API/CLI/MCP",
+      backToHome: "กลับไปหน้าแรก",
     },
     common: { loading: "กำลังโหลด...", error: "ข้อผิดพลาด", save: "บันทึก", cancel: "ยกเลิก", delete: "ลบ", edit: "แก้ไข", search: "ค้นหา", noResults: "ไม่พบผลลัพธ์", contact: "ติดต่อ", verified: "ตรวจสอบแล้ว", viewAll: "ดูทั้งหมด", back: "กลับ", next: "ถัดไป", previous: "ก่อนหน้า" },
     chatHall: {
@@ -3385,6 +3475,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "สร้างประกาศล้มเหลว",
       no: "ไม่",
       minOrderQty: "จำนวนขั้นต่ำ",
+      hsCode: "รหัส HS",
+      hsCodeLabel: "รหัส HS (บังคับ)",
+      hsCodeRequired: "รหัส HS เป็นสิ่งจำเป็น",
+      paymentMethods: "วิธีการชำระเงิน",
+      freightItems: "รายการค่าขนส่ง",
+      exportDocuments: "เอกสารส่งออก",
+      exportLicense: "ใบอนุญาตส่งออก",
+      exportLicenseRequired: "ต้องมีใบอนุญาตส่งออก",
+      exportLicenseNotRequired: "ไม่ต้องมีใบอนุญาตส่งออก",
+      portOfLoading: "พอร์ตโหลด",
+      portOfDestination: "พอร์ตปลายทาง",
+      fobPort: "พอร์ต FOB",
+      cifPort: "พอร์ต CIF",
+      selfPickup: "รับสินค้าเอง",
+      incoterms: "อินโคเทิร์มส์",
+      stockQuantity: "ปริมาณสต็อก",
+      bid: "เสนอราคา",
+      liveAuction: "ประมูลสด",
     },
     marketplace: {
       title: "ตลาดงาน",
@@ -3392,6 +3500,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "ทุกคนหรือ AI สามารถเข้าร่วมได้ - การผลิต, การขาย, บริการ และอื่นๆ อีกมากมาย",
       getStarted: "เริ่มต้น",
       learnMore: "เรียนรู้เพิ่มเติม",
+      partnerRecruitment: "สรรหาพาร์ทเนอร์",
+      investNow: "ลงทุนเลยตอนนี้",
       stats: {
         activeTasks: "งานที่ใช้งานอยู่",
         completed: "เสร็จสิ้น",
@@ -3471,6 +3581,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       teamChat: "Chat Nhóm",
       signOut: "Đăng Xuất",
       apiDocs: "Tài Liệu API/CLI/MCP",
+      backToHome: "Quay Lại Trang Chủ",
     },
     common: { loading: "Đang tải...", error: "Lỗi", save: "Lưu", cancel: "Hủy", delete: "Xóa", edit: "Sửa", search: "Tìm kiếm", noResults: "Không có kết quả", contact: "Liên hệ", verified: "Đã xác minh", viewAll: "Xem Tất Cả", back: "Quay lại", next: "Tiếp", previous: "Trước" },
     chatHall: {
@@ -3584,6 +3695,24 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       failedToCreate: "Không thể tạo tin đăng",
       no: "Không",
       minOrderQty: "SL Tối Thiểu",
+      hsCode: "Mã HS",
+      hsCodeLabel: "Mã HS (Bắt buộc)",
+      hsCodeRequired: "Mã HS là bắt buộc",
+      paymentMethods: "Phương thức Thanh toán",
+      freightItems: "Hạng mục Vận chuyển",
+      exportDocuments: "Chứng từ Xuất khẩu",
+      exportLicense: "Giấy phép Xuất khẩu",
+      exportLicenseRequired: "Yêu cầu giấy phép xuất khẩu",
+      exportLicenseNotRequired: "Không cần giấy phép xuất khẩu",
+      portOfLoading: "Cảng Bốc hàng",
+      portOfDestination: "Cảng Đích",
+      fobPort: "Cảng FOB",
+      cifPort: "Cảng CIF",
+      selfPickup: "Tự lấy hàng",
+      incoterms: "Incoterms",
+      stockQuantity: "Số lượng Tồn kho",
+      bid: "Đấu giá",
+      liveAuction: "Đấu giá Trực tiếp",
     },
     marketplace: {
       title: "Thị Trường Công Việc",
@@ -3591,6 +3720,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       description: "Bất kỳ ai hoặc bất kỳ AI nào đều có thể tham gia - sản xuất, bán hàng, dịch vụ và nhiều hơn nữa",
       getStarted: "Bắt Đầu",
       learnMore: "Tìm Hiểu Thêm",
+      partnerRecruitment: "Tuyển Đối Tác",
+      investNow: "Đầu Tư Ngay",
       stats: {
         activeTasks: "Công Việc Hoạt Động",
         completed: "Hoàn Thành",

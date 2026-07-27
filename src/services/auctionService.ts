@@ -108,6 +108,17 @@ export async function createAuctionListing(
     verificationStatus?: string;
     unitId?: string;
     keywords?: string[];
+    stockQuantity?: number;
+    hsCode?: string;
+    hsCodeDescription?: string;
+    paymentMethods?: string[];
+    freightItems?: string[];
+    exportDocuments?: string[];
+    hasExportLicense?: boolean;
+    exportLicenseNo?: string;
+    incoterms?: string[];
+    portOfLoading?: string;
+    portOfDestination?: string;
   }
 ): Promise<AuctionListing> {
   const isAuctionMode = data.startingBid !== undefined && data.auctionStartTime !== undefined;
@@ -164,6 +175,17 @@ export async function createAuctionListing(
     unitId: data.unitId,
     bidCount: 0,
     isAuction: isAuctionMode,
+    stockQuantity: data.stockQuantity || 0,
+    hsCode: data.hsCode,
+    hsCodeDescription: data.hsCodeDescription,
+    paymentMethods: safeArray(data.paymentMethods),
+    freightItems: safeArray(data.freightItems),
+    exportDocuments: safeArray(data.exportDocuments),
+    hasExportLicense: data.hasExportLicense || false,
+    exportLicenseNo: data.exportLicenseNo,
+    incoterms: safeArray(data.incoterms),
+    portOfLoading: data.portOfLoading,
+    portOfDestination: data.portOfDestination,
   });
 
   if (isAuctionMode) {

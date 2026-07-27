@@ -92,7 +92,21 @@ export async function POST(request: NextRequest) {
       isCif: body.isCif,
       verificationStatus: cleanOptionalString(body.verificationStatus) || 'NOT_APPLIED',
       unitId: cleanOptionalString(body.unitId),
+      hsCode: cleanOptionalString(body.hsCode),
+      hsCodeDescription: cleanOptionalString(body.hsCodeDescription),
+      paymentMethods: cleanArray(body.paymentMethods),
+      freightItems: cleanArray(body.freightItems),
+      exportDocuments: cleanArray(body.exportDocuments),
+      hasExportLicense: Boolean(body.hasExportLicense),
+      exportLicenseNo: cleanOptionalString(body.exportLicenseNo),
+      incoterms: cleanArray(body.incoterms),
+      portOfLoading: cleanOptionalString(body.portOfLoading),
+      portOfDestination: cleanOptionalString(body.portOfDestination),
     };
+
+    if (auctionData.type === 'SELLING' && !auctionData.hsCode) {
+      return NextResponse.json({ error: 'HS Code is required for selling listings' }, { status: 400 });
+    }
 
     const auction = await auctionService.createAuctionListing(session.user.id, auctionData);
 
