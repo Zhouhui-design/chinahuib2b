@@ -105,6 +105,7 @@ export type Dictionary = {
     privacy: string;
     terms: string;
     cookies: string;
+    aboutUs: string;
     suggestEmail: string;
     loginRequired: string;
     sellerAccountRequired: string;
@@ -759,6 +760,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       privacy: "Privacy Policy",
       terms: "Terms of Service",
       cookies: "Cookie Settings",
+      aboutUs: "About Us",
       suggestEmail: "Suggestions Email",
       loginRequired: "Please login with seller account first",
       sellerAccountRequired: "Please login with seller account to access seller portal",
@@ -1140,6 +1142,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       privacy: "隐私政策",
       terms: "服务条款",
       cookies: "Cookie设置",
+      aboutUs: "关于我们",
       suggestEmail: "建议邮箱",
       loginRequired: "请先登录卖家账号",
       sellerAccountRequired: "请登录卖家账号才能访问卖家后台",

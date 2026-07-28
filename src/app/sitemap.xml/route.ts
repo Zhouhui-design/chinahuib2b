@@ -121,49 +121,49 @@ export async function GET(request: NextRequest) {
     entries.push({
       loc: `${BASE_URL}/investment`,
       lastmod: now,
-      changefreq: 'monthly',
+      changefreq: 'weekly',
       priority: 0.75,
       alternates: createAlternates('/investment')
     })
 
     entries.push({
-      loc: `${BASE_URL}/auth/login`,
+      loc: `${BASE_URL}/about`,
       lastmod: now,
       changefreq: 'monthly',
       priority: 0.8,
-      alternates: createAlternates('/auth/login')
+      alternates: createAlternates('/about')
     })
-    
+
     entries.push({
-      loc: `${BASE_URL}/auth/register`,
+      loc: `${BASE_URL}/contact`,
       lastmod: now,
       changefreq: 'monthly',
       priority: 0.8,
-      alternates: createAlternates('/auth/register')
+      alternates: createAlternates('/contact')
     })
 
     entries.push({
-      loc: `${BASE_URL}/api/docs`,
-      lastmod: now,
-      changefreq: 'weekly',
-      priority: 0.75,
-      alternates: createAlternates('/api/docs')
-    })
-
-    entries.push({
-      loc: `${BASE_URL}/privacy`,
+      loc: `${BASE_URL}/legal/privacy-policy`,
       lastmod: now,
       changefreq: 'yearly',
       priority: 0.6,
-      alternates: createAlternates('/privacy')
+      alternates: createAlternates('/legal/privacy-policy')
     })
     
     entries.push({
-      loc: `${BASE_URL}/terms`,
+      loc: `${BASE_URL}/legal/terms-of-service`,
       lastmod: now,
       changefreq: 'yearly',
       priority: 0.6,
-      alternates: createAlternates('/terms')
+      alternates: createAlternates('/legal/terms-of-service')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/legal/cookie-settings`,
+      lastmod: now,
+      changefreq: 'yearly',
+      priority: 0.6,
+      alternates: createAlternates('/legal/cookie-settings')
     })
 
     try {

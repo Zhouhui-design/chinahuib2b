@@ -72,6 +72,14 @@ export function middleware(request: any) {
       return addSecurityHeaders(response)
     }
 
+    // For root path /, use rewrite instead of redirect for better SEO
+    if (pathname === '/') {
+      const newPathname = `/${defaultLanguage}${pathname === '/' ? '' : pathname}`
+      const newUrl = new URL(newPathname, request.url)
+      const response = NextResponse.rewrite(newUrl)
+      return addSecurityHeaders(response)
+    }
+
     const newUrl = new URL(`/${defaultLanguage}${pathname}`, request.url)
     const response = NextResponse.redirect(newUrl)
     return addSecurityHeaders(response)

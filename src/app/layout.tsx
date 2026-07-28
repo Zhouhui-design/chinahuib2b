@@ -27,11 +27,11 @@ export const metadata: Metadata = {
     title: "X2XHUB",
   },
   alternates: {
-    canonical: `${BASE_URL}/`,
+    canonical: `${BASE_URL}/en`,
     languages: Object.fromEntries(
       languages.map((lang) => [
         lang.code,
-        `${BASE_URL}${lang.code === "en" ? "" : "/" + lang.code}`,
+        `${BASE_URL}/${lang.code}`,
       ])
     ),
   },
@@ -108,11 +108,11 @@ export default function RootLayout({
             key={lang.code}
             rel="alternate"
             hrefLang={lang.code}
-            href={`${BASE_URL}${lang.code === "en" ? "" : "/" + lang.code}`}
+            href={`${BASE_URL}/${lang.code}`}
           />
         ))}
         
-        <link rel="alternate" hrefLang="x-default" href={BASE_URL} />
+        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en`} />
         
         <script
           type="application/ld+json"
