@@ -583,22 +583,27 @@ export default function AdminCategoriesPage() {
 
       {/* Modal */}
       {showModal && (
-        <>
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={handleCloseModal} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Plus className="w-5 h-5 mr-2 text-blue-600" />
-                  {editingCategory ? '编辑分类' : '添加分类'}
-                </h2>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50" 
+            onClick={handleCloseModal} 
+          />
+          <div 
+            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Plus className="w-5 h-5 mr-2 text-blue-600" />
+                {editingCategory ? '编辑分类' : '添加分类'}
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
               
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 {/* Category Name */}
@@ -901,9 +906,8 @@ export default function AdminCategoriesPage() {
                   </button>
                 </div>
               </form>
-            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

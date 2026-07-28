@@ -572,7 +572,7 @@ export default function AdminDashboardClientLayout({
 
       {/* Real-time Popup Notification */}
       {popup && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-slide-in">
+        <div className="fixed bottom-6 right-6 z-49 max-w-sm w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-slide-in">
           <div className="flex items-start gap-3 p-4">
             <div className="flex-shrink-0">
               {getNotificationIcon(popup.type)}
