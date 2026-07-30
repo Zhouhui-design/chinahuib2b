@@ -1058,7 +1058,7 @@ export default function AuctionScreenPage() {
           <div className="bg-gray-800 rounded-xl max-w-md w-full">
             <div className="p-6 border-b border-gray-700 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                💰 平台建设维护费
+                💰 {dict.auctionScreen.feeTitle}
               </h2>
               <button
                 onClick={() => setShowFeeModal(false)}
@@ -1072,33 +1072,33 @@ export default function AuctionScreenPage() {
               {feeData.enabled ? (
                 <>
                   <div className="bg-gray-700 rounded-lg p-4 mb-6">
-                    <p className="text-gray-300 text-sm mb-2">货款金额</p>
+                    <p className="text-gray-300 text-sm mb-2">{dict.auctionScreen.goodsAmount}</p>
                     <p className="text-2xl font-bold text-white">{pendingListingData?.currency} {feeData.fee.baseAmount.toFixed(2)}</p>
                   </div>
 
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">服务费比例</span>
+                      <span className="text-gray-400">{dict.auctionScreen.serviceFeeRate}</span>
                       <span className="text-white">{(feeData.fee.feeRate * 100).toFixed(4)}%</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">计算服务费</span>
+                      <span className="text-gray-400">{dict.auctionScreen.calculatedFee}</span>
                       <span className="text-white">{pendingListingData?.currency} {feeData.fee.calculatedFee.toFixed(4)}</span>
                     </div>
                     {feeData.fee.calculatedFee < feeData.fee.minFee && (
                       <div className="flex justify-between text-sm text-yellow-400">
-                        <span>⚠️ 最低收费标准</span>
+                        <span>⚠️ {dict.auctionScreen.minFeeStandard}</span>
                         <span>{pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="border-t border-gray-600 pt-3 flex justify-between text-lg font-bold">
-                      <span className="text-white">应付平台建设维护费</span>
+                      <span className="text-white">{dict.auctionScreen.totalFee}</span>
                       <span className="text-green-400">{pendingListingData?.currency} {feeData.fee.finalFee.toFixed(2)}</span>
                     </div>
                   </div>
 
                   <p className="text-gray-400 text-sm mb-6">
-                    系统收取平台建设维护费，当服务费计算结果小于 {pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)} 时，按 {pendingListingData?.currency} {feeData.fee.minFee.toFixed(2)} 收取。如果认为不合适，可以取消拍卖行服务。
+                    {dict.auctionScreen.feeDescription}
                   </p>
 
                   <div className="flex gap-3">
@@ -1106,7 +1106,7 @@ export default function AuctionScreenPage() {
                       onClick={() => setShowFeeModal(false)}
                       className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
                     >
-                      取消
+                      {dict.auctionScreen.cancel}
                     </button>
                     <button
                       onClick={() => {
@@ -1115,7 +1115,7 @@ export default function AuctionScreenPage() {
                       }}
                       className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
                     >
-                      确认支付
+                      {dict.auctionScreen.confirmPayment}
                     </button>
                   </div>
                 </>
@@ -1123,8 +1123,8 @@ export default function AuctionScreenPage() {
                 <>
                   <div className="text-center py-8">
                     <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <p className="text-lg text-white mb-2">平台建设维护费已免除</p>
-                    <p className="text-gray-400">当前平台暂不收取服务费</p>
+                    <p className="text-lg text-white mb-2">{dict.auctionScreen.feeExempted}</p>
+                    <p className="text-gray-400">{dict.auctionScreen.noFeeRequired}</p>
                   </div>
 
                   <div className="flex gap-3">
@@ -1132,7 +1132,7 @@ export default function AuctionScreenPage() {
                       onClick={() => setShowFeeModal(false)}
                       className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
                     >
-                      取消
+                      {dict.auctionScreen.cancel}
                     </button>
                     <button
                       onClick={() => {
@@ -1142,7 +1142,7 @@ export default function AuctionScreenPage() {
                       }}
                       className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
                     >
-                      发布列表
+                      {dict.auctionScreen.postListing}
                     </button>
                   </div>
                 </>
@@ -1158,7 +1158,7 @@ export default function AuctionScreenPage() {
           <div className="bg-gray-800 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-700 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                💳 选择支付方式
+                💳 {dict.auctionScreen.choosePaymentMethod}
               </h2>
               <button
                 onClick={() => setShowPaymentModal(false)}
@@ -1170,7 +1170,7 @@ export default function AuctionScreenPage() {
 
             <div className="p-6">
               <div className="bg-gray-700 rounded-lg p-4 mb-6 text-center">
-                <p className="text-gray-400 text-sm">应付金额</p>
+                <p className="text-gray-400 text-sm">{dict.auctionScreen.amountDue}</p>
                 <p className="text-3xl font-bold text-green-400">{pendingListingData?.currency} {feeData.fee.finalFee.toFixed(2)}</p>
               </div>
 
@@ -1205,7 +1205,7 @@ export default function AuctionScreenPage() {
               ) : (
                 <div className="text-center py-8 mb-6">
                   <AlertCircle className="w-12 h-12 text-gray-500 mx-auto mb-2" />
-                  <p className="text-gray-400">暂无可用的支付方式</p>
+                  <p className="text-gray-400">{dict.auctionScreen.noPaymentMethods}</p>
                 </div>
               )}
 
@@ -1217,7 +1217,7 @@ export default function AuctionScreenPage() {
                   }}
                   className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition"
                 >
-                  返回
+                  {dict.auctionScreen.back}
                 </button>
                 <button
                   onClick={() => {
@@ -1227,12 +1227,12 @@ export default function AuctionScreenPage() {
                   }}
                   className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition"
                 >
-                  确认支付并发布
+                  {dict.auctionScreen.payAndPublish}
                 </button>
               </div>
 
               <p className="text-gray-500 text-xs text-center mt-4">
-                支付完成后，请联系客服确认以便快速审核
+                {dict.auctionScreen.contactAfterPayment}
               </p>
             </div>
           </div>
