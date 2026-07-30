@@ -1510,27 +1510,27 @@ function CreateListingModal({
   // Validation
   const validateForm = () => {
     if (!formData.productName.trim()) {
-      alert('请输入商品名称')
+      alert(dict.auctionScreen.productNamePlaceholder)
       return false
     }
     if (!formData.shippingCountry) {
-      alert('请选择发货国家')
+      alert(dict.auctionScreen.selectCountry)
       return false
     }
     if (!formData.detailedAddress.trim()) {
-      alert('请输入货物所在详细地址')
+      alert(dict.auctionScreen.detailedAddressPlaceholder)
       return false
     }
     if (!formData.unitId) {
-      alert('请选择计量单位')
+      alert(dict.auctionScreen.selectUnit)
       return false
     }
     if (!formData.pickupPrice) {
-      alert('请填写自提价格')
+      alert(dict.auctionScreen.pickupPrice)
       return false
     }
     if (type === 'selling' && !formData.hsCode.trim()) {
-      alert('HS Code is required for selling listings')
+      alert(dict.auctionScreen.hsCodeRequired)
       return false
     }
     return true
@@ -1540,32 +1540,32 @@ function CreateListingModal({
     if (!session) return
     
     if (!formData.productName.trim()) {
-      alert('请先填写商品名称')
+      alert(dict.auctionScreen.productNamePlaceholder)
       return
     }
     
     if (!formData.shippingCountry) {
-      alert('请先选择发货国家')
+      alert(dict.auctionScreen.selectCountry)
       return
     }
     
     if (!formData.detailedAddress.trim()) {
-      alert('请先填写货物所在详细地址')
+      alert(dict.auctionScreen.detailedAddressPlaceholder)
       return
     }
 
     if (!formData.unitId) {
-      alert('请先选择计量单位')
+      alert(dict.auctionScreen.selectUnit)
       return
     }
 
     if (!formData.pickupPrice) {
-      alert('请先填写自提价格')
+      alert(dict.auctionScreen.pickupPrice)
       return
     }
 
     if (type === 'selling' && !formData.hsCode.trim()) {
-      alert('请填写 HS Code')
+      alert(dict.auctionScreen.hsCode)
       return
     }
 
@@ -1625,16 +1625,16 @@ function CreateListingModal({
       
       if (res.ok) {
         setIsSubmitting(false)
-        alert('申请提交成功，如果当前页面没自动关闭，请选择手动关闭，然后等待后台管理员审核')
+        alert(dict.auctionScreen.listingCreated)
         onClose()
       } else {
         const data = await res.json()
-        alert(data.message || data.error || '申请失败，请重试')
+        alert(data.message || data.error || dict.common.error)
         setIsSubmitting(false)
       }
     } catch (error) {
       console.error('Apply verification error:', error)
-      alert('申请失败，请稍后重试')
+      alert(dict.common.error)
       setIsSubmitting(false)
     }
   }
@@ -1705,9 +1705,9 @@ function CreateListingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Category Selection - Five Level Cascade */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">选择类别 *</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.selectLevelCategory} *</label>
             {loadingCategories ? (
-              <div className="text-gray-400">加载类别中...</div>
+              <div className="text-gray-400">{dict.common.loading}</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div>
@@ -1716,7 +1716,7 @@ function CreateListingModal({
                     onChange={(e) => handleLevel1Change(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">1级分类</option>
+                    <option value="">{dict.auctionScreen.level1Category}</option>
                     {level1Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -1729,7 +1729,7 @@ function CreateListingModal({
                     disabled={!selectedLevel1}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">2级分类</option>
+                    <option value="">{dict.auctionScreen.level2Category}</option>
                     {level2Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -1742,7 +1742,7 @@ function CreateListingModal({
                     disabled={!selectedLevel2}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">3级分类</option>
+                    <option value="">{dict.auctionScreen.level3Category}</option>
                     {level3Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -1755,7 +1755,7 @@ function CreateListingModal({
                     disabled={!selectedLevel3}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">4级分类</option>
+                    <option value="">{dict.auctionScreen.level4Category}</option>
                     {level4Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -1768,7 +1768,7 @@ function CreateListingModal({
                     disabled={!selectedLevel4}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <option value="">5级分类</option>
+                    <option value="">{dict.auctionScreen.level5Category}</option>
                     {level5Categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
@@ -1780,24 +1780,24 @@ function CreateListingModal({
 
           {/* Product Name */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">商品名称 *</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.productName} *</label>
             <input
               required
               type="text"
               value={formData.productName}
               onChange={(e) => setFormData(prev => ({ ...prev, productName: e.target.value }))}
-              placeholder="请输入商品名称"
+              placeholder={dict.auctionScreen.productNamePlaceholder}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Product Description */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">商品描述</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.productDescription}</label>
             <textarea
               value={formData.productDescription}
               onChange={(e) => setFormData(prev => ({ ...prev, productDescription: e.target.value }))}
-              placeholder="请详细描述您的商品..."
+              placeholder={dict.auctionScreen.productDescriptionPlaceholder}
               rows={4}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -1805,43 +1805,43 @@ function CreateListingModal({
 
           {/* Tech Specs */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">技术参数描述</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.techSpecs}</label>
             <textarea
               value={formData.techSpecs}
               onChange={(e) => setFormData(prev => ({ ...prev, techSpecs: e.target.value }))}
-              placeholder="请输入尺寸规格，颜色，材质，等物性参数和化学性质参数等的等等，让买家能更了解您的商品"
+              placeholder={dict.auctionScreen.techSpecsPlaceholder}
               rows={4}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">关键词（最多50个）</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.keywords}</label>
             <textarea
               value={formData.keywords}
               onChange={(e) => setFormData(prev => ({ ...prev, keywords: e.target.value }))}
-              placeholder="请输入关键词，用英文逗号分隔，最多50个。例如：钢材, 建筑材料, 批发, 现货, 低价..."
+              placeholder={dict.auctionScreen.keywordsPlaceholder}
               rows={3}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-gray-400 text-sm mt-1">
-              当前已输入 {formData.keywords.split(',').filter(k => k.trim()).length} 个关键词
+              {formData.keywords.split(',').filter(k => k.trim()).length} {dict.auctionScreen.keywordCount}
               {formData.keywords.split(',').filter(k => k.trim()).length > 50 && (
-                <span className="text-red-400"> - 超出限制，请删除多余关键词</span>
+                <span className="text-red-400">{dict.auctionScreen.keywordLimitExceeded}</span>
               )}
             </p>
           </div>
 
           {/* Location Info - Required */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">发货国家 *</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.shippingCountry} *</label>
             <select
               required
               value={formData.shippingCountry}
               onChange={(e) => setFormData(prev => ({ ...prev, shippingCountry: e.target.value }))}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">选择国家</option>
+              <option value="">{dict.auctionScreen.selectCountry}</option>
               {countries.map((country) => (
                 <option key={country} value={country}>{country}</option>
               ))}
@@ -1849,23 +1849,23 @@ function CreateListingModal({
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">货物所在详细地址 *</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.detailedAddress} *</label>
             <input
               required
               type="text"
               value={formData.detailedAddress}
               onChange={(e) => setFormData(prev => ({ ...prev, detailedAddress: e.target.value }))}
-              placeholder="请输入详细地址，如：广东省深圳市南山区科技园路88号"
+              placeholder={dict.auctionScreen.detailedAddressPlaceholder}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Pricing */}
           <div>
-            <h3 className="text-lg font-bold text-white mb-3">价格信息</h3>
+            <h3 className="text-lg font-bold text-white mb-3">{dict.auctionScreen.priceInfo}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">交易货币 *</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.currency} *</label>
                 <select
                   required
                   value={formData.currency}
@@ -1885,7 +1885,7 @@ function CreateListingModal({
                 </select>
               </div>
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">计量单位 *</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.unit} *</label>
                 <select
                   required
                   value={formData.unitId}
@@ -1893,7 +1893,7 @@ function CreateListingModal({
                   disabled={loadingUnits}
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <option value="">选择计量单位</option>
+                  <option value="">{dict.auctionScreen.selectUnit}</option>
                   {units.map((unit) => (
                     <option key={unit.id} value={unit.id}>
                       {unit.name} ({unit.symbol || unit.nameEn})
@@ -1902,7 +1902,7 @@ function CreateListingModal({
                 </select>
               </div>
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">自提价格 *</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.pickupPrice} *</label>
                 <input
                   required
                   type="number"
@@ -1919,7 +1919,7 @@ function CreateListingModal({
             {/* FOB & CIF Options */}
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">是否可FOB</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.fobAvailable}</label>
                 <div className="flex gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1930,7 +1930,7 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">是</span>
+                    <span className="text-gray-300">{dict.auctionScreen.yes}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1941,7 +1941,7 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">需洽谈</span>
+                    <span className="text-gray-300">{dict.auctionScreen.negotiate}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1952,12 +1952,12 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isFob: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">否</span>
+                    <span className="text-gray-300">{dict.auctionScreen.no}</span>
                   </label>
                 </div>
               </div>
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">是否可CIF</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.cifAvailable}</label>
                 <div className="flex gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1968,7 +1968,7 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">是</span>
+                    <span className="text-gray-300">{dict.auctionScreen.yes}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1979,7 +1979,7 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">需洽谈</span>
+                    <span className="text-gray-300">{dict.auctionScreen.negotiate}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -1990,7 +1990,7 @@ function CreateListingModal({
                       onChange={(e) => setFormData(prev => ({ ...prev, isCif: e.target.value }))}
                       className="text-blue-500"
                     />
-                    <span className="text-gray-300">否</span>
+                    <span className="text-gray-300">{dict.auctionScreen.no}</span>
                   </label>
                 </div>
               </div>
@@ -1998,7 +1998,7 @@ function CreateListingModal({
 
             {/* Min Order Qty */}
             <div className="mt-4">
-              <label className="block text-gray-300 mb-2 font-medium">最小起订量</label>
+              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.minOrderQty}</label>
               <input
                 type="number"
                 value={formData.minOrderQty}
@@ -2012,33 +2012,33 @@ function CreateListingModal({
           {/* Foreign Trade Fields */}
           {type === 'selling' && (
             <div className="border-t border-gray-700 pt-4 mt-4">
-              <h3 className="text-lg font-bold text-white mb-3">🌍 Foreign Trade / Export Information</h3>
+              <h3 className="text-lg font-bold text-white mb-3">🌍 {dict.auctionScreen.foreignTradeInfo}</h3>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-gray-300 mb-2 font-medium">HS Code *</label>
+                  <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.hsCode} *</label>
                   <input
                     type="text"
                     value={formData.hsCode}
                     onChange={(e) => setFormData(prev => ({ ...prev, hsCode: e.target.value }))}
-                    placeholder="e.g. 8471.30.0100"
+                    placeholder={dict.auctionScreen.hsCodePlaceholder}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2 font-medium">HS Code Description</label>
+                  <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.hsCodeDescription}</label>
                   <input
                     type="text"
                     value={formData.hsCodeDescription}
                     onChange={(e) => setFormData(prev => ({ ...prev, hsCodeDescription: e.target.value }))}
-                    placeholder="Description of the HS code"
+                    placeholder={dict.auctionScreen.hsCodeDescriptionPlaceholder}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2 font-medium">Incoterms</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.incotermsLabel}</label>
                 <div className="flex flex-wrap gap-2">
                   {['EXW', 'FCA', 'FOB', 'CIF', 'CFR', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'].map((term) => (
                     <label key={term} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.incoterms.includes(term) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
@@ -2062,29 +2062,29 @@ function CreateListingModal({
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-gray-300 mb-2 font-medium">Port of Loading</label>
+                  <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.selectPortOfLoading}</label>
                   <input
                     type="text"
                     value={formData.portOfLoading}
                     onChange={(e) => setFormData(prev => ({ ...prev, portOfLoading: e.target.value }))}
-                    placeholder="e.g. Shanghai Port"
+                    placeholder={dict.auctionScreen.selectPortOfLoading}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2 font-medium">Port of Destination</label>
+                  <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.selectPortOfDestination}</label>
                   <input
                     type="text"
                     value={formData.portOfDestination}
                     onChange={(e) => setFormData(prev => ({ ...prev, portOfDestination: e.target.value }))}
-                    placeholder="e.g. Los Angeles Port"
+                    placeholder={dict.auctionScreen.selectPortOfDestination}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2 font-medium">Payment Methods</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.paymentMethodsLabel}</label>
                 <div className="flex flex-wrap gap-2">
                   {['T/T', 'L/C', 'D/P', 'D/A', 'O/A', 'Western Union', 'PayPal', 'Cash'].map((method) => (
                     <label key={method} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.paymentMethods.includes(method) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
@@ -2107,7 +2107,7 @@ function CreateListingModal({
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2 font-medium">Freight Items</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.freightItemsLabel}</label>
                 <div className="flex flex-wrap gap-2">
                   {['Sea Freight', 'Air Freight', 'Rail Freight', 'Road Freight', 'Insurance', 'Packaging', 'Documentation'].map((item) => (
                     <label key={item} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.freightItems.includes(item) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
@@ -2130,7 +2130,7 @@ function CreateListingModal({
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-300 mb-2 font-medium">Export Documents</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.exportDocumentsLabel}</label>
                 <div className="flex flex-wrap gap-2">
                   {['Commercial Invoice', 'Packing List', 'Bill of Lading', 'Certificate of Origin', 'CO Form A', 'CO Form B', 'Insurance Policy', 'Quality Certificate'].map((doc) => (
                     <label key={doc} className={`px-3 py-1 rounded-full cursor-pointer text-sm ${formData.exportDocuments.includes(doc) ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
@@ -2154,7 +2154,7 @@ function CreateListingModal({
 
               <div className="mb-4">
                 <div className="flex items-center gap-4 mb-2">
-                  <label className="block text-gray-300 font-medium">Export License</label>
+                  <label className="block text-gray-300 font-medium">{dict.auctionScreen.hasExportLicense}</label>
                   <div className="flex gap-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -2164,7 +2164,7 @@ function CreateListingModal({
                         onChange={() => setFormData(prev => ({ ...prev, hasExportLicense: true }))}
                         className="text-blue-500"
                       />
-                      <span className="text-gray-300">Yes</span>
+                      <span className="text-gray-300">{dict.auctionScreen.yes}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -2174,7 +2174,7 @@ function CreateListingModal({
                         onChange={() => setFormData(prev => ({ ...prev, hasExportLicense: false }))}
                         className="text-blue-500"
                       />
-                      <span className="text-gray-300">No</span>
+                      <span className="text-gray-300">{dict.auctionScreen.no}</span>
                     </label>
                   </div>
                 </div>
@@ -2183,7 +2183,7 @@ function CreateListingModal({
                     type="text"
                     value={formData.exportLicenseNo}
                     onChange={(e) => setFormData(prev => ({ ...prev, exportLicenseNo: e.target.value }))}
-                    placeholder="Enter export license number"
+                    placeholder={dict.auctionScreen.exportLicenseNumberPlaceholder}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
@@ -2195,32 +2195,32 @@ function CreateListingModal({
           {/* Product Features, Application, Usage */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-300 mb-2 font-medium">产品特点</label>
+              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.productFeatures}</label>
               <textarea
                 value={formData.productFeatures}
                 onChange={(e) => setFormData(prev => ({ ...prev, productFeatures: e.target.value }))}
-                placeholder="请描述产品的主要特点"
+                placeholder={dict.auctionScreen.productFeaturesPlaceholder}
                 rows={3}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2 font-medium">适用范围</label>
+              <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.applicationScope}</label>
               <textarea
                 value={formData.applicationScope}
                 onChange={(e) => setFormData(prev => ({ ...prev, applicationScope: e.target.value }))}
-                placeholder="请描述产品的适用范围"
+                placeholder={dict.auctionScreen.applicationScopePlaceholder}
                 rows={3}
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">使用方法</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.usageMethod}</label>
             <textarea
               value={formData.usageMethod}
               onChange={(e) => setFormData(prev => ({ ...prev, usageMethod: e.target.value }))}
-              placeholder="请描述产品的使用方法"
+              placeholder={dict.auctionScreen.usageMethodPlaceholder}
               rows={3}
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -2228,11 +2228,11 @@ function CreateListingModal({
 
           {/* Image Upload */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">上传图片</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.uploadImages}</label>
             <div className="flex items-center gap-3">
               <label className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
                 <ImageIcon className="w-4 h-4" />
-                选择图片
+                {dict.auctionScreen.selectImages}
                 <input
                   type="file"
                   accept="image/*"
@@ -2267,11 +2267,11 @@ function CreateListingModal({
 
           {/* File Upload */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">上传文件（如产品手册、规格书等）</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.uploadFiles}</label>
             <div className="flex items-center gap-3">
               <label className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                选择文件
+                {dict.auctionScreen.selectFiles}
                 <input
                   type="file"
                   multiple
@@ -2301,11 +2301,11 @@ function CreateListingModal({
 
           {/* Drawing Upload */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">上传图纸（如CAD图纸、设计图等）</label>
+            <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.uploadDrawings}</label>
             <div className="flex items-center gap-3">
               <label className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg cursor-pointer transition flex items-center gap-2">
                 <File className="w-4 h-4" />
-                选择图纸
+                {dict.auctionScreen.selectDrawings}
                 <input
                   type="file"
                   multiple
@@ -2335,10 +2335,10 @@ function CreateListingModal({
 
           {/* Contact Info */}
           <div className="border-t border-gray-700 pt-4">
-            <h3 className="text-lg font-bold text-white mb-4">联系方式</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{dict.auctionScreen.contactInfo}</h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-gray-300 mb-2 font-medium">邮箱</label>
+                <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.email}</label>
                 <input
                   type="email"
                   value={formData.contactEmail}
@@ -2373,24 +2373,24 @@ function CreateListingModal({
           {/* Verification Info */}
           <div className="border-t border-gray-700 pt-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">平台审核</h3>
+              <h3 className="text-lg font-bold text-white">{dict.auctionScreen.platformVerification}</h3>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                 formData.verificationStatus === 'VERIFIED' ? 'bg-green-500 text-white' :
                 formData.verificationStatus === 'PENDING' ? 'bg-yellow-500 text-white' :
                 formData.verificationStatus === 'REJECTED' ? 'bg-red-500 text-white' :
                 'bg-gray-600 text-gray-300'
               }`}>
-                {formData.verificationStatus === 'VERIFIED' ? '是' :
-                 formData.verificationStatus === 'PENDING' ? '审核中' :
-                 formData.verificationStatus === 'REJECTED' ? '真实性继续核实中' : '否'}
+                {formData.verificationStatus === 'VERIFIED' ? dict.auctionScreen.yes :
+                 formData.verificationStatus === 'PENDING' ? dict.auctionScreen.verificationPending :
+                 formData.verificationStatus === 'REJECTED' ? dict.auctionScreen.verificationRejected : dict.auctionScreen.verificationNotApplied}
               </span>
             </div>
             
             <p className="text-gray-400 text-sm mb-4">
-              {formData.verificationStatus === 'VERIFIED' ? '平台已为您的商品真实性进行信任背书' :
-               formData.verificationStatus === 'PENDING' ? '平台正在审核您的商品信息，请耐心等待' :
-               formData.verificationStatus === 'REJECTED' ? '平台审核未通过，请完善商品信息后重新申请' :
-               '未申请平台审核，平台不承担信息真实性责任'}
+              {formData.verificationStatus === 'VERIFIED' ? dict.auctionScreen.platformVerification :
+               formData.verificationStatus === 'PENDING' ? dict.auctionScreen.verificationPending :
+               formData.verificationStatus === 'REJECTED' ? dict.auctionScreen.verificationRejected :
+               dict.auctionScreen.verificationNotApplied}
             </p>
             
             {formData.verificationStatus !== 'VERIFIED' && formData.verificationStatus !== 'PENDING' && (
@@ -2400,12 +2400,12 @@ function CreateListingModal({
                 disabled={isSubmitting}
                 className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
               >
-                申请平台审核
+                {dict.auctionScreen.applyVerification}
               </button>
             )}
             
             {formData.verificationStatus === 'PENDING' && (
-              <p className="text-yellow-400 text-sm mt-2 text-center">审核中，请勿重复申请</p>
+              <p className="text-yellow-400 text-sm mt-2 text-center">{dict.auctionScreen.verificationPending}</p>
             )}
           </div>
 
