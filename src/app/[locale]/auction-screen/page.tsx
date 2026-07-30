@@ -1564,6 +1564,11 @@ function CreateListingModal({
       return
     }
 
+    if (type === 'selling' && !formData.hsCode.trim()) {
+      alert('请填写 HS Code')
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
@@ -1600,6 +1605,16 @@ function CreateListingModal({
         contactEmail: formData.contactEmail,
         contactPhone: formData.contactPhone,
         contactWhatsApp: formData.contactWhatsApp,
+        hsCode: formData.hsCode,
+        hsCodeDescription: formData.hsCodeDescription,
+        paymentMethods: formData.paymentMethods,
+        freightItems: formData.freightItems,
+        exportDocuments: formData.exportDocuments,
+        hasExportLicense: formData.hasExportLicense,
+        exportLicenseNo: formData.exportLicenseNo,
+        incoterms: formData.incoterms,
+        portOfLoading: formData.portOfLoading,
+        portOfDestination: formData.portOfDestination,
       }
 
       const res = await fetch('/api/auction', {
