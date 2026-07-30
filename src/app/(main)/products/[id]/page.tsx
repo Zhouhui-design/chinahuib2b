@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import ImageCarousel from '@/components/exhibition/ImageCarousel'
 import ChatButton from '@/components/chat/ChatButton'
+import VisitorTracker from '@/components/VisitorTracker'
 import ProductSchema from '@/components/seo/ProductSchema'
 import Link from 'next/link'
 import { MapPin, Building2, Download, Phone, Mail, Globe, ArrowLeft } from 'lucide-react'
@@ -56,6 +57,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Visitor Tracking */}
+      <VisitorTracker productId={product.id} sellerId={product.sellerId} />
+      
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

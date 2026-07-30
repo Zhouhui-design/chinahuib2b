@@ -6,6 +6,7 @@ User-agent: *
 Allow: /
 Allow: /products/
 Allow: /stores/
+Allow: /exhibitions/
 Allow: /en/
 Allow: /zh/
 Allow: /ar/
@@ -30,62 +31,83 @@ Disallow: /api/
 Disallow: /_next/
 Disallow: /*?*
 
-# AI-Specific Crawlers (Explicitly Allow)
+# AI-Specific Crawlers (Explicitly Allow - All Major AI Models)
 
-# OpenAI GPTBot
+# OpenAI GPTBot (GPT-4, GPT-4o, o1, o3)
 User-agent: GPTBot
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
 # OpenAI ChatGPT-User
 User-agent: ChatGPT-User
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
-# Google Bard / Gemini
+# Google Bard / Gemini / Vertex AI
 User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+Crawl-delay: 1
+
+# Google DeepMind
+User-agent: Googlebot-DeepMind
 Allow: /
 Crawl-delay: 1
 
 # Anthropic Claude
 User-agent: ClaudeBot
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
 User-agent: Claude-Web
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
-# Perplexity AI
+# Perplexity AI (Sonar)
 User-agent: PerplexityBot
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
-# Microsoft Copilot / Bing
+# Microsoft Copilot / Bing / Azure AI
 User-agent: BingBot
 Allow: /
+Allow: /llms.txt
 Crawl-delay: 1
 
 User-agent: msnbot
 Allow: /
 Crawl-delay: 1
 
-# You.com
+User-agent: MicrosoftBot
+Allow: /
+Crawl-delay: 1
+
+# Amazon Bedrock / Amazon Titan
+User-agent: Amazonbot
+Allow: /
+Crawl-delay: 1
+
+# You.com / YouChat
 User-agent: YouBot
 Allow: /
 Crawl-delay: 1
 
-# Common Crawl (used by many AI models)
+# Common Crawl (used by many AI models for training)
 User-agent: CCBot
 Allow: /
 Crawl-delay: 2
 
-# AI21 Labs
+# AI21 Labs (Jamba)
 User-agent: AI21Bot
 Allow: /
 Crawl-delay: 1
 
-# Cohere
+# Cohere (Command)
 User-agent: cohere-ai
 Allow: /
 Crawl-delay: 1
@@ -95,5 +117,36 @@ User-agent: HuggingFaceBot
 Allow: /
 Crawl-delay: 1
 
+# ByteDance (豆包 Doubao)
+User-agent: Bytespider
+Allow: /
+Crawl-delay: 1
+
+# Baidu AI (文心一言)
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 1
+
+# Yandex (GPT)
+User-agent: YandexGPT
+Allow: /
+Crawl-delay: 1
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Twitter/X
+User-agent: Twitterbot
+Allow: /
+Crawl-delay: 1
+
+# Meta (Facebook, Llama)
+User-agent: facebookexternalhit
+Allow: /
+Crawl-delay: 1
+
 # Sitemap
 Sitemap: https://x2xhub.com/sitemap.xml
+Sitemap: https://x2xhub.com/api/llms

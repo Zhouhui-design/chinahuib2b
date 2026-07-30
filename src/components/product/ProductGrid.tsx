@@ -16,6 +16,7 @@ type Product = {
   };
   category: {
     name: string;
+    nameEn?: string | null;
     slug: string;
   };
 };
@@ -64,10 +65,9 @@ export default function ProductGrid({ products, locale = 'en' }: ProductGridProp
               </div>
             )}
             
-            {/* Category Badge */}
             <div className="absolute top-3 left-3">
               <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                {product.category.name}
+                {locale === 'zh' ? product.category.name : (product.category.nameEn || product.category.name)}
               </span>
             </div>
           </div>

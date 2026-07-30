@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Plus, Edit2, Trash2, Eye, EyeOff, ChevronRight } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
@@ -27,6 +28,7 @@ interface Booth {
 
 export default function BoothsPage() {
   const language = useSellerLanguage()
+  const searchParams = useSearchParams()
   
   // Translation object
   const t = {
@@ -577,6 +579,37 @@ export default function BoothsPage() {
 
   useEffect(() => {
     fetchBooths()
+    // Check if we need to open edit modal for a specific booth
+    const editBoothId = searchParams.get('edit')
+    if (editBoothId) {
+      // Fetch the specific booth and open edit modal
+      const fetchAndOpenEdit = async () => {
+        try {
+          const res = await fetch(`/api/booths?id=${editBoothId}`)
+          const data = await res.json()
+          if (data.booth) {
+            setEditingBooth(data.booth)
+            setFormData({
+              name: data.booth.name || '',
+              exhibitionName: data.booth.exhibitionName || '',
+              location: data.booth.location || '',
+              logoUrl: data.booth.logoUrl || '',
+              bannerUrl: data.booth.bannerUrl || '',
+              keywords: data.booth.keywords || [],
+              documents: data.booth.documents || [],
+              theme: data.booth.theme || '',
+              colorScheme: data.booth.colorScheme || '',
+              layout: data.booth.layout || ''
+            })
+            setLogoPreview(data.booth.logoUrl || '')
+            setBannerPreview(data.booth.bannerUrl || '')
+          }
+        } catch (error) {
+          console.error('Failed to fetch booth for edit:', error)
+        }
+      }
+      fetchAndOpenEdit()
+    }
   }, [])
 
   const fetchBooths = async () => {

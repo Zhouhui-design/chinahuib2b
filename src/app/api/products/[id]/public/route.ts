@@ -33,7 +33,9 @@ export async function GET(
                 logoUrl: true
               }
             },
-            brochure: true
+            brochure: true,
+            minOrderUnit: true,
+            supplyCapacityUnit: true
           }
         })
         

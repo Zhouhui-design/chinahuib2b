@@ -8,6 +8,17 @@ const supportedLanguages = languages.map(lang => lang.code)
 export function middleware(request: any) {
   const pathname = request.nextUrl.pathname
   
+  // Skip middleware for AI crawler files and sitemap
+  if (
+    pathname === '/llms.txt' ||
+    pathname === '/llms-full.txt' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
+  ) {
+    const response = NextResponse.next()
+    return addSecurityHeaders(response)
+  }
+  
   // Skip middleware for Service Worker files - they need to bypass language redirection
   if (
     pathname.startsWith('/sw.js') ||
@@ -66,6 +77,9 @@ export function middleware(request: any) {
       pathname.startsWith('/api') ||
       pathname.startsWith('/api-docs') ||
       pathname.startsWith('/uploads') ||
+      pathname === '/robots.txt' ||
+      pathname === '/llms.txt' ||
+      pathname === '/llms-full.txt' ||
       pathname.includes('.')
     ) {
       const response = NextResponse.next()
@@ -104,6 +118,6 @@ export function middleware(request: any) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|llms.txt|sw.js|pwasw|service-worker|.*\\..*).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|sitemap.xml|robots.txt|llms.txt|llms-full.txt|sw.js|pwasw|service-worker).*)',
   ]
 }

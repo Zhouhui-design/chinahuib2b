@@ -81,6 +81,20 @@ const nextConfig: NextConfig = {
     return `${process.env.npm_package_version}-${Date.now().toString(36)}`
   },
 
+  // Rewrites for special files that need to bypass locale routing
+  async rewrites() {
+    return [
+      {
+        source: '/llms.txt',
+        destination: '/api/llms',
+      },
+      {
+        source: '/llms-full.txt',
+        destination: '/api/llms-full',
+      },
+    ]
+  },
+
   // Headers for security and caching
   async headers() {
     return [

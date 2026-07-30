@@ -11,7 +11,9 @@ const productUpdateSchema = z.object({
   description: z.string().optional(),
   specifications: z.record(z.string(), z.any()).optional(),
   minOrderQty: z.number().min(1).optional(),
+  minOrderUnitId: z.string().optional(),
   supplyCapacity: z.string().optional(),
+  supplyCapacityUnitId: z.string().optional(),
   images: z.array(z.string()).optional(),
   mainImageUrl: z.string().optional().refine(
     (val) => !val || val.startsWith('/uploads/') || /^https?:\/\//.test(val),
@@ -66,7 +68,9 @@ export async function GET(
       where: { id },
       include: {
         category: true,
-        seller: true
+        seller: true,
+        minOrderUnit: true,
+        supplyCapacityUnit: true
       }
     })
 
@@ -140,7 +144,9 @@ export async function PUT(
       data,
       include: {
         category: true,
-        seller: true
+        seller: true,
+        minOrderUnit: true,
+        supplyCapacityUnit: true
       }
     })
 

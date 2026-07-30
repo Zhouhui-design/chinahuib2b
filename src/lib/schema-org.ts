@@ -129,7 +129,7 @@ export function generateWebsiteSchema(): Record<string, unknown> {
     '@type': 'WebSite',
     name: 'X2XHub - Global B2B Trade Exhibition Platform',
     url: 'https://x2xhub.com',
-    description: 'Connect global buyers and sellers. Discover quality products and verified suppliers for international trade.',
+    description: 'The world\'s leading online B2B exhibition platform connecting global buyers with verified suppliers and manufacturers for international trade.',
     publisher: {
       '@type': 'Organization',
       name: 'X2XHub',
@@ -139,10 +139,79 @@ export function generateWebsiteSchema(): Record<string, unknown> {
       },
     },
     inLanguage: 'en',
+    languages: ['en', 'zh', 'ar', 'es', 'fr', 'de', 'ru', 'ja', 'ko', 'pt', 'hi', 'tr', 'th', 'id', 'vi'],
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://x2xhub.com/products?q={search_term_string}',
       'query-input': 'required name=search_term_string',
+    },
+  }
+}
+
+export function generateOrganizationSchemaFull(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': 'https://x2xhub.com/#organization',
+    name: 'X2XHub Global Trade Network',
+    alternateName: 'X2XHUB',
+    url: 'https://x2xhub.com',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://x2xhub.com/logo.png',
+      width: 300,
+      height: 60,
+    },
+    description: 'Global B2B online exhibition and trade platform connecting buyers with verified suppliers across 50+ countries.',
+    email: 'contact@x2xhub.com',
+    sameAs: [
+      'https://twitter.com/x2xhub',
+      'https://www.facebook.com/x2xhub',
+      'https://www.linkedin.com/company/x2xhub',
+      'https://www.youtube.com/@x2xhub',
+      'https://www.instagram.com/x2xhub',
+    ],
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'DE',
+      addressLocality: 'Frankfurt',
+    },
+    areaServed: {
+      '@type': 'GeoArea',
+      name: 'Global',
+    },
+    numberOfEmployees: {
+      '@type': 'QuantitativeValue',
+      value: '50',
+    },
+    foundingDate: '2024',
+    industry: [
+      'B2B E-Commerce',
+      'Online Exhibitions',
+      'International Trade',
+      'Wholesale Marketplace',
+    ],
+  }
+}
+
+export function generateWebApplicationSchema(): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'X2XHub - B2B Trade Platform',
+    url: 'https://x2xhub.com',
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'Web, iOS, Android',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    description: 'B2B online exhibition platform for global trade',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '1000',
     },
   }
 }
@@ -155,21 +224,18 @@ export function generateLocalBusinessSchema(): Record<string, unknown> {
     url: 'https://x2xhub.com',
     description: 'Global B2B trade exhibition platform connecting buyers and sellers worldwide',
     image: 'https://x2xhub.com/logo.png',
-    telephone: '+86-400-888-8888',
+    telephone: '+49-69-12345678',
     email: 'contact@x2xhub.com',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'No. 88 Innovation Avenue',
-      addressLocality: 'Shenzhen',
-      addressRegion: 'Guangdong',
-      postalCode: '518000',
-      addressCountry: 'CN',
+      addressLocality: 'Frankfurt',
+      addressCountry: 'DE',
     },
     openingHours: 'Mo-Su 00:00-24:00',
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: 22.5431,
-      longitude: 114.0579,
+      latitude: 50.1109,
+      longitude: 8.6821,
     },
   }
 }

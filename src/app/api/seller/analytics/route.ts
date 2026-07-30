@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const period = searchParams.get('period') || '30' // days
+    const period = searchParams.get('period') || '30'
     const periodDays = parseInt(period)
 
     const startDate = new Date()
@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
       recentInquiries,
       recentProducts,
       categoryBreakdown,
-      visitorByCountry
+      visitorByCountry,
+      selfViewCount,
+      externalViewCount,
+      domesticViewCount,
+      internationalViewCount
     ] = await Promise.all([
       prisma.product.findMany({
         where: { sellerId: seller.id },
@@ -115,11 +119,43 @@ export async function GET(request: NextRequest) {
       prisma.visitor.groupBy({
         by: ['country', 'countryCode'],
         where: {
-          productId: { in: productIds },
+          sellerId: seller.id,
           createdAt: { gte: startDate }
         },
         _count: true,
         orderBy: { _count: { country: 'desc' } }
+      }),
+
+      prisma.visitor.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: startDate },
+          isSelfView: true
+        }
+      }),
+
+      prisma.visitor.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: startDate },
+          isSelfView: false
+        }
+      }),
+
+      prisma.visitor.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: startDate },
+          countryCode: 'CN'
+        }
+      }),
+
+      prisma.visitor.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: startDate },
+          countryCode: { not: 'CN' }
+        }
       }),
     ])
 
@@ -148,7 +184,11 @@ export async function GET(request: NextRequest) {
           totalViews: totalViews._sum.viewCount || 0,
           totalInquiries: totalInquiries._count || 0,
           avgViewsPerProduct: totalProducts > 0 ? Math.round((totalViews._sum.viewCount || 0) / totalProducts) : 0,
-          avgInquiriesPerProduct: totalProducts > 0 ? Math.round((totalInquiries._count || 0) / totalProducts) : 0
+          avgInquiriesPerProduct: totalProducts > 0 ? Math.round((totalInquiries._count || 0) / totalProducts) : 0,
+          selfViewCount,
+          externalViewCount,
+          domesticViewCount,
+          internationalViewCount,
         },
         topProducts,
         lowProducts,

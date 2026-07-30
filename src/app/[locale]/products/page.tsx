@@ -98,6 +98,7 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
       category: {
         select: {
           name: true,
+          nameEn: true,
           slug: true,
         }
       }
@@ -106,23 +107,30 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
     take: 50, // Limit for performance
   });
 
-  // Fetch selected category info
   let selectedCategory = null;
   if (category) {
     selectedCategory = await prisma.category.findUnique({
       where: { slug: category as string },
-      select: { name: true, slug: true }
+      select: { name: true, nameEn: true, slug: true }
     });
   }
 
+  const getCategoryDisplayName = (cat: any, loc: string) => {
+    if (!cat) return '';
+    return loc === 'zh' ? cat.name : (cat.nameEn || cat.name);
+  };
+
   return (
     <div className="flex-1">
-      {/* Category filter indicator */}
       {selectedCategory && (
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
           <div>
-            <span className="text-sm text-gray-600">当前分类：</span>
-            <span className="font-semibold text-blue-600">{selectedCategory.name}</span>
+            <span className="text-sm text-gray-600">
+              {locale === 'zh' ? '当前分类：' : locale === 'en' ? 'Current Category:' : 'Kategorie:'}
+            </span>
+            <span className="font-semibold text-blue-600">
+              {getCategoryDisplayName(selectedCategory, locale)}
+            </span>
           </div>
         </div>
       )}

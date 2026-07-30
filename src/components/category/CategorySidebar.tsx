@@ -12,6 +12,44 @@ type Category = {
   children?: Category[];
 };
 
+function getCategoryTitle(lang: string): string {
+  const titles: Record<string, string> = {
+    zh: '📂 产品分类',
+    en: '📂 Categories',
+    ja: '📂 カテゴリー',
+    ko: '📂 카테고리',
+    de: '📂 Kategorien',
+    fr: '📂 Catégories',
+    es: '📂 Categorías',
+    ar: '📂 الفئات',
+    ru: '📂 Категории',
+    pt: '📂 Categorias',
+    hi: '📂 श्रेणियाँ',
+    th: '📂 หมวดหมู่',
+    vi: '📂 Danh mục',
+  };
+  return titles[lang] || '📂 Categories';
+}
+
+function getNoCategoriesText(lang: string): string {
+  const texts: Record<string, string> = {
+    zh: '暂无分类',
+    en: 'No categories available',
+    ja: 'カテゴリーがありません',
+    ko: '카테고리가 없습니다',
+    de: 'Keine Kategorien verfügbar',
+    fr: 'Aucune catégorie disponible',
+    es: 'Sin categorías disponibles',
+    ar: 'لا توجد فئات متاحة',
+    ru: 'Нет доступных категорий',
+    pt: 'Sem categorias disponíveis',
+    hi: 'कोई श्रेणियाँ उपलब्ध नहीं हैं',
+    th: 'ไม่มีหมวดหมู่',
+    vi: 'Không có danh mục',
+  };
+  return texts[lang] || 'No categories available';
+}
+
 function useLanguage() {
   const [language, setLanguage] = useState('en');
 
@@ -154,7 +192,7 @@ export default function CategorySidebar() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">
-              {language === 'zh' ? '📂 产品分类' : language === 'es' ? '📂 Categorías' : '📂 Categories'}
+              {getCategoryTitle(language)}
             </h2>
             <button
               onClick={toggleSidebar}
@@ -175,7 +213,7 @@ export default function CategorySidebar() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <p className="text-sm">
-                {language === 'zh' ? '暂无分类' : language === 'es' ? 'Sin categorías' : 'No categories available'}
+                {getNoCategoriesText(language)}
               </p>
             </div>
           )}

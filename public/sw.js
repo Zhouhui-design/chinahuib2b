@@ -2,7 +2,7 @@
  * Service Worker for PWA Offline Support
  */
 
-const CACHE_NAME = 'x2xhub-v7';
+const CACHE_NAME = 'x2xhub-v8';
 const OFFLINE_PAGE = '/offline.html';
 
 const STATIC_ASSETS = [

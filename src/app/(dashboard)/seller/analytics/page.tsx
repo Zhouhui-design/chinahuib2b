@@ -38,6 +38,10 @@ interface DashboardData {
     totalInquiries: number
     avgViewsPerProduct: number
     avgInquiriesPerProduct: number
+    selfViewCount: number
+    externalViewCount: number
+    domesticViewCount: number
+    internationalViewCount: number
   }
   topProducts: Array<{
     id: string
@@ -211,6 +215,99 @@ export default function AnalyticsDashboard() {
             icon={<TrendingUp className="w-6 h-6" />}
             color="orange"
           />
+        </div>
+
+        {/* Visitor Type & Region Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-500" />
+              Visitor Type Analysis
+            </h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-xs text-green-600 font-medium mb-1">Self Views</p>
+                <p className="text-2xl font-bold text-green-900">{data.summary.selfViewCount}</p>
+                <p className="text-xs text-green-600 mt-1">
+                  {data.summary.totalViews > 0 
+                    ? Math.round((data.summary.selfViewCount / data.summary.totalViews) * 100) 
+                    : 0}%
+                </p>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-xs text-blue-600 font-medium mb-1">External Views</p>
+                <p className="text-2xl font-bold text-blue-900">{data.summary.externalViewCount}</p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {data.summary.totalViews > 0 
+                    ? Math.round((data.summary.externalViewCount / data.summary.totalViews) * 100) 
+                    : 0}%
+                </p>
+              </div>
+            </div>
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all"
+                style={{
+                  width: `${data.summary.totalViews > 0 
+                    ? (data.summary.selfViewCount / data.summary.totalViews) * 100 
+                    : 0}%`
+                }}
+              />
+            </div>
+            <div className="flex justify-between mt-1 text-xs text-gray-500">
+              <span>Self: {data.summary.totalViews > 0 
+                ? Math.round((data.summary.selfViewCount / data.summary.totalViews) * 100) 
+                : 0}%</span>
+              <span>External: {data.summary.totalViews > 0 
+                ? Math.round((data.summary.externalViewCount / data.summary.totalViews) * 100) 
+                : 0}%</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-orange-500" />
+              Visitor Region Analysis
+            </h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-red-50 rounded-lg p-4">
+                <p className="text-xs text-red-600 font-medium mb-1">Domestic (China)</p>
+                <p className="text-2xl font-bold text-red-900">{data.summary.domesticViewCount}</p>
+                <p className="text-xs text-red-600 mt-1">
+                  {data.summary.totalViews > 0 
+                    ? Math.round((data.summary.domesticViewCount / data.summary.totalViews) * 100) 
+                    : 0}%
+                </p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4">
+                <p className="text-xs text-purple-600 font-medium mb-1">International</p>
+                <p className="text-2xl font-bold text-purple-900">{data.summary.internationalViewCount}</p>
+                <p className="text-xs text-purple-600 mt-1">
+                  {data.summary.totalViews > 0 
+                    ? Math.round((data.summary.internationalViewCount / data.summary.totalViews) * 100) 
+                    : 0}%
+                </p>
+              </div>
+            </div>
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-red-500 transition-all"
+                style={{
+                  width: `${data.summary.totalViews > 0 
+                    ? (data.summary.domesticViewCount / data.summary.totalViews) * 100 
+                    : 0}%`
+                }}
+              />
+            </div>
+            <div className="flex justify-between mt-1 text-xs text-gray-500">
+              <span>Domestic: {data.summary.totalViews > 0 
+                ? Math.round((data.summary.domesticViewCount / data.summary.totalViews) * 100) 
+                : 0}%</span>
+              <span>International: {data.summary.totalViews > 0 
+                ? Math.round((data.summary.internationalViewCount / data.summary.totalViews) * 100) 
+                : 0}%</span>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

@@ -4,7 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Script from "next/script";
 import { languages } from "@/lib/languages";
-import { generateWebsiteSchema, generateLocalBusinessSchema } from "@/lib/schema-org";
+import { generateWebsiteSchema, generateOrganizationSchemaFull, generateWebApplicationSchema } from "@/lib/schema-org";
 import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
@@ -74,7 +74,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const websiteSchema = JSON.stringify(generateWebsiteSchema());
-  const localBusinessSchema = JSON.stringify(generateLocalBusinessSchema());
+  const organizationSchema = JSON.stringify(generateOrganizationSchemaFull());
+  const webApplicationSchema = JSON.stringify(generateWebApplicationSchema());
 
   return (
     <html lang="en" className="h-full antialiased">
@@ -114,13 +115,18 @@ export default function RootLayout({
         
         <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en`} />
         
+        {/* Structured Data for SEO and AI */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: websiteSchema }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: localBusinessSchema }}
+          dangerouslySetInnerHTML={{ __html: organizationSchema }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: webApplicationSchema }}
         />
       </head>
       <body className="min-h-full flex flex-col">

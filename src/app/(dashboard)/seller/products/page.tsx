@@ -45,6 +45,9 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [moveProductId, setMoveProductId] = useState<string | null>(null)
   const [moveToBoothId, setMoveToBoothId] = useState<string | null>(null)
+  const [viewStatsProductId, setViewStatsProductId] = useState<string | null>(null)
+  const [viewStats, setViewStats] = useState<any>(null)
+  const [viewStatsLoading, setViewStatsLoading] = useState(false)
   const language = useSellerLanguage()
 
   const t = {
@@ -411,7 +414,189 @@ export default function ProductsPage() {
            language === 'hi' ? 'रद्द करें' :
            language === 'th' ? 'ยกเลิก' :
            language === 'vi' ? 'Hủy' :
-           'Cancel'
+           'Cancel',
+    viewStats: language === 'zh' ? '浏览统计' :
+               language === 'ja' ? '閲覧統計' :
+               language === 'ar' ? 'إحصاءات المشاهدات' :
+               language === 'es' ? 'Estadísticas de vistas' :
+               language === 'fr' ? 'Statistiques des vues' :
+               language === 'de' ? 'Aufrufstatistiken' :
+               language === 'ko' ? '조회 통계' :
+               language === 'ru' ? 'Статистика просмотров' :
+               language === 'pt' ? 'Estatísticas de visualizações' :
+               language === 'hi' ? 'दृश्य आँकड़े' :
+               language === 'th' ? 'สถิติการดู' :
+               language === 'vi' ? 'Thống kê lượt xem' :
+               'View Statistics',
+    totalViews: language === 'zh' ? '总浏览量' :
+                language === 'ja' ? '総閲覧数' :
+                language === 'ar' ? 'إجمالي المشاهدات' :
+                language === 'es' ? 'Total de vistas' :
+                language === 'fr' ? 'Total des vues' :
+                language === 'de' ? 'Gesamtaufrufe' :
+                language === 'ko' ? '총 조회수' :
+                language === 'ru' ? 'Всего просмотров' :
+                language === 'pt' ? 'Total de visualizações' :
+                language === 'hi' ? 'कुल दृश्य' :
+                language === 'th' ? 'จำนวนการดูทั้งหมด' :
+                language === 'vi' ? 'Tổng lượt xem' :
+                'Total Views',
+    selfViews: language === 'zh' ? '自己浏览' :
+               language === 'ja' ? '自己の閲覧' :
+               language === 'ar' ? 'مشاهدات ذاتية' :
+               language === 'es' ? 'Vistas propias' :
+               language === 'fr' ? 'Vues propres' :
+               language === 'de' ? 'Eigene Aufrufe' :
+               language === 'ko' ? '자신의 조회' :
+               language === 'ru' ? 'Собственные просмотры' :
+               language === 'pt' ? 'Visualizações próprias' :
+               language === 'hi' ? 'स्वयं दृश्य' :
+               language === 'th' ? 'การดูของตนเอง' :
+               language === 'vi' ? 'Lượt xem của bản thân' :
+               'Self Views',
+    externalViews: language === 'zh' ? '外部浏览' :
+                   language === 'ja' ? '外部の閲覧' :
+                   language === 'ar' ? 'مشاهدات خارجية' :
+                   language === 'es' ? 'Vistas externas' :
+                   language === 'fr' ? 'Vues externes' :
+                   language === 'de' ? 'Externe Aufrufe' :
+                   language === 'ko' ? '외부 조회' :
+                   language === 'ru' ? 'Внешние просмотры' :
+                   language === 'pt' ? 'Visualizações externas' :
+                   language === 'hi' ? 'बाहरी दृश्य' :
+                   language === 'th' ? 'การดูจากภายนอก' :
+                   language === 'vi' ? 'Lượt xem từ bên ngoài' :
+                   'External Views',
+    domesticViews: language === 'zh' ? '国内浏览' :
+                   language === 'ja' ? '国内閲覧' :
+                   language === 'ar' ? 'مشاهدات محلية' :
+                   language === 'es' ? 'Vistas nacionales' :
+                   language === 'fr' ? 'Vues nationales' :
+                   language === 'de' ? 'Inländische Aufrufe' :
+                   language === 'ko' ? '국내 조회' :
+                   language === 'ru' ? 'Внутренние просмотры' :
+                   language === 'pt' ? 'Visualizações nacionais' :
+                   language === 'hi' ? 'घरेलू दृश्य' :
+                   language === 'th' ? 'การดูในประเทศ' :
+                   language === 'vi' ? 'Lượt xem trong nước' :
+                   'Domestic Views',
+    internationalViews: language === 'zh' ? '国际浏览' :
+                        language === 'ja' ? '国際閲覧' :
+                        language === 'ar' ? 'مشاهدات دولية' :
+                        language === 'es' ? 'Vistas internacionales' :
+                        language === 'fr' ? 'Vues internationales' :
+                        language === 'de' ? 'Internationale Aufrufe' :
+                        language === 'ko' ? '국제 조회' :
+                        language === 'ru' ? 'Международные просмотры' :
+                        language === 'pt' ? 'Visualizações internacionais' :
+                        language === 'hi' ? 'अंतर्राष्ट्रीय दृश्य' :
+                        language === 'th' ? 'การดูจากต่างประเทศ' :
+                        language === 'vi' ? 'Lượt xem quốc tế' :
+                        'International Views',
+    topCountries: language === 'zh' ? '热门国家' :
+                  language === 'ja' ? '人気の国' :
+                  language === 'ar' ? 'الدول الشائعة' :
+                  language === 'es' ? 'Países principales' :
+                  language === 'fr' ? 'Principaux pays' :
+                  language === 'de' ? 'Top-Länder' :
+                  language === 'ko' ? '인기 국가' :
+                  language === 'ru' ? 'Популярные страны' :
+                  language === 'pt' ? 'Países principais' :
+                  language === 'hi' ? 'विश्व के देश' :
+                  language === 'th' ? 'ประเทศยอดนิยม' :
+                  language === 'vi' ? 'Các quốc gia phổ biến' :
+                  'Top Countries',
+    recentVisitors: language === 'zh' ? '最近访客' :
+                    language === 'ja' ? '最近の訪問者' :
+                    language === 'ar' ? 'الزوار الأخيرون' :
+                    language === 'es' ? 'Visitantes recientes' :
+                    language === 'fr' ? 'Visiteurs récents' :
+                    language === 'de' ? 'Letzte Besucher' :
+                    language === 'ko' ? '최근 방문자' :
+                    language === 'ru' ? 'Недавние посетители' :
+                    language === 'pt' ? 'Visitantes recentes' :
+                    language === 'hi' ? 'हाल के आगंतुक' :
+                    language === 'th' ? 'ผู้เข้าชมล่าสุด' :
+                    language === 'vi' ? 'Khách truy cập gần đây' :
+                    'Recent Visitors',
+    close: language === 'zh' ? '关闭' :
+           language === 'ja' ? '閉じる' :
+           language === 'ar' ? 'إغلاق' :
+           language === 'es' ? 'Cerrar' :
+           language === 'fr' ? 'Fermer' :
+           language === 'de' ? 'Schließen' :
+           language === 'ko' ? '닫기' :
+           language === 'ru' ? 'Закрыть' :
+           language === 'pt' ? 'Fechar' :
+           language === 'hi' ? 'बंद करें' :
+           language === 'th' ? 'ปิด' :
+           language === 'vi' ? 'Đóng' :
+           'Close',
+    viewDetails: language === 'zh' ? '查看详情' :
+                 language === 'ja' ? '詳細を表示' :
+                 language === 'ar' ? 'عرض التفاصيل' :
+                 language === 'es' ? 'Ver detalles' :
+                 language === 'fr' ? 'Voir les détails' :
+                 language === 'de' ? 'Details anzeigen' :
+                 language === 'ko' ? '세부 정보 보기' :
+                 language === 'ru' ? 'Посмотреть детали' :
+                 language === 'pt' ? 'Ver detalhes' :
+                 language === 'hi' ? 'विवरण देखें' :
+                 language === 'th' ? 'ดูรายละเอียด' :
+                 language === 'vi' ? 'Xem chi tiết' :
+                 'View Details',
+    noStats: language === 'zh' ? '暂无统计数据' :
+             language === 'ja' ? '統計データがありません' :
+             language === 'ar' ? 'لا توجد بيانات إحصاءية' :
+             language === 'es' ? 'No hay datos estadísticos' :
+             language === 'fr' ? 'Pas de données statistiques' :
+             language === 'de' ? 'Keine Statistikdaten' :
+             language === 'ko' ? '통계 데이터 없음' :
+             language === 'ru' ? 'Нет статистических данных' :
+             language === 'pt' ? 'Sem dados estatísticos' :
+             language === 'hi' ? 'कोई आँकड़ा नहीं' :
+             language === 'th' ? 'ไม่มีข้อมูลสถิติ' :
+             language === 'vi' ? 'Không có dữ liệu thống kê' :
+             'No statistics yet',
+    selfViewLabel: language === 'zh' ? '自己' :
+                   language === 'ja' ? '自己' :
+                   language === 'ar' ? 'ذاتي' :
+                   language === 'es' ? 'Propio' :
+                   language === 'fr' ? 'Propre' :
+                   language === 'de' ? 'Eigener' :
+                   language === 'ko' ? '자신' :
+                   language === 'ru' ? 'Свой' :
+                   language === 'pt' ? 'Próprio' :
+                   language === 'hi' ? 'स्वयं' :
+                   language === 'th' ? 'ตนเอง' :
+                   language === 'vi' ? 'Bản thân' :
+                   'Self',
+    externalViewLabel: language === 'zh' ? '外部' :
+                       language === 'ja' ? '外部' :
+                       language === 'ar' ? 'خارجي' :
+                       language === 'es' ? 'Externo' :
+                       language === 'fr' ? 'Externe' :
+                       language === 'de' ? 'Extern' :
+                       language === 'ko' ? '외부' :
+                       language === 'ru' ? 'Внешний' :
+                       language === 'pt' ? 'Externo' :
+                       language === 'hi' ? 'बाहरी' :
+                       language === 'th' ? 'ภายนอก' :
+                       language === 'vi' ? 'Bên ngoài' :
+                       'External',
+    loading: language === 'zh' ? '加载中...' :
+             language === 'ja' ? '読み込み中...' :
+             language === 'ar' ? 'جاري التحميل...' :
+             language === 'es' ? 'Cargando...' :
+             language === 'fr' ? 'Chargement...' :
+             language === 'de' ? 'Laden...' :
+             language === 'ko' ? '로딩 중...' :
+             language === 'ru' ? 'Загрузка...' :
+             language === 'pt' ? 'Carregando...' :
+             language === 'hi' ? 'लोड हो रहा है...' :
+             language === 'th' ? 'กำลังโหลด...' :
+             language === 'vi' ? 'Đang tải...' :
+             'Loading...'
   }
 
   const fetchProducts = async (page: number = 1) => {
@@ -492,6 +677,26 @@ export default function ProductsPage() {
     } finally {
       setMoveProductId(null)
       setMoveToBoothId(null)
+    }
+  }
+
+  const fetchViewStats = async (productId: string) => {
+    try {
+      setViewStatsLoading(true)
+      setViewStatsProductId(productId)
+      
+      const response = await fetch(`/api/seller/views?productId=${productId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch view stats')
+      }
+      
+      const data = await response.json()
+      setViewStats(data)
+    } catch (err) {
+      console.error('Error fetching view stats:', err)
+      setViewStats(null)
+    } finally {
+      setViewStatsLoading(false)
     }
   }
 
@@ -691,10 +896,14 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 flex items-center">
-                        <Eye className="w-4 h-4 mr-1 text-gray-400" />
+                      <button
+                        onClick={() => fetchViewStats(product.id)}
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center cursor-pointer transition-colors"
+                        title={t.viewDetails}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
                         {product.viewCount}
-                      </div>
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -890,6 +1099,217 @@ export default function ProductsPage() {
               >
                 <Check className="w-4 h-4" />
                 {t.moveToBooth}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Stats Modal */}
+      {viewStatsProductId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">{t.viewStats}</h2>
+              <button
+                onClick={() => {
+                  setViewStatsProductId(null)
+                  setViewStats(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {viewStatsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                <span className="ml-3 text-gray-600">{t.loading}</span>
+              </div>
+            ) : viewStats && viewStats.success ? (
+              <div className="space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <p className="text-sm text-blue-600 font-medium">{t.totalViews}</p>
+                    <p className="text-2xl font-bold text-blue-900">{viewStats.stats.totalViews}</p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <p className="text-sm text-green-600 font-medium">{t.selfViews}</p>
+                    <p className="text-2xl font-bold text-green-900">{viewStats.stats.selfViews}</p>
+                    <p className="text-xs text-green-600 mt-1">{viewStats.stats.selfViewPercentage}%</p>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <p className="text-sm text-orange-600 font-medium">{t.domesticViews}</p>
+                    <p className="text-2xl font-bold text-orange-900">{viewStats.stats.domesticViews}</p>
+                    <p className="text-xs text-orange-600 mt-1">{viewStats.stats.domesticPercentage}%</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <p className="text-sm text-purple-600 font-medium">{t.internationalViews}</p>
+                    <p className="text-2xl font-bold text-purple-900">{viewStats.stats.internationalViews}</p>
+                    <p className="text-xs text-purple-600 mt-1">{100 - viewStats.stats.domesticPercentage}%</p>
+                  </div>
+                </div>
+
+                {/* External Views Breakdown */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                        {t.selfViewLabel}: {viewStats.stats.selfViews}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                        {t.externalViewLabel}: {viewStats.stats.externalViews}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="mt-3 h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 transition-all"
+                      style={{ width: `${viewStats.stats.selfViewPercentage}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1 text-xs text-gray-500">
+                    <span>{t.selfViews}: {viewStats.stats.selfViewPercentage}%</span>
+                    <span>{t.externalViews}: {100 - viewStats.stats.selfViewPercentage}%</span>
+                  </div>
+                </div>
+
+                {/* Country Breakdown */}
+                {viewStats.countryBreakdown && viewStats.countryBreakdown.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{t.topCountries}</h3>
+                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {language === 'zh' ? '国家' : language === 'ja' ? '国' : 'Country'}
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {t.totalViews}
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {language === 'zh' ? '占比' : language === 'ja' ? '割合' : 'Percentage'}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {viewStats.countryBreakdown.map((country: any, index: number) => (
+                            <tr key={`${country.country}-${index}`} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <span className="font-medium text-gray-900">{country.country || '-'}</span>
+                                  {country.countryCode && (
+                                    <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                      {country.countryCode}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-900">
+                                {country.count}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-right">
+                                <div className="flex items-center justify-end">
+                                  <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div
+                                      className="bg-blue-500 h-2 rounded-full"
+                                      style={{
+                                        width: `${viewStats.stats.totalViews > 0 ? Math.round((country.count / viewStats.stats.totalViews) * 100) : 0}%`
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-sm text-gray-600">
+                                    {viewStats.stats.totalViews > 0 ? Math.round((country.count / viewStats.stats.totalViews) * 100) : 0}%
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Visitors */}
+                {viewStats.recentVisitors && viewStats.recentVisitors.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{t.recentVisitors}</h3>
+                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {language === 'zh' ? '时间' : language === 'ja' ? '時間' : 'Time'}
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {language === 'zh' ? '地区' : language === 'ja' ? '地域' : 'Region'}
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {language === 'zh' ? '类型' : language === 'ja' ? 'タイプ' : 'Type'}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {viewStats.recentVisitors.map((visitor: any) => (
+                            <tr key={visitor.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(visitor.createdAt).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {visitor.country || '-'}
+                                  {visitor.city && <span className="text-gray-500">, {visitor.city}</span>}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {visitor.isSelfView ? (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {t.selfViewLabel}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {t.externalViewLabel}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {(!viewStats.countryBreakdown || viewStats.countryBreakdown.length === 0) &&
+                 (!viewStats.recentVisitors || viewStats.recentVisitors.length === 0) &&
+                 viewStats.stats.totalViews === 0 && (
+                  <div className="text-center py-8">
+                    <Eye className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500">{t.noStats}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Eye className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-gray-500">{t.noStats}</p>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setViewStatsProductId(null)
+                  setViewStats(null)
+                }}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                {t.close}
               </button>
             </div>
           </div>

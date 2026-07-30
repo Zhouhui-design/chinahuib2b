@@ -17,7 +17,9 @@ const productSchema = z.object({
   descriptions: z.record(z.string(), z.string()).optional(),
   specifications: z.record(z.string(), z.any()).optional(),
   minOrderQty: z.number().min(1).optional(),
+  minOrderUnitId: z.string().optional(),
   supplyCapacity: z.string().optional(),
+  supplyCapacityUnitId: z.string().optional(),
   images: z.array(z.string().refine(
     (val) => val.startsWith('/uploads/') || /^https?:\/\//.test(val),
     { message: 'Image URL must be a valid URL or a relative path starting with /uploads/' }
@@ -108,19 +110,21 @@ export async function POST(request: NextRequest) {
         descriptions: Object.keys(descriptions).length > 0 ? descriptions : null,
         specifications: data.specifications || {},
         minOrderQty: data.minOrderQty,
+        minOrderUnitId: data.minOrderUnitId || null,
         supplyCapacity: data.supplyCapacity,
+        supplyCapacityUnitId: data.supplyCapacityUnitId || null,
         images: data.images || [],
         mainImageUrl: data.mainImageUrl || '',
         videos: data.videos || [],
         documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
         isFeatured: data.isFeatured,
-        acceptsOEM: data.acceptsOEM,
-        youtubeUrl: data.youtubeUrl,
         isActive: true,
       },
       include: {
         category: true,
-        seller: true
+        seller: true,
+        minOrderUnit: true,
+        supplyCapacityUnit: true
       }
     })
 
@@ -217,7 +221,9 @@ export async function GET(request: NextRequest) {
         where: { sellerId: seller.id },
         include: {
           category: { select: { name: true } },
-          booth: { select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true } }
+          booth: { select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true } },
+          minOrderUnit: true,
+          supplyCapacityUnit: true
         },
         orderBy: { createdAt: 'desc' },
         skip,

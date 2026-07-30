@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { ArrowLeft, Download, MessageCircle, Eye, Calendar, Package, Globe, Building2 } from 'lucide-react'
 import { getProductById } from '@/lib/api/products'
 import ChatWidget from '@/components/chat/ChatWidget'
+import VisitorTracker from '@/components/VisitorTracker'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo/StructuredData'
 import type { Metadata } from 'next'
 import { languages } from '@/lib/languages'
@@ -108,6 +109,9 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Visitor Tracking */}
+      <VisitorTracker productId={product.id} sellerId={product.seller.id} />
+      
       {/* Schema.org Structured Data */}
       <ProductSchema product={product} />
       <BreadcrumbSchema items={breadcrumbs} />

@@ -8,7 +8,7 @@ import {
   Check, X, Star, Truck, Shield, Award, Users, Clock, Package,
   Building2, ExternalLink, Loader2, ArrowLeft, Copy, CheckCircle2,
   Layers, Ruler, Box, Hash, Weight, Edit3, MessageSquare, Briefcase,
-  Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book, Download
+  Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book, Download, FileText
 } from 'lucide-react'
 import { SocialShare } from '@/components/seo/SocialShare'
 import { useSession } from 'next-auth/react'
@@ -540,6 +540,15 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {session ? 'Chat with Exhibitor' : 'Login to Chat'}
               </button>
+              {booth.documents && booth.documents.length > 0 && (
+                <a
+                  href="#documents-download"
+                  className="inline-flex items-center justify-center px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {locale === 'zh' ? `资料下载 (${booth.documents.length})` : `Downloads (${booth.documents.length})`}
+                </a>
+              )}
               <button
                 onClick={openFullChat}
                 className="inline-flex items-center justify-center px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
@@ -664,6 +673,51 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 </button>
               </div>
             </div>
+
+            {/* Documents Download */}
+            {booth.documents && booth.documents.length > 0 && (
+              <div id="documents-download" className="bg-white rounded-xl border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+                  <Download className="w-4 h-4 mr-2 text-blue-600" />
+                  {locale === 'zh' ? '资料下载' : 'Downloads'}
+                </h3>
+                <div className="space-y-2">
+                  {booth.documents.map((doc, index) => (
+                    <a
+                      key={index}
+                      href={doc.url}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        {doc.type?.includes('pdf') ? (
+                          <FileText className="w-4 h-4 text-red-500" />
+                        ) : doc.type?.includes('word') || doc.type?.includes('document') ? (
+                          <FileText className="w-4 h-4 text-blue-500" />
+                        ) : doc.type?.includes('sheet') || doc.type?.includes('excel') ? (
+                          <FileText className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <FileText className="w-4 h-4 text-gray-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate group-hover:text-blue-600">
+                          {doc.name || `Document ${index + 1}`}
+                        </p>
+                        {doc.size && (
+                          <p className="text-xs text-gray-500">
+                            {(doc.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        )}
+                      </div>
+                      <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Contact Information */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">

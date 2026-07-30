@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
         const translateName = (cat: any): CategoryNode => ({
           id: cat.id,
-          name: locale === 'en' && cat.nameEn ? cat.nameEn : cat.name,
+          name: locale === 'zh' ? cat.name : (cat.nameEn || cat.name),
           originalName: cat.name,
           nameEn: cat.nameEn || cat.name,
           slug: cat.slug,

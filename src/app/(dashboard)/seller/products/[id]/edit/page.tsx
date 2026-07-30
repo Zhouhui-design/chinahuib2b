@@ -17,6 +17,13 @@ interface Category {
   nameEn?: string
 }
 
+interface Unit {
+  id: string
+  name: string
+  nameEn: string
+  symbol?: string
+}
+
 export default function EditProductPage() {
   const router = useRouter()
   const params = useParams()
@@ -33,7 +40,10 @@ export default function EditProductPage() {
   const [categoryId, setCategoryId] = useState('')
   const [description, setDescription] = useState('')
   const [minOrderQty, setMinOrderQty] = useState<number | ''>('')
+  const [minOrderUnitId, setMinOrderUnitId] = useState<string>('')
   const [supplyCapacity, setSupplyCapacity] = useState('')
+  const [supplyCapacityUnitId, setSupplyCapacityUnitId] = useState<string>('')
+  const [units, setUnits] = useState<Unit[]>([])
   const [images, setImages] = useState<string[]>([])
   const [mainImageUrl, setMainImageUrl] = useState('')
   const [videos, setVideos] = useState<string[]>([])
@@ -48,7 +58,8 @@ export default function EditProductPage() {
   useEffect(() => {
     Promise.all([
       fetchCategories(),
-      fetchProduct()
+      fetchProduct(),
+      fetchUnits()
     ]).finally(() => setLoading(false))
   }, [productId, language])
 
@@ -61,6 +72,20 @@ export default function EditProductPage() {
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err)
+    }
+  }
+
+  const fetchUnits = async () => {
+    try {
+      const response = await fetch('/api/units')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          setUnits(data.data)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch units:', err)
     }
   }
 
@@ -82,7 +107,9 @@ export default function EditProductPage() {
       setImages(product.images || [])
       setMainImageUrl((product.mainImageUrl || product.images?.[0] || '') as string)
       setMinOrderQty(product.minOrderQty || '')
+      setMinOrderUnitId(product.minOrderUnitId || '')
       setSupplyCapacity(product.supplyCapacity || '')
+      setSupplyCapacityUnitId(product.supplyCapacityUnitId || '')
       setVideos(product.videos || [])
       setDocuments(product.documents || [])
       setAcceptsOEM(product.acceptsOEM || false)
@@ -204,7 +231,9 @@ export default function EditProductPage() {
         categoryId,
         description,
         minOrderQty: minOrderQty || undefined,
+        minOrderUnitId: minOrderUnitId || undefined,
         supplyCapacity: supplyCapacity || undefined,
+        supplyCapacityUnitId: supplyCapacityUnitId || undefined,
         images,
         mainImageUrl,
         videos: videos.length > 0 ? videos : undefined,
@@ -540,27 +569,55 @@ export default function EditProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Minimum Order Quantity
               </label>
-              <input
-                type="number"
-                value={minOrderQty}
-                onChange={(e) => setMinOrderQty(e.target.value ? Number(e.target.value) : '')}
-                placeholder="e.g., 100"
-                min="1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  value={minOrderQty}
+                  onChange={(e) => setMinOrderQty(e.target.value ? Number(e.target.value) : '')}
+                  placeholder="e.g., 100"
+                  min="1"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={minOrderUnitId}
+                  onChange={(e) => setMinOrderUnitId(e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '选择单位' : 'Select Unit'}</option>
+                  {units.map(unit => (
+                    <option key={unit.id} value={unit.id}>
+                      {language === 'zh' ? unit.name : unit.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Supply Capacity
               </label>
-              <input
-                type="text"
-                value={supplyCapacity}
-                onChange={(e) => setSupplyCapacity(e.target.value)}
-                placeholder="e.g., 10000 pieces/month"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={supplyCapacity}
+                  onChange={(e) => setSupplyCapacity(e.target.value)}
+                  placeholder="e.g., 10000 pieces/month"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={supplyCapacityUnitId}
+                  onChange={(e) => setSupplyCapacityUnitId(e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '选择单位' : 'Select Unit'}</option>
+                  {units.map(unit => (
+                    <option key={unit.id} value={unit.id}>
+                      {language === 'zh' ? unit.name : unit.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

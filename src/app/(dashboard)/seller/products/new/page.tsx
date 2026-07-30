@@ -17,6 +17,13 @@ interface Category {
   children?: Category[]
 }
 
+interface Unit {
+  id: string
+  name: string
+  nameEn: string
+  symbol?: string
+}
+
 interface UploadedFile {
   url: string
 }
@@ -40,7 +47,10 @@ export default function AddProductPage() {
   const [description, setDescription] = useState('')
   const [descriptions, setDescriptions] = useState<Record<string, string>>({})
   const [minOrderQty, setMinOrderQty] = useState<number | ''>('')
+  const [minOrderUnitId, setMinOrderUnitId] = useState<string>('')
   const [supplyCapacity, setSupplyCapacity] = useState('')
+  const [supplyCapacityUnitId, setSupplyCapacityUnitId] = useState<string>('')
+  const [units, setUnits] = useState<Unit[]>([])
   const [images, setImages] = useState<string[]>([])
   const [mainImageUrl, setMainImageUrl] = useState('')
   const [videos, setVideos] = useState<string[]>([])
@@ -63,12 +73,30 @@ export default function AddProductPage() {
   }, [])
 
   useEffect(() => {
+    fetchUnits()
+  }, [])
+
+  const fetchUnits = async () => {
+    try {
+      const response = await fetch('/api/units')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          setUnits(data.data)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch units:', err)
+    }
+  }
+
+  useEffect(() => {
     if (!title && !description && !categoryId) return
     const timer = setTimeout(() => {
       autoSaveDraft()
     }, 5000)
     return () => clearTimeout(timer)
-  }, [title, categoryId, description, minOrderQty, supplyCapacity, images, videos, documents, specifications])
+  }, [title, categoryId, description, minOrderQty, supplyCapacity, minOrderUnitId, supplyCapacityUnitId, images, videos, documents, specifications])
 
   const loadDraft = async (id: string) => {
     try {
@@ -85,7 +113,9 @@ export default function AddProductPage() {
             setTitles(pd.titles || {})
             setDescriptions(pd.descriptions || {})
             setMinOrderQty(pd.minOrderQty || '')
+            setMinOrderUnitId(pd.minOrderUnitId || '')
             setSupplyCapacity(pd.supplyCapacity || '')
+            setSupplyCapacityUnitId(pd.supplyCapacityUnitId || '')
             setImages(pd.images || [])
             setMainImageUrl(pd.mainImageUrl || '')
             setVideos(pd.videos || [])
@@ -102,7 +132,7 @@ export default function AddProductPage() {
 
   const autoSaveDraft = async () => {
     const productData = {
-      title, categoryId, description, minOrderQty, supplyCapacity, images, mainImageUrl,
+      title, categoryId, description, minOrderQty, minOrderUnitId, supplyCapacity, supplyCapacityUnitId, images, mainImageUrl,
       videos, documents,
       specifications: specifications.filter(s => s.key.trim() && s.value.trim())
     }
@@ -738,7 +768,9 @@ export default function AddProductPage() {
         description,
         descriptions: Object.keys(descriptions).length > 0 ? descriptions : undefined,
         minOrderQty: minOrderQty || undefined,
+        minOrderUnitId: minOrderUnitId || undefined,
         supplyCapacity: supplyCapacity || undefined,
+        supplyCapacityUnitId: supplyCapacityUnitId || undefined,
         images,
         mainImageUrl,
         videos: videos.length > 0 ? videos : undefined,
@@ -1183,27 +1215,55 @@ export default function AddProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.minOrderQty}
               </label>
-              <input
-                type="number"
-                value={minOrderQty}
-                onChange={(e) => setMinOrderQty(e.target.value ? Number(e.target.value) : '')}
-                placeholder={t.minOrderQtyPlaceholder}
-                min="1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  value={minOrderQty}
+                  onChange={(e) => setMinOrderQty(e.target.value ? Number(e.target.value) : '')}
+                  placeholder={t.minOrderQtyPlaceholder}
+                  min="1"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={minOrderUnitId}
+                  onChange={(e) => setMinOrderUnitId(e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '选择单位' : 'Select Unit'}</option>
+                  {units.map(unit => (
+                    <option key={unit.id} value={unit.id}>
+                      {language === 'zh' ? unit.name : unit.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.supplyCapacity}
               </label>
-              <input
-                type="text"
-                value={supplyCapacity}
-                onChange={(e) => setSupplyCapacity(e.target.value)}
-                placeholder={t.supplyCapacityPlaceholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={supplyCapacity}
+                  onChange={(e) => setSupplyCapacity(e.target.value)}
+                  placeholder={t.supplyCapacityPlaceholder}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={supplyCapacityUnitId}
+                  onChange={(e) => setSupplyCapacityUnitId(e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '选择单位' : 'Select Unit'}</option>
+                  {units.map(unit => (
+                    <option key={unit.id} value={unit.id}>
+                      {language === 'zh' ? unit.name : unit.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

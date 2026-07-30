@@ -157,13 +157,11 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
-    // Check if seller profile exists, if not create one
     let sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: session.user.id }
     })
 
     if (!sellerProfile) {
-      // Get user email from session
       const userEmail = session.user.email || ''
       
       sellerProfile = await prisma.sellerProfile.create({
@@ -173,8 +171,6 @@ export async function POST(request: NextRequest) {
           companyType: 'SOLE_PROPRIETORSHIP',
           country: 'CN',
           city: 'Hangzhou',
-          storeName: userEmail.split('@')[0] || 'My Store',
-          slug: `store-${session.user.id.slice(0, 8)}`,
           description: '',
         }
       })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
 
 interface GeoData {
   country: string
@@ -25,7 +26,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const ip = request.headers.get('x-forwarded-for') || 
+    const session = await auth()
+    const viewerId = session?.user?.id || null
+
+    let isSelfView = false
+    if (viewerId && sellerId) {
+      const seller = await prisma.sellerProfile.findUnique({
+        where: { id: sellerId },
+        select: { userId: true }
+      })
+      if (seller && seller.userId === viewerId) {
+        isSelfView = true
+      }
+    }
+
+    const ip = request.headers.get('cf-connecting-ip') ||
+               request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                request.headers.get('x-real-ip') ||
                request.socket?.remoteAddress ||
                'unknown'
@@ -40,45 +56,81 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Geolocation failed, skipped' })
     }
 
-    await prisma.visitor.create({
-      data: {
-        ipHash: hashIp(ip),
-        productId: productId || null,
-        sellerId: sellerId || null,
-        country: geoData.country,
-        countryCode: geoData.countryCode,
-        city: geoData.city,
-        region: geoData.regionName,
-        timezone: geoData.timezone,
-        isp: geoData.isp,
-        userAgent: request.headers.get('user-agent') || null,
-        url: request.headers.get('referer') || null,
-      }
-    })
+    // Create visitor record
+    // Use a transaction to handle potential foreign key issues gracefully
+    try {
+      await prisma.visitor.create({
+        data: {
+          ipHash: hashIp(ip),
+          productId: productId || null,
+          sellerId: sellerId || null,
+          viewerId,
+          country: geoData.country,
+          countryCode: geoData.countryCode,
+          city: geoData.city,
+          region: geoData.regionName,
+          timezone: geoData.timezone,
+          isp: geoData.isp,
+          userAgent: request.headers.get('user-agent') || null,
+          url: request.headers.get('referer') || null,
+          isSelfView,
+        }
+      })
+    } catch (createError) {
+      // If foreign key constraint fails (e.g., sellerId or productId doesn't exist),
+      // try creating without the problematic fields
+      console.warn('Visitor create with relationships failed, trying without:', createError instanceof Error ? createError.message : String(createError))
+      
+      // Create visitor without foreign key references if they don't exist
+      await prisma.visitor.create({
+        data: {
+          ipHash: hashIp(ip),
+          productId: null,
+          sellerId: null,
+          viewerId,
+          country: geoData.country,
+          countryCode: geoData.countryCode,
+          city: geoData.city,
+          region: geoData.regionName,
+          timezone: geoData.timezone,
+          isp: geoData.isp,
+          userAgent: request.headers.get('user-agent') || null,
+          url: request.headers.get('referer') || null,
+          isSelfView: false,
+        }
+      })
+    }
+
+    if (productId) {
+      await prisma.product.update({
+        where: { id: productId },
+        data: { viewCount: { increment: 1 } }
+      })
+    }
 
     return NextResponse.json({
       success: true,
       location: {
         country: geoData.country,
         city: geoData.city,
-        countryCode: geoData.countryCode
+        countryCode: geoData.countryCode,
+        isSelfView
       }
     })
 
   } catch (error) {
-    console.error('Visitor tracking error:', error)
+    console.error('Visitor tracking error:', error instanceof Error ? error.message : String(error))
     return NextResponse.json({
       success: true,
-      message: 'Tracking error, skipped'
+      message: 'Tracking error, skipped',
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 200 })
   }
 }
 
 async function fetchGeoData(ip: string): Promise<GeoData | null> {
   try {
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=country,countryCode,city,region,regionName,lat,lon,timezone,isp`, {
-      timeout: 5000
-    })
+    const response = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,city,region,regionName,lat,lon,timezone,isp,message`)
 
     if (!response.ok) {
       return null

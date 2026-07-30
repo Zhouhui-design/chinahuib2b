@@ -54,6 +54,7 @@ model User {
   marketplaceTasks           MarketplaceTask[]
   notices                    Notice[]
   paymentProofs              PaymentProof[]
+  visitors                   Visitor[]
   privateMessagesReceived    PrivateMessage[]            @relation("PrivateMessagesReceived")
   privateMessagesSent        PrivateMessage[]            @relation("PrivateMessagesSent")
   publicMessagesSent         PublicMessage[]             @relation("PublicMessagesSent")
@@ -179,6 +180,7 @@ model SellerProfile {
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
+  visitors             Visitor[]
 
   @@index([companyName])
   @@index([country])
@@ -218,6 +220,7 @@ model Booth {
   logoUrl         String?
   bannerUrl       String?
   keywords        Json?
+  documents       Json?
   isActive        Boolean       @default(true)
   isPublished     Boolean       @default(false)
   theme           String?
@@ -242,7 +245,9 @@ model Product {
   description    String?
   specifications Json?
   minOrderQty    Int?
+  minOrderUnitId String?
   supplyCapacity String?
+  supplyCapacityUnitId String?
   mainImageUrl   String
   images         String[]
   videos         String[]
@@ -263,6 +268,9 @@ model Product {
   category       Category         @relation(fields: [categoryId], references: [id])
   seller         SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   brochure       ProductBrochure?
+  visitors      Visitor[]
+  minOrderUnit   Unit?            @relation("ProductMinOrderUnit", fields: [minOrderUnitId], references: [id])
+  supplyCapacityUnit Unit?        @relation("ProductSupplyCapacityUnit", fields: [supplyCapacityUnitId], references: [id])
 
   @@index([sellerId])
   @@index([boothId])
@@ -688,6 +696,8 @@ model Unit {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   auctionListings AuctionListing[]
+  productsMinOrder Product[]       @relation("ProductMinOrderUnit")
+  productsSupplyCapacity Product[] @relation("ProductSupplyCapacityUnit")
 
   @@index([name])
   @@index([isEnabled])
@@ -892,6 +902,34 @@ model BoothView {
   @@index([sellerId])
   @@index([viewerId])
   @@index([viewedAt])
+}
+
+model Visitor {
+  id            String   @id @default(cuid())
+  ipHash        String
+  productId     String?
+  sellerId      String?
+  viewerId      String?
+  country       String?
+  countryCode   String?
+  city          String?
+  region        String?
+  timezone      String?
+  isp           String?
+  userAgent     String?
+  url           String?
+  isSelfView    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  product       Product?       @relation(fields: [productId], references: [id])
+  seller        SellerProfile? @relation(fields: [sellerId], references: [id])
+  viewer        User?          @relation(fields: [viewerId], references: [id])
+
+  @@index([productId])
+  @@index([sellerId])
+  @@index([countryCode])
+  @@index([isSelfView])
+  @@index([createdAt])
 }
 
 model AIPermission {
