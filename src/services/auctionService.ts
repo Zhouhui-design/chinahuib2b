@@ -165,7 +165,7 @@ export async function createAuctionListing(
     exportDocuments: safeArray(data.exportDocuments),
     hasExportLicense: data.hasExportLicense || false,
     exportLicenseNo: data.exportLicenseNo,
-    incoterms: safeArray(data.incoterms),
+    incoterms: safeArray(data.incoterms).join(', '),
     portOfLoading: data.portOfLoading,
     portOfDestination: data.portOfDestination,
   });

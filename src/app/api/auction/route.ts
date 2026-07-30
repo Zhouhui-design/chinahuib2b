@@ -115,26 +115,19 @@ export async function POST(request: NextRequest) {
     console.error('=== Error creating auction ===');
     console.error('Error type:', typeof error);
     console.error('Error message:', error?.message);
-    console.error('Error stack:', error?.stack);
     
-    const errorResponse: any = { error: 'Internal server error' };
+    const errorResponse: any = { error: 'Failed to create listing' };
     
-    if (error?.message) {
+    if (error?.message?.includes('Invalid `prisma.auctionListing.create()` invocation')) {
+      errorResponse.error = 'Data validation failed';
+      errorResponse.details = error.message?.split('\n').slice(0, 5).join('\n');
+    } else if (error?.message) {
       errorResponse.message = error.message;
-    }
-    if (error?.code) {
-      errorResponse.code = error.code;
-    }
-    if (error?.meta?.target) {
-      errorResponse.target = error.meta.target;
-    }
-    if (error?.meta?.field_name) {
-      errorResponse.field = error.meta.field_name;
     }
     
     console.error('Error response:', JSON.stringify(errorResponse));
     console.error('===============================');
     
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json(errorResponse, { status: 400 });
   }
 }
