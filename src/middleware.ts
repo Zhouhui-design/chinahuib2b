@@ -16,6 +16,9 @@ export function middleware(request: any) {
     pathname === '/sitemap.xml'
   ) {
     const response = NextResponse.next()
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
     return addSecurityHeaders(response)
   }
   
@@ -38,7 +41,8 @@ export function middleware(request: any) {
   // These routes don't need language prefix and handle their own i18n
   if (
     pathname.startsWith('/seller') ||
-    pathname.startsWith('/admin')
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auction/')
   ) {
     const response = NextResponse.next()
     return addSecurityHeaders(response)

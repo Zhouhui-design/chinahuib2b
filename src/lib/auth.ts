@@ -65,7 +65,11 @@ export const authOptions: AuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      return url.startsWith('/admin') ? url : '/'
+      const urlPath = url.startsWith('http') ? new URL(url).pathname : url
+      if (urlPath.startsWith('/admin') || urlPath.startsWith('/seller')) {
+        return url
+      }
+      return '/'
     }
   },
   session: {

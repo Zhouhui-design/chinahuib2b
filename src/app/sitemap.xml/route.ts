@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { languages } from '@/lib/languages'
 
+export const dynamic = 'force-dynamic'
+
 const BASE_URL = 'https://x2xhub.com'
 
 interface SitemapEntry {
@@ -92,6 +94,46 @@ export async function GET(request: NextRequest) {
       changefreq: 'daily',
       priority: 0.85,
       alternates: createAlternates('/exhibitions')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/auction-screen`,
+      lastmod: now,
+      changefreq: 'hourly',
+      priority: 0.95,
+      alternates: createAlternates('/auction-screen')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/chat-hall`,
+      lastmod: now,
+      changefreq: 'hourly',
+      priority: 0.9,
+      alternates: createAlternates('/chat-hall')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/api-docs`,
+      lastmod: now,
+      changefreq: 'weekly',
+      priority: 0.8,
+      alternates: createAlternates('/api-docs')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/ai-register`,
+      lastmod: now,
+      changefreq: 'weekly',
+      priority: 0.8,
+      alternates: createAlternates('/ai-register')
+    })
+
+    entries.push({
+      loc: `${BASE_URL}/partner-recruitment`,
+      lastmod: now,
+      changefreq: 'weekly',
+      priority: 0.75,
+      alternates: createAlternates('/partner-recruitment')
     })
 
     entries.push({
@@ -266,7 +308,30 @@ export async function GET(request: NextRequest) {
       console.warn('Failed to fetch tasks for sitemap:', error)
     }
 
-    const regionalPages = [
+    try {
+      const auctionListings = await prisma.auctionListing.findMany({
+        where: { status: { not: 'COMPLETED' } },
+        select: { id: true, updatedAt: true, title: true, status: true },
+        take: 2000
+      })
+
+      auctionListings
+        .filter(l => l.status === 'ACTIVE' || l.status === 'PENDING')
+        .forEach(listing => {
+          entries.push({
+            loc: `${BASE_URL}/auction/${listing.id}`,
+            lastmod: new Date(listing.updatedAt).toISOString().split('T')[0],
+            changefreq: 'hourly',
+            priority: 0.9,
+            alternates: createAlternates(`/auction/${listing.id}`)
+          })
+        })
+    } catch (error) {
+      console.warn('Failed to fetch auction listings for sitemap:', error)
+    }
+
+    try {
+      const regionalPages = [
       { path: '/marketplace?region=us', region: 'US', priority: 0.85 },
       { path: '/marketplace?region=eu', region: 'EU', priority: 0.85 },
       { path: '/marketplace?region=fr', region: 'FR', priority: 0.85 },
@@ -286,13 +351,19 @@ export async function GET(request: NextRequest) {
         alternates: createAlternates(page.path)
       })
     })
+    } catch (error) {
+      console.warn('Failed to process regional pages for sitemap:', error)
+    }
 
     const xml = generateSitemapXml(entries)
 
     return new NextResponse(xml, {
       headers: {
         'Content-Type': 'application/xml',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'x-sitemap-generated': now,
       },
     })
   } catch (error) {

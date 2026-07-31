@@ -14,11 +14,27 @@ const inter = Inter({
 const BASE_URL = "https://x2xhub.com";
 
 export const metadata: Metadata = {
-  title: "X2XHub - Global B2B Trade Exhibition Platform",
-  description: "Connect global buyers and sellers. Discover quality products and verified suppliers for international trade across 13 languages.",
+  title: {
+    default: 'X2XHub - Global B2B Trade Exhibition & Auction Platform',
+    template: '%s | X2XHub - Global B2B Trade',
+  },
+  description: 'Global B2B trade exhibition and auction platform. Connect buyers and sellers worldwide. Discover wholesale products, verified suppliers, industrial machinery, electronics, and more. Multi-language international trade marketplace with 13 supported languages.',
+  keywords: [
+    'B2B trade', 'global exhibition', 'online auction', 'wholesale marketplace',
+    'product sourcing', 'verified suppliers', 'international trade',
+    'industrial machinery', 'electronics wholesale', 'chemical products',
+    'agricultural products', 'textile wholesale', 'metal products',
+    'construction materials', 'food and beverage', 'consumer goods',
+    'global sourcing', 'trade platform', 'B2B marketplace',
+    '跨境电商', '国际贸易', 'B2B平台', '线上展会', '批发市场',
+    '国際貿易', 'B2B取引', 'オンライン展示会',
+    '국제무역', 'B2B플랫폼', '온라인전시회',
+    'التجارة العالمية', 'السوق الإلكتروني',
+    'international exhibition', 'global trade', 'B2B e-commerce',
+  ],
   verification: {
-    google: "google1234567890abcdef",
-    bing: "x2xhub-bing-verification-code",
+    google: process.env.GOOGLE_SITE_VERIFICATION || '',
+    bing: process.env.BING_SITE_VERIFICATION || '',
   },
   manifest: "/manifest.json",
   appleWebApp: {
@@ -36,8 +52,8 @@ export const metadata: Metadata = {
     ),
   },
   openGraph: {
-    title: "X2XHub - Global B2B Trade Exhibition Platform",
-    description: "Connect global buyers and sellers. Discover quality products and verified suppliers for international trade.",
+    title: 'X2XHub - Global B2B Trade Exhibition & Auction Platform',
+    description: 'Connect global buyers and sellers. Discover wholesale products and verified suppliers for international trade across 13 languages.',
     type: "website",
     url: BASE_URL,
     siteName: "X2XHub",
@@ -52,13 +68,26 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "X2XHub - Global B2B Trade Exhibition Platform",
-    description: "Connect global buyers and sellers. Discover quality products and verified suppliers for international trade.",
+    title: "X2XHub - Global B2B Trade Exhibition & Auction Platform",
+    description: "Connect global buyers and sellers. Discover wholesale products and verified suppliers for international trade.",
     images: [`${BASE_URL}/og-image.png`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   other: {
     "application-name": "X2XHub",
     "theme-color": "#2563eb",
+    "geo.region": "Global",
+    "geo.placename": "International",
   },
 };
 

@@ -285,3 +285,793 @@
 2026-07-28 12:05:24 +08:00:   syscall: 'open',
 2026-07-28 12:05:24 +08:00:   path: '/home/sardenesy/projects/chinahuib2b/.next/prerender-manifest.json'
 2026-07-28 12:05:24 +08:00: }
+2026-07-30 19:56:07 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:56:07 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 19:56:07 +08:00: 
+2026-07-30 19:56:07 +08:00: {
+2026-07-30 19:56:07 +08:00:   where: {
+2026-07-30 19:56:07 +08:00:     isActive: true,
+2026-07-30 19:56:07 +08:00:     isPublished: true,
+2026-07-30 19:56:07 +08:00:     ~~~~~~~~~~~
+2026-07-30 19:56:07 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:56:07 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 19:56:07 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:56:07 +08:00: ?   id?: StringFilter | String,
+2026-07-30 19:56:07 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 19:56:07 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 19:56:07 +08:00: ?   title?: StringFilter | String,
+2026-07-30 19:56:07 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 19:56:07 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 19:56:07 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 19:56:07 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 19:56:07 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 19:56:07 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 19:56:07 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 19:56:07 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 19:56:07 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 19:56:07 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 19:56:07 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 19:56:07 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 19:56:07 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 19:56:07 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 19:56:07 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 19:56:07 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 19:56:07 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 19:56:07 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 19:56:07 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 19:56:07 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 19:56:07 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 19:56:07 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 19:56:07 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 19:56:07 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 19:56:07 +08:00:   },
+2026-07-30 19:56:07 +08:00:   select: {
+2026-07-30 19:56:07 +08:00:     id: true,
+2026-07-30 19:56:07 +08:00:     slug: true,
+2026-07-30 19:56:07 +08:00:     updatedAt: true
+2026-07-30 19:56:07 +08:00:   },
+2026-07-30 19:56:07 +08:00:   take: 1000
+2026-07-30 19:56:07 +08:00: }
+2026-07-30 19:56:07 +08:00: 
+2026-07-30 19:56:07 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 19:56:07 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 19:56:07 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:56:07 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:56:07 +08:00: }
+2026-07-30 19:56:07 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:56:07 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 19:56:07 +08:00: 
+2026-07-30 19:56:07 +08:00: {
+2026-07-30 19:56:07 +08:00:   where: {
+2026-07-30 19:56:07 +08:00:     status: {
+2026-07-30 19:56:07 +08:00:       in: [
+2026-07-30 19:56:07 +08:00:         "ACTIVE",
+2026-07-30 19:56:07 +08:00:         "PENDING"
+2026-07-30 19:56:07 +08:00:       ]
+2026-07-30 19:56:07 +08:00:       ~~~~~~~~~~~
+2026-07-30 19:56:07 +08:00:     }
+2026-07-30 19:56:07 +08:00:   },
+2026-07-30 19:56:07 +08:00:   select: {
+2026-07-30 19:56:07 +08:00:     id: true,
+2026-07-30 19:56:07 +08:00:     updatedAt: true,
+2026-07-30 19:56:07 +08:00:     title: true
+2026-07-30 19:56:07 +08:00:   },
+2026-07-30 19:56:07 +08:00:   take: 2000
+2026-07-30 19:56:07 +08:00: }
+2026-07-30 19:56:07 +08:00: 
+2026-07-30 19:56:07 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 19:56:07 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 19:56:07 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:56:07 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:56:07 +08:00: }
+2026-07-30 19:57:58 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:57:58 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 19:57:58 +08:00: 
+2026-07-30 19:57:58 +08:00: {
+2026-07-30 19:57:58 +08:00:   where: {
+2026-07-30 19:57:58 +08:00:     isActive: true,
+2026-07-30 19:57:58 +08:00:     isPublished: true,
+2026-07-30 19:57:58 +08:00:     ~~~~~~~~~~~
+2026-07-30 19:57:58 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:57:58 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 19:57:58 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:57:58 +08:00: ?   id?: StringFilter | String,
+2026-07-30 19:57:58 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 19:57:58 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 19:57:58 +08:00: ?   title?: StringFilter | String,
+2026-07-30 19:57:58 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 19:57:58 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 19:57:58 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 19:57:58 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 19:57:58 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 19:57:58 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 19:57:58 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 19:57:58 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 19:57:58 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 19:57:58 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 19:57:58 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 19:57:58 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 19:57:58 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 19:57:58 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 19:57:58 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 19:57:58 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 19:57:58 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 19:57:58 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 19:57:58 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 19:57:58 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 19:57:58 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 19:57:58 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 19:57:58 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 19:57:58 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 19:57:58 +08:00:   },
+2026-07-30 19:57:58 +08:00:   select: {
+2026-07-30 19:57:58 +08:00:     id: true,
+2026-07-30 19:57:58 +08:00:     slug: true,
+2026-07-30 19:57:58 +08:00:     updatedAt: true
+2026-07-30 19:57:58 +08:00:   },
+2026-07-30 19:57:58 +08:00:   take: 1000
+2026-07-30 19:57:58 +08:00: }
+2026-07-30 19:57:58 +08:00: 
+2026-07-30 19:57:58 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 19:57:58 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 19:57:58 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:57:58 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:57:58 +08:00: }
+2026-07-30 19:57:58 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:57:58 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 19:57:58 +08:00: 
+2026-07-30 19:57:58 +08:00: {
+2026-07-30 19:57:58 +08:00:   where: {
+2026-07-30 19:57:58 +08:00:     status: {
+2026-07-30 19:57:58 +08:00:       in: [
+2026-07-30 19:57:58 +08:00:         "ACTIVE",
+2026-07-30 19:57:58 +08:00:         "PENDING"
+2026-07-30 19:57:58 +08:00:       ]
+2026-07-30 19:57:58 +08:00:       ~~~~~~~~~~~
+2026-07-30 19:57:58 +08:00:     }
+2026-07-30 19:57:58 +08:00:   },
+2026-07-30 19:57:58 +08:00:   select: {
+2026-07-30 19:57:58 +08:00:     id: true,
+2026-07-30 19:57:58 +08:00:     updatedAt: true,
+2026-07-30 19:57:58 +08:00:     title: true
+2026-07-30 19:57:58 +08:00:   },
+2026-07-30 19:57:58 +08:00:   take: 2000
+2026-07-30 19:57:58 +08:00: }
+2026-07-30 19:57:58 +08:00: 
+2026-07-30 19:57:58 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 19:57:58 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 19:57:58 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:57:58 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:57:58 +08:00: }
+2026-07-30 19:58:05 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:58:05 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 19:58:05 +08:00: 
+2026-07-30 19:58:05 +08:00: {
+2026-07-30 19:58:05 +08:00:   where: {
+2026-07-30 19:58:05 +08:00:     isActive: true,
+2026-07-30 19:58:05 +08:00:     isPublished: true,
+2026-07-30 19:58:05 +08:00:     ~~~~~~~~~~~
+2026-07-30 19:58:05 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:58:05 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 19:58:05 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:58:05 +08:00: ?   id?: StringFilter | String,
+2026-07-30 19:58:05 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 19:58:05 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 19:58:05 +08:00: ?   title?: StringFilter | String,
+2026-07-30 19:58:05 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 19:58:05 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 19:58:05 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 19:58:05 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 19:58:05 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 19:58:05 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 19:58:05 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 19:58:05 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 19:58:05 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 19:58:05 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 19:58:05 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 19:58:05 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 19:58:05 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 19:58:05 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 19:58:05 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 19:58:05 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 19:58:05 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 19:58:05 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 19:58:05 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 19:58:05 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 19:58:05 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 19:58:05 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 19:58:05 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 19:58:05 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 19:58:05 +08:00:   },
+2026-07-30 19:58:05 +08:00:   select: {
+2026-07-30 19:58:05 +08:00:     id: true,
+2026-07-30 19:58:05 +08:00:     slug: true,
+2026-07-30 19:58:05 +08:00:     updatedAt: true
+2026-07-30 19:58:05 +08:00:   },
+2026-07-30 19:58:05 +08:00:   take: 1000
+2026-07-30 19:58:05 +08:00: }
+2026-07-30 19:58:05 +08:00: 
+2026-07-30 19:58:05 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 19:58:05 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 19:58:05 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:58:05 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:58:05 +08:00: }
+2026-07-30 19:58:05 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:58:05 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 19:58:05 +08:00: 
+2026-07-30 19:58:05 +08:00: {
+2026-07-30 19:58:05 +08:00:   where: {
+2026-07-30 19:58:05 +08:00:     status: {
+2026-07-30 19:58:05 +08:00:       in: [
+2026-07-30 19:58:05 +08:00:         "ACTIVE",
+2026-07-30 19:58:05 +08:00:         "PENDING"
+2026-07-30 19:58:05 +08:00:       ]
+2026-07-30 19:58:05 +08:00:       ~~~~~~~~~~~
+2026-07-30 19:58:05 +08:00:     }
+2026-07-30 19:58:05 +08:00:   },
+2026-07-30 19:58:05 +08:00:   select: {
+2026-07-30 19:58:05 +08:00:     id: true,
+2026-07-30 19:58:05 +08:00:     updatedAt: true,
+2026-07-30 19:58:05 +08:00:     title: true
+2026-07-30 19:58:05 +08:00:   },
+2026-07-30 19:58:05 +08:00:   take: 2000
+2026-07-30 19:58:05 +08:00: }
+2026-07-30 19:58:05 +08:00: 
+2026-07-30 19:58:05 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 19:58:05 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 19:58:05 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:58:05 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:58:05 +08:00: }
+2026-07-30 19:58:19 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:58:19 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 19:58:19 +08:00: 
+2026-07-30 19:58:19 +08:00: {
+2026-07-30 19:58:19 +08:00:   where: {
+2026-07-30 19:58:19 +08:00:     isActive: true,
+2026-07-30 19:58:19 +08:00:     isPublished: true,
+2026-07-30 19:58:19 +08:00:     ~~~~~~~~~~~
+2026-07-30 19:58:19 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:58:19 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 19:58:19 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 19:58:19 +08:00: ?   id?: StringFilter | String,
+2026-07-30 19:58:19 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 19:58:19 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 19:58:19 +08:00: ?   title?: StringFilter | String,
+2026-07-30 19:58:19 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 19:58:19 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 19:58:19 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 19:58:19 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 19:58:19 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 19:58:19 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 19:58:19 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 19:58:19 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 19:58:19 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 19:58:19 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 19:58:19 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 19:58:19 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 19:58:19 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 19:58:19 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 19:58:19 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 19:58:19 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 19:58:19 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 19:58:19 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 19:58:19 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 19:58:19 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 19:58:19 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 19:58:19 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 19:58:19 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 19:58:19 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 19:58:19 +08:00:   },
+2026-07-30 19:58:19 +08:00:   select: {
+2026-07-30 19:58:19 +08:00:     id: true,
+2026-07-30 19:58:19 +08:00:     slug: true,
+2026-07-30 19:58:19 +08:00:     updatedAt: true
+2026-07-30 19:58:19 +08:00:   },
+2026-07-30 19:58:19 +08:00:   take: 1000
+2026-07-30 19:58:19 +08:00: }
+2026-07-30 19:58:19 +08:00: 
+2026-07-30 19:58:19 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 19:58:19 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 19:58:19 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:58:19 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:58:19 +08:00: }
+2026-07-30 19:58:19 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 19:58:19 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 19:58:19 +08:00: 
+2026-07-30 19:58:19 +08:00: {
+2026-07-30 19:58:19 +08:00:   where: {
+2026-07-30 19:58:19 +08:00:     status: {
+2026-07-30 19:58:19 +08:00:       in: [
+2026-07-30 19:58:19 +08:00:         "ACTIVE",
+2026-07-30 19:58:19 +08:00:         "PENDING"
+2026-07-30 19:58:19 +08:00:       ]
+2026-07-30 19:58:19 +08:00:       ~~~~~~~~~~~
+2026-07-30 19:58:19 +08:00:     }
+2026-07-30 19:58:19 +08:00:   },
+2026-07-30 19:58:19 +08:00:   select: {
+2026-07-30 19:58:19 +08:00:     id: true,
+2026-07-30 19:58:19 +08:00:     updatedAt: true,
+2026-07-30 19:58:19 +08:00:     title: true
+2026-07-30 19:58:19 +08:00:   },
+2026-07-30 19:58:19 +08:00:   take: 2000
+2026-07-30 19:58:19 +08:00: }
+2026-07-30 19:58:19 +08:00: 
+2026-07-30 19:58:19 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 19:58:19 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 19:58:19 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 19:58:19 +08:00:   clientVersion: '7.8.0'
+2026-07-30 19:58:19 +08:00: }
+2026-07-30 20:00:17 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:17 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: {
+2026-07-30 20:00:17 +08:00:   where: {
+2026-07-30 20:00:17 +08:00:     isActive: true,
+2026-07-30 20:00:17 +08:00:     isPublished: true,
+2026-07-30 20:00:17 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:00:17 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:00:17 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:00:17 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:00:17 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:00:17 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:00:17 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:00:17 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:00:17 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:17 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:17 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:00:17 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:00:17 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:00:17 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:00:17 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:00:17 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   select: {
+2026-07-30 20:00:17 +08:00:     id: true,
+2026-07-30 20:00:17 +08:00:     slug: true,
+2026-07-30 20:00:17 +08:00:     updatedAt: true
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   take: 1000
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:00:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:00:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:17 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: {
+2026-07-30 20:00:17 +08:00:   where: {
+2026-07-30 20:00:17 +08:00:     status: {
+2026-07-30 20:00:17 +08:00:       in: [
+2026-07-30 20:00:17 +08:00:         "ACTIVE",
+2026-07-30 20:00:17 +08:00:         "PENDING"
+2026-07-30 20:00:17 +08:00:       ]
+2026-07-30 20:00:17 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:00:17 +08:00:     }
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   select: {
+2026-07-30 20:00:17 +08:00:     id: true,
+2026-07-30 20:00:17 +08:00:     updatedAt: true,
+2026-07-30 20:00:17 +08:00:     title: true
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   take: 2000
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:00:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:00:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:17 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: {
+2026-07-30 20:00:17 +08:00:   where: {
+2026-07-30 20:00:17 +08:00:     isActive: true,
+2026-07-30 20:00:17 +08:00:     isPublished: true,
+2026-07-30 20:00:17 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:00:17 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:17 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:00:17 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:00:17 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:00:17 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:00:17 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:00:17 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:00:17 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:00:17 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:00:17 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:17 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:17 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:00:17 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:00:17 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:00:17 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:00:17 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:00:17 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:00:17 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:00:17 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   select: {
+2026-07-30 20:00:17 +08:00:     id: true,
+2026-07-30 20:00:17 +08:00:     slug: true,
+2026-07-30 20:00:17 +08:00:     updatedAt: true
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   take: 1000
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:00:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:00:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:17 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: {
+2026-07-30 20:00:17 +08:00:   where: {
+2026-07-30 20:00:17 +08:00:     status: {
+2026-07-30 20:00:17 +08:00:       in: [
+2026-07-30 20:00:17 +08:00:         "ACTIVE",
+2026-07-30 20:00:17 +08:00:         "PENDING"
+2026-07-30 20:00:17 +08:00:       ]
+2026-07-30 20:00:17 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:00:17 +08:00:     }
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   select: {
+2026-07-30 20:00:17 +08:00:     id: true,
+2026-07-30 20:00:17 +08:00:     updatedAt: true,
+2026-07-30 20:00:17 +08:00:     title: true
+2026-07-30 20:00:17 +08:00:   },
+2026-07-30 20:00:17 +08:00:   take: 2000
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:17 +08:00: 
+2026-07-30 20:00:17 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:00:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:00:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:17 +08:00: }
+2026-07-30 20:00:30 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:30 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:00:30 +08:00: 
+2026-07-30 20:00:30 +08:00: {
+2026-07-30 20:00:30 +08:00:   where: {
+2026-07-30 20:00:30 +08:00:     isActive: true,
+2026-07-30 20:00:30 +08:00:     isPublished: true,
+2026-07-30 20:00:30 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:00:30 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:30 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:00:30 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:00:30 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:00:30 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:00:30 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:00:30 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:00:30 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:00:30 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:00:30 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:00:30 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:00:30 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:00:30 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:00:30 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:00:30 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:00:30 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:00:30 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:00:30 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:00:30 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:00:30 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:00:30 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:30 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:00:30 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:00:30 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:00:30 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:00:30 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:00:30 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:00:30 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:00:30 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:00:30 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:00:30 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:00:30 +08:00:   },
+2026-07-30 20:00:30 +08:00:   select: {
+2026-07-30 20:00:30 +08:00:     id: true,
+2026-07-30 20:00:30 +08:00:     slug: true,
+2026-07-30 20:00:30 +08:00:     updatedAt: true
+2026-07-30 20:00:30 +08:00:   },
+2026-07-30 20:00:30 +08:00:   take: 1000
+2026-07-30 20:00:30 +08:00: }
+2026-07-30 20:00:30 +08:00: 
+2026-07-30 20:00:30 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:00:30 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:00:30 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:30 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:30 +08:00: }
+2026-07-30 20:00:31 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:00:31 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:00:31 +08:00: 
+2026-07-30 20:00:31 +08:00: {
+2026-07-30 20:00:31 +08:00:   where: {
+2026-07-30 20:00:31 +08:00:     status: {
+2026-07-30 20:00:31 +08:00:       in: [
+2026-07-30 20:00:31 +08:00:         "ACTIVE",
+2026-07-30 20:00:31 +08:00:         "PENDING"
+2026-07-30 20:00:31 +08:00:       ]
+2026-07-30 20:00:31 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:00:31 +08:00:     }
+2026-07-30 20:00:31 +08:00:   },
+2026-07-30 20:00:31 +08:00:   select: {
+2026-07-30 20:00:31 +08:00:     id: true,
+2026-07-30 20:00:31 +08:00:     updatedAt: true,
+2026-07-30 20:00:31 +08:00:     title: true
+2026-07-30 20:00:31 +08:00:   },
+2026-07-30 20:00:31 +08:00:   take: 2000
+2026-07-30 20:00:31 +08:00: }
+2026-07-30 20:00:31 +08:00: 
+2026-07-30 20:00:31 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:00:31 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:00:31 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:00:31 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:00:31 +08:00: }
+2026-07-30 20:01:17 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:01:17 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:01:17 +08:00: 
+2026-07-30 20:01:17 +08:00: {
+2026-07-30 20:01:17 +08:00:   where: {
+2026-07-30 20:01:17 +08:00:     isActive: true,
+2026-07-30 20:01:17 +08:00:     isPublished: true,
+2026-07-30 20:01:17 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:01:17 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:01:17 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:01:17 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:01:17 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:01:17 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:01:17 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:01:17 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:01:17 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:01:17 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:01:17 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:01:17 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:01:17 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:01:17 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:01:17 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:01:17 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:01:17 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:01:17 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:01:17 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:01:17 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:01:17 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:01:17 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:01:17 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:01:17 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:01:17 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:01:17 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:01:17 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:01:17 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:01:17 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:01:17 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:01:17 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:01:17 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:01:17 +08:00:   },
+2026-07-30 20:01:17 +08:00:   select: {
+2026-07-30 20:01:17 +08:00:     id: true,
+2026-07-30 20:01:17 +08:00:     slug: true,
+2026-07-30 20:01:17 +08:00:     updatedAt: true
+2026-07-30 20:01:17 +08:00:   },
+2026-07-30 20:01:17 +08:00:   take: 1000
+2026-07-30 20:01:17 +08:00: }
+2026-07-30 20:01:17 +08:00: 
+2026-07-30 20:01:17 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:01:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:01:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:01:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:01:17 +08:00: }
+2026-07-30 20:01:17 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:01:17 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:01:17 +08:00: 
+2026-07-30 20:01:17 +08:00: {
+2026-07-30 20:01:17 +08:00:   where: {
+2026-07-30 20:01:17 +08:00:     status: {
+2026-07-30 20:01:17 +08:00:       in: [
+2026-07-30 20:01:17 +08:00:         "ACTIVE",
+2026-07-30 20:01:17 +08:00:         "PENDING"
+2026-07-30 20:01:17 +08:00:       ]
+2026-07-30 20:01:17 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:01:17 +08:00:     }
+2026-07-30 20:01:17 +08:00:   },
+2026-07-30 20:01:17 +08:00:   select: {
+2026-07-30 20:01:17 +08:00:     id: true,
+2026-07-30 20:01:17 +08:00:     updatedAt: true,
+2026-07-30 20:01:17 +08:00:     title: true
+2026-07-30 20:01:17 +08:00:   },
+2026-07-30 20:01:17 +08:00:   take: 2000
+2026-07-30 20:01:17 +08:00: }
+2026-07-30 20:01:17 +08:00: 
+2026-07-30 20:01:17 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:01:17 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:01:17 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:01:17 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:01:17 +08:00: }
+2026-07-30 20:01:42 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:01:42 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:01:42 +08:00: 
+2026-07-30 20:01:42 +08:00: {
+2026-07-30 20:01:42 +08:00:   where: {
+2026-07-30 20:01:42 +08:00:     isActive: true,
+2026-07-30 20:01:42 +08:00:     isPublished: true,
+2026-07-30 20:01:42 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:01:42 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:01:42 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:01:42 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:01:42 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:01:42 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:01:42 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:01:42 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:01:42 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:01:42 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:01:42 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:01:42 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:01:42 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:01:42 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:01:42 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:01:42 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:01:42 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:01:42 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:01:42 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:01:42 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:01:42 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:01:42 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:01:42 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:01:42 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:01:42 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:01:42 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:01:42 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:01:42 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:01:42 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:01:42 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:01:42 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:01:42 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:01:42 +08:00:   },
+2026-07-30 20:01:42 +08:00:   select: {
+2026-07-30 20:01:42 +08:00:     id: true,
+2026-07-30 20:01:42 +08:00:     slug: true,
+2026-07-30 20:01:42 +08:00:     updatedAt: true
+2026-07-30 20:01:42 +08:00:   },
+2026-07-30 20:01:42 +08:00:   take: 1000
+2026-07-30 20:01:42 +08:00: }
+2026-07-30 20:01:42 +08:00: 
+2026-07-30 20:01:42 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:01:42 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:01:42 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:01:42 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:01:42 +08:00: }
+2026-07-30 20:01:42 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:01:42 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:01:42 +08:00: 
+2026-07-30 20:01:42 +08:00: {
+2026-07-30 20:01:42 +08:00:   where: {
+2026-07-30 20:01:42 +08:00:     status: {
+2026-07-30 20:01:42 +08:00:       in: [
+2026-07-30 20:01:42 +08:00:         "ACTIVE",
+2026-07-30 20:01:42 +08:00:         "PENDING"
+2026-07-30 20:01:42 +08:00:       ]
+2026-07-30 20:01:42 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:01:42 +08:00:     }
+2026-07-30 20:01:42 +08:00:   },
+2026-07-30 20:01:42 +08:00:   select: {
+2026-07-30 20:01:42 +08:00:     id: true,
+2026-07-30 20:01:42 +08:00:     updatedAt: true,
+2026-07-30 20:01:42 +08:00:     title: true
+2026-07-30 20:01:42 +08:00:   },
+2026-07-30 20:01:42 +08:00:   take: 2000
+2026-07-30 20:01:42 +08:00: }
+2026-07-30 20:01:42 +08:00: 
+2026-07-30 20:01:42 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:01:42 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:01:42 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3442) {
+2026-07-30 20:01:42 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:01:42 +08:00: }
+2026-07-30 20:06:44 +08:00: Failed to fetch products for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:06:44 +08:00: Invalid `prisma.product.findMany()` invocation:
+2026-07-30 20:06:44 +08:00: 
+2026-07-30 20:06:44 +08:00: {
+2026-07-30 20:06:44 +08:00:   where: {
+2026-07-30 20:06:44 +08:00:     isActive: true,
+2026-07-30 20:06:44 +08:00:     isPublished: true,
+2026-07-30 20:06:44 +08:00:     ~~~~~~~~~~~
+2026-07-30 20:06:44 +08:00: ?   AND?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:06:44 +08:00: ?   OR?: ProductWhereInput[],
+2026-07-30 20:06:44 +08:00: ?   NOT?: ProductWhereInput | ProductWhereInput[],
+2026-07-30 20:06:44 +08:00: ?   id?: StringFilter | String,
+2026-07-30 20:06:44 +08:00: ?   sellerId?: StringFilter | String,
+2026-07-30 20:06:44 +08:00: ?   categoryId?: StringFilter | String,
+2026-07-30 20:06:44 +08:00: ?   title?: StringFilter | String,
+2026-07-30 20:06:44 +08:00: ?   titleEn?: StringNullableFilter | String | Null,
+2026-07-30 20:06:44 +08:00: ?   description?: StringNullableFilter | String | Null,
+2026-07-30 20:06:44 +08:00: ?   specifications?: JsonNullableFilter,
+2026-07-30 20:06:44 +08:00: ?   minOrderQty?: IntNullableFilter | Int | Null,
+2026-07-30 20:06:44 +08:00: ?   supplyCapacity?: StringNullableFilter | String | Null,
+2026-07-30 20:06:44 +08:00: ?   mainImageUrl?: StringFilter | String,
+2026-07-30 20:06:44 +08:00: ?   images?: StringNullableListFilter,
+2026-07-30 20:06:44 +08:00: ?   videos?: StringNullableListFilter,
+2026-07-30 20:06:44 +08:00: ?   documents?: JsonNullableFilter,
+2026-07-30 20:06:44 +08:00: ?   hasBrochure?: BoolFilter | Boolean,
+2026-07-30 20:06:44 +08:00: ?   viewCount?: IntFilter | Int,
+2026-07-30 20:06:44 +08:00: ?   inquiryCount?: IntFilter | Int,
+2026-07-30 20:06:44 +08:00: ?   isFeatured?: BoolFilter | Boolean,
+2026-07-30 20:06:44 +08:00: ?   createdAt?: DateTimeFilter | DateTime,
+2026-07-30 20:06:44 +08:00: ?   updatedAt?: DateTimeFilter | DateTime,
+2026-07-30 20:06:44 +08:00: ?   boothId?: StringNullableFilter | String | Null,
+2026-07-30 20:06:44 +08:00: ?   descriptions?: JsonNullableFilter,
+2026-07-30 20:06:44 +08:00: ?   titles?: JsonNullableFilter,
+2026-07-30 20:06:44 +08:00: ?   inquiries?: InquiryListRelationFilter,
+2026-07-30 20:06:44 +08:00: ?   reviews?: ReviewListRelationFilter,
+2026-07-30 20:06:44 +08:00: ?   booth?: BoothNullableScalarRelationFilter | BoothWhereInput | Null,
+2026-07-30 20:06:44 +08:00: ?   category?: CategoryScalarRelationFilter | CategoryWhereInput,
+2026-07-30 20:06:44 +08:00: ?   seller?: SellerProfileScalarRelationFilter | SellerProfileWhereInput,
+2026-07-30 20:06:44 +08:00: ?   brochure?: ProductBrochureNullableScalarRelationFilter | ProductBrochureWhereInput | Null
+2026-07-30 20:06:44 +08:00:   },
+2026-07-30 20:06:44 +08:00:   select: {
+2026-07-30 20:06:44 +08:00:     id: true,
+2026-07-30 20:06:44 +08:00:     slug: true,
+2026-07-30 20:06:44 +08:00:     updatedAt: true
+2026-07-30 20:06:44 +08:00:   },
+2026-07-30 20:06:44 +08:00:   take: 1000
+2026-07-30 20:06:44 +08:00: }
+2026-07-30 20:06:44 +08:00: 
+2026-07-30 20:06:44 +08:00: Unknown argument `isPublished`. Available options are marked with ?.
+2026-07-30 20:06:44 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:3387)
+2026-07-30 20:06:44 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3478) {
+2026-07-30 20:06:44 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:06:44 +08:00: }
+2026-07-30 20:06:44 +08:00: Failed to fetch auction listings for sitemap: Error [PrismaClientValidationError]: 
+2026-07-30 20:06:44 +08:00: Invalid `prisma.auctionListing.findMany()` invocation:
+2026-07-30 20:06:44 +08:00: 
+2026-07-30 20:06:44 +08:00: {
+2026-07-30 20:06:44 +08:00:   where: {
+2026-07-30 20:06:44 +08:00:     status: {
+2026-07-30 20:06:44 +08:00:       in: [
+2026-07-30 20:06:44 +08:00:         "ACTIVE",
+2026-07-30 20:06:44 +08:00:         "PENDING"
+2026-07-30 20:06:44 +08:00:       ]
+2026-07-30 20:06:44 +08:00:       ~~~~~~~~~~~
+2026-07-30 20:06:44 +08:00:     }
+2026-07-30 20:06:44 +08:00:   },
+2026-07-30 20:06:44 +08:00:   select: {
+2026-07-30 20:06:44 +08:00:     id: true,
+2026-07-30 20:06:44 +08:00:     updatedAt: true,
+2026-07-30 20:06:44 +08:00:     title: true
+2026-07-30 20:06:44 +08:00:   },
+2026-07-30 20:06:44 +08:00:   take: 2000
+2026-07-30 20:06:44 +08:00: }
+2026-07-30 20:06:44 +08:00: 
+2026-07-30 20:06:44 +08:00: Invalid value for argument `in`. Expected AuctionStatus.
+2026-07-30 20:06:44 +08:00:     at async j (.next/server/app/sitemap.xml/route.js:1:5152)
+2026-07-30 20:06:44 +08:00:     at async k (.next/server/app/sitemap.xml/route.js:11:3478) {
+2026-07-30 20:06:44 +08:00:   clientVersion: '7.8.0'
+2026-07-30 20:06:44 +08:00: }
