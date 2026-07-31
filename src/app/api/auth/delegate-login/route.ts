@@ -1,7 +1,47 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
+import { EncryptJWT } from "jose"
+import hkdf from "@panva/hkdf"
+import { v4 as uuidv4 } from "uuid"
+
+const DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
+const now = () => (Date.now() / 1000) | 0
+
+/**
+ * Derive encryption key from secret + salt, matching next-auth's encode().
+ * next-auth uses HKDF with SHA-512, info = "NextAuth.js Generated Encryption Key".
+ */
+async function getDerivedEncryptionKey(secret: string, salt: string): Promise<Uint8Array> {
+  const key = await hkdf(
+    "sha512",
+    secret,
+    "",
+    `NextAuth.js Generated Encryption Key${salt ? ` (${salt})` : ""}`,
+    32
+  )
+  return key
+}
+
+/**
+ * Encode a JWT session token using next-auth's JWE format (A256GCM encrypted).
+ * This mirrors next-auth's jwt.encode() which uses jose.EncryptJWT.
+ */
+async function encodeAuthToken(token: Record<string, any>, secret: string): Promise<string> {
+  const maxAge = DEFAULT_MAX_AGE
+  const salt = "authjs.session-token" // next-auth default salt for session token
+  
+  const encryptionSecret = await getDerivedEncryptionKey(secret, salt)
+  
+  const jwt = await new EncryptJWT(token)
+    .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
+    .setIssuedAt()
+    .setExpirationTime(now() + maxAge)
+    .setJti(uuidv4())
+    .encrypt(encryptionSecret)
+  
+  return jwt
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,27 +95,23 @@ export async function POST(request: NextRequest) {
 
     const secret = process.env.NEXTAUTH_SECRET || 'x2xhub_fallback_secret_32chars_long_enough'
 
-    const now = Math.floor(Date.now() / 1000)
-    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-
-    const sessionPayload = {
-      user: {
-        id: user.id,
-        name: user.username,
-        email: user.email,
-        role: user.role,
-      },
-      role: user.role,
+    // Build the JWT payload matching next-auth's format.
+    // next-auth's jwt callback sets token.role and token.id when user is present.
+    const tokenPayload = {
+      name: user.username,
+      email: user.email,
+      picture: null,
+      sub: user.id,
       id: user.id,
-      expires,
-      iat: now,
-      exp: now + 30 * 24 * 60 * 60,
+      role: user.role,
     }
 
-    const sessionToken = jwt.sign(sessionPayload, secret, {
-      algorithm: 'HS256',
-      header: { typ: 'JWT', alg: 'HS256' },
-    })
+    const sessionToken = await encodeAuthToken(tokenPayload, secret)
+
+    const isSecure = process.env.NODE_ENV === "production"
+    const cookieName = isSecure
+      ? "__Secure-next-auth.session-token"
+      : "next-auth.session-token"
 
     const response = NextResponse.json({
       success: true,
@@ -87,21 +123,11 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const isSecure = process.env.NODE_ENV === "production"
-
-    response.cookies.set("next-auth.session-token", sessionToken, {
+    response.cookies.set(cookieName, sessionToken, {
       httpOnly: true,
       secure: isSecure,
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
-      path: "/",
-    })
-
-    response.cookies.set("__Secure-next-auth.session-token", sessionToken, {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: DEFAULT_MAX_AGE,
       path: "/",
     })
 
