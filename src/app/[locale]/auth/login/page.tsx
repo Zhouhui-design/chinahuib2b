@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
-import { getDictionary } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
 
 function LoginForm() {
@@ -89,48 +88,54 @@ function LoginForm() {
     setLoading(true)
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
+      const response = await fetch('/api/auth/callback/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          email: formData.email,
+          password: formData.password,
+          csrfToken: '',
+          json: 'true',
+        }),
       })
 
-      if (result?.error) {
-        if (result.error === 'CredentialsSignin') {
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        const errorMsg = data?.error || 'CredentialsSignin'
+        if (errorMsg === 'CredentialsSignin') {
           setError(locale === 'zh' ? '账号不存在或密码错误，请检查或注册新账号' : 'Account does not exist or password is incorrect. Please check or register a new account')
         } else {
-          setError(result.error)
+          setError(locale === 'zh' ? '账号不存在或密码错误' : 'Invalid email or password')
         }
-      } else if (result?.ok) {
-        await updateSession()
-
-        const sessionRes = await fetch('/api/auth/session')
-        const sessionData = await sessionRes.json()
-
-        let callbackUrl = searchParams.get('callbackUrl')
-        if (!callbackUrl) {
-          switch (sessionData?.user?.role) {
-            case 'ADMIN':
-              callbackUrl = '/admin'
-              break
-            case 'SELLER':
-            case 'AI_SELLER':
-              callbackUrl = '/seller'
-              break
-            default:
-              callbackUrl = `/${locale}`
-          }
-        }
-
-        router.push(callbackUrl)
+        setLoading(false)
+        return
       }
+
+      await updateSession()
+
+      const sessionRes = await fetch('/api/auth/session')
+      const sessionData = await sessionRes.json()
+
+      let callbackUrl = searchParams.get('callbackUrl')
+      if (!callbackUrl) {
+        switch (sessionData?.user?.role) {
+          case 'ADMIN':
+            callbackUrl = '/admin'
+            break
+          case 'SELLER':
+          case 'AI_SELLER':
+            callbackUrl = '/seller'
+            break
+          default:
+            callbackUrl = `/${locale}`
+        }
+      }
+
+      router.push(callbackUrl)
     } catch (err) {
-      const message = (err as Error)?.message || ''
-      if (message.includes('Invalid URL')) {
-        setError(locale === 'zh' ? '登录系统配置错误，请联系管理员' : 'Login system configuration error. Please contact administrator')
-      } else {
-        setError(message || '登录失败')
-      }
+      console.error('[Login] Error:', err)
+      setError(locale === 'zh' ? '登录失败，请检查网络连接' : 'Login failed. Please check your connection.')
     } finally {
       setLoading(false)
     }

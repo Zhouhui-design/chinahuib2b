@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { update: updateSession } = useSession()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,20 +21,31 @@ function AdminLoginForm() {
     setLoading(true)
 
     try {
-      const callbackUrl = searchParams.get('callbackUrl') || '/admin'
-      
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: true,
-        callbackUrl: callbackUrl,
+      const response = await fetch('/api/auth/callback/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          email: formData.email,
+          password: formData.password,
+          csrfToken: '',
+          json: 'true',
+        }),
       })
 
-      if (result?.error) {
-        throw new Error(result.error)
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setError('邮箱或密码错误，请重试')
+        setLoading(false)
+        return
       }
+
+      await updateSession()
+      const callbackUrl = searchParams.get('callbackUrl') || '/admin'
+      router.push(callbackUrl)
     } catch (err) {
-      setError((err as Error).message || '登录失败')
+      console.error('[AdminLogin] Error:', err)
+      setError('登录失败，请检查网络连接')
     } finally {
       setLoading(false)
     }
