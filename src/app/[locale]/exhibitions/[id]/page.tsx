@@ -8,7 +8,7 @@ import {
   Check, X, Star, Truck, Shield, Award, Users, Clock, Package,
   Building2, ExternalLink, Loader2, ArrowLeft, Copy, CheckCircle2,
   Layers, Ruler, Box, Hash, Weight, Edit3, MessageSquare, Briefcase,
-  Linkedin, Facebook, Instagram, Youtube, Twitter, Video, Book, Download, FileText
+  Video, Book, Download, FileText, Link as LinkIcon, Send
 } from 'lucide-react'
 import { SocialShare } from '@/components/seo/SocialShare'
 import { useSession } from 'next-auth/react'
@@ -1048,19 +1048,19 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                         )}
                         {booth.seller.facebook && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Facebook className="w-4 h-4 text-blue-800" />
+                            <Share2 className="w-4 h-4 text-blue-800" />
                             <a href={booth.seller.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-blue-600">Facebook</a>
                           </div>
                         )}
                         {booth.seller.instagram && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Instagram className="w-4 h-4 text-pink-600" />
+                            <MessageCircle className="w-4 h-4 text-pink-600" />
                             <a href={booth.seller.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-pink-600">Instagram</a>
                           </div>
                         )}
                         {booth.seller.youtube && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Youtube className="w-4 h-4 text-red-600" />
+                            <Video className="w-4 h-4 text-red-600" />
                             <a href={booth.seller.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-red-600">YouTube</a>
                           </div>
                         )}
@@ -1072,7 +1072,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                         )}
                         {booth.seller.twitter && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Twitter className="w-4 h-4 text-sky-500" />
+                            <Send className="w-4 h-4 text-sky-500" />
                             <a href={booth.seller.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-sky-500">Twitter</a>
                           </div>
                         )}

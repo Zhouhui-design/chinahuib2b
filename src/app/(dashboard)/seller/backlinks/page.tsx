@@ -9,9 +9,8 @@ import {
   Check,
   ExternalLink,
   Code,
-  Facebook,
-  Twitter,
-  Linkedin,
+  Briefcase,
+  Send,
   MessageCircle,
   Mail,
   Link2,
@@ -34,9 +33,9 @@ interface EmbeddedCode {
 }
 
 const PLATFORMS = [
-  { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', hoverColor: 'hover:bg-blue-700' },
-  { id: 'twitter', name: 'Twitter', icon: Twitter, color: 'bg-sky-500', hoverColor: 'hover:bg-sky-600' },
-  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: 'bg-blue-700', hoverColor: 'hover:bg-blue-800' },
+  { id: 'facebook', name: 'Facebook', icon: Share2, color: 'bg-blue-600', hoverColor: 'hover:bg-blue-700' },
+  { id: 'twitter', name: 'Twitter', icon: Send, color: 'bg-sky-500', hoverColor: 'hover:bg-sky-600' },
+  { id: 'linkedin', name: 'LinkedIn', icon: Briefcase, color: 'bg-blue-700', hoverColor: 'hover:bg-blue-800' },
   { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-600', hoverColor: 'hover:bg-green-700' },
   { id: 'email', name: 'Email', icon: Mail, color: 'bg-gray-600', hoverColor: 'hover:bg-gray-700' },
   { id: 'copy', name: 'Copy Link', icon: Copy, color: 'bg-purple-600', hoverColor: 'hover:bg-purple-700' },

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Globe, Phone, Mail, MapPin, MessageCircle, Linkedin, Facebook, Instagram } from 'lucide-react'
+import { Globe, Phone, Mail, MapPin, MessageCircle, Briefcase, Share2 } from 'lucide-react'
 
 interface ContactInfo {
   displayName?: string
@@ -207,7 +207,7 @@ export default function ContactInfoEditor({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Linkedin className="w-4 h-4 inline mr-1 text-blue-700" />
+              <Briefcase className="w-4 h-4 inline mr-1 text-blue-700" />
               LinkedIn
             </label>
             <input
@@ -221,7 +221,7 @@ export default function ContactInfoEditor({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Facebook className="w-4 h-4 inline mr-1 text-blue-600" />
+              <Share2 className="w-4 h-4 inline mr-1 text-blue-600" />
               Facebook
             </label>
             <input
@@ -235,7 +235,7 @@ export default function ContactInfoEditor({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Instagram className="w-4 h-4 inline mr-1 text-pink-600" />
+              <MessageCircle className="w-4 h-4 inline mr-1 text-pink-600" />
               Instagram
             </label>
             <input

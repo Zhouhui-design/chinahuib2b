@@ -1,4 +1,4 @@
-import { Linkedin, Twitter as TwitterIcon, Facebook as FacebookIcon, Pinterest as PinterestIcon, MessageCircle, Send, Mail, Share2 } from 'lucide-react'
+import { Share2, MessageCircle, Send, Mail, Link } from 'lucide-react'
 import { generateSocialShareLinks } from '@/lib/seo-utils'
 
 interface SocialShareProps {
@@ -9,10 +9,10 @@ interface SocialShareProps {
 }
 
 const SOCIAL_PLATFORMS = [
-  { id: 'linkedin', label: 'LinkedIn', icon: Linkedin, color: 'bg-blue-700 hover:bg-blue-800' },
-  { id: 'twitter', label: 'Twitter', icon: TwitterIcon, color: 'bg-sky-500 hover:bg-sky-600' },
-  { id: 'facebook', label: 'Facebook', icon: FacebookIcon, color: 'bg-blue-600 hover:bg-blue-700' },
-  { id: 'pinterest', label: 'Pinterest', icon: PinterestIcon, color: 'bg-red-600 hover:bg-red-700' },
+  { id: 'linkedin', label: 'LinkedIn', icon: Link, color: 'bg-blue-700 hover:bg-blue-800' },
+  { id: 'twitter', label: 'Twitter', icon: Send, color: 'bg-sky-500 hover:bg-sky-600' },
+  { id: 'facebook', label: 'Facebook', icon: MessageCircle, color: 'bg-blue-600 hover:bg-blue-700' },
+  { id: 'pinterest', label: 'Pinterest', icon: Share2, color: 'bg-red-600 hover:bg-red-700' },
   { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'bg-green-600 hover:bg-green-700' },
   { id: 'telegram', label: 'Telegram', icon: Send, color: 'bg-blue-400 hover:bg-blue-500' },
   { id: 'email', label: 'Email', icon: Mail, color: 'bg-gray-600 hover:bg-gray-700' },
