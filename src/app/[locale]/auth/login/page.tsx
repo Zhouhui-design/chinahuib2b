@@ -11,7 +11,6 @@ function LoginForm() {
   const locale = params.locale as LanguageCode
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { update: updateSession } = useSession()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
