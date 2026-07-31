@@ -96,20 +96,41 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        // 根据错误类型设置不同的错误消息
         if (result.error === 'CredentialsSignin') {
           setError(locale === 'zh' ? '账号不存在或密码错误，请检查或注册新账号' : 'Account does not exist or password is incorrect. Please check or register a new account')
         } else {
           setError(result.error)
         }
       } else if (result?.ok) {
-        // 登录成功，手动重定向
         await updateSession()
-        const callbackUrl = searchParams.get('callbackUrl') || `/${locale}`
+
+        const sessionRes = await fetch('/api/auth/session')
+        const sessionData = await sessionRes.json()
+
+        let callbackUrl = searchParams.get('callbackUrl')
+        if (!callbackUrl) {
+          switch (sessionData?.user?.role) {
+            case 'ADMIN':
+              callbackUrl = '/admin'
+              break
+            case 'SELLER':
+            case 'AI_SELLER':
+              callbackUrl = '/seller'
+              break
+            default:
+              callbackUrl = `/${locale}`
+          }
+        }
+
         router.push(callbackUrl)
       }
     } catch (err) {
-      setError((err as Error).message || '登录失败')
+      const message = (err as Error)?.message || ''
+      if (message.includes('Invalid URL')) {
+        setError(locale === 'zh' ? '登录系统配置错误，请联系管理员' : 'Login system configuration error. Please contact administrator')
+      } else {
+        setError(message || '登录失败')
+      }
     } finally {
       setLoading(false)
     }

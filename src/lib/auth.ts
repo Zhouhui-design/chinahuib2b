@@ -65,15 +65,30 @@ export const authOptions: AuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      const urlPath = url.startsWith('http') ? new URL(url).pathname : url
-      if (urlPath.startsWith('/admin') || urlPath.startsWith('/seller')) {
-        return url
+      try {
+        const urlStr = String(url || '')
+        let urlPath: string
+
+        if (urlStr.startsWith('http')) {
+          urlPath = new URL(urlStr).pathname
+        } else {
+          urlPath = urlStr
+        }
+
+        if (urlPath.startsWith('/admin') || urlPath.startsWith('/seller')) {
+          return urlStr
+        }
+
+        const localeDashboardMatch = urlPath.match(/^\/([a-z]{2})\/(admin|seller)(\/.*)?$/)
+        if (localeDashboardMatch) {
+          return urlStr
+        }
+
+        return '/'
+      } catch (error) {
+        console.error('[Auth] Redirect callback error:', error)
+        return '/'
       }
-      const localeDashboardMatch = urlPath.match(/^\/([a-z]{2})\/(admin|seller)(\/.*)?$/)
-      if (localeDashboardMatch) {
-        return url
-      }
-      return '/'
     }
   },
   session: {
