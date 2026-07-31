@@ -10,6 +10,7 @@ const profileUpdateSchema = z.object({
   companyName: z.string().min(2).max(200),
   description: z.string().optional(),
   descriptions: z.record(z.string(), z.string()).optional(),
+  contactName: z.string().optional(),
   country: z.string().optional(),
   city: z.string().optional(),
   address: z.string().optional(),
@@ -248,24 +249,28 @@ export async function PUT(request: NextRequest) {
     let descriptions: Record<string, string> = data.descriptions || {}
     let boothNames: Record<string, string> = data.boothNames || {}
 
+    const sourceLang = data.sourceLanguage || 'en'
+
     if (data.autoTranslate) {
-      if (data.description && Object.keys(descriptions).length === 0) {
-        descriptions = await autoTranslateToAllLanguages(data.description, data.sourceLanguage || 'en')
+      if (data.description) {
+        descriptions = await autoTranslateToAllLanguages(data.description, sourceLang)
       }
       if (data.boothName && Object.keys(boothNames).length === 0) {
-        boothNames = await autoTranslateToAllLanguages(data.boothName, data.sourceLanguage || 'en')
+        boothNames = await autoTranslateToAllLanguages(data.boothName, sourceLang)
       }
     } else {
-      if (data.description && !descriptions[data.sourceLanguage || 'en']) {
-        descriptions[data.sourceLanguage || 'en'] = data.description
+      // Always update the description if provided
+      if (data.description) {
+        descriptions[sourceLang] = data.description
       }
-      if (data.boothName && !boothNames[data.sourceLanguage || 'en']) {
-        boothNames[data.sourceLanguage || 'en'] = data.boothName
+      if (data.boothName && !boothNames[sourceLang]) {
+        boothNames[sourceLang] = data.boothName
       }
     }
 
     const updateData: any = {
       companyName: data.companyName,
+      ...(data.contactName !== undefined && { contactName: data.contactName }),
       ...(Object.keys(descriptions).length > 0 && { descriptions }),
       ...(data.country && { country: data.country }),
       ...(data.city && { city: data.city }),

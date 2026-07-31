@@ -93,9 +93,13 @@ export default function SellerSettingsPage() {
       const data = await response.json()
       if (data.success || data.profile) {
         const profile = data.profile
+        // Get description from descriptions object or use description field
+        const descriptionsObj = profile.descriptions || {}
+        const defaultLangDescription = descriptionsObj['en'] || descriptionsObj['zh'] || profile.description || ''
+        
         setProfileData({
           companyName: profile.companyName || '',
-          contactName: '', // Not stored in database yet
+          contactName: profile.contactName || '',
           email: profile.email || '',
           phone: profile.phone || '',
           website: profile.website || '',
@@ -108,7 +112,7 @@ export default function SellerSettingsPage() {
           address: profile.address || '',
           city: profile.city || '',
           country: profile.country || '',
-          description: profile.description || ''
+          description: defaultLangDescription
         })
         // Load multi-language descriptions
         if (profile.descriptions) {
@@ -584,6 +588,7 @@ export default function SellerSettingsPage() {
         credentials: 'include',
         body: JSON.stringify({
           companyName: profileData.companyName,
+          contactName: profileData.contactName,
           description: profileData.description,
           descriptions: descriptions,
           country: profileData.country,
