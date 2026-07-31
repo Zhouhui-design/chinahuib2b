@@ -69,6 +69,10 @@ export const authOptions: AuthOptions = {
       if (urlPath.startsWith('/admin') || urlPath.startsWith('/seller')) {
         return url
       }
+      const localeDashboardMatch = urlPath.match(/^\/([a-z]{2})\/(admin|seller)(\/.*)?$/)
+      if (localeDashboardMatch) {
+        return url
+      }
       return '/'
     }
   },
