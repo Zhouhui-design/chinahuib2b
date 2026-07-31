@@ -29,7 +29,7 @@ async function getDerivedEncryptionKey(secret: string, salt: string): Promise<Ui
  */
 async function encodeAuthToken(token: Record<string, any>, secret: string): Promise<string> {
   const maxAge = DEFAULT_MAX_AGE
-  const salt = "authjs.session-token" // next-auth default salt for session token
+  const salt = "" // next-auth uses empty salt for session token
   
   const encryptionSecret = await getDerivedEncryptionKey(secret, salt)
   
