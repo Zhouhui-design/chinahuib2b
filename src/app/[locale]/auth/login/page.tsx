@@ -92,13 +92,18 @@ function LoginForm() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          restrictTo: 'NON_ADMIN',
         }),
       })
 
       const data = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        setError(data?.error || (locale === 'zh' ? '账号不存在或密码错误' : 'Invalid email or password'))
+        if (response.status === 403 && data?.error?.includes('管理员')) {
+          setError(locale === 'zh' ? data.error : 'This is an admin account. Please use the admin login page.')
+        } else {
+          setError(data?.error || (locale === 'zh' ? '账号不存在或密码错误' : 'Invalid email or password'))
+        }
         setLoading(false)
         return
       }
@@ -107,9 +112,6 @@ function LoginForm() {
       let callbackUrl = searchParams.get('callbackUrl')
       if (!callbackUrl) {
         switch (role) {
-          case 'ADMIN':
-            callbackUrl = '/admin'
-            break
           case 'SELLER':
           case 'AI_SELLER':
             callbackUrl = '/seller'

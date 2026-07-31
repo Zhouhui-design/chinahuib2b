@@ -25,13 +25,18 @@ function AdminLoginForm() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          restrictTo: 'ADMIN',
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || '登录失败，请重试')
+        if (response.status === 403 && !data?.error?.includes('密码')) {
+          setError(data.error || '此账号没有管理员权限')
+        } else {
+          setError(data.error || '登录失败，请重试')
+        }
         setLoading(false)
         return
       }

@@ -14,9 +14,9 @@ const now = () => (Date.now() / 1000) | 0
  */
 async function getDerivedEncryptionKey(secret: string, salt: string): Promise<Uint8Array> {
   const key = await hkdf(
-    "sha512",
+    "sha256",
     secret,
-    "",
+    salt,
     `NextAuth.js Generated Encryption Key${salt ? ` (${salt})` : ""}`,
     32
   )
@@ -46,7 +46,7 @@ async function encodeAuthToken(token: Record<string, any>, secret: string): Prom
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const { email, password, restrictTo } = body
 
     if (!email || !password) {
       return NextResponse.json(
@@ -86,6 +86,22 @@ export async function POST(request: NextRequest) {
         { error: "账号已被禁用" },
         { status: 403 }
       )
+    }
+
+    if (restrictTo) {
+      const allowedRoles = Array.isArray(restrictTo) ? restrictTo : [restrictTo]
+      if (!allowedRoles.includes(user.role)) {
+        if (restrictTo === 'NON_ADMIN') {
+          return NextResponse.json(
+            { error: "此账号为管理员账号，请使用管理员登录页面" },
+            { status: 403 }
+          )
+        }
+        return NextResponse.json(
+          { error: "您没有权限登录此系统" },
+          { status: 403 }
+        )
+      }
     }
 
     await prisma.user.update({
