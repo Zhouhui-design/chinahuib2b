@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react'
 import {
   Settings, BarChart3, LogOut, HelpCircle, Globe, FileText, Tag, Home,
   ChevronRight, Menu, Users, Folder, Building2, CreditCard,
-  Bell, AlertCircle, MessageSquare, X, Gavel, Truck
+  Bell, AlertCircle, MessageSquare, X, Gavel, Truck, Share2
 } from 'lucide-react'
 
 type NotificationItem = {
@@ -559,6 +559,18 @@ export default function AdminDashboardClientLayout({
               >
                 <FileText className="w-5 h-5 mr-3" />
                 维护通知管理
+              </Link>
+
+              <Link
+                href="/admin/assign-data"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/admin/assign-data')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Share2 className="w-5 h-5 mr-3" />
+                数据分配管理
               </Link>
             </nav>
           </aside>
