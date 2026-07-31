@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { update: updateSession } = useSession()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,26 +19,23 @@ function AdminLoginForm() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/auth/callback/credentials', {
+      const response = await fetch('/api/auth/delegate-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          csrfToken: '',
-          json: 'true',
         }),
       })
 
-      const data = await response.json().catch(() => ({}))
+      const data = await response.json()
 
       if (!response.ok) {
-        setError('邮箱或密码错误，请重试')
+        setError(data.error || '登录失败，请重试')
         setLoading(false)
         return
       }
 
-      await updateSession()
       const callbackUrl = searchParams.get('callbackUrl') || '/admin'
       router.push(callbackUrl)
     } catch (err) {
@@ -101,15 +96,6 @@ function AdminLoginForm() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-end">
-            <a
-              href="/en/auth/forgot-password"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              忘记密码？
-            </a>
           </div>
 
           <div>

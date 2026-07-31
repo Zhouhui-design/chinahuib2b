@@ -9,12 +9,12 @@ export default async function AdminLayout({
 }) {
   const session = await auth()
   
-  if (!session) {
+  if (!session || !session.user) {
     redirect('/admin/login')
   }
 
-  if (session.user?.role !== 'ADMIN') {
-    redirect('/')
+  if (session.user.role !== 'ADMIN') {
+    redirect('/admin/login?error=access_denied')
   }
 
   return (
