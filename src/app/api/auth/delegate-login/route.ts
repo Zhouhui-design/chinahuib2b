@@ -89,18 +89,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (restrictTo) {
-      const allowedRoles = Array.isArray(restrictTo) ? restrictTo : [restrictTo]
-      if (!allowedRoles.includes(user.role)) {
-        if (restrictTo === 'NON_ADMIN') {
+      if (restrictTo === 'NON_ADMIN') {
+        if (user.role === 'ADMIN') {
           return NextResponse.json(
             { error: "此账号为管理员账号，请使用管理员登录页面" },
             { status: 403 }
           )
         }
-        return NextResponse.json(
-          { error: "您没有权限登录此系统" },
-          { status: 403 }
-        )
+      } else {
+        const allowedRoles = Array.isArray(restrictTo) ? restrictTo : [restrictTo]
+        if (!allowedRoles.includes(user.role)) {
+          return NextResponse.json(
+            { error: "您没有权限登录此系统" },
+            { status: 403 }
+          )
+        }
       }
     }
 
