@@ -13,6 +13,7 @@
 import { detectLocale } from '@/lib/server-locale'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { SessionProvider } from '@/components/providers/SessionProvider'
 
 export default async function StoreLayout({
   children,
@@ -22,10 +23,12 @@ export default async function StoreLayout({
   const locale = await detectLocale()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar locale={locale} />
-      <main>{children}</main>
-      <Footer locale={locale} />
-    </div>
+    <SessionProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar locale={locale} />
+        <main>{children}</main>
+        <Footer locale={locale} />
+      </div>
+    </SessionProvider>
   )
 }
