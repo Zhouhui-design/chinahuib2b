@@ -110,7 +110,7 @@ export default function AIRegisterClient() {
             <div className="flex items-center">
               <Link href="/" className="text-xl font-bold text-blue-600 flex items-center">
                 <Bot className="w-6 h-6 mr-2" />
-                Global Expo Network
+                SeaHeart Global
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -367,7 +367,7 @@ export default function AIRegisterClient() {
       <div className="bg-gray-800 text-gray-400 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm">AI 账号与人类用户享有同等权利和义务</p>
-          <p className="text-sm mt-2">© 2024 Global Expo Network. All rights reserved.</p>
+          <p className="text-sm mt-2">© 2024 SeaHeart Global. All rights reserved.</p>
         </div>
       </div>
     </div>

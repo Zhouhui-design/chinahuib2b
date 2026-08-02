@@ -36,8 +36,8 @@ export default function SellerGuidePage() {
     
     content: {
       gettingStarted: language === 'zh' ? 
-        '欢迎使用 Global Expo Network 卖家平台！本指南将帮助您快速上手。' :
-        'Welcome to Global Expo Network Seller Platform! This guide will help you get started quickly.',
+        '欢迎使用 SeaHeart Global 心海环球 卖家平台！本指南将帮助您快速上手。' :
+        'Welcome to SeaHeart Global 心海环球 Seller Platform! This guide will help you get started quickly.',
       
       storeSetup: language === 'zh' ?
         '1. 点击左侧菜单的 "Store" 选项\n2. 填写您的公司信息\n3. 上传公司 Logo（建议尺寸：200x200px）\n4. 添加店铺头图（建议尺寸：1200x400px）\n5. 编写公司简介和联系方式' :

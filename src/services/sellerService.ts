@@ -1,5 +1,33 @@
 import { prisma } from '@/lib/db';
 import { SellerProfile, Product, Booth, SubscriptionStatus, ProfileStatus } from '@prisma/client';
+import { deriveSlugFromUsername, generateUniqueSlug, isValidSlug } from '@/lib/store-slug';
+
+/**
+ * Generate a unique store slug derived from a username.
+ * Checks the database for collisions and appends -2, -3, ... when needed.
+ *
+ * Used by all seller-creation paths so every new store gets a clean
+ * GitHub-style URL (x2xhub.com/<slug>) from day one.
+ */
+export async function generateUniqueStoreSlug(
+  username: string,
+  excludeSellerId?: string,
+): Promise<string> {
+  const base = deriveSlugFromUsername(username || '');
+  const existsFn = async (slug: string) => {
+    const conflict = await prisma.sellerProfile.findFirst({
+      where: {
+        storeSlug: slug,
+        ...(excludeSellerId ? { id: { not: excludeSellerId } } : {}),
+      },
+      select: { id: true },
+    });
+    return !!conflict;
+  };
+  const slug = await generateUniqueSlug(base, existsFn);
+  // Defensive: ensure final result is valid
+  return isValidSlug(slug) ? slug : deriveSlugFromUsername('');
+}
 
 // Get seller profile by user ID
 export async function getSellerProfile(userId: string): Promise<SellerProfile | null> {
@@ -51,6 +79,13 @@ export async function createSellerProfile(
     certifications?: string[];
   }
 ): Promise<SellerProfile> {
+  // Fetch username to derive a unique store slug
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true },
+  });
+  const storeSlug = await generateUniqueStoreSlug(user?.username || '');
+
   return await prisma.sellerProfile.create({
     data: {
       userId,
@@ -76,6 +111,7 @@ export async function createSellerProfile(
       certifications: data.certifications || [],
       subscriptionStatus: SubscriptionStatus.FREE_TRIAL,
       subscriptionExpiry: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day free trial
+      storeSlug,
     },
   });
 }

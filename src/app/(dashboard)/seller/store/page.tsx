@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import MultilingualInput from '@/components/ui/MultilingualInput'
+import CountrySelect from '@/components/seller/CountrySelect'
 import { Save, Building2, MapPin, Phone, Mail, MessageCircle, CheckCircle, Loader2, Upload, X, Image, AlertCircle, Award, Trash2, FileText } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
@@ -21,6 +22,7 @@ export default function StoreProfilePage() {
   const [success, setSuccess] = useState(false)
   const [profileStatus, setProfileStatus] = useState<string>('DRAFT')
   const [reviewNotes, setReviewNotes] = useState<string>('')
+  const [storeSlug, setStoreSlug] = useState<string | null>(null)
 
   const [companyName, setCompanyName] = useState('')
   const [description, setDescription] = useState('')
@@ -1175,15 +1177,13 @@ export default function StoreProfilePage() {
                   'Selected file',
   }
 
-  const countries = [
-    'China', 'United States', 'Germany', 'Japan', 'United Kingdom', 'France',
-    'Italy', 'Canada', 'Australia', 'India', 'Brazil', 'Mexico', 'Spain',
-    'Netherlands', 'South Korea', 'Singapore', 'Vietnam', 'Thailand',
-    'Malaysia', 'Indonesia', 'Turkey', 'Russia', 'Other'
-  ]
-
   useEffect(() => {
     fetchProfile()
+    // Fetch store slug for the tip banner
+    fetch('/api/seller/store-slug')
+      .then(res => res.json())
+      .then(data => { if (data.success) setStoreSlug(data.slug) })
+      .catch(() => {})
   }, [])
 
   const fetchProfile = async () => {
@@ -1511,6 +1511,7 @@ export default function StoreProfilePage() {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      if (!file) continue
       const formData = new FormData()
       formData.append('file', file)
       formData.append('path', 'seller/company-photos')
@@ -1538,6 +1539,7 @@ export default function StoreProfilePage() {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      if (!file) continue
       const formData = new FormData()
       formData.append('file', file)
       formData.append('path', 'seller/team-photos')
@@ -1826,6 +1828,37 @@ export default function StoreProfilePage() {
 
   return (
     <div className="space-y-6">
+      {/* Store link tip banner */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+          <span className="text-sm font-medium text-blue-900">
+            🔗 {language === 'zh' ? '您的店铺专属链接：' : 'Your store link:'}
+          </span>
+          {storeSlug ? (
+            <a
+              href={`https://x2xhub.com/${storeSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-mono font-semibold text-blue-700 hover:underline"
+            >
+              x2xhub.com/{storeSlug}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">{language === 'zh' ? '加载中...' : 'Loading...'}</span>
+          )}
+        </div>
+        <p className="text-xs text-gray-600">
+          💡 {language === 'zh'
+            ? '想要更换链接？请前往 账户设置 → 店铺链接 修改（仅限一次）。'
+            : 'Want a different link? Go to Account Settings → Store Link to customize (one-time only).'}
+        </p>
+        <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+          ⚠️ {language === 'zh'
+            ? '温馨提示：您填写的信息会被所有人可见，如果不想让其他人看到，则不需要填写。严禁填写假信息，一旦被平台管理员得知填写假信息，则会被封号处理。AI 产品图片、AI 产品视频一律要带 AI 标签。'
+            : 'Notice: All information you fill in is visible to everyone. Do not fill in false information — accounts with fake info will be banned. AI-generated product images and videos must carry an AI tag.'}
+        </p>
+      </div>
+
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.pageTitle}</h1>
@@ -2090,16 +2123,12 @@ export default function StoreProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.country}
               </label>
-              <select
+              <CountrySelect
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">{t.selectCountry}</option>
-                {countries.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+                onChange={setCountry}
+                language={language}
+                placeholder={t.selectCountry}
+              />
             </div>
 
             <div>

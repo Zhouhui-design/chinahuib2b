@@ -231,17 +231,19 @@ export async function GET(request: NextRequest) {
     try {
       const stores = await prisma.sellerProfile.findMany({
         where: { isActive: true },
-        select: { id: true, updatedAt: true },
+        select: { id: true, storeSlug: true, updatedAt: true },
         take: 500
       })
 
       stores.forEach(store => {
+        // Prefer the clean GitHub-style slug URL; fall back to legacy URL
+        const storePath = store.storeSlug ? `/${store.storeSlug}` : `/stores/${store.id}`
         entries.push({
-          loc: `${BASE_URL}/stores/${store.id}`,
+          loc: `${BASE_URL}${storePath}`,
           lastmod: new Date(store.updatedAt).toISOString().split('T')[0],
           changefreq: 'weekly',
           priority: 0.8,
-          alternates: createAlternates(`/stores/${store.id}`)
+          alternates: createAlternates(storePath)
         })
       })
     } catch (error) {

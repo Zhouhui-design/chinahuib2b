@@ -178,7 +178,7 @@ export default function AdminDashboardClientLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="text-xl font-bold text-blue-600">
-                Global Expo Network
+                SeaHeart Global | 心海环球
               </Link>
               <span className="ml-4 text-sm text-gray-500">
                 {t.dashboard}

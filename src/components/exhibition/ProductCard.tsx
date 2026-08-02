@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { storeUrl } from '@/lib/store-slug'
 
 interface ProductCardProps {
   id: string
@@ -9,6 +10,7 @@ interface ProductCardProps {
     id: string
     companyName: string
     country: string
+    storeSlug?: string | null
   }
   category: {
     name: string
@@ -57,8 +59,8 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
             {product.title}
           </h3>
           <div className="space-y-1">
-            <Link 
-              href={`/stores/${product.seller.id}`}
+            <Link
+              href={storeUrl(product.seller)}
               className="text-sm text-gray-600 hover:text-blue-600 flex items-center"
             >
               🏢 {product.seller.companyName}

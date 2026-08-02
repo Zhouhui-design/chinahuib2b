@@ -1,5 +1,5 @@
-// Multi-language translations for Global Expo Network
-export type Language = 'en' | 'zh' | 'es' | 'fr' | 'de' | 'ar' | 'pt' | 'ru' | 'ja' | 'ko'
+// Multi-language translations for SeaHeart Global
+export type Language = 'en' | 'zh' | 'es' | 'fr' | 'de' | 'ar' | 'pt' | 'ru' | 'ja' | 'ko' | 'hi' | 'th' | 'vi'
 
 export interface Translations {
   // AI Register
@@ -455,7 +455,7 @@ export const translations: Record<Language, Translations> = {
       }
     },
     home: {
-      title: 'Global Expo Network',
+      title: 'SeaHeart Global',
       subtitle: 'Your Gateway to Global B2B Trade',
       heroTitle: 'Welcome to the Global Exhibition Hall',
       heroSubtitle: 'Discover quality products from manufacturers worldwide',
@@ -736,7 +736,7 @@ export const translations: Record<Language, Translations> = {
       }
     },
     home: {
-      title: '全球商展网',
+      title: '心海环球',
       subtitle: '您的全球B2B贸易门户',
       heroTitle: '欢迎来到全球展览大厅',
       heroSubtitle: '发现来自全球制造商的优质产品',
@@ -1004,7 +1004,7 @@ export const translations: Record<Language, Translations> = {
       }
     },
     home: {
-      title: 'شبكة المعرض العالمي',
+      title: 'القلب البحري العالمي',
       subtitle: 'بوابتك للتجارة العالمية بين الشركات',
       heroTitle: 'مرحبًا بك في قاعة المعرض العالمية',
       heroSubtitle: 'اكتشف منتجات عالية الجودة من مصنعين حول العالم',
@@ -1137,10 +1137,29 @@ export const translations: Record<Language, Translations> = {
   ru: {} as any,
   ja: {} as any,
   ko: {} as any,
+  hi: {} as any,
+  th: {} as any,
+  vi: {} as any,
 }
 
-// Fill other languages with English as placeholder (excluding ar which has full translations)
+// Fill other languages with English as placeholder and apply custom home titles
 const englishFallback = translations.en
-;(['es', 'fr', 'de', 'pt', 'ru', 'ja', 'ko'] as Language[]).forEach(lang => {
-  translations[lang] = englishFallback
+const brandTitles: Record<Language, string> = {
+  en: 'SeaHeart Global',
+  zh: '心海环球',
+  es: 'CorazónMar Global',
+  fr: 'CœurMer Mondial',
+  de: 'Meerherz Global',
+  ar: 'القلب البحري العالمي',
+  pt: 'CoraçãoMar Global',
+  ru: 'МорскоеСердце Глобал',
+  ja: '心海グローバル',
+  ko: '심해글로벌',
+  hi: 'समुद्र-हृदय ग्लोबल',
+  th: 'หัวใจทะเลโลก',
+  vi: 'TráiTimBiển ToànCầu',
+}
+;(['es', 'fr', 'de', 'pt', 'ru', 'ja', 'ko', 'hi', 'th', 'vi'] as Language[]).forEach(lang => {
+  translations[lang] = JSON.parse(JSON.stringify(englishFallback))
+  translations[lang].home.title = brandTitles[lang]
 })

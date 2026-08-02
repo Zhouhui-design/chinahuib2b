@@ -25,6 +25,18 @@ interface Product {
   sellerId: string
   sellerName: string
   sellerEmail: string
+  boothId?: string | null
+  boothName?: string | null
+}
+
+interface MarketplaceTask {
+  id: string
+  title: string
+  type: string
+  status: string
+  postedById?: string
+  postedByEmail?: string
+  postedByName?: string
 }
 
 interface UserProfile {
@@ -42,6 +54,7 @@ interface UserProfile {
     booths: { id: string; name: string; boothNumber: string; productCount: number }[]
     standaloneProducts: { id: string; title: string }[]
   } | null
+  marketplaceTasks?: { id: string; title: string; type: string; status: string }[]
 }
 
 export default function AssignDataPage() {
@@ -49,11 +62,13 @@ export default function AssignDataPage() {
   const [sellers, setSellers] = useState<Seller[]>([])
   const [booths, setBooths] = useState<Booth[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [marketplaceTasks, setMarketplaceTasks] = useState<MarketplaceTask[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [selectedBooths, setSelectedBooths] = useState<string[]>([])
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
 
   const fetchData = async () => {
     setLoading(true)
@@ -64,6 +79,7 @@ export default function AssignDataPage() {
       setSellers(data.sellers || [])
       setBooths(data.booths || [])
       setProducts(data.standaloneProducts || [])
+      setMarketplaceTasks(data.marketplaceTasks || [])
     } catch (err) {
       setMessage('Failed to load data')
     }
@@ -153,6 +169,108 @@ export default function AssignDataPage() {
     )
   }
 
+  const toggleTask = (id: string) => {
+    setSelectedTasks(prev =>
+      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+    )
+  }
+
+  const handleAssignTasks = async () => {
+    if (!targetEmail || selectedTasks.length === 0) return
+    setLoading(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/assign-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'assign_tasks',
+          targetEmail,
+          taskIds: selectedTasks
+        })
+      })
+      const data = await res.json()
+      setMessage(data.message || data.error)
+      if (res.ok) {
+        setSelectedTasks([])
+        fetchData()
+        fetchUserProfile()
+      }
+    } catch (err) {
+      setMessage('Failed to assign tasks')
+    }
+    setLoading(false)
+  }
+
+  const handleDeleteBooths = async () => {
+    if (selectedBooths.length === 0) return
+    if (!window.confirm(`确定要删除选中的 ${selectedBooths.length} 个展会吗？展会下的产品会变为独立产品（不会被删除）。此操作不可撤销！`)) return
+    setLoading(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/assign-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_booths', boothIds: selectedBooths })
+      })
+      const data = await res.json()
+      setMessage(data.message || data.error)
+      if (res.ok) {
+        setSelectedBooths([])
+        fetchData()
+      }
+    } catch (err) {
+      setMessage('Failed to delete booths')
+    }
+    setLoading(false)
+  }
+
+  const handleDeleteProducts = async () => {
+    if (selectedProducts.length === 0) return
+    if (!window.confirm(`确定要删除选中的 ${selectedProducts.length} 个产品吗？关联的询盘和访客记录会保留（解除关联）。此操作不可撤销！`)) return
+    setLoading(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/assign-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_products', productIds: selectedProducts })
+      })
+      const data = await res.json()
+      setMessage(data.message || data.error)
+      if (res.ok) {
+        setSelectedProducts([])
+        fetchData()
+      }
+    } catch (err) {
+      setMessage('Failed to delete products')
+    }
+    setLoading(false)
+  }
+
+  const handleDeleteTasks = async () => {
+    if (selectedTasks.length === 0) return
+    if (!window.confirm(`确定要删除选中的 ${selectedTasks.length} 个 Marketplace 任务吗？关联的申请、交付物等数据会被一并删除。此操作不可撤销！`)) return
+    setLoading(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/admin/assign-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_tasks', taskIds: selectedTasks })
+      })
+      const data = await res.json()
+      setMessage(data.message || data.error)
+      if (res.ok) {
+        setSelectedTasks([])
+        fetchData()
+      }
+    } catch (err) {
+      setMessage('Failed to delete tasks')
+    }
+    setLoading(false)
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -207,6 +325,7 @@ export default function AssignDataPage() {
             ) : (
               <p className="text-yellow-600 mt-2">⚠️ 此用户没有卖家档案</p>
             )}
+            <p className="mt-2">Marketplace 任务数量: {userProfile.marketplaceTasks?.length || 0}</p>
           </div>
         )}
       </div>
@@ -216,13 +335,22 @@ export default function AssignDataPage() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">2. 展会列表 ({booths.length})</h2>
           {selectedBooths.length > 0 && (
-            <button
-              onClick={handleAssignBooths}
-              disabled={loading || !userProfile?.sellerProfile}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              分配选中的 {selectedBooths.length} 个展会
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAssignBooths}
+                disabled={loading || !userProfile?.sellerProfile}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                分配 {selectedBooths.length} 个展会
+              </button>
+              <button
+                onClick={handleDeleteBooths}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                删除 {selectedBooths.length} 个展会
+              </button>
+            </div>
           )}
         </div>
 
@@ -266,20 +394,29 @@ export default function AssignDataPage() {
       {/* Products Section */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">3. 独立产品列表 ({products.length})</h2>
+          <h2 className="text-lg font-semibold">3. 产品列表 ({products.length})</h2>
           {selectedProducts.length > 0 && (
-            <button
-              onClick={handleAssignProducts}
-              disabled={loading || !userProfile?.sellerProfile}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              分配选中的 {selectedProducts.length} 个产品
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAssignProducts}
+                disabled={loading || !userProfile?.sellerProfile}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                分配 {selectedProducts.length} 个产品
+              </button>
+              <button
+                onClick={handleDeleteProducts}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                删除 {selectedProducts.length} 个产品
+              </button>
+            </div>
           )}
         </div>
 
         {products.length === 0 ? (
-          <p className="text-gray-500">暂无独立产品</p>
+          <p className="text-gray-500">暂无产品</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -287,6 +424,7 @@ export default function AssignDataPage() {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">选择</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">所属展会</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">当前卖家</th>
                 </tr>
               </thead>
@@ -301,9 +439,83 @@ export default function AssignDataPage() {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                     </td>
-                    <td className="px-4 py-3">{product.title}</td>
+                    <td className="px-4 py-3 max-w-xs truncate" title={product.title}>{product.title}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {product.boothName || <span className="text-gray-400">独立产品</span>}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {product.sellerName} ({product.sellerEmail})
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Marketplace Tasks Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">4. Marketplace 任务列表 ({marketplaceTasks.length})</h2>
+          {selectedTasks.length > 0 && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleAssignTasks}
+                disabled={loading || !userProfile}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                分配 {selectedTasks.length} 个任务
+              </button>
+              <button
+                onClick={handleDeleteTasks}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                删除 {selectedTasks.length} 个任务
+              </button>
+            </div>
+          )}
+        </div>
+
+        {marketplaceTasks.length === 0 ? (
+          <p className="text-gray-500">暂无 Marketplace 任务</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">选择</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">任务标题</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">发布者</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {marketplaceTasks.map(task => (
+                  <tr key={task.id}>
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedTasks.includes(task.id)}
+                        onChange={() => toggleTask(task.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </td>
+                    <td className="px-4 py-3 max-w-md truncate" title={task.title}>{task.title}</td>
+                    <td className="px-4 py-3 text-sm">{task.type}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        task.status === 'OPEN' ? 'bg-green-100 text-green-800' :
+                        task.status === 'CLOSED' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {task.postedByName} ({task.postedByEmail})
                     </td>
                   </tr>
                 ))}

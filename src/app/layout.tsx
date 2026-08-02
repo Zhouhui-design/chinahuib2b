@@ -15,10 +15,10 @@ const BASE_URL = "https://x2xhub.com";
 
 export const metadata: Metadata = {
   title: {
-    default: 'X2XHub - Global B2B Trade Exhibition & Auction Platform',
-    template: '%s | X2XHub - Global B2B Trade',
+    default: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition & Auction Platform',
+    template: '%s | SeaHeart Global | 心海环球',
   },
-  description: 'Global B2B trade exhibition and auction platform. Connect buyers and sellers worldwide. Discover wholesale products, verified suppliers, industrial machinery, electronics, and more. Multi-language international trade marketplace with 13 supported languages.',
+  description: 'SeaHeart Global is a global B2B trade exhibition and auction platform. Connect buyers and sellers worldwide. Discover wholesale products, verified suppliers, industrial machinery, electronics, and more. Multi-language international trade marketplace with 13 supported languages.',
   keywords: [
     'B2B trade', 'global exhibition', 'online auction', 'wholesale marketplace',
     'product sourcing', 'verified suppliers', 'international trade',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     'agricultural products', 'textile wholesale', 'metal products',
     'construction materials', 'food and beverage', 'consumer goods',
     'global sourcing', 'trade platform', 'B2B marketplace',
-    '跨境电商', '国际贸易', 'B2B平台', '线上展会', '批发市场',
+    '跨境电商', '国际贸易', 'B2B平台', '线上展会', '批发市场', '心海环球',
     '国際貿易', 'B2B取引', 'オンライン展示会',
     '국제무역', 'B2B플랫폼', '온라인전시회',
     'التجارة العالمية', 'السوق الإلكتروني',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "X2XHUB",
+    title: "SeaHeart Global",
   },
   alternates: {
     canonical: `${BASE_URL}/en`,
@@ -52,23 +52,23 @@ export const metadata: Metadata = {
     ),
   },
   openGraph: {
-    title: 'X2XHub - Global B2B Trade Exhibition & Auction Platform',
+    title: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition & Auction Platform',
     description: 'Connect global buyers and sellers. Discover wholesale products and verified suppliers for international trade across 13 languages.',
     type: "website",
     url: BASE_URL,
-    siteName: "X2XHub",
+    siteName: "SeaHeart Global | 心海环球",
     images: [
       {
         url: `${BASE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "X2XHub Global B2B Trade Platform",
+        alt: "SeaHeart Global B2B Trade Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "X2XHub - Global B2B Trade Exhibition & Auction Platform",
+    title: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition & Auction Platform',
     description: "Connect global buyers and sellers. Discover wholesale products and verified suppliers for international trade.",
     images: [`${BASE_URL}/og-image.png`],
   },
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    "application-name": "X2XHub",
+    "application-name": "SeaHeart Global",
     "theme-color": "#2563eb",
     "geo.region": "Global",
     "geo.placename": "International",
@@ -130,7 +130,7 @@ export default function RootLayout({
         
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="X2XHUB" />
+        <meta name="apple-mobile-web-app-title" content="SeaHeart Global" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         
         {languages.map((lang) => (

@@ -3,10 +3,11 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { handleSEOEvent } from "@/lib/seo-automation"
+import { appendFileSync } from 'fs'
 
 
 const productUpdateSchema = z.object({
-  title: z.string().min(3).max(200).optional(),
+  title: z.string().min(3).max(500).optional(),
   categoryId: z.string().optional(),
   description: z.string().optional(),
   specifications: z.record(z.string(), z.any()).optional(),
@@ -136,12 +137,23 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    const data = validation.data
+    const data = { ...validation.data }
+
+    // Convert foreign-key scalar fields to Prisma nested connect syntax.
+    // Prisma's update() doesn't accept raw FK columns (categoryId, minOrderUnitId,
+    // supplyCapacityUnitId) — they must be wrapped in { connect: { id } }.
+    // Also strip fields that exist in Zod schema but NOT yet in the Prisma model
+    // (acceptsOEM, youtubeUrl) — these require a DB migration to enable.
+    const { categoryId, minOrderUnitId, supplyCapacityUnitId, acceptsOEM, youtubeUrl, ...restData } = data as any
+    const prismaData: any = { ...restData }
+    if (categoryId) prismaData.category = { connect: { id: categoryId } }
+    if (minOrderUnitId) prismaData.minOrderUnit = { connect: { id: minOrderUnitId } }
+    if (supplyCapacityUnitId) prismaData.supplyCapacityUnit = { connect: { id: supplyCapacityUnitId } }
 
     // Update product
     const product = await prisma.product.update({
       where: { id },
-      data,
+      data: prismaData,
       include: {
         category: true,
         seller: true,
@@ -179,8 +191,16 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('Update product error:', error)
-    return NextResponse.json({ 
+    // Log full error details to file for debugging
+    const errorDetail = error instanceof Error
+      ? `${error.message}\n${error.stack || ''}\nCause: ${JSON.stringify((error as any).cause || {}, null, 2)}`
+      : JSON.stringify(error, null, 2)
+    try {
+      appendFileSync('/var/www/chinahuib2b/logs/product-update-errors.log',
+        `[${new Date().toISOString()}] Product ${id} update error:\n${errorDetail}\n\n`)
+    } catch {}
+    console.error('Update product error:', errorDetail)
+    return NextResponse.json({
       error: 'Failed to update product',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })

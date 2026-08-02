@@ -1,4 +1,4 @@
-# Global Expo Network - x2xhub.com
+# SeaHeart Global | 心海环球 - x2xhub.com
 # Allow all crawlers including AI bots
 
 # Standard crawlers

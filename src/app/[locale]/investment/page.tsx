@@ -40,25 +40,25 @@ export default function InvestmentPage() {
   // Business plan files
   const businessPlans = [
     {
-      name: t.chineseBusinessPlan,
+      name: 'SeaHeart Global Business Plan (Chinese)',
       pdf: '/business-plans/X2XHUB_商业计划书_2026-06-06.pdf',
       html: '/business-plans/X2XHUB_商业计划书.html',
       language: 'zh',
     },
     {
-      name: t.englishBusinessPlan,
+      name: 'SeaHeart Global Business Plan (English)',
       pdf: '/business-plans/X2XHUB_Business_Plan_EN.pdf',
       html: '/business-plans/X2XHUB_Business_Plan_EN.html',
       language: 'en',
     },
     {
-      name: t.englishPitchDeck,
+      name: 'SeaHeart Global Pitch Deck (English)',
       pdf: '/business-plans/X2XHUB_Pitch_Deck.pdf',
       html: '/business-plans/X2XHUB_Pitch_Deck.html',
       language: 'en',
     },
     {
-      name: t.chinesePitchDeck,
+      name: 'SeaHeart Global Pitch Deck (Chinese)',
       pdf: '/business-plans/X2XHUB_中文路演稿.pdf',
       html: '/business-plans/X2XHUB_中文路演稿.html',
       language: 'zh',

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, MapPin, Package } from 'lucide-react'
 import { getDictionary } from '@/locales/dictionary'
+import { storeUrl } from '@/lib/store-slug'
 import type { LanguageCode } from '@/lib/languages'
 
 type PageProps = {
@@ -57,7 +58,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
               {sellers.map((seller: any) => (
                 <Link
                   key={seller.id}
-                  href={`/${locale}/stores/${seller.id}`}
+                  href={storeUrl(seller)}
                   className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group"
                 >
                   {/* Banner/Logo */}

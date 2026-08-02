@@ -7,6 +7,7 @@ import AnnouncementBar from '@/components/AnnouncementBar'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import DisclaimerTicker from '@/components/DisclaimerTicker'
 import { getSEOConfig } from '@/lib/seo'
+import { storeUrl } from '@/lib/store-slug'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
 import BoothCard from '@/components/BoothCard'
@@ -193,8 +194,8 @@ export default async function Home({ params }: PageProps) {
                       <span className="font-medium">{dict.home.featured.customization}:</span> {product.customizable ? dict.home.featured.yes : dict.home.featured.no}
                     </p>
                   </div>
-                  <Link 
-                    href={`/${locale}/stores/${product.seller.id}`} 
+                  <Link
+                    href={storeUrl(product.seller)}
                     className="w-full block text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
                   >
                     {dict.home.featured.enterBooth}
@@ -254,7 +255,7 @@ export default async function Home({ params }: PageProps) {
         {exhibitors.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {exhibitors.map((seller) => (
-              <Link key={seller.id} href={`/${locale}/stores/${seller.id}`} className="group">
+              <Link key={seller.id} href={storeUrl(seller)} className="group">
                 <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
                   <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
                     {seller.logo ? (

@@ -46,7 +46,7 @@ export default function AboutPage() {
       <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            {isZh ? '关于 Global Expo Network' : 'About Global Expo Network'}
+            {isZh ? '关于 SeaHeart Global（心海环球）' : 'About SeaHeart Global（心海环球）'}
           </h1>
           <p className="text-xl md:text-2xl mb-4 opacity-90 max-w-3xl mx-auto">
             {isZh
@@ -80,8 +80,8 @@ export default function AboutPage() {
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {isZh
-                  ? 'Global Expo Network 诞生于一个简单的想法：世界应该更小，贸易应该更简单。我们的创始人看到了传统贸易展会的局限性——成本高、效率低、覆盖面有限。'
-                  : 'Global Expo Network was born from a simple idea: the world should be smaller, and trade should be simpler. Our founders saw the limitations of traditional trade shows — high costs, low efficiency, limited reach.'}
+                  ? 'SeaHeart Global 诞生于一个简单的想法：世界应该更小，贸易应该更简单。我们的创始人看到了传统贸易展会的局限性——成本高、效率低、覆盖面有限。'
+                  : 'SeaHeart Global was born from a simple idea: the world should be smaller, and trade should be simpler. Our founders saw the limitations of traditional trade shows — high costs, low efficiency, limited reach.'}
               </p>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {isZh

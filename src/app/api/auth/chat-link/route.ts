@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { role } = body
 
+    // Map BOTH to SELLER for chat system (seller has buyer access)
+    const effectiveRole = role === 'BOTH' ? 'SELLER' : role
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id }
     })
@@ -23,14 +26,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const linkEndpoint = role === 'SELLER' ? '/api/booth/seller-link' : '/api/booth/buyer-link'
-    const externalIdField = role === 'SELLER' ? 'externalSellerId' : 'externalUserId'
+    const linkEndpoint = effectiveRole === 'SELLER' ? '/api/booth/seller-link' : '/api/booth/buyer-link'
+    const externalIdField = effectiveRole === 'SELLER' ? 'externalSellerId' : 'externalUserId'
     
-    const sellerProfile = role === 'SELLER' ? await prisma.sellerProfile.findUnique({
+    const sellerProfile = effectiveRole === 'SELLER' ? await prisma.sellerProfile.findUnique({
       where: { userId: session.user.id }
     }) : null
 
-    const externalId = role === 'SELLER' ? (sellerProfile?.id || session.user.id) : session.user.id
+    const externalId = effectiveRole === 'SELLER' ? (sellerProfile?.id || session.user.id) : session.user.id
 
     const linkRes = await fetch(`${CHAT_SYSTEM_BASE_URL}${linkEndpoint}`, {
       method: 'POST',

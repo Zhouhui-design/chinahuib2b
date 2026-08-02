@@ -15,7 +15,7 @@ export function ProductSchema({ product }: { product: any }) {
     sku: product.id,
     brand: {
       '@type': 'Brand',
-      name: product.brand || product.storeName || product.seller?.companyName || 'X2XHub',
+      name: product.brand || product.storeName || product.seller?.companyName || 'SeaHeart Global',
     },
     manufacturer: product.seller ? {
       '@type': 'Organization',
@@ -41,7 +41,7 @@ export function ProductSchema({ product }: { product: any }) {
       url: `https://x2xhub.com/products/${product.id}`,
       seller: {
         '@type': 'Organization',
-        name: product.storeName || product.seller?.companyName || 'X2XHub',
+        name: product.storeName || product.seller?.companyName || 'SeaHeart Global',
       },
       priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       minOrderQuantity: product.minOrderQty || 1,
@@ -145,40 +145,47 @@ export function FAQSchema({ faqs }: { faqs: Array<{ question: string; answer: st
 
 // Store Schema
 export function StoreSchema({ store }: { store: any }) {
+  // Resolve localized description from multi-language descriptions object
+  const description = store.descriptions && typeof store.descriptions === 'object'
+    ? (store.descriptions['en'] || store.descriptions['zh'] || store.description || '')
+    : (store.description || '')
+
+  const hasAddress = store.address || store.city || store.country
+  const hasGeo = store.mapLatitude != null && store.mapLongitude != null
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Store',
-    name: store.storeName,
-    description: store.description,
-    url: `https://x2xhub.com/stores/${store.id}`,
-    logo: store.logo || 'https://x2xhub.com/default-store-logo.png',
-    image: store.banner || store.logo,
-    address: store.address ? {
+    name: store.companyName,
+    description: description || undefined,
+    url: store.storeSlug
+      ? `https://x2xhub.com/${store.storeSlug}`
+      : `https://x2xhub.com/stores/${store.id}`,
+    logo: store.logoUrl || undefined,
+    image: store.bannerUrl || store.logoUrl || undefined,
+    address: hasAddress ? {
       '@type': 'PostalAddress',
-      streetAddress: store.address.street,
-      addressLocality: store.address.city,
-      addressCountry: store.address.country,
+      streetAddress: store.address || undefined,
+      addressLocality: store.city || undefined,
+      addressCountry: store.country || undefined,
     } : undefined,
-    geo: store.location ? {
+    geo: hasGeo ? {
       '@type': 'GeoCoordinates',
-      latitude: store.location.lat,
-      longitude: store.location.lng,
+      latitude: store.mapLatitude,
+      longitude: store.mapLongitude,
     } : undefined,
-    openingHoursSpecification: store.businessHours ? {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: store.businessHours.days,
-      opens: store.businessHours.open,
-      closes: store.businessHours.close,
-    } : undefined,
-    telephone: store.contactPhone,
-    email: store.contactEmail,
-    priceRange: store.priceRange || '$$',
+    telephone: store.phone || undefined,
+    email: store.email || undefined,
+    ...(store.website ? { sameAs: [store.website] } : {}),
   }
+
+  // Remove undefined/null values for clean JSON-LD output
+  const cleanSchema = JSON.parse(JSON.stringify(schema))
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(cleanSchema) }}
     />
   )
 }

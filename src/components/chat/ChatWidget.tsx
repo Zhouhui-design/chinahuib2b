@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { MessageCircle, X, Send, Minimize2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { MessageCircle, X, Send, Minimize2, Loader2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 interface ChatWidgetProps {
@@ -17,116 +17,147 @@ interface Message {
   isOwn: boolean
 }
 
+const POLL_INTERVAL = 3000
+
 export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
-  const [ws, setWs] = useState<WebSocket | null>(null)
-  const [isConnected, setIsConnected] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const lastMessageIdRef = useRef<string | null>(null)
+  const pollTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Resolve the logged-in user ID. useSession() may return a user object
+  // without an 'id' field on the client (JWT session shape differs from
+  // database session). Fetch /api/auth/session to get the canonical ID.
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') return
+    // Prefer id from session if present
+    if (session?.user?.id) {
+      setResolvedUserId(session.user.id as string)
+      return
+    }
+    // Fallback: fetch canonical session from server
+    fetch('/api/auth/session', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (data?.user?.id) {
+          setResolvedUserId(data.user.id)
+        }
+      })
+      .catch(() => {})
+  }, [session, sessionStatus])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Initialize WebSocket connection
-  useEffect(() => {
-    if (!session?.user || !isOpen) return
+  const fetchMessages = useCallback(async () => {
+    if (!resolvedUserId) return
+    try {
+      const res = await fetch(`/api/chat/private/${sellerId}?limit=50`, {
+        credentials: 'include',
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!data?.success || !data?.data?.messages) return
 
-    const token = generateJWT(session.user.id, session.user.email || '')
-    const wsUrl = process.env.NEXT_PUBLIC_CHAT_WS_URL || 'ws://localhost:5001/ws'
-    
-    const websocket = new WebSocket(`${wsUrl}?token=${token}`)
-
-    websocket.onopen = () => {
-      console.log('Chat connected')
-      setIsConnected(true)
-      
-      // Join conversation with seller
-      websocket.send(JSON.stringify({
-        type: 'join',
-        conversationId: `${session.user.id}_${sellerId}`,
+      const newMessages: Message[] = data.data.messages.map((m: any) => ({
+        id: m.id,
+        content: m.content,
+        senderId: m.senderId,
+        timestamp: new Date(m.createdAt),
+        isOwn: m.senderId === resolvedUserId,
       }))
-    }
 
-    websocket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data)
-        
-        if (data.type === 'message') {
-          setMessages(prev => [...prev, {
-            id: data.id || Date.now().toString(),
-            content: data.content,
-            senderId: data.senderId,
-            timestamp: new Date(data.timestamp),
-            isOwn: data.senderId === session.user.id,
-          }])
-        }
-      } catch (error) {
-        console.error('Failed to parse message:', error)
+      // Only update if there are new messages
+      const lastMsg = newMessages[newMessages.length - 1]
+      if (lastMsg && lastMsg.id !== lastMessageIdRef.current) {
+        lastMessageIdRef.current = lastMsg.id
+        setMessages(newMessages)
       }
+    } catch (e) {
+      // Silent fail - polling is best effort
+    }
+  }, [resolvedUserId, sellerId])
+
+  // Load messages and start polling when chat opens
+  useEffect(() => {
+    if (!resolvedUserId || !isOpen) {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current)
+        pollTimerRef.current = null
+      }
+      return
     }
 
-    websocket.onerror = (error) => {
-      console.error('WebSocket error:', error)
-      setIsConnected(false)
-    }
+    setIsLoading(true)
+    fetchMessages().finally(() => setIsLoading(false))
 
-    websocket.onclose = () => {
-      console.log('Chat disconnected')
-      setIsConnected(false)
-    }
-
-    setWs(websocket)
+    pollTimerRef.current = setInterval(fetchMessages, POLL_INTERVAL)
 
     return () => {
-      websocket.close()
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current)
+        pollTimerRef.current = null
+      }
     }
-  }, [session, sellerId, isOpen])
+  }, [resolvedUserId, isOpen, fetchMessages])
 
-  // Generate simple JWT for chat authentication
-  const generateJWT = (userId: string, email: string): string => {
-    // In production, this should be generated server-side
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-    const payload = btoa(JSON.stringify({ 
-      userId, 
-      email,
-      exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour
-    }))
-    const secret = process.env.NEXT_PUBLIC_CHAT_JWT_SECRET || 'chat-secret-key'
-    const signature = btoa(secret) // Simplified - use proper HMAC in production
-    
-    return `${header}.${payload}.${signature}`
-  }
+  const sendMessage = async () => {
+    if (!newMessage.trim() || isSending) return
+    if (!resolvedUserId) return
 
-  const sendMessage = () => {
-    if (!newMessage.trim() || !ws || !isConnected) return
-
-    const messageData = {
-      type: 'message',
-      conversationId: `${session?.user.id}_${sellerId}`,
-      senderId: session?.user.id,
-      receiverId: sellerId,
-      content: newMessage.trim(),
-      productId: productId,
-      timestamp: new Date().toISOString(),
-    }
-
-    ws.send(JSON.stringify(messageData))
+    const content = newMessage.trim()
+    setIsSending(true)
 
     // Optimistically add to UI
+    const tempId = `temp-${Date.now()}`
     setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      content: newMessage.trim(),
-      senderId: session?.user.id || '',
+      id: tempId,
+      content,
+      senderId: resolvedUserId,
       timestamp: new Date(),
       isOwn: true,
     }])
-
     setNewMessage('')
+
+    try {
+      const res = await fetch(`/api/chat/private/${sellerId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content, productId }),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData?.error || `HTTP ${res.status}`)
+      }
+      const data = await res.json()
+
+      // Replace temp message with real one
+      if (data?.success && data?.data?.id) {
+        setMessages(prev => prev.map(m =>
+          m.id === tempId
+            ? { ...m, id: data.data.id, timestamp: new Date(data.data.createdAt) }
+            : m
+        ))
+        lastMessageIdRef.current = data.data.id
+      }
+    } catch (err) {
+      // Remove failed optimistic message
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+      alert(`Failed to send message: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setIsSending(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -136,7 +167,7 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
     }
   }
 
-  if (!session) {
+  if (sessionStatus === 'unauthenticated') {
     return (
       <button
         onClick={() => window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`}
@@ -157,9 +188,6 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
           className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
         >
           <MessageCircle className="w-6 h-6" />
-          {!isConnected && (
-            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-          )}
         </button>
       )}
 
@@ -171,7 +199,7 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
           {/* Header */}
           <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+              <div className={`w-2 h-2 rounded-full bg-green-400`}></div>
               <span className="font-semibold">Chat with Seller</span>
             </div>
             <div className="flex items-center space-x-2">
@@ -194,7 +222,12 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
             <>
               {/* Messages Area */}
               <div className="h-[380px] overflow-y-auto p-4 space-y-3 bg-gray-50">
-                {messages.length === 0 ? (
+                {isLoading ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <Loader2 className="w-6 h-6 mx-auto animate-spin" />
+                    <p className="text-sm mt-2">Loading messages...</p>
+                  </div>
+                ) : messages.length === 0 ? (
                   <div className="text-center text-gray-500 mt-8">
                     <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No messages yet</p>
@@ -217,9 +250,9 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
                         <p className={`text-xs mt-1 ${
                           msg.isOwn ? 'text-blue-100' : 'text-gray-500'
                         }`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
+                          {msg.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </p>
                       </div>
@@ -239,21 +272,20 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
                     onKeyPress={handleKeyPress}
                     placeholder="Type a message..."
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={!isConnected}
+                    disabled={isSending}
                   />
                   <button
                     onClick={sendMessage}
-                    disabled={!newMessage.trim() || !isConnected}
+                    disabled={!newMessage.trim() || isSending}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded-lg transition-colors"
                   >
-                    <Send className="w-5 h-5" />
+                    {isSending ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
-                {!isConnected && (
-                  <p className="text-xs text-red-500 mt-2 text-center">
-                    Connecting... Please wait
-                  </p>
-                )}
               </div>
             </>
           )}

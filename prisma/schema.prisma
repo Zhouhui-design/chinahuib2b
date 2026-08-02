@@ -182,9 +182,13 @@ model SellerProfile {
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
   visitors             Visitor[]
+  storeSlug            String?   @unique
+  storeSlugLocked      Boolean   @default(false)
+  storeSlugChangedAt   DateTime?
 
   @@index([companyName])
   @@index([country])
+  @@index([storeSlug])
 }
 
 model Category {

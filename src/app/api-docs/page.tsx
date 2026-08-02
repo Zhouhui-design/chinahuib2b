@@ -338,7 +338,7 @@ export default function ApiDocsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="font-bold mb-2">Global Expo Network</h3>
+              <h3 className="font-bold mb-2">SeaHeart Global | 心海环球</h3>
               <p className="text-sm text-gray-400">
                 Your gateway to global B2B trade exhibitions
               </p>
@@ -375,7 +375,7 @@ export default function ApiDocsPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2026 Global Expo Network. All rights reserved.
+            © 2026 SeaHeart Global. All rights reserved.
           </div>
         </div>
       </footer>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot } from 'lucide-react'
+import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot, MessageCircle } from 'lucide-react'
 import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
@@ -15,14 +15,36 @@ type SellerDashboardClientLayoutProps = {
   onSignOut: () => Promise<void>
 }
 
-export default function SellerDashboardClientLayout({ 
-  children, 
+export default function SellerDashboardClientLayout({
+  children,
   currentLanguage,
   onSignOut
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
   const [showQuickMenu, setShowQuickMenu] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Poll unread message count for inbox badge (near-real-time notification)
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch('/api/chat/unread-count', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.success?.data) {
+            setUnreadCount(data.data.unreadCount || 0)
+          }
+        }
+      } catch (e) {
+        // Silent
+      }
+    }
+    fetchUnread()
+    timer = setInterval(fetchUnread, 30000) // Poll every 30s
+    return () => { if (timer) clearInterval(timer) }
+  }, [])
   
   // Translations for sidebar and common elements
   const t = {
@@ -205,19 +227,19 @@ export default function SellerDashboardClientLayout({
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link href="/" className="text-xl font-bold text-blue-600">
-                {language === 'zh' ? '全球博览网络' :
-                 language === 'ja' ? 'グローバルエキスポネットワーク' :
-                 language === 'ar' ? 'شبكة المعرض العالمية' :
-                 language === 'es' ? 'Red Global de Exposiciones' :
-                 language === 'fr' ? 'Réseau Mondial d\'Expositions' :
-                 language === 'de' ? 'Globales Messenetzwerk' :
-                 language === 'ko' ? '글로벌 엑스포 네트워크' :
-                 language === 'ru' ? 'Глобальная выставочная сеть' :
-                 language === 'pt' ? 'Rede Global de Exposições' :
-                 language === 'hi' ? 'वैश्विक एक्सपो नेटवर्क' :
-                 language === 'th' ? 'เครือข่ายงานแสดงสินค้าทั่วโลก' :
-                 language === 'vi' ? 'Mạng lưới Triển lãm Toàn cầu' :
-                 'Global Expo Network'}
+                {language === 'zh' ? '心海环球' :
+                 language === 'ja' ? '心海グローバル' :
+                 language === 'ar' ? 'القلب البحري العالمي' :
+                 language === 'es' ? 'CorazónMar Global' :
+                 language === 'fr' ? 'CœurMer Mondial' :
+                 language === 'de' ? 'Meerherz Global' :
+                 language === 'ko' ? '심해글로벌' :
+                 language === 'ru' ? 'МорскоеСердце Глобал' :
+                 language === 'pt' ? 'CoraçãoMar Global' :
+                 language === 'hi' ? 'समुद्र-हृदय ग्लोबल' :
+                 language === 'th' ? 'หัวใจทะเลโลก' :
+                 language === 'vi' ? 'TráiTimBiển ToànCầu' :
+                 'SeaHeart Global'}
               </Link>
               <span className="ml-4 text-sm text-gray-500">
                 {language === 'zh' ? '卖家仪表板' :
@@ -355,7 +377,38 @@ export default function SellerDashboardClientLayout({
                 <BarChart3 className="w-5 h-5 mr-3" />
                 {t.dashboard}
               </Link>
-              
+
+              <Link
+                href="/seller/messages"
+                className={`flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/messages')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-3" />
+                  {language === 'zh' ? '消息' :
+                   language === 'ja' ? 'メッセージ' :
+                   language === 'ar' ? 'الرسائل' :
+                   language === 'es' ? 'Mensajes' :
+                   language === 'fr' ? 'Messages' :
+                   language === 'de' ? 'Nachrichten' :
+                   language === 'ko' ? '메시지' :
+                   language === 'ru' ? 'Сообщения' :
+                   language === 'pt' ? 'Mensagens' :
+                   language === 'hi' ? 'संदेश' :
+                   language === 'th' ? 'ข้อความ' :
+                   language === 'vi' ? 'Tin nhắn' :
+                   'Messages'}
+                </div>
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
               <Link
                 href="/seller/products"
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${

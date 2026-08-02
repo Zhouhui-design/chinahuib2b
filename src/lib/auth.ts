@@ -55,12 +55,22 @@ export const authOptions: AuthOptions = {
         token.role = user.role
         token.id = user.id
       }
+      // Ensure id is always present (token.sub is the JWT standard subject field)
+      if (!token.id && token.sub) {
+        token.id = token.sub as string
+      }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+        // Use token.id first (custom), fall back to token.sub (JWT standard)
+        const userId = (token.id || token.sub) as string | undefined
+        if (userId) {
+          session.user.id = userId
+        }
+        if (token.role) {
+          session.user.role = token.role as string
+        }
       }
       return session
     },

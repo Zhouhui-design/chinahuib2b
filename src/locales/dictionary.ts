@@ -93,6 +93,7 @@ export type Dictionary = {
     minOrder: string;
   };
   footer: {
+    title: string;
     partnerRecruitment: string;
     partnerDesc: string;
     joinUs: string;
@@ -479,7 +480,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   en: {
     home: {
       hero: {
-        title: "Global Expo Network",
+        title: "SeaHeart Global",
         subtitle: "Your Gateway to B2B Trade Exhibitions",
         searchPlaceholder: "Search products, exhibitors...",
         searchButton: "Search",
@@ -932,11 +933,12 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       minOrder: "Min order",
     },
     footer: {
+      title: "SeaHeart Global",
       partnerRecruitment: "Partner Recruitment",
       partnerDesc: "Global recruitment - no geographic restrictions",
       joinUs: "Join Us",
       investNow: "Invest Now",
-      about: "Global Expo Network is the world's leading B2B cross-border trade exhibition platform, connecting buyers and sellers worldwide, promoting international trade development.",
+      about: "SeaHeart Global is the world's leading B2B cross-border trade exhibition platform, connecting buyers and sellers worldwide, promoting international trade development.",
       quickLinks: "Quick Links",
       services: "Services",
       contact: "Contact Us",
@@ -953,7 +955,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   zh: {
     home: {
       hero: {
-        title: "全球展会网络",
+        title: "SeaHeart Global",
         subtitle: "您的B2B贸易展会门户",
         searchPlaceholder: "搜索产品、参展商...",
         searchButton: "搜索",
@@ -1406,11 +1408,12 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       minOrder: "最小起订量",
     },
     footer: {
+      title: "SeaHeart Global",
       partnerRecruitment: "招募合伙人",
       partnerDesc: "全球招募 - 不限地区",
       joinUs: "加入我们",
       investNow: "欢迎投资",
-      about: "Global Expo Network 是全球领先的B2B跨境贸易展览平台，连接全球买家和卖家，促进国际贸易发展。",
+      about: "SeaHeart Global（心海环球）是全球领先的B2B跨境贸易展览平台，连接全球买家和卖家，促进国际贸易发展。",
       quickLinks: "快速链接",
       services: "服务",
       contact: "联系我们",
@@ -1427,7 +1430,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   es: {
     home: {
       hero: {
-        title: "Red Global de Exposiciones",
+        title: "SeaHeart Global",
         subtitle: "Su puerta de entrada a las ferias comerciales B2B",
         searchPlaceholder: "Buscar productos, expositores...",
         searchButton: "Buscar",
@@ -1884,7 +1887,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   fr: {
     home: {
       hero: {
-        title: "Réseau Mondial d'Expositions",
+        title: "SeaHeart Global",
         subtitle: "Votre passerelle vers les salons professionnels B2B",
         searchPlaceholder: "Rechercher produits, exposants...",
         searchButton: "Rechercher",
@@ -2251,7 +2254,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   de: {
     home: {
-      hero: { title: "Globales Messenetzwerk", subtitle: "Ihr Tor zu B2B-Handelsmessen", searchPlaceholder: "Produkte, Aussteller suchen...", searchButton: "Suchen" },
+      hero: { title: "SeaHeart Global", subtitle: "Ihr Tor zu B2B-Handelsmessen", searchPlaceholder: "Produkte, Aussteller suchen...", searchButton: "Suchen" },
       featured: { 
         title: "Ausstellungszonen", 
         viewDetails: "Details Ansehen",
@@ -2564,7 +2567,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   ja: {
     home: {
-      hero: { title: "グローバルエキスポネットワーク", subtitle: "B2B貿易見本市への玄関口", searchPlaceholder: "製品、出展者を検索...", searchButton: "検索" },
+      hero: { title: "SeaHeart Global", subtitle: "B2B貿易見本市への玄関口", searchPlaceholder: "製品、出展者を検索...", searchButton: "検索" },
       featured: { 
         title: "注目製品", 
         viewDetails: "詳細を見る",
@@ -2877,7 +2880,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   ko: {
     home: {
-      hero: { title: "글로벌 엑스포 네트워크", subtitle: "B2B 무역 박람회 관문", searchPlaceholder: "제품, 참가업체 검색...", searchButton: "검색" },
+      hero: { title: "SeaHeart Global", subtitle: "B2B 무역 박람회 관문", searchPlaceholder: "제품, 참가업체 검색...", searchButton: "검색" },
       featured: { 
         title: "전시 구역", 
         viewDetails: "자세히 보기",
@@ -3190,7 +3193,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   ar: {
     home: {
-      hero: { title: "شبكة المعارض العالمية", subtitle: "بوابتك إلى معارض التجارة B2B", searchPlaceholder: "البحث عن المنتجات، العارضين...", searchButton: "بحث" },
+      hero: { title: "SeaHeart Global", subtitle: "بوابتك إلى معارض التجارة B2B", searchPlaceholder: "البحث عن المنتجات، العارضين...", searchButton: "بحث" },
       featured: { 
         title: "مناطق المعرض", 
         viewDetails: "عرض التفاصيل",
@@ -3503,7 +3506,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   ru: {
     home: {
-      hero: { title: "Глобальная Сеть Выставок", subtitle: "Ваш путь к B2B торговым выставкам", searchPlaceholder: "Поиск продуктов, участников...", searchButton: "Поиск" },
+      hero: { title: "SeaHeart Global", subtitle: "Ваш путь к B2B торговым выставкам", searchPlaceholder: "Поиск продуктов, участников...", searchButton: "Поиск" },
       featured: { 
         title: "Выставочные Зоны", 
         viewDetails: "Подробнее",
@@ -3814,7 +3817,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   pt: {
     home: {
-      hero: { title: "Rede Global de Exposições", subtitle: "Sua porta de entrada para feiras B2B", searchPlaceholder: "Pesquisar produtos, expositores...", searchButton: "Pesquisar" },
+      hero: { title: "SeaHeart Global", subtitle: "Sua porta de entrada para feiras B2B", searchPlaceholder: "Pesquisar produtos, expositores...", searchButton: "Pesquisar" },
       featured: { 
         title: "Zonas de Exposição", 
         viewDetails: "Ver Detalhes",
@@ -4127,7 +4130,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   hi: {
     home: {
-      hero: { title: "ग्लोबल एक्सपो नेटवर्क", subtitle: "B2B व्यापार प्रदर्शनियों का द्वार", searchPlaceholder: "उत्पाद, प्रदर्शक खोजें...", searchButton: "खोजें" },
+      hero: { title: "SeaHeart Global", subtitle: "B2B व्यापार प्रदर्शनियों का द्वार", searchPlaceholder: "उत्पाद, प्रदर्शक खोजें...", searchButton: "खोजें" },
       featured: { 
         title: "प्रदर्शनी क्षेत्र", 
         viewDetails: "विवरण देखें",
@@ -4440,7 +4443,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   th: {
     home: {
-      hero: { title: "เครือข่ายนิทรรศการทั่วโลก", subtitle: "ประตูสู่การแสดงสินค้า B2B", searchPlaceholder: "ค้นหาสินค้า, ผู้แสดงสินค้า...", searchButton: "ค้นหา" },
+      hero: { title: "SeaHeart Global", subtitle: "ประตูสู่การแสดงสินค้า B2B", searchPlaceholder: "ค้นหาสินค้า, ผู้แสดงสินค้า...", searchButton: "ค้นหา" },
       featured: { 
         title: "พื้นที่จัดแสดง", 
         viewDetails: "ดูรายละเอียด",
@@ -4753,7 +4756,7 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
   },
   vi: {
     home: {
-      hero: { title: "Mạng Lưới Triển Lãm Toàn Cầu", subtitle: "Cổng thông tin triển lãm thương mại B2B", searchPlaceholder: "Tìm kiếm sản phẩm, nhà triển lãm...", searchButton: "Tìm kiếm" },
+      hero: { title: "SeaHeart Global", subtitle: "Cổng thông tin triển lãm thương mại B2B", searchPlaceholder: "Tìm kiếm sản phẩm, nhà triển lãm...", searchButton: "Tìm kiếm" },
       featured: { 
         title: "Khu Vực Triển Lãm", 
         viewDetails: "Xem Chi Tiết",

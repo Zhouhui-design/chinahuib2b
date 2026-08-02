@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 // Initialize S3 client for DigitalOcean Spaces
@@ -22,21 +22,28 @@ export interface UploadResult {
 
 /**
  * Upload file to DigitalOcean Spaces
+ *
+ * @param fileBuffer File buffer to upload
+ * @param finalName The final, processed filename (e.g. "abcd1234.webp") —
+ *        should NOT be the user's original upload name if the file was
+ *        reformatted/resized (sharp WebP conversion, etc).
+ * @param mimeType Final MIME type of the processed file (e.g. "image/webp")
+ * @param subDir Target subdirectory (e.g. "products", "logos")
  */
 export async function uploadToSpaces(
   fileBuffer: Buffer,
-  fileName: string,
+  finalName: string,
   mimeType: string,
   subDir: string = 'uploads'
 ): Promise<UploadResult> {
   try {
-    // Generate unique key
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(7)
-    const ext = fileName.split('.').pop() || ''
-    const key = `${subDir}/${timestamp}-${randomString}.${ext}`
+    // Use the processed filename to preserve the correct extension
+    const ext = finalName.includes('.') ? finalName.split('.').pop() || 'bin' : 'bin'
+    const baseName = finalName.includes('.') ? finalName.slice(0, -(ext.length + 1)) : finalName
+    const key = `${subDir}/${timestamp}-${randomString}-${baseName}.${ext}`
 
-    // Create put object command
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
@@ -45,24 +52,53 @@ export async function uploadToSpaces(
       ACL: 'public-read', // Make files publicly accessible
     })
 
-    // Upload to Spaces
     await s3Client.send(command)
 
     // Generate public URL
-    const baseUrl = process.env.DO_SPACES_ENDPOINT?.replace('https://', `https://${BUCKET_NAME}.`) 
+    const baseUrl = process.env.DO_SPACES_ENDPOINT?.replace('https://', `https://${BUCKET_NAME}.`)
       || `https://${BUCKET_NAME}.sgp1.digitaloceanspaces.com`
-    
+
     const url = `${baseUrl}/${key}`
 
     return {
       url,
       key,
-      fileName,
+      fileName: finalName,
       size: fileBuffer.length,
     }
   } catch (error) {
     console.error('DigitalOcean Spaces upload error:', error)
     throw new Error('Failed to upload to cloud storage')
+  }
+}
+
+/**
+ * Delete an object from DigitalOcean Spaces by its URL
+ * @param url Public CDN URL of the object (e.g. https://bucket.sgp1..../key)
+ */
+export async function deleteFromSpacesByUrl(url: string): Promise<void> {
+  try {
+    if (!isSpacesConfigured()) return
+    // Extract key from URL: https://bucket.region.digitaloceanspaces.com/key -> key
+    const match = url.match(/\/([^/]+\/[^/]+\/.*)$/)
+    if (!match) return
+    const key = match[1]
+    await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }))
+  } catch (error) {
+    console.error('Delete from Spaces error:', error)
+  }
+}
+
+/**
+ * Verify a Spaces object exists (useful for health checks)
+ */
+export async function verifySpacesObjectExists(key: string): Promise<boolean> {
+  try {
+    if (!isSpacesConfigured()) return false
+    await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET_NAME, Key: key }))
+    return true
+  } catch {
+    return false
   }
 }
 
@@ -90,12 +126,14 @@ export async function generatePresignedUrl(
 }
 
 /**
- * Check if Spaces is configured
+ * Check if Spaces is configured (access key + secret key + bucket)
  */
 export function isSpacesConfigured(): boolean {
   return !!(
     process.env.DO_SPACES_ACCESS_KEY &&
     process.env.DO_SPACES_SECRET_KEY &&
-    process.env.DO_SPACES_BUCKET
+    process.env.DO_SPACES_BUCKET &&
+    process.env.DO_SPACES_ACCESS_KEY.trim().length > 0 &&
+    process.env.DO_SPACES_SECRET_KEY.trim().length > 0
   )
 }

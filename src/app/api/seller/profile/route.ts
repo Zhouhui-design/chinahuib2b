@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { generateUniqueStoreSlug } from "@/services/sellerService"
 import { z } from "zod"
 import { autoTranslateToAllLanguages } from "@/lib/translation-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
@@ -108,7 +109,8 @@ export async function GET() {
           city: 'Beijing',
           isActive: true,
           isVerified: false,
-          subscriptionStatus: 'FREE_TRIAL'
+          subscriptionStatus: 'FREE_TRIAL',
+          storeSlug: await generateUniqueStoreSlug(session.user.name || session.user.id.slice(0, 8)),
         }
       })
 
@@ -118,7 +120,9 @@ export async function GET() {
             type: 'store_update',
             data: {
               id: seller.id,
-              url: `https://x2xhub.com/de/stores/${seller.id}`,
+              url: seller.storeSlug
+                ? `https://x2xhub.com/${seller.storeSlug}`
+                : `https://x2xhub.com/de/stores/${seller.id}`,
               title: seller.companyName,
               description: seller.description || '',
             }
@@ -213,7 +217,8 @@ export async function PUT(request: NextRequest) {
           city: 'Beijing',
           isActive: true,
           isVerified: false,
-          subscriptionStatus: 'FREE_TRIAL'
+          subscriptionStatus: 'FREE_TRIAL',
+          storeSlug: await generateUniqueStoreSlug(session.user.name || session.user.id.slice(0, 8)),
         }
       })
     }
@@ -268,64 +273,72 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Helper function to check if a value can be assigned to a String[] field
+    const isValidArray = (val: any): val is string[] => Array.isArray(val);
+    const isNotNullUndefined = (val: any) => val !== null && val !== undefined;
+
     const updateData: any = {
       companyName: data.companyName,
-      ...(data.contactName !== undefined && { contactName: data.contactName }),
+      ...(isNotNullUndefined(data.contactName) && { contactName: data.contactName }),
       ...(Object.keys(descriptions).length > 0 && { descriptions }),
-      ...(data.country && { country: data.country }),
-      ...(data.city && { city: data.city }),
-      ...(data.address && { address: data.address }),
-      ...(data.phone && { phone: data.phone }),
-      ...(data.email && { email: data.email }),
-      ...(data.website && { website: data.website }),
-      ...(data.whatsapp !== undefined && { whatsapp: data.whatsapp }),
-      ...(data.wechat !== undefined && { wechat: data.wechat }),
-      ...(data.telegram !== undefined && { telegram: data.telegram }),
-      ...(data.linkedin && { linkedin: data.linkedin }),
-      ...(data.facebook && { facebook: data.facebook }),
-      ...(data.instagram && { instagram: data.instagram }),
-      ...(data.youtube && { youtube: data.youtube }),
-      ...(data.tiktok && { tiktok: data.tiktok }),
-      ...(data.twitter && { twitter: data.twitter }),
-      ...(data.pinterest && { pinterest: data.pinterest }),
-      ...(data.douyin && { douyin: data.douyin }),
-      ...(data.xiaohongshu && { xiaohongshu: data.xiaohongshu }),
-      ...(data.qq && { qq: data.qq }),
-      ...(data.dingtalk && { dingtalk: data.dingtalk }),
-      ...(data.lark && { lark: data.lark }),
-      ...(data.wechatVideo && { wechatVideo: data.wechatVideo }),
-      ...(data.weibo && { weibo: data.weibo }),
-      ...(data.kuaishou && { kuaishou: data.kuaishou }),
-      ...(data.bilibili && { bilibili: data.bilibili }),
-      ...(data.reddit && { reddit: data.reddit }),
-      ...(data.snapchat && { snapchat: data.snapchat }),
-      ...(data.tumblr && { tumblr: data.tumblr }),
-      ...(data.chatSystem && { chatSystem: data.chatSystem }),
-      logoUrl: data.logoUrl,
-      bannerUrl: data.bannerUrl,
-      ...(data.certifications && { certifications: data.certifications }),
+      ...(isNotNullUndefined(data.country) && { country: data.country }),
+      ...(isNotNullUndefined(data.city) && { city: data.city }),
+      ...(isNotNullUndefined(data.address) && { address: data.address }),
+      ...(isNotNullUndefined(data.phone) && { phone: data.phone }),
+      ...(isNotNullUndefined(data.email) && { email: data.email }),
+      ...(isNotNullUndefined(data.website) && { website: data.website }),
+      ...(isNotNullUndefined(data.whatsapp) && { whatsapp: data.whatsapp }),
+      ...(isNotNullUndefined(data.wechat) && { wechat: data.wechat }),
+      ...(isNotNullUndefined(data.telegram) && { telegram: data.telegram }),
+      ...(isNotNullUndefined(data.linkedin) && { linkedin: data.linkedin }),
+      ...(isNotNullUndefined(data.facebook) && { facebook: data.facebook }),
+      ...(isNotNullUndefined(data.instagram) && { instagram: data.instagram }),
+      ...(isNotNullUndefined(data.youtube) && { youtube: data.youtube }),
+      ...(isNotNullUndefined(data.tiktok) && { tiktok: data.tiktok }),
+      ...(isNotNullUndefined(data.twitter) && { twitter: data.twitter }),
+      ...(isNotNullUndefined(data.pinterest) && { pinterest: data.pinterest }),
+      ...(isNotNullUndefined(data.douyin) && { douyin: data.douyin }),
+      ...(isNotNullUndefined(data.xiaohongshu) && { xiaohongshu: data.xiaohongshu }),
+      ...(isNotNullUndefined(data.qq) && { qq: data.qq }),
+      ...(isNotNullUndefined(data.dingtalk) && { dingtalk: data.dingtalk }),
+      ...(isNotNullUndefined(data.lark) && { lark: data.lark }),
+      ...(isNotNullUndefined(data.wechatVideo) && { wechatVideo: data.wechatVideo }),
+      ...(isNotNullUndefined(data.weibo) && { weibo: data.weibo }),
+      ...(isNotNullUndefined(data.kuaishou) && { kuaishou: data.kuaishou }),
+      ...(isNotNullUndefined(data.bilibili) && { bilibili: data.bilibili }),
+      ...(isNotNullUndefined(data.reddit) && { reddit: data.reddit }),
+      ...(isNotNullUndefined(data.snapchat) && { snapchat: data.snapchat }),
+      ...(isNotNullUndefined(data.tumblr) && { tumblr: data.tumblr }),
+      ...(isNotNullUndefined(data.chatSystem) && { chatSystem: data.chatSystem }),
+      ...(isNotNullUndefined(data.logoUrl) && { logoUrl: data.logoUrl }),
+      ...(isNotNullUndefined(data.bannerUrl) && { bannerUrl: data.bannerUrl }),
+      ...(isValidArray(data.certifications) && { certifications: data.certifications }),
       ...(Object.keys(boothNames).length > 0 && { boothNames }),
-      boothCategories: data.boothCategories,
-      isCustomizable: data.isCustomizable,
-      ...(data.organizationType && { organizationType: data.organizationType }),
-      ...(data.registeredCapital !== undefined && { registeredCapital: data.registeredCapital }),
-      ...(data.registeredAddress !== undefined && { registeredAddress: data.registeredAddress }),
-      ...(data.businessAddress !== undefined && { businessAddress: data.businessAddress }),
-      ...(data.employeeCount !== undefined && { employeeCount: data.employeeCount }),
-      ...(data.patents && { patents: data.patents }),
-      ...(data.awards && { awards: data.awards }),
-      ...(data.companyPhotos && { companyPhotos: data.companyPhotos }),
-      ...(data.teamPhotos && { teamPhotos: data.teamPhotos }),
-      ...(data.mapLatitude !== undefined && { mapLatitude: data.mapLatitude }),
-      ...(data.mapLongitude !== undefined && { mapLongitude: data.mapLongitude }),
-      ...(data.mapAddress !== undefined && { mapAddress: data.mapAddress }),
-      ...(data.foundingYear !== undefined && { foundingYear: data.foundingYear }),
-      ...(data.businessScope !== undefined && { businessScope: data.businessScope }),
-      ...(data.legalRepresentative !== undefined && { legalRepresentative: data.legalRepresentative }),
-      ...(data.registrationNumber !== undefined && { registrationNumber: data.registrationNumber }),
-      ...(data.bankAccount !== undefined && { bankAccount: data.bankAccount }),
-      ...(data.taxNumber !== undefined && { taxNumber: data.taxNumber }),
+      ...(isValidArray(data.boothCategories) && { boothCategories: data.boothCategories }),
+      ...(isNotNullUndefined(data.isCustomizable) && { isCustomizable: data.isCustomizable }),
+      ...(isNotNullUndefined(data.organizationType) && { organizationType: data.organizationType }),
+      ...(isNotNullUndefined(data.registeredCapital) && { registeredCapital: data.registeredCapital }),
+      ...(isNotNullUndefined(data.registeredAddress) && { registeredAddress: data.registeredAddress }),
+      ...(isNotNullUndefined(data.businessAddress) && { businessAddress: data.businessAddress }),
+      ...(isNotNullUndefined(data.employeeCount) && { employeeCount: data.employeeCount }),
+      ...(isValidArray(data.patents) && { patents: data.patents }),
+      ...(isValidArray(data.awards) && { awards: data.awards }),
+      ...(isValidArray(data.companyPhotos) && { companyPhotos: data.companyPhotos }),
+      ...(isValidArray(data.teamPhotos) && { teamPhotos: data.teamPhotos }),
+      ...(isNotNullUndefined(data.mapLatitude) && { mapLatitude: data.mapLatitude }),
+      ...(isNotNullUndefined(data.mapLongitude) && { mapLongitude: data.mapLongitude }),
+      ...(isNotNullUndefined(data.mapAddress) && { mapAddress: data.mapAddress }),
+      ...(isNotNullUndefined(data.foundingYear) && { foundingYear: data.foundingYear }),
+      ...(isNotNullUndefined(data.businessScope) && { businessScope: data.businessScope }),
+      ...(isNotNullUndefined(data.legalRepresentative) && { legalRepresentative: data.legalRepresentative }),
+      ...(isNotNullUndefined(data.registrationNumber) && { registrationNumber: data.registrationNumber }),
+      ...(isNotNullUndefined(data.bankAccount) && { bankAccount: data.bankAccount }),
+      ...(isNotNullUndefined(data.taxNumber) && { taxNumber: data.taxNumber }),
     }
+
+    console.log('Update data keys:', Object.keys(updateData))
+    console.log('Descriptions:', JSON.stringify(descriptions))
+    console.log('Contact name:', data.contactName)
 
     const updatedProfile = await prisma.sellerProfile.update({
       where: { id: seller.id },
@@ -338,7 +351,9 @@ export async function PUT(request: NextRequest) {
           type: 'store_update',
           data: {
             id: updatedProfile.id,
-            url: `https://x2xhub.com/de/stores/${updatedProfile.id}`,
+            url: updatedProfile.storeSlug
+              ? `https://x2xhub.com/${updatedProfile.storeSlug}`
+              : `https://x2xhub.com/de/stores/${updatedProfile.id}`,
             title: updatedProfile.companyName,
             description: updatedProfile.description || updatedProfile.descriptions?.en || '',
           }
@@ -355,11 +370,15 @@ export async function PUT(request: NextRequest) {
       message: 'Profile updated successfully'
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update profile error:', error)
+    console.error('Error stack:', error?.stack)
+    console.error('Error name:', error?.name)
+    console.error('Error code:', error?.code)
     return NextResponse.json({ 
       error: 'Failed to update profile',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      ...(error?.code && { code: error.code })
     }, { status: 500 })
   }
 }

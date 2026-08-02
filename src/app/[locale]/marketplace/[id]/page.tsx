@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
-import { Calendar, DollarSign, Eye, MessageCircle, Tag, User, FileText, MapPin } from 'lucide-react'
+import { Calendar, DollarSign, Eye, MessageCircle, Tag, User, FileText, MapPin, AlertCircle } from 'lucide-react'
 import { dictionaries } from '@/locales/dictionary'
+import { existsSync } from 'fs'
+import path from 'path'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }) {
   const dict = dictionaries[params.locale] || dictionaries.en
@@ -14,7 +16,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
     
     if (!task) {
       return {
-        title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | X2XHub`,
+        title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | SeaHeart Global`,
         description: dict.marketplace.description || 'Global B2B Trade Platform',
       }
     }
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
       : 'B2B, trade, marketplace, business'
     
     return {
-      title: `${task.title} | X2XHub`,
+      title: `${task.title} | SeaHeart Global`,
       description: task.description.length > 160 
         ? task.description.substring(0, 160) + '...' 
         : task.description,
@@ -47,7 +49,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
     }
   } catch {
     return {
-      title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | X2XHub`,
+      title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | SeaHeart Global`,
       description: dict.marketplace.description || 'Global B2B Trade Platform',
     }
   }
@@ -163,19 +165,36 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
                   {dict.marketplace.attachments || 'Attachments'}
                 </h2>
                 <div className="space-y-3">
-                  {task.attachments.map((url: string, index: number) => (
-                    <a
-                      key={index}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <FileText className="w-5 h-5 text-gray-500" />
-                      <span className="flex-1 text-gray-700 truncate">{url.split('/').pop()}</span>
-                      <span className="text-blue-600 text-sm">{dict.marketplace.download || 'Download'}</span>
-                    </a>
-                  ))}
+                  {task.attachments.map((url: string, index: number) => {
+                    const filePath = path.join(process.cwd(), 'public', url)
+                    const fileExists = existsSync(filePath)
+                    if (fileExists) {
+                      return (
+                        <a
+                          key={index}
+                          href={url}
+                          download={url.split('/').pop()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <FileText className="w-5 h-5 text-gray-500" />
+                          <span className="flex-1 text-gray-700 truncate">{url.split('/').pop()}</span>
+                          <span className="text-blue-600 text-sm">{dict.marketplace.download || 'Download'}</span>
+                        </a>
+                      )
+                    }
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg opacity-60"
+                      >
+                        <AlertCircle className="w-5 h-5 text-gray-400" />
+                        <span className="flex-1 text-gray-500 truncate">{url.split('/').pop()}</span>
+                        <span className="text-gray-400 text-sm">{dict.marketplace.fileUnavailable || 'File unavailable'}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -247,7 +266,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
                 {dict.marketplace.poweredBy || 'Powered by'}
               </h3>
               <p className="text-blue-100 text-sm">
-                {dict.marketplace.seoDescription || 'X2XHub is a global B2B trade platform connecting buyers and sellers worldwide.'}
+                {dict.marketplace.seoDescription || 'SeaHeart Global is a global B2B trade platform connecting buyers and sellers worldwide.'}
               </p>
             </div>
           </div>

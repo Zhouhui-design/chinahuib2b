@@ -21,6 +21,7 @@ export interface OrganizationSchema {
   email?: string
   phone?: string
   address?: string
+  slug?: string
 }
 
 export interface EventSchema {
@@ -72,7 +73,9 @@ export function generateOrganizationSchema(org: OrganizationSchema): Record<stri
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': `https://x2xhub.com/de/stores/${org.id}`,
+    '@id': org.slug
+      ? `https://x2xhub.com/${org.slug}`
+      : `https://x2xhub.com/de/stores/${org.id}`,
     name: org.name,
     description: org.description,
     ...(org.logo && { logo: org.logo }),
@@ -127,12 +130,13 @@ export function generateWebsiteSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'X2XHub - Global B2B Trade Exhibition Platform',
+    name: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition Platform',
+    alternateName: 'SeaHeart Global',
     url: 'https://x2xhub.com',
     description: 'The world\'s leading online B2B exhibition platform connecting global buyers with verified suppliers and manufacturers for international trade.',
     publisher: {
       '@type': 'Organization',
-      name: 'X2XHub',
+      name: 'SeaHeart Global | 心海环球',
       logo: {
         '@type': 'ImageObject',
         url: 'https://x2xhub.com/logo.png',
@@ -153,8 +157,8 @@ export function generateOrganizationSchemaFull(): Record<string, unknown> {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': 'https://x2xhub.com/#organization',
-    name: 'X2XHub Global Trade Network',
-    alternateName: 'X2XHUB',
+    name: 'SeaHeart Global Trade Network',
+    alternateName: 'SeaHeart Global | 心海环球',
     url: 'https://x2xhub.com',
     logo: {
       '@type': 'ImageObject',
@@ -198,8 +202,12 @@ export function generateWebApplicationSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'X2XHub - B2B Trade Platform',
+    name: 'SeaHeart Global - B2B Trade Platform',
     url: 'https://x2xhub.com',
+    applicationSuite: {
+      '@type': 'SoftwareApplication',
+      name: 'SeaHeart Global',
+    },
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',
     offers: {
@@ -220,7 +228,7 @@ export function generateLocalBusinessSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
-    name: 'X2XHub',
+    name: 'SeaHeart Global',
     url: 'https://x2xhub.com',
     description: 'Global B2B trade exhibition platform connecting buyers and sellers worldwide',
     image: 'https://x2xhub.com/logo.png',

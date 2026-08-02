@@ -254,6 +254,20 @@ export default function EditProductPage() {
       const result = await response.json()
 
       if (!response.ok) {
+        // Show detailed validation errors if available (400 - Zod)
+        if (result.details && Array.isArray(result.details)) {
+          const errorMessages = result.details
+            .map((d: any) => {
+              const field = d.path && d.path.length > 0 ? d.path.join('.') : 'field'
+              return `${field}: ${d.message || 'invalid'}`
+            })
+            .join('; ')
+          throw new Error(`${result.error}: ${errorMessages}`)
+        }
+        // Show server error details if available (500 - Prisma/DB)
+        if (result.details && typeof result.details === 'string') {
+          throw new Error(`${result.error}: ${result.details}`)
+        }
         throw new Error(result.error || 'Failed to update product')
       }
 

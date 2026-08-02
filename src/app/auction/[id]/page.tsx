@@ -32,14 +32,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     if (!listing) {
       return {
-        title: 'Auction Not Found | X2XHub',
+        title: 'Auction Not Found | SeaHeart Global',
       }
     }
 
     const title = listing.title
     const description = listing.description
       ? listing.description.substring(0, 200)
-      : `Buy ${listing.title} at competitive prices on X2XHub global B2B auction platform. Verified suppliers, secure trade, worldwide shipping.`
+      : `Buy ${listing.title} at competitive prices on SeaHeart Global global B2B auction platform. Verified suppliers, secure trade, worldwide shipping.`
 
     const priceText = listing.price ? `${listing.price} ${listing.currency}` : 'Contact for price'
     const image = listing.images[0] || `${BASE_URL}/og-image.png`
@@ -56,14 +56,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ].filter(Boolean).join(', ')
 
     return {
-      title: `${title} - B2B Auction | X2XHub`,
+      title: `${title} - B2B Auction | SeaHeart Global`,
       description,
       keywords,
       alternates: {
         canonical: `${BASE_URL}/auction/${listing.id}`,
       },
       openGraph: {
-        title: `${title} - B2B Auction | X2XHub`,
+        title: `${title} - B2B Auction | SeaHeart Global`,
         description,
         url: `${BASE_URL}/auction/${listing.id}`,
         type: 'product',
@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch (error) {
     console.error('Error generating auction metadata:', error)
     return {
-      title: 'Auction Listing | X2XHub',
+      title: 'Auction Listing | SeaHeart Global',
     }
   }
 }
@@ -98,6 +98,7 @@ export default async function AuctionDetailPage({ params }: PageProps) {
             company: true,
             avatarUrl: true,
             isVerified: true,
+            storeSlug: true,
           },
         },
         bids: {
@@ -143,7 +144,9 @@ export default async function AuctionDetailPage({ params }: PageProps) {
       author: {
         '@type': 'Organization',
         name: listing.seller.displayName || listing.seller.company || 'Verified Supplier',
-        url: `${BASE_URL}/stores/${listing.seller.id}`,
+        url: listing.seller.storeSlug
+          ? `${BASE_URL}/${listing.seller.storeSlug}`
+          : `${BASE_URL}/stores/${listing.seller.id}`,
       },
     } : {}),
     url: `${BASE_URL}/auction/${listing.id}`,

@@ -28,7 +28,7 @@ export async function sendPasswordEmail(
 ): Promise<{ success: boolean; message: string }> {
   return sendEmail(
     toEmail,
-    '管理员账号密码 - Global Expo Network',
+    '管理员账号密码 - 心海环球 SeaHeart Global',
     `登录邮箱：${toEmail}\n用户名：${username}\n新密码：${password}`
   )
 }

@@ -180,7 +180,7 @@ export async function handleSEOEvent(event: SEOEvent): Promise<{
 }> {
   const shareLinks = generateSocialShareLinks(
     event.data.url,
-    event.data.title || 'X2XHub - Global B2B Trade Platform',
+    event.data.title || 'SeaHeart Global - Global B2B Trade Platform',
     event.data.description,
     event.data.imageUrl
   )

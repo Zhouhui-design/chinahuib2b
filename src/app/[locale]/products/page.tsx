@@ -25,10 +25,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   });
 
   return {
-    title: locale === 'zh' ? '产品列表 - 全球B2B贸易平台 | X2XHub' : 'Products - Global B2B Trade Platform | X2XHub',
+    title: locale === 'zh' ? '产品列表 - 全球B2B贸易平台 | SeaHeart Global' : 'Products - Global B2B Trade Platform | SeaHeart Global',
     description: locale === 'zh' 
-      ? '浏览来自全球制造商的精选产品，涵盖电子产品、机械设备、原材料等多个品类。X2XHub - 全球领先的B2B贸易展览平台。' 
-      : 'Browse featured products from global manufacturers across electronics, machinery, raw materials and more. X2XHub - Leading global B2B trade exhibition platform.',
+      ? '浏览来自全球制造商的精选产品，涵盖电子产品、机械设备、原材料等多个品类。SeaHeart Global 心海环球 - 全球领先的B2B贸易展览平台。' 
+      : 'Browse featured products from global manufacturers across electronics, machinery, raw materials and more. SeaHeart Global - Leading global B2B trade exhibition platform.',
     keywords: ['B2B', 'products', 'manufacturer', 'supplier', 'wholesale', 'trade', 'global', 'exhibition', '电子产品', '机械设备', '原材料', '供应商'],
     
     alternates: {
@@ -37,18 +37,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
     },
     
     openGraph: {
-      title: locale === 'zh' ? '产品列表 - X2XHub' : 'Products - X2XHub',
+      title: locale === 'zh' ? '产品列表 - SeaHeart Global' : 'Products - SeaHeart Global',
       description: locale === 'zh' 
         ? '浏览来自全球制造商的精选产品' 
         : 'Browse featured products from global manufacturers',
       url: `${baseUrl}/${locale}/products`,
       type: 'website',
-      siteName: 'X2XHub',
+      siteName: 'SeaHeart Global | 心海环球',
     },
     
     twitter: {
       card: 'summary_large_image',
-      title: locale === 'zh' ? '产品列表 - X2XHub' : 'Products - X2XHub',
+      title: locale === 'zh' ? '产品列表 - SeaHeart Global' : 'Products - SeaHeart Global',
       description: locale === 'zh' 
         ? '浏览来自全球制造商的精选产品' 
         : 'Browse featured products from global manufacturers',

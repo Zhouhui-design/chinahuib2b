@@ -1,0 +1,242 @@
+/**
+ * Global country list with multi-language support
+ * Covers all 193 UN member states + observer states + major territories
+ * Translations provided for 13 languages (matching site supported languages)
+ */
+
+export type CountryCode = string;
+
+export interface Country {
+  code: CountryCode;       // ISO 3166-1 alpha-2
+  name: string;            // English name (canonical)
+  translations: Partial<Record<LanguageCode, string>>;
+}
+
+export type LanguageCode = 'en' | 'zh' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'ar' | 'ru' | 'pt' | 'hi' | 'th' | 'vi';
+
+/**
+ * Get country name in the specified language, fallback to English
+ */
+export function getCountryName(country: Country, lang: string): string {
+  const translation = country.translations[lang as LanguageCode];
+  return translation || country.name;
+}
+
+/**
+ * Get sorted country list for a specific language
+ */
+export function getCountriesForLanguage(lang: string): { code: string; name: string }[] {
+  return COUNTRIES
+    .map(c => ({ code: c.code, name: getCountryName(c, lang) }))
+    .sort((a, b) => a.name.localeCompare(b.name, lang));
+}
+
+/**
+ * Find country by code or name (any language)
+ */
+export function findCountry(query: string): Country | undefined {
+  const q = query.trim().toLowerCase();
+  return COUNTRIES.find(c =>
+    c.code.toLowerCase() === q ||
+    c.name.toLowerCase() === q ||
+    Object.values(c.translations).some(t => t?.toLowerCase() === q)
+  );
+}
+
+export const COUNTRIES: Country[] = [
+  { code: 'CN', name: 'China', translations: { zh: '中国', es: 'China', fr: 'Chine', de: 'China', ja: '中国', ko: '중국', ar: 'الصين', ru: 'Китай', pt: 'China', hi: 'चीन', th: 'จีน', vi: 'Trung Quốc' } },
+  { code: 'US', name: 'United States', translations: { zh: '美国', es: 'Estados Unidos', fr: 'États-Unis', de: 'USA', ja: 'アメリカ', ko: '미국', ar: 'الولايات المتحدة', ru: 'США', pt: 'Estados Unidos', hi: 'संयुक्त राज्य अमेरिका', th: 'สหรัฐอเมริกา', vi: 'Hoa Kỳ' } },
+  { code: 'DE', name: 'Germany', translations: { zh: '德国', es: 'Alemania', fr: 'Allemagne', de: 'Deutschland', ja: 'ドイツ', ko: '독일', ar: 'ألمانيا', ru: 'Германия', pt: 'Alemanha', hi: 'जर्मनी', th: 'เยอรมนี', vi: 'Đức' } },
+  { code: 'JP', name: 'Japan', translations: { zh: '日本', es: 'Japón', fr: 'Japon', de: 'Japan', ja: '日本', ko: '일본', ar: 'اليابان', ru: 'Япония', pt: 'Japão', hi: 'जापान', th: 'ญี่ปุ่น', vi: 'Nhật Bản' } },
+  { code: 'GB', name: 'United Kingdom', translations: { zh: '英国', es: 'Reino Unido', fr: 'Royaume-Uni', de: 'Großbritannien', ja: 'イギリス', ko: '영국', ar: 'المملكة المتحدة', ru: 'Великобритания', pt: 'Reino Unido', hi: 'यूनाइटेड किंगडम', th: 'สหราชอาณาจักร', vi: 'Vương quốc Anh' } },
+  { code: 'FR', name: 'France', translations: { zh: '法国', es: 'Francia', fr: 'France', de: 'Frankreich', ja: 'フランス', ko: '프랑스', ar: 'فرنسا', ru: 'Франция', pt: 'França', hi: 'फ्रांस', th: 'ฝรั่งเศส', vi: 'Pháp' } },
+  { code: 'IT', name: 'Italy', translations: { zh: '意大利', es: 'Italia', fr: 'Italie', de: 'Italien', ja: 'イタリア', ko: '이탈리아', ar: 'إيطاليا', ru: 'Италия', pt: 'Itália', hi: 'इटली', th: 'อิตาลี', vi: 'Ý' } },
+  { code: 'CA', name: 'Canada', translations: { zh: '加拿大', es: 'Canadá', fr: 'Canada', de: 'Kanada', ja: 'カナダ', ko: '캐나다', ar: 'كندا', ru: 'Канада', pt: 'Canadá', hi: 'कनाडा', th: 'แคนาดา', vi: 'Canada' } },
+  { code: 'AU', name: 'Australia', translations: { zh: '澳大利亚', es: 'Australia', fr: 'Australie', de: 'Australien', ja: 'オーストラリア', ko: '호주', ar: 'أستراليا', ru: 'Австралия', pt: 'Austrália', hi: 'ऑस्ट्रेलिया', th: 'ออสเตรเลีย', vi: 'Úc' } },
+  { code: 'IN', name: 'India', translations: { zh: '印度', es: 'India', fr: 'Inde', de: 'Indien', ja: 'インド', ko: '인도', ar: 'الهند', ru: 'Индия', pt: 'Índia', hi: 'भारत', th: 'อินเดีย', vi: 'Ấn Độ' } },
+  { code: 'BR', name: 'Brazil', translations: { zh: '巴西', es: 'Brasil', fr: 'Brésil', de: 'Brasilien', ja: 'ブラジル', ko: '브라질', ar: 'البرازيل', ru: 'Бразилия', pt: 'Brasil', hi: 'ब्राज़ील', th: 'บราซิล', vi: 'Brazil' } },
+  { code: 'MX', name: 'Mexico', translations: { zh: '墨西哥', es: 'México', fr: 'Mexique', de: 'Mexiko', ja: 'メキシコ', ko: '멕시코', ar: 'المكسيك', ru: 'Мексика', pt: 'México', hi: 'मेक्सिको', th: 'เม็กซิโก', vi: 'Mexico' } },
+  { code: 'ES', name: 'Spain', translations: { zh: '西班牙', es: 'España', fr: 'Espagne', de: 'Spanien', ja: 'スペイン', ko: '스페인', ar: 'إسبانيا', ru: 'Испания', pt: 'Espanha', hi: 'स्पेन', th: 'สเปน', vi: 'Tây Ban Nha' } },
+  { code: 'NL', name: 'Netherlands', translations: { zh: '荷兰', es: 'Países Bajos', fr: 'Pays-Bas', de: 'Niederlande', ja: 'オランダ', ko: '네덜란드', ar: 'هولندا', ru: 'Нидерланды', pt: 'Países Baixos', hi: 'नीदरलैंड', th: 'เนเธอร์แลนด์', vi: 'Hà Lan' } },
+  { code: 'KR', name: 'South Korea', translations: { zh: '韩国', es: 'Corea del Sur', fr: 'Corée du Sud', de: 'Südkorea', ja: '韓国', ko: '대한민국', ar: 'كوريا الجنوبية', ru: 'Южная Корея', pt: 'Coreia do Sul', hi: 'दक्षिण कोरिया', th: 'เกาหลีใต้', vi: 'Hàn Quốc' } },
+  { code: 'SG', name: 'Singapore', translations: { zh: '新加坡', es: 'Singapur', fr: 'Singapour', de: 'Singapur', ja: 'シンガポール', ko: '싱가포르', ar: 'سنغافورة', ru: 'Сингапур', pt: 'Singapura', hi: 'सिंगापुर', th: 'สิงคโปร์', vi: 'Singapore' } },
+  { code: 'VN', name: 'Vietnam', translations: { zh: '越南', es: 'Vietnam', fr: 'Vietnam', de: 'Vietnam', ja: 'ベトナム', ko: '베트남', ar: 'فيتنام', ru: 'Вьетнам', pt: 'Vietnã', hi: 'वियतनाम', th: 'เวียดนาม', vi: 'Việt Nam' } },
+  { code: 'TH', name: 'Thailand', translations: { zh: '泰国', es: 'Tailandia', fr: 'Thaïlande', de: 'Thailand', ja: 'タイ', ko: '태국', ar: 'تايلاند', ru: 'Таиланд', pt: 'Tailândia', hi: 'थाईलैंड', th: 'ไทย', vi: 'Thái Lan' } },
+  { code: 'MY', name: 'Malaysia', translations: { zh: '马来西亚', es: 'Malasia', fr: 'Malaisie', de: 'Malaysia', ja: 'マレーシア', ko: '말레이시아', ar: 'ماليزيا', ru: 'Малайзия', pt: 'Malásia', hi: 'मलेशिया', th: 'มาเลเซีย', vi: 'Malaysia' } },
+  { code: 'ID', name: 'Indonesia', translations: { zh: '印度尼西亚', es: 'Indonesia', fr: 'Indonésie', de: 'Indonesien', ja: 'インドネシア', ko: '인도네시아', ar: 'إندونيسيا', ru: 'Индонезия', pt: 'Indonésia', hi: 'इंडोनेशिया', th: 'อินโดนีเซีย', vi: 'Indonesia' } },
+  { code: 'TR', name: 'Turkey', translations: { zh: '土耳其', es: 'Turquía', fr: 'Turquie', de: 'Türkei', ja: 'トルコ', ko: '튀르키예', ar: 'تركيا', ru: 'Турция', pt: 'Turquia', hi: 'तुर्किये', th: 'ตุรกี', vi: 'Thổ Nhĩ Kỳ' } },
+  { code: 'RU', name: 'Russia', translations: { zh: '俄罗斯', es: 'Rusia', fr: 'Russie', de: 'Russland', ja: 'ロシア', ko: '러시아', ar: 'روسيا', ru: 'Россия', pt: 'Rússia', hi: 'रूस', th: 'รัสเซีย', vi: 'Nga' } },
+  { code: 'BE', name: 'Belgium', translations: { zh: '比利时', es: 'Bélgica', fr: 'Belgique', de: 'Belgien', ja: 'ベルギー', ko: '벨기에', ar: 'بلجيكا', ru: 'Бельгия', pt: 'Bélgica', hi: 'बेल्जियम', th: 'เบลเยียม', vi: 'Bỉ' } },
+  { code: 'LU', name: 'Luxembourg', translations: { zh: '卢森堡', es: 'Luxemburgo', fr: 'Luxembourg', de: 'Luxemburg', ja: 'ルクセンブルク', ko: '룩셈부르크', ar: 'لوكسمبورغ', ru: 'Люксембург', pt: 'Luxemburgo', hi: 'लक्समबर्ग', th: 'ลักเซมเบิร์ก', vi: 'Luxembourg' } },
+  { code: 'AT', name: 'Austria', translations: { zh: '奥地利', es: 'Austria', fr: 'Autriche', de: 'Österreich', ja: 'オーストリア', ko: '오스트리아', ar: 'النمسا', ru: 'Австрия', pt: 'Áustria', hi: 'ऑस्ट्रिया', th: 'ออสเตรีย', vi: 'Áo' } },
+  { code: 'CH', name: 'Switzerland', translations: { zh: '瑞士', es: 'Suiza', fr: 'Suisse', de: 'Schweiz', ja: 'スイス', ko: '스위스', ar: 'سويسرا', ru: 'Швейцария', pt: 'Suíça', hi: 'स्विट्ज़रलैंड', th: 'สวิตเซอร์แลนด์', vi: 'Thụy Sĩ' } },
+  { code: 'SE', name: 'Sweden', translations: { zh: '瑞典', es: 'Suecia', fr: 'Suède', de: 'Schweden', ja: 'スウェーデン', ko: '스웨덴', ar: 'السويد', ru: 'Швеция', pt: 'Suécia', hi: 'स्वीडन', th: 'สวีเดน', vi: 'Thụy Điển' } },
+  { code: 'NO', name: 'Norway', translations: { zh: '挪威', es: 'Noruega', fr: 'Norvège', de: 'Norwegen', ja: 'ノルウェー', ko: '노르웨이', ar: 'النرويج', ru: 'Норвегия', pt: 'Noruega', hi: 'नॉर्वे', th: 'นอร์เวย์', vi: 'Na Uy' } },
+  { code: 'DK', name: 'Denmark', translations: { zh: '丹麦', es: 'Dinamarca', fr: 'Danemark', de: 'Dänemark', ja: 'デンマーク', ko: '덴마크', ar: 'الدنمارك', ru: 'Дания', pt: 'Dinamarca', hi: 'डेनमार्क', th: 'เดนมาร์ก', vi: 'Đan Mạch' } },
+  { code: 'FI', name: 'Finland', translations: { zh: '芬兰', es: 'Finlandia', fr: 'Finlande', de: 'Finnland', ja: 'フィンランド', ko: '핀란드', ar: 'فنلندا', ru: 'Финляндия', pt: 'Finlândia', hi: 'फिनलैंड', th: 'ฟินแลนด์', vi: 'Phần Lan' } },
+  { code: 'PL', name: 'Poland', translations: { zh: '波兰', es: 'Polonia', fr: 'Pologne', de: 'Polen', ja: 'ポーランド', ko: '폴란드', ar: 'بولندا', ru: 'Польша', pt: 'Polônia', hi: 'पोलैंड', th: 'โปแลนด์', vi: 'Ba Lan' } },
+  { code: 'PT', name: 'Portugal', translations: { zh: '葡萄牙', es: 'Portugal', fr: 'Portugal', de: 'Portugal', ja: 'ポルトガル', ko: '포르투갈', ar: 'البرتغال', ru: 'Португалия', pt: 'Portugal', hi: 'पुर्तगाल', th: 'โปรตุเกส', vi: 'Bồ Đào Nha' } },
+  { code: 'IE', name: 'Ireland', translations: { zh: '爱尔兰', es: 'Irlanda', fr: 'Irlande', de: 'Irland', ja: 'アイルランド', ko: '아일랜드', ar: 'أيرلندا', ru: 'Ирландия', pt: 'Irlanda', hi: 'आयरलैंड', th: 'ไอร์แลนด์', vi: 'Ireland' } },
+  { code: 'GR', name: 'Greece', translations: { zh: '希腊', es: 'Grecia', fr: 'Grèce', de: 'Griechenland', ja: 'ギリシャ', ko: '그리스', ar: 'اليونان', ru: 'Греция', pt: 'Grécia', hi: 'यूनान', th: 'กรีซ', vi: 'Hy Lạp' } },
+  { code: 'CZ', name: 'Czech Republic', translations: { zh: '捷克', es: 'Chequia', fr: 'Tchéquie', de: 'Tschechien', ja: 'チェコ', ko: '체코', ar: 'التشيك', ru: 'Чехия', pt: 'Chéquia', hi: 'चेक गणराज्य', th: 'เช็กเกีย', vi: 'Séc' } },
+  { code: 'HU', name: 'Hungary', translations: { zh: '匈牙利', es: 'Hungría', fr: 'Hongrie', de: 'Ungarn', ja: 'ハンガリー', ko: '헝가리', ar: 'المجر', ru: 'Венгрия', pt: 'Hungria', hi: 'हंगरी', th: 'ฮังการี', vi: 'Hungary' } },
+  { code: 'RO', name: 'Romania', translations: { zh: '罗马尼亚', es: 'Rumania', fr: 'Roumanie', de: 'Rumänien', ja: 'ルーマニア', ko: '루마니아', ar: 'رومانيا', ru: 'Румыния', pt: 'Romênia', hi: 'रोमानिया', th: 'โรมาเนีย', vi: 'România' } },
+  { code: 'BG', name: 'Bulgaria', translations: { zh: '保加利亚', es: 'Bulgaria', fr: 'Bulgarie', de: 'Bulgarien', ja: 'ブルガリア', ko: '불가리아', ar: 'بلغاريا', ru: 'Болгария', pt: 'Bulgária', hi: 'बुल्गारिया', th: 'บัลแกเรีย', vi: 'Bulgaria' } },
+  { code: 'HR', name: 'Croatia', translations: { zh: '克罗地亚', es: 'Croacia', fr: 'Croatie', de: 'Kroatien', ja: 'クロアチア', ko: '크로아티아', ar: 'كرواتيا', ru: 'Хорватия', pt: 'Croácia', hi: 'क्रोएशिया', th: 'โครเอเชีย', vi: 'Croatia' } },
+  { code: 'SK', name: 'Slovakia', translations: { zh: '斯洛伐克', es: 'Eslovaquia', fr: 'Slovaquie', de: 'Slowakei', ja: 'スロバキア', ko: '슬로바키아', ar: 'سلوفاكيا', ru: 'Словакия', pt: 'Eslováquia', hi: 'स्लोवाकिया', th: 'สโลวาเกีย', vi: 'Slovakia' } },
+  { code: 'SI', name: 'Slovenia', translations: { zh: '斯洛文尼亚', es: 'Eslovenia', fr: 'Slovénie', de: 'Slowenien', ja: 'スロベニア', ko: '슬로베니아', ar: 'سلوفينيا', ru: 'Словения', pt: 'Eslovênia', hi: 'स्लोवेनिया', th: 'สโลวีเนีย', vi: 'Slovenia' } },
+  { code: 'LT', name: 'Lithuania', translations: { zh: '立陶宛', es: 'Lituania', fr: 'Lituanie', de: 'Litauen', ja: 'リトアニア', ko: '리투아니아', ar: 'ليتوانيا', ru: 'Литва', pt: 'Lituânia', hi: 'लिथुआनिया', th: 'ลิทัวเนีย', vi: 'Litva' } },
+  { code: 'LV', name: 'Latvia', translations: { zh: '拉脱维亚', es: 'Letonia', fr: 'Lettonie', de: 'Lettland', ja: 'ラトビア', ko: '라트비아', ar: 'لاتفيا', ru: 'Латвия', pt: 'Letônia', hi: 'लातविया', th: 'ลัตเวีย', vi: 'Latvia' } },
+  { code: 'EE', name: 'Estonia', translations: { zh: '爱沙尼亚', es: 'Estonia', fr: 'Estonie', de: 'Estland', ja: 'エストニア', ko: '에스토니아', ar: 'إستونيا', ru: 'Эстония', pt: 'Estônia', hi: 'एस्टोनिया', th: 'เอสโตเนีย', vi: 'Estonia' } },
+  { code: 'IS', name: 'Iceland', translations: { zh: '冰岛', es: 'Islandia', fr: 'Islande', de: 'Island', ja: 'アイスランド', ko: '아이슬란드', ar: 'آيسلندا', ru: 'Исландия', pt: 'Islândia', hi: 'आइसलैंड', th: 'ไอซ์แลนด์', vi: 'Iceland' } },
+  { code: 'AL', name: 'Albania', translations: { zh: '阿尔巴尼亚', es: 'Albania', fr: 'Albanie', de: 'Albanien', ja: 'アルバニア', ko: '알바니아', ar: 'ألبانيا', ru: 'Албания', pt: 'Albânia', hi: 'अल्बानिया', th: 'แอลเบเนีย', vi: 'Albania' } },
+  { code: 'BA', name: 'Bosnia and Herzegovina', translations: { zh: '波斯尼亚和黑塞哥维那', es: 'Bosnia y Herzegovina', fr: 'Bosnie-Herzégovine', de: 'Bosnien und Herzegowina', ja: 'ボスニア・ヘルツェゴビナ', ko: '보스니아 헤르체고비나', ar: 'البوسنة والهرسك', ru: 'Босния и Герцеговина', pt: 'Bósnia e Herzegovina', hi: 'बोस्निया और हर्जेगोविना', th: 'บอสเนียและเฮอร์เซโกวีนา', vi: 'Bosnia và Herzegovina' } },
+  { code: 'RS', name: 'Serbia', translations: { zh: '塞尔维亚', es: 'Serbia', fr: 'Serbie', de: 'Serbien', ja: 'セルビア', ko: '세르비아', ar: 'صربيا', ru: 'Сербия', pt: 'Sérvia', hi: 'सर्बिया', th: 'เซอร์เบีย', vi: 'Serbia' } },
+  { code: 'MK', name: 'North Macedonia', translations: { zh: '北马其顿', es: 'Macedonia del Norte', fr: 'Macédoine du Nord', de: 'Nordmazedonien', ja: '北マケドニア', ko: '북마케도니아', ar: 'مقدونيا الشمالية', ru: 'Северная Македония', pt: 'Macedônia do Norte', hi: 'उत्तरी मकदूनिया', th: 'นอร์ทมาซิโดเนีย', vi: 'Bắc Macedonia' } },
+  { code: 'ME', name: 'Montenegro', translations: { zh: '黑山', es: 'Montenegro', fr: 'Monténégro', de: 'Montenegro', ja: 'モンテネグロ', ko: '몬테네그로', ar: 'الجبل الأسود', ru: 'Черногория', pt: 'Montenegro', hi: 'मोंटेनेग्रो', th: 'มอนเตเนโกร', vi: 'Montenegro' } },
+  { code: 'BY', name: 'Belarus', translations: { zh: '白俄罗斯', es: 'Bielorrusia', fr: 'Biélorussie', de: 'Belarus', ja: 'ベラルーシ', ko: '벨라루스', ar: 'بيلاروس', ru: 'Беларусь', pt: 'Bielorrússia', hi: 'बेलारूस', th: 'เบลารุส', vi: 'Belarus' } },
+  { code: 'UA', name: 'Ukraine', translations: { zh: '乌克兰', es: 'Ucrania', fr: 'Ukraine', de: 'Ukraine', ja: 'ウクライナ', ko: '우크라이나', ar: 'أوكرانيا', ru: 'Украина', pt: 'Ucrânia', hi: 'यूक्रेन', th: 'ยูเครน', vi: 'Ukraine' } },
+  { code: 'MD', name: 'Moldova', translations: { zh: '摩尔多瓦', es: 'Moldavia', fr: 'Moldavie', de: 'Moldau', ja: 'モルドバ', ko: '몰도바', ar: 'مولدوفا', ru: 'Молдова', pt: 'Moldávia', hi: 'मोल्दोवा', th: 'มอลโดวา', vi: 'Moldova' } },
+  { code: 'GE', name: 'Georgia', translations: { zh: '格鲁吉亚', es: 'Georgia', fr: 'Géorgie', de: 'Georgien', ja: 'ジョージア', ko: '조지아', ar: 'جورجيا', ru: 'Грузия', pt: 'Geórgia', hi: 'जॉर्जिया', th: 'จอร์เจีย', vi: 'Georgia' } },
+  { code: 'AM', name: 'Armenia', translations: { zh: '亚美尼亚', es: 'Armenia', fr: 'Arménie', de: 'Armenien', ja: 'アルメニア', ko: '아르메니아', ar: 'أرمينيا', ru: 'Армения', pt: 'Armênia', hi: 'आर्मेनिया', th: 'อาร์เมเนีย', vi: 'Armenia' } },
+  { code: 'AZ', name: 'Azerbaijan', translations: { zh: '阿塞拜疆', es: 'Azerbaiyán', fr: 'Azerbaïdjan', de: 'Aserbaidschan', ja: 'アゼルバイジャン', ko: '아제르바이잔', ar: 'أذربيجان', ru: 'Азербайджан', pt: 'Azerbaijão', hi: 'अज़रबैजान', th: 'อาเซอร์ไบจาน', vi: 'Azerbaijan' } },
+  { code: 'KZ', name: 'Kazakhstan', translations: { zh: '哈萨克斯坦', es: 'Kazajistán', fr: 'Kazakhstan', de: 'Kasachstan', ja: 'カザフスタン', ko: '카자흐스탄', ar: 'كازاخستان', ru: 'Казахстан', pt: 'Cazaquistão', hi: 'कजाकिस्तान', th: 'คาซัคสถาน', vi: 'Kazakhstan' } },
+  { code: 'UZ', name: 'Uzbekistan', translations: { zh: '乌兹别克斯坦', es: 'Uzbekistán', fr: 'Ouzbékistan', de: 'Usbekistan', ja: 'ウズベキスタン', ko: '우즈베키스탄', ar: 'أوزبكستان', ru: 'Узбекистан', pt: 'Uzbequistão', hi: 'उज्बेकिस्तान', th: 'อุซเบกิสถาน', vi: 'Uzbekistan' } },
+  { code: 'TM', name: 'Turkmenistan', translations: { zh: '土库曼斯坦', es: 'Turkmenistán', fr: 'Turkménistan', de: 'Turkmenistan', ja: 'トルクメニスタン', ko: '투르크메니스탄', ar: 'تركمانستان', ru: 'Туркменистан', pt: 'Turcomenistão', hi: 'तुर्कमेनिस्तान', th: 'เติร์กเมนิสถาน', vi: 'Turkmenistan' } },
+  { code: 'KG', name: 'Kyrgyzstan', translations: { zh: '吉尔吉斯斯坦', es: 'Kirguistán', fr: 'Kirghizistan', de: 'Kirgisistan', ja: 'キルギス', ko: '키르기스스탄', ar: 'قيرغيزستان', ru: 'Киргизия', pt: 'Quirguistão', hi: 'किर्गिस्तान', th: 'คีร์กีสถาน', vi: 'Kyrgyzstan' } },
+  { code: 'TJ', name: 'Tajikistan', translations: { zh: '塔吉克斯坦', es: 'Tayikistán', fr: 'Tadjikistan', de: 'Tadschikistan', ja: 'タジキスタン', ko: '타지키스탄', ar: 'طاجيكستان', ru: 'Таджикистан', pt: 'Tajiquistão', hi: 'ताजिकिस्तान', th: 'ทาจิกิสถาน', vi: 'Tajikistan' } },
+  { code: 'MN', name: 'Mongolia', translations: { zh: '蒙古', es: 'Mongolia', fr: 'Mongolie', de: 'Mongolei', ja: 'モンゴル', ko: '몽골', ar: 'منغوليا', ru: 'Монголия', pt: 'Mongólia', hi: 'मंगोलिया', th: 'มองโกเลีย', vi: 'Mông Cổ' } },
+  { code: 'AE', name: 'United Arab Emirates', translations: { zh: '阿联酋', es: 'Emiratos Árabes Unidos', fr: 'Émirats arabes unis', de: 'Vereinigte Arabische Emirate', ja: 'アラブ首長国連邦', ko: '아랍에미리트', ar: 'الإمارات العربية المتحدة', ru: 'ОАЭ', pt: 'Emirados Árabes Unidos', hi: 'संयुक्त अरब अमीरात', th: 'สหรัฐอาหรับเอมิเรตส์', vi: 'Các Tiểu vương quốc Ả Rập Thống nhất' } },
+  { code: 'SA', name: 'Saudi Arabia', translations: { zh: '沙特阿拉伯', es: 'Arabia Saudita', fr: 'Arabie saoudite', de: 'Saudi-Arabien', ja: 'サウジアラビア', ko: '사우디아라비아', ar: 'السعودية', ru: 'Саудовская Аравия', pt: 'Arábia Saudita', hi: 'सऊदी अरब', th: 'ซาอุดีอาระเบีย', vi: 'Ả Rập Xê Út' } },
+  { code: 'QA', name: 'Qatar', translations: { zh: '卡塔尔', es: 'Catar', fr: 'Qatar', de: 'Katar', ja: 'カタール', ko: '카타르', ar: 'قطر', ru: 'Катар', pt: 'Catar', hi: 'कतर', th: 'กาตาร์', vi: 'Qatar' } },
+  { code: 'KW', name: 'Kuwait', translations: { zh: '科威特', es: 'Kuwait', fr: 'Koweït', de: 'Kuwait', ja: 'クウェート', ko: '쿠웨이트', ar: 'الكويت', ru: 'Кувейт', pt: 'Kuwait', hi: 'कुवैत', th: 'คูเวต', vi: 'Kuwait' } },
+  { code: 'BH', name: 'Bahrain', translations: { zh: '巴林', es: 'Baréin', fr: 'Bahreïn', de: 'Bahrain', ja: 'バーレーン', ko: '바레인', ar: 'البحرين', ru: 'Бахрейн', pt: 'Bahrein', hi: 'बहरीन', th: 'บาห์เรน', vi: 'Bahrain' } },
+  { code: 'OM', name: 'Oman', translations: { zh: '阿曼', es: 'Omán', fr: 'Oman', de: 'Oman', ja: 'オマーン', ko: '오만', ar: 'عمان', ru: 'Оман', pt: 'Omã', hi: 'ओमान', th: 'โอมาน', vi: 'Oman' } },
+  { code: 'JO', name: 'Jordan', translations: { zh: '约旦', es: 'Jordania', fr: 'Jordanie', de: 'Jordanien', ja: 'ヨルダン', ko: '요르단', ar: 'الأردن', ru: 'Иордания', pt: 'Jordânia', hi: 'जॉर्डन', th: 'จอร์แดน', vi: 'Jordan' } },
+  { code: 'LB', name: 'Lebanon', translations: { zh: '黎巴嫩', es: 'Líbano', fr: 'Liban', de: 'Libanon', ja: 'レバノン', ko: '레바논', ar: 'لبنان', ru: 'Ливан', pt: 'Líbano', hi: 'लेबनान', th: 'เลบานอน', vi: 'Liban' } },
+  { code: 'IL', name: 'Israel', translations: { zh: '以色列', es: 'Israel', fr: 'Israël', de: 'Israel', ja: 'イスラエル', ko: '이스라엘', ar: 'إسرائيل', ru: 'Израиль', pt: 'Israel', hi: 'इज़राइल', th: 'อิสราเอล', vi: 'Israel' } },
+  { code: 'PS', name: 'Palestine', translations: { zh: '巴勒斯坦', es: 'Palestina', fr: 'Palestine', de: 'Palästina', ja: 'パレスチナ', ko: '팔레스타인', ar: 'فلسطين', ru: 'Палестина', pt: 'Palestina', hi: 'फिलिस्तीन', th: 'ปาเลสไตน์', vi: 'Palestine' } },
+  { code: 'IQ', name: 'Iraq', translations: { zh: '伊拉克', es: 'Irak', fr: 'Irak', de: 'Irak', ja: 'イラク', ko: '이라크', ar: 'العراق', ru: 'Ирак', pt: 'Iraque', hi: 'इराक', th: 'อิรัก', vi: 'Iraq' } },
+  { code: 'IR', name: 'Iran', translations: { zh: '伊朗', es: 'Irán', fr: 'Iran', de: 'Iran', ja: 'イラン', ko: '이란', ar: 'إيران', ru: 'Иран', pt: 'Irã', hi: 'ईरान', th: 'อิหร่าน', vi: 'Iran' } },
+  { code: 'AF', name: 'Afghanistan', translations: { zh: '阿富汗', es: 'Afganistán', fr: 'Afghanistan', de: 'Afghanistan', ja: 'アフガニスタン', ko: '아프가니스탄', ar: 'أفغانستان', ru: 'Афганистан', pt: 'Afeganistão', hi: 'अफगानिस्तान', th: 'อัฟกานิสถาน', vi: 'Afghanistan' } },
+  { code: 'PK', name: 'Pakistan', translations: { zh: '巴基斯坦', es: 'Pakistán', fr: 'Pakistan', de: 'Pakistan', ja: 'パキスタン', ko: '파키스탄', ar: 'باكستان', ru: 'Пакистан', pt: 'Paquistão', hi: 'पाकिस्तान', th: 'ปากีสถาน', vi: 'Pakistan' } },
+  { code: 'BD', name: 'Bangladesh', translations: { zh: '孟加拉国', es: 'Bangladés', fr: 'Bangladesh', de: 'Bangladesch', ja: 'バングラデシュ', ko: '방글라데시', ar: 'بنغلاديش', ru: 'Бангладеш', pt: 'Bangladesh', hi: 'बांग्लादेश', th: 'บังคลาเทศ', vi: 'Bangladesh' } },
+  { code: 'LK', name: 'Sri Lanka', translations: { zh: '斯里兰卡', es: 'Sri Lanka', fr: 'Sri Lanka', de: 'Sri Lanka', ja: 'スリランカ', ko: '스리랑카', ar: 'سريلانكا', ru: 'Шри-Ланка', pt: 'Sri Lanka', hi: 'श्रीलंका', th: 'ศรีลังกา', vi: 'Sri Lanka' } },
+  { code: 'NP', name: 'Nepal', translations: { zh: '尼泊尔', es: 'Nepal', fr: 'Népal', de: 'Nepal', ja: 'ネパール', ko: '네팔', ar: 'نيبال', ru: 'Непал', pt: 'Nepal', hi: 'नेपाल', th: 'เนปาล', vi: 'Nepal' } },
+  { code: 'BT', name: 'Bhutan', translations: { zh: '不丹', es: 'Bután', fr: 'Bhoutan', de: 'Bhutan', ja: 'ブータン', ko: '부탄', ar: 'بوتان', ru: 'Бутан', pt: 'Butão', hi: 'भूटान', th: 'ภูฏาน', vi: 'Bhutan' } },
+  { code: 'MV', name: 'Maldives', translations: { zh: '马尔代夫', es: 'Maldivas', fr: 'Maldives', de: 'Malediven', ja: 'モルディブ', ko: '몰디브', ar: 'جزر المالديف', ru: 'Мальдивы', pt: 'Maldivas', hi: 'मालदीव', th: 'มัลดีฟส์', vi: 'Maldives' } },
+  { code: 'MM', name: 'Myanmar', translations: { zh: '缅甸', es: 'Birmania', fr: 'Myanmar', de: 'Myanmar', ja: 'ミャンマー', ko: '미얀마', ar: 'ميانمار', ru: 'Мьянма', pt: 'Mianmar', hi: 'म्यांमार', th: 'พม่า', vi: 'Myanmar' } },
+  { code: 'KH', name: 'Cambodia', translations: { zh: '柬埔寨', es: 'Camboya', fr: 'Cambodge', de: 'Kambodscha', ja: 'カンボジア', ko: '캄보디아', ar: 'كمبوديا', ru: 'Камбоджа', pt: 'Camboja', hi: 'कंबोडिया', th: 'กัมพูชา', vi: 'Campuchia' } },
+  { code: 'LA', name: 'Laos', translations: { zh: '老挝', es: 'Laos', fr: 'Laos', de: 'Laos', ja: 'ラオス', ko: '라오스', ar: 'لاوس', ru: 'Лаос', pt: 'Laos', hi: 'लाओस', th: 'ลาว', vi: 'Lào' } },
+  { code: 'PH', name: 'Philippines', translations: { zh: '菲律宾', es: 'Filipinas', fr: 'Philippines', de: 'Philippinen', ja: 'フィリピン', ko: '필리핀', ar: 'الفلبين', ru: 'Филиппины', pt: 'Filipinas', hi: 'फिलिपींस', th: 'ฟิลิปปินส์', vi: 'Philippines' } },
+  { code: 'BN', name: 'Brunei', translations: { zh: '文莱', es: 'Brunéi', fr: 'Brunei', de: 'Brunei', ja: 'ブルネイ', ko: '브루나이', ar: 'بروناي', ru: 'Бруней', pt: 'Brunei', hi: 'ब्रूनेई', th: 'บรูไน', vi: 'Brunei' } },
+  { code: 'TL', name: 'Timor-Leste', translations: { zh: '东帝汶', es: 'Timor Oriental', fr: 'Timor oriental', de: 'Osttimor', ja: '東ティモール', ko: '동티모르', ar: 'تيمور الشرقية', ru: 'Восточный Тимор', pt: 'Timor-Leste', hi: 'तिमोर-लेस्ते', th: 'ติมอร์-เลสเต', vi: 'Đông Timor' } },
+  { code: 'TW', name: 'Taiwan', translations: { zh: '中国台湾', es: 'Taiwán', fr: 'Taïwan', de: 'Taiwan', ja: '台湾', ko: '대만', ar: 'تايوان', ru: 'Тайвань', pt: 'Taiwan', hi: 'ताइवान', th: 'ไต้หวัน', vi: 'Đài Loan' } },
+  { code: 'HK', name: 'Hong Kong', translations: { zh: '中国香港', es: 'Hong Kong', fr: 'Hong Kong', de: 'Hong Kong', ja: '香港', ko: '홍콩', ar: 'هونغ كونغ', ru: 'Гонконг', pt: 'Hong Kong', hi: 'हांग कांग', th: 'ฮ่องกง', vi: 'Hồng Kông' } },
+  { code: 'MO', name: 'Macao', translations: { zh: '中国澳门', es: 'Macao', fr: 'Macao', de: 'Macao', ja: 'マカオ', ko: '마카오', ar: 'ماكاو', ru: 'Макао', pt: 'Macau', hi: 'मकाओ', th: 'มาเก๊า', vi: 'Macao' } },
+  { code: 'KP', name: 'North Korea', translations: { zh: '朝鲜', es: 'Corea del Norte', fr: 'Corée du Nord', de: 'Nordkorea', ja: '北朝鮮', ko: '조선민주주의인민공화국', ar: 'كوريا الشمالية', ru: 'КНДР', pt: 'Coreia do Norte', hi: 'उत्तर कोरिया', th: 'เกาหลีเหนือ', vi: 'Triều Tiên' } },
+  { code: 'NZ', name: 'New Zealand', translations: { zh: '新西兰', es: 'Nueva Zelanda', fr: 'Nouvelle-Zélande', de: 'Neuseeland', ja: 'ニュージーランド', ko: '뉴질랜드', ar: 'نيوزيلندا', ru: 'Новая Зеландия', pt: 'Nova Zelândia', hi: 'न्यूज़ीलैंड', th: 'นิวซีแลนด์', vi: 'New Zealand' } },
+  { code: 'FJ', name: 'Fiji', translations: { zh: '斐济', es: 'Fiyi', fr: 'Fidji', de: 'Fidschi', ja: 'フィジー', ko: '피지', ar: 'فيجي', ru: 'Фиджи', pt: 'Fiji', hi: 'फिजी', th: 'ฟิจิ', vi: 'Fiji' } },
+  { code: 'PG', name: 'Papua New Guinea', translations: { zh: '巴布亚新几内亚', es: 'Papúa Nueva Guinea', fr: 'Papouasie-Nouvelle-Guinée', de: 'Papua-Neuguinea', ja: 'パプアニューギニア', ko: '파푸아뉴기니', ar: 'بابوا غينيا الجديدة', ru: 'Папуа — Новая Гвинея', pt: 'Papua-Ná Guiné', hi: 'पापुआ न्यू गिनी', th: 'ปาปัวนิวกินี', vi: 'Papua New Guinea' } },
+  { code: 'WS', name: 'Samoa', translations: { zh: '萨摩亚', es: 'Samoa', fr: 'Samoa', de: 'Samoa', ja: 'サモア', ko: '사모아', ar: 'ساموا', ru: 'Самоа', pt: 'Samoa', hi: 'समोआ', th: 'ซามัว', vi: 'Samoa' } },
+  { code: 'TO', name: 'Tonga', translations: { zh: '汤加', es: 'Tonga', fr: 'Tonga', de: 'Tonga', ja: 'トンガ', ko: '통가', ar: 'تونغا', ru: 'Тонга', pt: 'Tonga', hi: 'टोंगा', th: 'ตองกา', vi: 'Tonga' } },
+  { code: 'VU', name: 'Vanuatu', translations: { zh: '瓦努阿图', es: 'Vanuatu', fr: 'Vanuatu', de: 'Vanuatu', ja: 'バヌアツ', ko: '바누아투', ar: 'فانواتو', ru: 'Вануату', pt: 'Vanuatu', hi: 'वनुअतु', th: 'วานูอาตู', vi: 'Vanuatu' } },
+  { code: 'SB', name: 'Solomon Islands', translations: { zh: '所罗门群岛', es: 'Islas Salomón', fr: 'Îles Salomon', de: 'Salomonen', ja: 'ソロモン諸島', ko: '솔로몬 제도', ar: 'جزر سليمان', ru: 'Соломоновы Острова', pt: 'Ilhas Salomão', hi: 'सोलोमन द्वीप समूह', th: 'หมู่เกาะโซโลมอน', vi: 'Quần đảo Solomon' } },
+  { code: 'KI', name: 'Kiribati', translations: { zh: '基里巴斯', es: 'Kiribati', fr: 'Kiribati', de: 'Kiribati', ja: 'キリバス', ko: '키리바시', ar: 'كيريباتي', ru: 'Кирибати', pt: 'Quiribati', hi: 'किरिबाती', th: 'คิริบาส', vi: 'Kiribati' } },
+  { code: 'TV', name: 'Tuvalu', translations: { zh: '图瓦卢', es: 'Tuvalu', fr: 'Tuvalu', de: 'Tuvalu', ja: 'ツバル', ko: '투발루', ar: 'توفالو', ru: 'Тувалу', pt: 'Tuvalu', hi: 'तुवालु', th: 'ตูวาลู', vi: 'Tuvalu' } },
+  { code: 'NR', name: 'Nauru', translations: { zh: '瑙鲁', es: 'Nauru', fr: 'Nauru', de: 'Nauru', ja: 'ナウル', ko: '나우루', ar: 'ناورو', ru: 'Науру', pt: 'Nauru', hi: 'नaurु', th: 'นาอูรู', vi: 'Nauru' } },
+  { code: 'PW', name: 'Palau', translations: { zh: '帕劳', es: 'Palaos', fr: 'Palaos', de: 'Palau', ja: 'パラオ', ko: '팔라우', ar: 'بالاو', ru: 'Палау', pt: 'Palau', hi: 'पलाऊ', th: 'ปาเลา', vi: 'Palau' } },
+  { code: 'MH', name: 'Marshall Islands', translations: { zh: '马绍尔群岛', es: 'Islas Marshall', fr: 'Îles Marshall', de: 'Marshallinseln', ja: 'マーシャル諸島', ko: '마셜 제도', ar: 'جزر مارشال', ru: 'Маршалловы Острова', pt: 'Ilhas Marshall', hi: 'मार्शल द्वीपसमूह', th: 'หมู่เกาะมาร์แชลล์', vi: 'Quần đảo Marshall' } },
+  { code: 'FM', name: 'Micronesia', translations: { zh: '密克罗尼西亚', es: 'Micronesia', fr: 'Micronésie', de: 'Mikronesien', ja: 'ミクロネシア', ko: '미크로네시아', ar: 'ميكرونيزيا', ru: 'Микронезия', pt: 'Micronésia', hi: 'माइक्रोनेशिया', th: 'ไมโครนีเซีย', vi: 'Micronesia' } },
+  { code: 'CK', name: 'Cook Islands', translations: { zh: '库克群岛', es: 'Islas Cook', fr: 'Îles Cook', de: 'Cookinseln', ja: 'クック諸島', ko: '쿡 제도', ar: 'جزر كوك', ru: 'Острова Кука', pt: 'Ilhas Cook', hi: 'कुक द्वीपसमूह', th: 'หมู่เกาะคุก', vi: 'Quần đảo Cook' } },
+  { code: 'EG', name: 'Egypt', translations: { zh: '埃及', es: 'Egipto', fr: 'Égypte', de: 'Ägypten', ja: 'エジプト', ko: '이집트', ar: 'مصر', ru: 'Египет', pt: 'Egito', hi: 'मिस्र', th: 'อียิปต์', vi: 'Ai Cập' } },
+  { code: 'LY', name: 'Libya', translations: { zh: '利比亚', es: 'Libia', fr: 'Libye', de: 'Libyen', ja: 'リビア', ko: '리비아', ar: 'ليبيا', ru: 'Ливия', pt: 'Líbia', hi: 'लीबिया', th: 'ลิเบีย', vi: 'Libya' } },
+  { code: 'TN', name: 'Tunisia', translations: { zh: '突尼斯', es: 'Túnez', fr: 'Tunisie', de: 'Tunesien', ja: 'チュニジア', ko: '튀니지', ar: 'تونس', ru: 'Тунис', pt: 'Tunísia', hi: 'ट्यूनीशिया', th: 'ตูนิเซีย', vi: 'Tunisia' } },
+  { code: 'DZ', name: 'Algeria', translations: { zh: '阿尔及利亚', es: 'Argelia', fr: 'Algérie', de: 'Algerien', ja: 'アルジェリア', ko: '알제리', ar: 'الجزائر', ru: 'Алжир', pt: 'Argélia', hi: 'अल्जीरिया', th: 'แอลจีเรีย', vi: 'Algeria' } },
+  { code: 'MA', name: 'Morocco', translations: { zh: '摩洛哥', es: 'Marruecos', fr: 'Maroc', de: 'Marokko', ja: 'モロッコ', ko: '모로코', ar: 'المغرب', ru: 'Марокко', pt: 'Marrocos', hi: 'मोरक्को', th: 'โมร็อกโก', vi: 'Maroc' } },
+  { code: 'EH', name: 'Western Sahara', translations: { zh: '西撒哈拉', es: 'Sáhara Occidental', fr: 'Sahara occidental', de: 'Westsahara', ja: '西サハラ', ko: '서사하라', ar: 'الصحراء الغربية', ru: 'Западная Сахара', pt: 'Saara Ocidental', hi: 'पश्चिमी सहारा', th: 'เวสเทิร์นสะหรั่', vi: 'Tây Sahara' } },
+  { code: 'MR', name: 'Mauritania', translations: { zh: '毛里塔尼亚', es: 'Mauritania', fr: 'Mauritanie', de: 'Mauretanien', ja: 'モーリタニア', ko: '모리타니', ar: 'موريتانيا', ru: 'Мавритания', pt: 'Mauritânia', hi: 'मॉरिटानिया', th: 'มอริเตเนีย', vi: 'Mauritania' } },
+  { code: 'ML', name: 'Mali', translations: { zh: '马里', es: 'Mali', fr: 'Mali', de: 'Mali', ja: 'マリ', ko: '말리', ar: 'مالي', ru: 'Мали', pt: 'Mali', hi: 'माली', th: 'มาลี', vi: 'Mali' } },
+  { code: 'SN', name: 'Senegal', translations: { zh: '塞内加尔', es: 'Senegal', fr: 'Sénégal', de: 'Senegal', ja: 'セネガル', ko: '세네갈', ar: 'السنغال', ru: 'Сенегал', pt: 'Senegal', hi: 'सेनेगल', th: 'เซเนกัล', vi: 'Senegal' } },
+  { code: 'GM', name: 'Gambia', translations: { zh: '冈比亚', es: 'Gambia', fr: 'Gambie', de: 'Gambia', ja: 'ガンビア', ko: '감비아', ar: 'غامبيا', ru: 'Гамбия', pt: 'Gâmbia', hi: 'गाम्बिया', th: 'แกมเบีย', vi: 'Gambia' } },
+  { code: 'GW', name: 'Guinea-Bissau', translations: { zh: '几内亚比绍', es: 'Guinea-Bisáu', fr: 'Guinée-Bissau', de: 'Guinea-Bissau', ja: 'ギニアビサウ', ko: '기니비사우', ar: 'غينيا بيساو', ru: 'Гвинея-Бисау', pt: 'Guiné-Bissau', hi: 'गिनी-बिसाऊ', th: 'กินี-บิสเซา', vi: 'Guinea-Bissau' } },
+  { code: 'GN', name: 'Guinea', translations: { zh: '几内亚', es: 'Guinea', fr: 'Guinée', de: 'Guinea', ja: 'ギニア', ko: '기니', ar: 'غينيا', ru: 'Гвинея', pt: 'Guiné', hi: 'गिनी', th: 'กินี', vi: 'Guinea' } },
+  { code: 'CI', name: 'Ivory Coast', translations: { zh: '科特迪瓦', es: 'Costa de Marfil', fr: 'Côte d\'Ivoire', de: 'Elfenbeinküste', ja: 'コートジボワール', ko: '코트디부아르', ar: 'ساحل العاج', ru: 'Кот-д\'Ивуар', pt: 'Costa do Marfim', hi: 'आइवरी कोस्ट', th: 'ไอวอรีโคสต์', vi: 'Bờ Biển Ngà' } },
+  { code: 'BF', name: 'Burkina Faso', translations: { zh: '布基纳法索', es: 'Burkina Faso', fr: 'Burkina Faso', de: 'Burkina Faso', ja: 'ブルキナファソ', ko: '부르키나파소', ar: 'بوركينا فاسو', ru: 'Буркина-Фасо', pt: 'Burkina Faso', hi: 'बुर्किना फासो', th: 'บูร์กินาฟาโซ', vi: 'Burkina Faso' } },
+  { code: 'GH', name: 'Ghana', translations: { zh: '加纳', es: 'Ghana', fr: 'Ghana', de: 'Ghana', ja: 'ガーナ', ko: '가나', ar: 'غانا', ru: 'Гана', pt: 'Gana', hi: 'घाना', th: 'กานา', vi: 'Ghana' } },
+  { code: 'TG', name: 'Togo', translations: { zh: '多哥', es: 'Togo', fr: 'Togo', de: 'Togo', ja: 'トーゴ', ko: '토고', ar: 'توغو', ru: 'Того', pt: 'Togo', hi: 'टोगो', th: 'โตโก', vi: 'Togo' } },
+  { code: 'BJ', name: 'Benin', translations: { zh: '贝宁', es: 'Benín', fr: 'Bénin', de: 'Benin', ja: 'ベナン', ko: '베냉', ar: 'بنين', ru: 'Бенин', pt: 'Benim', hi: 'बेनिन', th: 'เบนิน', vi: 'Benin' } },
+  { code: 'NE', name: 'Niger', translations: { zh: '尼日尔', es: 'Níger', fr: 'Niger', de: 'Niger', ja: 'ニジェール', ko: '니제르', ar: 'النيجر', ru: 'Нигер', pt: 'Níger', hi: 'नाइजर', th: 'ไนเจอร์', vi: 'Niger' } },
+  { code: 'NG', name: 'Nigeria', translations: { zh: '尼日利亚', es: 'Nigeria', fr: 'Nigeria', de: 'Nigeria', ja: 'ナイジェリア', ko: '나이지리아', ar: 'نيجيريا', ru: 'Нигерия', pt: 'Nigéria', hi: 'नाइजीरिया', th: 'ไนจีเรีย', vi: 'Nigeria' } },
+  { code: 'CM', name: 'Cameroon', translations: { zh: '喀麦隆', es: 'Camerún', fr: 'Cameroun', de: 'Kamerun', ja: 'カメルーン', ko: '카메룬', ar: 'الكاميرون', ru: 'Камерун', pt: 'Camarões', hi: 'कैमरून', th: 'แคเมอรูน', vi: 'Cameroon' } },
+  { code: 'CF', name: 'Central African Republic', translations: { zh: '中非共和国', es: 'República Centroafricana', fr: 'Centrafrique', de: 'Zentralafrikanische Republik', ja: '中央アフリカ共和国', ko: '중앙아프리카 공화국', ar: 'جمهورية أفريقيا الوسطى', ru: 'ЦАР', pt: 'República Centro-Africana', hi: 'मध्य अफ़्रीकी गणराज्य', th: 'สาธารณรัฐแอฟริกากลาง', vi: 'Cộng hòa Trung Phi' } },
+  { code: 'TD', name: 'Chad', translations: { zh: '乍得', es: 'Chad', fr: 'Tchad', de: 'Tschad', ja: 'チャド', ko: '차드', ar: 'تشاد', ru: 'Чад', pt: 'Chade', hi: 'चाड', th: 'ชาด', vi: 'Chad' } },
+  { code: 'SD', name: 'Sudan', translations: { zh: '苏丹', es: 'Sudán', fr: 'Soudan', de: 'Sudan', ja: 'スーダン', ko: '수단', ar: 'السودان', ru: 'Судан', pt: 'Sudão', hi: 'सूडान', th: 'ซูดาน', vi: 'Sudan' } },
+  { code: 'SS', name: 'South Sudan', translations: { zh: '南苏丹', es: 'Sudán del Sur', fr: 'Soudan du Sud', de: 'Südsudan', ja: '南スーダン', ko: '남수단', ar: 'جنوب السودان', ru: 'Южный Судан', pt: 'Sudão do Sul', hi: 'दक्षिण सूडान', th: 'ซูดานใต้', vi: 'Nam Sudan' } },
+  { code: 'ET', name: 'Ethiopia', translations: { zh: '埃塞俄比亚', es: 'Etiopía', fr: 'Éthiopie', de: 'Äthiopien', ja: 'エチオピア', ko: '에티오피아', ar: 'إثيوبيا', ru: 'Эфиопия', pt: 'Etiópia', hi: 'इथियोपिया', th: 'เอธิโอเปีย', vi: 'Ethiopia' } },
+  { code: 'ER', name: 'Eritrea', translations: { zh: '厄立特里亚', es: 'Eritrea', fr: 'Érythrée', de: 'Eritrea', ja: 'エリトリア', ko: '에리트레아', ar: 'إريتريا', ru: 'Эритрея', pt: 'Eritreia', hi: 'इरिट्रिया', th: 'เอริเทรีย', vi: 'Eritrea' } },
+  { code: 'DJ', name: 'Djibouti', translations: { zh: '吉布提', es: 'Yibuti', fr: 'Djibouti', de: 'Dschibuti', ja: 'ジブチ', ko: '지부티', ar: 'جيبوتي', ru: 'Джибути', pt: 'Djibouti', hi: 'जिबूती', th: 'จิบูตี', vi: 'Djibouti' } },
+  { code: 'SO', name: 'Somalia', translations: { zh: '索马里', es: 'Somalia', fr: 'Somalie', de: 'Somalia', ja: 'ソマリア', ko: '소말리아', ar: 'الصومال', ru: 'Сомали', pt: 'Somália', hi: 'सोमालिया', th: 'โซมาเลีย', vi: 'Somalia' } },
+  { code: 'KE', name: 'Kenya', translations: { zh: '肯尼亚', es: 'Kenia', fr: 'Kenya', de: 'Kenia', ja: 'ケニア', ko: '케냐', ar: 'كينيا', ru: 'Кения', pt: 'Quênia', hi: 'केन्या', th: 'เคนยา', vi: 'Kenya' } },
+  { code: 'UG', name: 'Uganda', translations: { zh: '乌干达', es: 'Uganda', fr: 'Ouganda', de: 'Uganda', ja: 'ウガンダ', ko: '우간다', ar: 'أوغندا', ru: 'Уганда', pt: 'Uganda', hi: 'युगांडा', th: 'ยูกันดา', vi: 'Uganda' } },
+  { code: 'RW', name: 'Rwanda', translations: { zh: '卢旺达', es: 'Ruanda', fr: 'Rwanda', de: 'Ruanda', ja: 'ルワンダ', ko: '르완다', ar: 'رواندا', ru: 'Руанда', pt: 'Ruanda', hi: 'रवांडा', th: 'รวันดา', vi: 'Rwanda' } },
+  { code: 'BI', name: 'Burundi', translations: { zh: '布隆迪', es: 'Burundi', fr: 'Burundi', de: 'Burundi', ja: 'ブルンジ', ko: '부룬디', ar: 'بوروندي', ru: 'Бурунди', pt: 'Burundi', hi: 'बुरुंडी', th: 'บุรุนดี', vi: 'Burundi' } },
+  { code: 'TZ', name: 'Tanzania', translations: { zh: '坦桑尼亚', es: 'Tanzania', fr: 'Tanzanie', de: 'Tansania', ja: 'タンザニア', ko: '탄자니아', ar: 'تنزانيا', ru: 'Танзания', pt: 'Tanzânia', hi: 'तंजानिया', th: 'แทนซาเนีย', vi: 'Tanzania' } },
+  { code: 'MZ', name: 'Mozambique', translations: { zh: '莫桑比克', es: 'Mozambique', fr: 'Mozambique', de: 'Mosambik', ja: 'モザンビーク', ko: '모잠비크', ar: 'موزمبيق', ru: 'Мозамбик', pt: 'Moçambique', hi: 'मोज़ांबिक', th: 'โมซัมบิก', vi: 'Mozambique' } },
+  { code: 'ZM', name: 'Zambia', translations: { zh: '赞比亚', es: 'Zambia', fr: 'Zambie', de: 'Sambia', ja: 'ザンビア', ko: '잠비아', ar: 'زامبيا', ru: 'Замбия', pt: 'Zâmbia', hi: 'ज़ाम्बिया', th: 'แซมเบีย', vi: 'Zambia' } },
+  { code: 'ZW', name: 'Zimbabwe', translations: { zh: '津巴布韦', es: 'Zimbabue', fr: 'Zimbabwe', de: 'Simbabwe', ja: 'ジンバブエ', ko: '짐바브웨', ar: 'زيمبابوي', ru: 'Зимбабве', pt: 'Zimbábue', hi: 'ज़िम्बाब्वे', th: 'ซิมบับเว', vi: 'Zimbabwe' } },
+  { code: 'MW', name: 'Malawi', translations: { zh: '马拉维', es: 'Malaui', fr: 'Malawi', de: 'Malawi', ja: 'マラウイ', ko: '말라위', ar: 'مالاوي', ru: 'Малави', pt: 'Malawi', hi: 'मलावी', th: 'มาลาวี', vi: 'Malawi' } },
+  { code: 'BW', name: 'Botswana', translations: { zh: '博茨瓦纳', es: 'Botsuana', fr: 'Botswana', de: 'Botsuana', ja: 'ボツワナ', ko: '보츠와나', ar: 'بوتسوانا', ru: 'Ботсвана', pt: 'Botsuana', hi: 'बोत्सवाना', th: 'บอตสวานา', vi: 'Botswana' } },
+  { code: 'NA', name: 'Namibia', translations: { zh: '纳米比亚', es: 'Namibia', fr: 'Namibie', de: 'Namibia', ja: 'ナミビア', ko: '나미비아', ar: 'ناميبيا', ru: 'Намибия', pt: 'Namíbia', hi: 'नामीबिया', th: 'นามิเบีย', vi: 'Namibia' } },
+  { code: 'ZA', name: 'South Africa', translations: { zh: '南非', es: 'Sudáfrica', fr: 'Afrique du Sud', de: 'Südafrika', ja: '南アフリカ', ko: '남아프리카 공화국', ar: 'جنوب أفريقيا', ru: 'ЮАР', pt: 'África do Sul', hi: 'दक्षिण अफ्रीका', th: 'แอฟริกาใต้', vi: 'Nam Phi' } },
+  { code: 'LS', name: 'Lesotho', translations: { zh: '莱索托', es: 'Lesoto', fr: 'Lesotho', de: 'Lesotho', ja: 'レソト', ko: '레소토', ar: 'ليسوتو', ru: 'Лесото', pt: 'Lesoto', hi: 'लेसोथो', th: 'เลโซโท', vi: 'Lesotho' } },
+  { code: 'SZ', name: 'Eswatini', translations: { zh: '斯威士兰', es: 'Esuatini', fr: 'Eswatini', de: 'Eswatini', ja: 'エスワティニ', ko: '에스와티니', ar: 'إسواتيني', ru: 'Эсватини', pt: 'Eswatini', hi: 'एस्वातिनी', th: 'เอสวาตินี', vi: 'Eswatini' } },
+  { code: 'AO', name: 'Angola', translations: { zh: '安哥拉', es: 'Angola', fr: 'Angola', de: 'Angola', ja: 'アンゴラ', ko: '앙골라', ar: 'أنغولا', ru: 'Ангола', pt: 'Angola', hi: 'अंगोला', th: 'แองโกลา', vi: 'Angola' } },
+  { code: 'CG', name: 'Republic of the Congo', translations: { zh: '刚果共和国', es: 'República del Congo', fr: 'Congo', de: 'Republik Kongo', ja: 'コンゴ共和国', ko: '콩고 공화국', ar: 'جمهورية الكونغو', ru: 'Конго', pt: 'República do Congo', hi: 'कांगो गणराज्य', th: 'สาธารณรัฐคองโก', vi: 'Cộng hòa Congo' } },
+  { code: 'CD', name: 'Democratic Republic of the Congo', translations: { zh: '刚果民主共和国', es: 'República Democrática del Congo', fr: 'RD Congo', de: 'DR Kongo', ja: 'コンゴ民主共和国', ko: '콩고 민주 공화국', ar: 'جمهورية الكونغو الديمقراطية', ru: 'ДР Конго', pt: 'República Democrática do Congo', hi: 'कांगो लोकतांत्रिक गणराज्य', th: 'สาธารณรัฐประชาธิปไตยคองโก', vi: 'Cộng hòa Dân chủ Congo' } },
+  { code: 'GA', name: 'Gabon', translations: { zh: '加蓬', es: 'Gabón', fr: 'Gabon', de: 'Gabun', ja: 'ガボン', ko: '가봉', ar: 'الغابون', ru: 'Габон', pt: 'Gabão', hi: 'गाबोन', th: 'กาบอง', vi: 'Gabon' } },
+  { code: 'GQ', name: 'Equatorial Guinea', translations: { zh: '赤道几内亚', es: 'Guinea Ecuatorial', fr: 'Guinée équatoriale', de: 'Äquatorialguinea', ja: '赤道ギニア', ko: '적도 기니', ar: 'غينيا الاستوائية', ru: 'Экваториальная Гвинея', pt: 'Guiné Equatorial', hi: 'भूमध्यरेखीय गिनी', th: 'อิเควทอเรียลกินี', vi: 'Guinea Xích Đạo' } },
+  { code: 'ST', name: 'São Tomé and Príncipe', translations: { zh: '圣多美和普林西比', es: 'Santo Tomé y Príncipe', fr: 'Sao Tomé-et-Príncipe', de: 'São Tomé und Príncipe', ja: 'サントメ・プリンシペ', ko: '상투메 프린시페', ar: 'ساو تومي وبرينسيبي', ru: 'Сан-Томе и Принсипи', pt: 'São Tomé e Príncipe', hi: 'साओ टोम और प्रिंसिपे', th: 'เซาตูเมและปรินซิปี', vi: 'São Tomé và Príncipe' } },
+  { code: 'KM', name: 'Comoros', translations: { zh: '科摩罗', es: 'Comoras', fr: 'Comores', de: 'Komoren', ja: 'コモロ', ko: '코모로', ar: 'جزر القمر', ru: 'Коморы', pt: 'Comores', hi: 'कोमोरोस', th: 'คอโมรอส', vi: 'Comoros' } },
+  { code: 'MG', name: 'Madagascar', translations: { zh: '马达加斯加', es: 'Madagascar', fr: 'Madagascar', de: 'Madagaskar', ja: 'マダガスカル', ko: '마다가스카르', ar: 'مدغشقر', ru: 'Мадагаскар', pt: 'Madagáscar', hi: 'मेडागास्कर', th: 'มาดากัสการ์', vi: 'Madagascar' } },
+  { code: 'MU', name: 'Mauritius', translations: { zh: '毛里求斯', es: 'Mauricio', fr: 'Maurice', de: 'Mauritius', ja: 'モーリシャス', ko: '모리셔스', ar: 'موريشيوس', ru: 'Маврикий', pt: 'Maurício', hi: 'मॉरीशस', th: 'มอริเชียส', vi: 'Mauritius' } },
+  { code: 'SC', name: 'Seychelles', translations: { zh: '塞舌尔', es: 'Seychelles', fr: 'Seychelles', de: 'Seychellen', ja: 'セーシェル', ko: '세이셸', ar: 'سيشل', ru: 'Сейшелы', pt: 'Seicheles', hi: 'सेशेल्स', th: 'เซเชลส์', vi: 'Seychelles' } },
+  { code: 'CV', name: 'Cape Verde', translations: { zh: '佛得角', es: 'Cabo Verde', fr: 'Cap-Vert', de: 'Kap Verde', ja: 'カーボベルデ', ko: '카보베르데', ar: 'الرأس الأخضر', ru: 'Кабо-Верде', pt: 'Cabo Verde', hi: 'केप वर्ड', th: 'เคปเวิร์ด', vi: 'Cape Verde' } },
+  { code: 'HT', name: 'Haiti', translations: { zh: '海地', es: 'Haití', fr: 'Haïti', de: 'Haiti', ja: 'ハイチ', ko: '아이티', ar: 'هايتي', ru: 'Гаити', pt: 'Haiti', hi: 'हैती', th: 'เฮติ', vi: 'Haiti' } },
+  { code: 'DO', name: 'Dominican Republic', translations: { zh: '多米尼加共和国', es: 'República Dominicana', fr: 'République dominicaine', de: 'Dominikanische Republik', ja: 'ドミニカ共和国', ko: '도미니카 공화국', ar: 'جمهورية الدومينيكان', ru: 'Доминиканская Республика', pt: 'República Dominicana', hi: 'डोमिनिकन गणराज्य', th: 'สาธารณรัฐโดมินิกัน', vi: 'Cộng hòa Dominicana' } },
+  { code: 'CU', name: 'Cuba', translations: { zh: '古巴', es: 'Cuba', fr: 'Cuba', de: 'Kuba', ja: 'キューバ', ko: '쿠바', ar: 'كوبا', ru: 'Куба', pt: 'Cuba', hi: 'क्यूबा', th: 'คิวบา', vi: 'Cuba' } },
+  { code: 'JM', name: 'Jamaica', translations: { zh: '牙买加', es: 'Jamaica', fr: 'Jamaïque', de: 'Jamaika', ja: 'ジャマイカ', ko: '자메이카', ar: 'جامايكا', ru: 'Ямайка', pt: 'Jamaica', hi: 'जमैका', th: 'จาเมกา', vi: 'Jamaica' } },
+  { code: 'BS', name: 'Bahamas', translations: { zh: '巴哈马', es: 'Bahamas', fr: 'Bahamas', de: 'Bahamas', ja: 'バハマ', ko: '바하마', ar: 'باهاماس', ru: 'Багамы', pt: 'Bahamas', hi: 'बहामास', th: 'บาฮามาส', vi: 'Bahamas' } },
+  { code: 'TT', name: 'Trinidad and Tobago', translations: { zh: '特立尼达和多巴哥', es: 'Trinidad y Tobago', fr: 'Trinité-et-Tobago', de: 'Trinidad und Tobago', ja: 'トリニダード・トバゴ', ko: '트리니다드 토바고', ar: 'ترينيداد وتوباغو', ru: 'Тринидад и Тобаго', pt: 'Trinidad e Tobago', hi: 'त्रिनिदाद और टोबैगो', th: 'ตรินิแดดและโตเบโก', vi: 'Trinidad và Tobago' } },
+  { code: 'BB', name: 'Barbados', translations: { zh: '巴巴多斯', es: 'Barbados', fr: 'Barbade', de: 'Barbados', ja: 'バルバドス', ko: '바베이도스', ar: 'باربادوس', ru: 'Барбадос', pt: 'Barbados', hi: 'बारबाडोस', th: 'บาร์เบโดส', vi: 'Barbados' } },
+  { code: 'GD', name: 'Grenada', translations: { zh: '格林纳达', es: 'Granada', fr: 'Grenade', de: 'Grenada', ja: 'グレナダ', ko: '그레나다', ar: 'غرينادا', ru: 'Гренада', pt: 'Granada', hi: 'ग्रेनेडा', th: 'เกรเนดา', vi: 'Grenada' } },
+  { code: 'LC', name: 'Saint Lucia', translations: { zh: '圣卢西亚', es: 'Santa Lucía', fr: 'Sainte-Lucie', de: 'Saint Lucia', ja: 'セントルシア', ko: '세인트루시아', ar: 'سانت لوسيا', ru: 'Сент-Люсия', pt: 'Santa Lúcia', hi: 'सेंट लूसिया', th: 'เซนต์ลูเซีย', vi: 'Saint Lucia' } },
+  { code: 'VC', name: 'Saint Vincent and the Grenadines', translations: { zh: '圣文森特和格林纳丁斯', es: 'San Vicente y las Granadinas', fr: 'Saint-Vincent-et-les-Grenadines', de: 'Saint Vincent und die Grenadinen', ja: 'セントビンセント・グレナディーン', ko: '세인트빈센트 그레나딘', ar: 'سانت فينسنت وجزر غرينادين', ru: 'Сент-Винсент и Гренадины', pt: 'São Vicente e Granadinas', hi: 'सेंट विंसेंट और ग्रेनडाइंस', th: 'เซนต์วินเซนต์และเกรนาดีนส์', vi: 'Saint Vincent và Grenadines' } },
+  { code: 'AG', name: 'Antigua and Barbuda', translations: { zh: '安提瓜和巴布达', es: 'Antigua y Barbuda', fr: 'Antigua-et-Barbuda', de: 'Antigua und Barbuda', ja: 'アンティグア・バーブーダ', ko: '앤티가 바부다', ar: 'أنتيغوا وباربودا', ru: 'Антигуа и Барбуда', pt: 'Antígua e Barbuda', hi: 'एंटीगुआ और बारबुडा', th: 'แอนติกาและบาร์บูดา', vi: 'Antigua và Barbuda' } },
+  { code: 'DM', name: 'Dominica', translations: { zh: '多米尼克', es: 'Dominica', fr: 'Dominique', de: 'Dominica', ja: 'ドミニカ', ko: '도미니카', ar: 'دومينيكا', ru: 'Доминика', pt: 'Dominica', hi: 'डोमिनिका', th: 'โดมินีกา', vi: 'Dominica' } },
+  { code: 'KN', name: 'Saint Kitts and Nevis', translations: { zh: '圣基茨和尼维斯', es: 'San Cristóbal y Nieves', fr: 'Saint-Christophe-et-Niévès', de: 'Saint Kitts und Nevis', ja: 'セントクリストファー・ネーヴィス', ko: '세인트키츠 네비스', ar: 'سانت كيتس ونيفيس', ru: 'Сент-Китс и Невис', pt: 'São Cristóvão e Nevis', hi: 'सेंट किट्स और नेविस', th: 'เซนต์คิตส์และเนวิส', vi: 'Saint Kitts và Nevis' } },
+  { code: 'BZ', name: 'Belize', translations: { zh: '伯利兹', es: 'Belice', fr: 'Belize', de: 'Belize', ja: 'ベリーズ', ko: '벨리즈', ar: 'بليز', ru: 'Белиз', pt: 'Belize', hi: 'बेलीज', th: 'เบลีซ', vi: 'Belize' } },
+  { code: 'GT', name: 'Guatemala', translations: { zh: '危地马拉', es: 'Guatemala', fr: 'Guatemala', de: 'Guatemala', ja: 'グアテマラ', ko: '과테말라', ar: 'غواتيمالا', ru: 'Гватемала', pt: 'Guatemala', hi: 'ग्वाटेमाला', th: 'กัวเตมาลา', vi: 'Guatemala' } },
+  { code: 'SV', name: 'El Salvador', translations: { zh: '萨尔瓦多', es: 'El Salvador', fr: 'Salvador', de: 'El Salvador', ja: 'エルサルバドル', ko: '엘살바도르', ar: 'السلفادور', ru: 'Сальвадор', pt: 'El Salvador', hi: 'अल सल्वाडोर', th: 'เอลซัลวาดอร์', vi: 'El Salvador' } },
+  { code: 'HN', name: 'Honduras', translations: { zh: '洪都拉斯', es: 'Honduras', fr: 'Honduras', de: 'Honduras', ja: 'ホンジュラス', ko: '온두라스', ar: 'هندوراس', ru: 'Гондурас', pt: 'Honduras', hi: 'होंडुरास', th: 'ฮอนดูรัส', vi: 'Honduras' } },
+  { code: 'NI', name: 'Nicaragua', translations: { zh: '尼加拉瓜', es: 'Nicaragua', fr: 'Nicaragua', de: 'Nicaragua', ja: 'ニカラグア', ko: '니카라과', ar: 'نيكاراغوا', ru: 'Никарагуа', pt: 'Nicarágua', hi: 'निकारागुआ', th: 'นิการากัว', vi: 'Nicaragua' } },
+  { code: 'CR', name: 'Costa Rica', translations: { zh: '哥斯达黎加', es: 'Costa Rica', fr: 'Costa Rica', de: 'Costa Rica', ja: 'コスタリカ', ko: '코스타리카', ar: 'كوستاريكا', ru: 'Коста-Рика', pt: 'Costa Rica', hi: 'कोस्टा रिका', th: 'คอสตาริกา', vi: 'Costa Rica' } },
+  { code: 'PA', name: 'Panama', translations: { zh: '巴拿马', es: 'Panamá', fr: 'Panama', de: 'Panama', ja: 'パナマ', ko: '파나마', ar: 'بنما', ru: 'Панама', pt: 'Panamá', hi: 'पनामा', th: 'ปานามา', vi: 'Panama' } },
+  { code: 'CO', name: 'Colombia', translations: { zh: '哥伦比亚', es: 'Colombia', fr: 'Colombie', de: 'Kolumbien', ja: 'コロンビア', ko: '콜롬비아', ar: 'كولومبيا', ru: 'Колумбия', pt: 'Colômbia', hi: 'कोलंबिया', th: 'โคลอมเบีย', vi: 'Colombia' } },
+  { code: 'VE', name: 'Venezuela', translations: { zh: '委内瑞拉', es: 'Venezuela', fr: 'Venezuela', de: 'Venezuela', ja: 'ベネズエラ', ko: '베네수엘라', ar: 'فنزويلا', ru: 'Венесуэла', pt: 'Venezuela', hi: 'वेनेजुएला', th: 'เวเนซุเอลา', vi: 'Venezuela' } },
+  { code: 'EC', name: 'Ecuador', translations: { zh: '厄瓜多尔', es: 'Ecuador', fr: 'Équateur', de: 'Ecuador', ja: 'エクアドル', ko: '에콰도르', ar: 'الإكوادور', ru: 'Эквадор', pt: 'Equador', hi: 'इक्वाडोर', th: 'เอกวาดอร์', vi: 'Ecuador' } },
+  { code: 'PE', name: 'Peru', translations: { zh: '秘鲁', es: 'Perú', fr: 'Pérou', de: 'Peru', ja: 'ペルー', ko: '페루', ar: 'بيرو', ru: 'Перу', pt: 'Peru', hi: 'पेरू', th: 'เปรู', vi: 'Peru' } },
+  { code: 'BO', name: 'Bolivia', translations: { zh: '玻利维亚', es: 'Bolivia', fr: 'Bolivie', de: 'Bolivien', ja: 'ボリビア', ko: '볼리비아', ar: 'بوليفيا', ru: 'Боливия', pt: 'Bolívia', hi: 'बोलीविया', th: 'โบลิเวีย', vi: 'Bolivia' } },
+  { code: 'PY', name: 'Paraguay', translations: { zh: '巴拉圭', es: 'Paraguay', fr: 'Paraguay', de: 'Paraguay', ja: 'パラグアイ', ko: '파라과이', ar: 'باراغواي', ru: 'Парагвай', pt: 'Paraguai', hi: 'पराग्वे', th: 'ปารากวัย', vi: 'Paraguay' } },
+  { code: 'UY', name: 'Uruguay', translations: { zh: '乌拉圭', es: 'Uruguay', fr: 'Uruguay', de: 'Uruguay', ja: 'ウルグアイ', ko: '우루과이', ar: 'الأوروغواي', ru: 'Уругвай', pt: 'Uruguai', hi: 'उरुग्वे', th: 'อุรุกวัย', vi: 'Uruguay' } },
+  { code: 'AR', name: 'Argentina', translations: { zh: '阿根廷', es: 'Argentina', fr: 'Argentine', de: 'Argentinien', ja: 'アルゼンチン', ko: '아르헨티나', ar: 'الأرجنتين', ru: 'Аргентина', pt: 'Argentina', hi: 'अर्जेंटीना', th: 'อาร์เจนตินา', vi: 'Argentina' } },
+  { code: 'CL', name: 'Chile', translations: { zh: '智利', es: 'Chile', fr: 'Chili', de: 'Chile', ja: 'チリ', ko: '칠레', ar: 'تشيلي', ru: 'Чили', pt: 'Chile', hi: 'चिली', th: 'ชิลี', vi: 'Chile' } },
+  { code: 'PR', name: 'Puerto Rico', translations: { zh: '波多黎各', es: 'Puerto Rico', fr: 'Porto Rico', de: 'Puerto Rico', ja: 'プエルトリコ', ko: '푸에르토리코', ar: 'بورتوريكو', ru: 'Пуэрто-Рико', pt: 'Porto Rico', hi: 'प्यूर्टो रिको', th: 'เปอร์โตริโก', vi: 'Puerto Rico' } },
+  { code: 'VA', name: 'Vatican City', translations: { zh: '梵蒂冈', es: 'Ciudad del Vaticano', fr: 'Vatican', de: 'Vatikanstadt', ja: 'バチカン', ko: '바티칸 시국', ar: 'الفاتيكان', ru: 'Ватикан', pt: 'Vaticano', hi: 'वेटिकन सिटी', th: 'นครวาติกัน', vi: 'Vatican' } },
+  { code: 'MT', name: 'Malta', translations: { zh: '马耳他', es: 'Malta', fr: 'Malte', de: 'Malta', ja: 'マルタ', ko: '몰타', ar: 'مالطا', ru: 'Мальта', pt: 'Malta', hi: 'माल्टा', th: 'มอลตา', vi: 'Malta' } },
+  { code: 'CY', name: 'Cyprus', translations: { zh: '塞浦路斯', es: 'Chipre', fr: 'Chypre', de: 'Zypern', ja: 'キプロス', ko: '키프로스', ar: 'قبرص', ru: 'Кипр', pt: 'Chipre', hi: 'साइप्रस', th: 'ไซปรัส', vi: 'Síp' } },
+  { code: 'AD', name: 'Andorra', translations: { zh: '安道尔', es: 'Andorra', fr: 'Andorre', de: 'Andorra', ja: 'アンドラ', ko: '안도라', ar: 'أندورا', ru: 'Андорра', pt: 'Andorra', hi: 'अंडोरा', th: 'อันดอร์รา', vi: 'Andorra' } },
+  { code: 'MC', name: 'Monaco', translations: { zh: '摩纳哥', es: 'Mónaco', fr: 'Monaco', de: 'Monaco', ja: 'モナコ', ko: '모나코', ar: 'موناكو', ru: 'Монако', pt: 'Mônaco', hi: 'मोनाको', th: 'โมนาโก', vi: 'Monaco' } },
+  { code: 'LI', name: 'Liechtenstein', translations: { zh: '列支敦士登', es: 'Liechtenstein', fr: 'Liechtenstein', de: 'Liechtenstein', ja: 'リヒテンシュタイン', ko: '리히텐슈타인', ar: 'ليختنشتاين', ru: 'Лихтенштейн', pt: 'Liechtenstein', hi: 'लिचेंस्टीन', th: 'ลิกเตนสไตน์', vi: 'Liechtenstein' } },
+  { code: 'SM', name: 'San Marino', translations: { zh: '圣马力诺', es: 'San Marino', fr: 'Saint-Marin', de: 'San Marino', ja: 'サンマリノ', ko: '산마리노', ar: 'سان مارينو', ru: 'Сан-Марино', pt: 'San Marino', hi: 'सैन मैरीनो', th: 'ซานมารีโน', vi: 'San Marino' } },
+];

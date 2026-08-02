@@ -4,17 +4,17 @@ export async function GET() {
   const openApiSpec = {
     openapi: '3.0.3',
     info: {
-      title: 'X2XHub API - B2B Exhibition Platform',
+      title: 'SeaHeart Global API - B2B Exhibition Platform',
       version: '1.0.0',
-      description: 'Public API for searching exhibitions, products, suppliers, and categories on X2XHub - The Global B2B Online Exhibition Platform',
+      description: 'Public API for searching exhibitions, products, suppliers, and categories on SeaHeart Global - The Global B2B Online Exhibition Platform',
       contact: {
-        name: 'X2XHub Support',
+        name: 'SeaHeart Global Support',
         email: 'contact@x2xhub.com',
         url: 'https://x2xhub.com',
       },
       'x-logo': {
         url: 'https://x2xhub.com/logo.png',
-        altText: 'X2XHub Logo',
+        altText: 'SeaHeart Global Logo',
       },
     },
     servers: [

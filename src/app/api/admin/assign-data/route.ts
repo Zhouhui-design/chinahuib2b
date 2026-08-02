@@ -36,6 +36,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 })
       }
 
+      const marketplaceTasks = await prisma.marketplaceTask.findMany({
+        where: { postedById: user.id },
+        select: { id: true, title: true, type: true, status: true }
+      })
+
       return NextResponse.json({
         user: {
           id: user.id,
@@ -59,7 +64,13 @@ export async function GET(request: NextRequest) {
             id: p.id,
             title: p.title
           }))
-        } : null
+        } : null,
+        marketplaceTasks: marketplaceTasks.map(t => ({
+          id: t.id,
+          title: t.title,
+          type: t.type,
+          status: t.status
+        }))
       })
     } else {
       const booths = await prisma.booth.findMany({
@@ -74,20 +85,32 @@ export async function GET(request: NextRequest) {
       })
 
       const products = await prisma.product.findMany({
-        where: { boothId: null },
         include: {
           seller: {
             include: {
               user: true
             }
+          },
+          booth: {
+            select: { id: true, name: true }
           }
-        }
+        },
+        orderBy: { createdAt: 'desc' }
       })
 
       const sellers = await prisma.sellerProfile.findMany({
         include: {
           user: true
         }
+      })
+
+      const marketplaceTasks = await prisma.marketplaceTask.findMany({
+        include: {
+          postedBy: {
+            select: { email: true, username: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
       })
 
       return NextResponse.json({
@@ -104,7 +127,18 @@ export async function GET(request: NextRequest) {
           title: p.title,
           sellerId: p.sellerId,
           sellerName: p.seller?.companyName || 'Unknown',
-          sellerEmail: p.seller?.user?.email || 'Unknown'
+          sellerEmail: p.seller?.user?.email || 'Unknown',
+          boothId: p.boothId,
+          boothName: p.booth?.name || null
+        })),
+        marketplaceTasks: marketplaceTasks.map(t => ({
+          id: t.id,
+          title: t.title,
+          type: t.type,
+          status: t.status,
+          postedById: t.postedById,
+          postedByEmail: t.postedBy?.email || 'Unknown',
+          postedByName: t.postedBy?.username || 'Unknown'
         })),
         sellers: sellers.map(s => ({
           id: s.id,
@@ -129,23 +163,37 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { action, targetEmail, boothIds, productIds, newSellerId } = body
+    const { action, targetEmail, boothIds, productIds, taskIds, newSellerId } = body
 
-    if (!action || !targetEmail) {
-      return NextResponse.json({ error: 'action and targetEmail are required' }, { status: 400 })
+    if (!action) {
+      return NextResponse.json({ error: 'action is required' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: targetEmail }
-    })
+    // Separate delete actions (no targetEmail needed) from assign actions
+    const deleteActions = ['delete_booths', 'delete_products', 'delete_tasks']
+    const isDeleteAction = deleteActions.includes(action)
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    // Lookup target user only for assign actions
+    let user = null
+    let sellerProfile = null
+
+    if (!isDeleteAction) {
+      if (!targetEmail) {
+        return NextResponse.json({ error: 'targetEmail is required for assign actions' }, { status: 400 })
+      }
+
+      user = await prisma.user.findUnique({
+        where: { email: targetEmail }
+      })
+
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+
+      sellerProfile = await prisma.sellerProfile.findUnique({
+        where: { userId: user.id }
+      })
     }
-
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: user.id }
-    })
 
     if (action === 'assign_booths' && boothIds && boothIds.length > 0) {
       if (!sellerProfile) {
@@ -157,9 +205,15 @@ export async function POST(request: NextRequest) {
         data: { sellerId: sellerProfile.id }
       })
 
+      // Also update products under these booths to keep sellerId consistent
+      const productResult = await prisma.product.updateMany({
+        where: { boothId: { in: boothIds } },
+        data: { sellerId: sellerProfile.id }
+      })
+
       return NextResponse.json({
         success: true,
-        message: `Updated ${result.count} booths`,
+        message: `Updated ${result.count} booths and ${productResult.count} products`,
         updatedCount: result.count
       })
     }
@@ -178,6 +232,77 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `Updated ${result.count} products`,
         updatedCount: result.count
+      })
+    }
+
+    if (action === 'assign_tasks' && taskIds && taskIds.length > 0) {
+      const result = await prisma.marketplaceTask.updateMany({
+        where: { id: { in: taskIds } },
+        data: { postedById: user.id }
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: `Updated ${result.count} marketplace tasks`,
+        updatedCount: result.count
+      })
+    }
+
+    if (action === 'delete_booths' && boothIds && boothIds.length > 0) {
+      const result = await prisma.$transaction([
+        // Detach products from booths (products become standalone)
+        prisma.product.updateMany({
+          where: { boothId: { in: boothIds } },
+          data: { boothId: null }
+        }),
+        // Delete booths
+        prisma.booth.deleteMany({
+          where: { id: { in: boothIds } }
+        })
+      ])
+
+      return NextResponse.json({
+        success: true,
+        message: `Deleted ${result[1].count} booths (${result[0].count} products detached)`,
+        deletedCount: result[1].count
+      })
+    }
+
+    if (action === 'delete_products' && productIds && productIds.length > 0) {
+      const result = await prisma.$transaction([
+        // Detach inquiries from products (keep inquiry records)
+        prisma.inquiry.updateMany({
+          where: { productId: { in: productIds } },
+          data: { productId: null }
+        }),
+        // Detach visitors from products
+        prisma.visitor.updateMany({
+          where: { productId: { in: productIds } },
+          data: { productId: null }
+        }),
+        // Delete products (ProductBrochure auto-cascades)
+        prisma.product.deleteMany({
+          where: { id: { in: productIds } }
+        })
+      ])
+
+      return NextResponse.json({
+        success: true,
+        message: `Deleted ${result[2].count} products`,
+        deletedCount: result[2].count
+      })
+    }
+
+    if (action === 'delete_tasks' && taskIds && taskIds.length > 0) {
+      // All task relations are Cascade, so direct delete is safe
+      const result = await prisma.marketplaceTask.deleteMany({
+        where: { id: { in: taskIds } }
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: `Deleted ${result.count} marketplace tasks`,
+        deletedCount: result.count
       })
     }
 

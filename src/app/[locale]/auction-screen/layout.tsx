@@ -109,7 +109,7 @@ export function generateMetadata({ params }: Props): Metadata {
           url: `${BASE_URL}/og-image.png`,
           width: 1200,
           height: 630,
-          alt: 'X2XHub B2B Trade Platform',
+          alt: 'SeaHeart Global B2B Trade Platform',
         },
       ],
     },

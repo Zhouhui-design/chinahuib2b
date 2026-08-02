@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { auth } from '@/lib/auth'
 import { User, Mail, Phone, Building, Globe, Bell, Shield, Save, Upload, FileText, Image as ImageIcon, CreditCard, Video, CheckCircle, ShieldCheck, MessageCircle, Link as LinkIcon } from 'lucide-react'
 import VerificationFileUpload from '@/components/seller/VerificationFileUpload'
+import CountrySelect from '@/components/seller/CountrySelect'
 
 export default function SellerSettingsPage() {
   const [language, setLanguage] = useState('en')
@@ -62,6 +63,14 @@ export default function SellerSettingsPage() {
     newPassword: '',
     confirmPassword: ''
   })
+
+  // Store slug (店铺专属链接) state
+  const [storeSlug, setStoreSlug] = useState<string | null>(null)
+  const [storeSlugLocked, setStoreSlugLocked] = useState(false)
+  const [slugInput, setSlugInput] = useState('')
+  const [slugSaving, setSlugSaving] = useState(false)
+  const [slugMessage, setSlugMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [copied, setCopied] = useState(false)
   
   interface VerificationFile {
     id: string
@@ -140,6 +149,54 @@ export default function SellerSettingsPage() {
       loadVerificationFiles()
     }
   }, [activeTab])
+
+  // Load store slug on mount
+  useEffect(() => {
+    fetch('/api/seller/store-slug')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setStoreSlug(data.slug)
+          setStoreSlugLocked(data.locked)
+          if (data.slug) setSlugInput(data.slug)
+        }
+      })
+      .catch(err => console.error('Failed to fetch store slug:', err))
+  }, [])
+
+  // Save store slug (one-time edit, then locked)
+  const handleSlugSave = async () => {
+    setSlugSaving(true)
+    setSlugMessage(null)
+    try {
+      const res = await fetch('/api/seller/store-slug', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: slugInput }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setStoreSlug(data.slug)
+        setStoreSlugLocked(true)
+        setSlugMessage({ type: 'success', text: language === 'zh' ? '店铺链接已更新并锁定！' : 'Store link updated and locked!' })
+      } else {
+        setSlugMessage({ type: 'error', text: data.error || 'Failed to update slug' })
+      }
+    } catch {
+      setSlugMessage({ type: 'error', text: language === 'zh' ? '网络错误，请重试' : 'Network error, please retry' })
+    } finally {
+      setSlugSaving(false)
+    }
+  }
+
+  const copyStoreUrl = () => {
+    if (!storeSlug) return
+    const url = `https://x2xhub.com/${storeSlug}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
   
   const loadVerificationFiles = async () => {
     setLoadingFiles(true)
@@ -813,6 +870,95 @@ export default function SellerSettingsPage() {
 
             {/* Profile Tab */}
             {activeTab === 'profile' && (
+              <>
+              {/* Store Link Card (店铺专属链接) */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6 mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <LinkIcon className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {language === 'zh' ? '店铺专属链接' : 'Store Link'}
+                  </h2>
+                  {storeSlugLocked && (
+                    <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full">
+                      🔒 {language === 'zh' ? '已锁定' : 'Locked'}
+                    </span>
+                  )}
+                </div>
+
+                {storeSlug ? (
+                  <div className="space-y-3">
+                    {/* Current URL display */}
+                    <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-300 px-4 py-3">
+                      <span className="text-gray-400 text-sm">x2xhub.com/</span>
+                      <span className="font-mono font-semibold text-blue-700 flex-1 truncate">{storeSlug}</span>
+                      <button
+                        onClick={copyStoreUrl}
+                        className="flex-shrink-0 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                      >
+                        {copied ? (language === 'zh' ? '已复制!' : 'Copied!') : (language === 'zh' ? '复制' : 'Copy')}
+                      </button>
+                    </div>
+
+                    {/* Edit section */}
+                    {!storeSlugLocked ? (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {language === 'zh' ? '修改您的店铺链接（仅限一次，修改后锁定）' : 'Customize your store link (one-time, locks after saving)'}
+                        </label>
+                        <div className="flex gap-2">
+                          <div className="flex-1 flex items-center bg-white rounded-lg border border-gray-300 px-3">
+                            <span className="text-gray-400 text-sm">x2xhub.com/</span>
+                            <input
+                              type="text"
+                              value={slugInput}
+                              onChange={(e) => setSlugInput(e.target.value.toLowerCase().trim())}
+                              maxLength={39}
+                              placeholder="my-store"
+                              className="flex-1 py-2 px-1 outline-none text-sm font-mono"
+                            />
+                          </div>
+                          <button
+                            onClick={handleSlugSave}
+                            disabled={slugSaving || !slugInput || slugInput === storeSlug}
+                            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                          >
+                            {slugSaving ? '...' : (language === 'zh' ? '确认修改并锁定' : 'Save & Lock')}
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {language === 'zh'
+                            ? '规则：1-39个小写字母、数字、连字符；必须以字母或数字开头和结尾；保留词不可用。'
+                            : 'Rules: 1-39 lowercase letters, digits, hyphens; must start/end with a letter or digit; reserved words not allowed.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                        {language === 'zh'
+                          ? '您的店铺链接已锁定。如需修改，请联系客服。当前链接可以直接发给客户作为您的官网使用。'
+                          : 'Your store link is locked. Contact support if you need to change it. You can share this link with customers as your official website.'}
+                      </div>
+                    )}
+
+                    {slugMessage && (
+                      <div className={`text-sm rounded-lg p-2 ${slugMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        {slugMessage.text}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">{language === 'zh' ? '加载中...' : 'Loading...'}</p>
+                )}
+
+                {/* 温馨提示 */}
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    {language === 'zh'
+                      ? '⚠️ 温馨提示：您填写的信息会被所有人可见，如果不想让其他人看到，则不需要填写。严禁填写假信息，一旦被平台管理员得知填写假信息，则会被封号处理。AI 产品图片、AI 产品视频一律要带 AI 标签。'
+                      : '⚠️ Notice: All information you fill in will be visible to everyone. Do not fill in false information — accounts with fake info will be banned. AI-generated product images and videos must carry an AI tag.'}
+                  </p>
+                </div>
+              </div>
+
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.tabs.profile}</h2>
                 
@@ -979,11 +1125,10 @@ export default function SellerSettingsPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t.profile.country}
                       </label>
-                      <input
-                        type="text"
+                      <CountrySelect
                         value={profileData.country}
-                        onChange={(e) => setProfileData({...profileData, country: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(value) => setProfileData({...profileData, country: value})}
+                        language={language}
                         placeholder={t.profile.countryPlaceholder}
                       />
                     </div>
@@ -1085,6 +1230,7 @@ export default function SellerSettingsPage() {
                   </div>
                 </form>
               </div>
+              </>
             )}
 
             {/* Notifications Tab */}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { resolveUserId } from '@/lib/chat-auth'
+import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 // Get private messages with a user - GET /api/chat/private/[userId]
@@ -9,8 +9,9 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const currentUserId = await resolveUserId(request)
+    
+    if (!currentUserId) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -20,13 +21,26 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
-    const otherUserId = params.userId
+    const rawOtherId = params.userId
+
+    // Resolve other user: accept either User ID or SellerProfile ID
+    let otherUserId = rawOtherId
+    const directUser = await db.user.findUnique({ where: { id: rawOtherId }, select: { id: true } })
+    if (!directUser) {
+      const sellerProfile = await db.sellerProfile.findUnique({
+        where: { id: rawOtherId },
+        select: { userId: true },
+      })
+      if (sellerProfile) {
+        otherUserId = sellerProfile.userId
+      }
+    }
 
     const messages = await db.privateMessage.findMany({
       where: {
         OR: [
-          { senderId: session.user.id, receiverId: otherUserId },
-          { senderId: otherUserId, receiverId: session.user.id },
+          { senderId: currentUserId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: currentUserId },
         ],
       },
       take: limit,
@@ -60,7 +74,7 @@ export async function GET(
     await db.privateMessage.updateMany({
       where: {
         senderId: otherUserId,
-        receiverId: session.user.id,
+        receiverId: currentUserId,
         isRead: false,
       },
       data: {
@@ -95,16 +109,17 @@ export async function POST(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    const userId = await resolveUserId(request)
+    
+    if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized - cannot resolve user identity' },
         { status: 401 }
       )
     }
 
     const { content } = await request.json()
-    const receiverId = params.userId
+    const rawReceiverId = params.userId
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json(
@@ -113,10 +128,20 @@ export async function POST(
       )
     }
 
-    // Verify receiver exists
-    const receiver = await db.user.findUnique({
-      where: { id: receiverId },
-    })
+    // Resolve receiver: accept either a User ID or a SellerProfile ID
+    // (ChatWidget passes SellerProfile ID from store/product pages)
+    let receiverId = rawReceiverId
+    let receiver = await db.user.findUnique({ where: { id: rawReceiverId } })
+    if (!receiver) {
+      const sellerProfile = await db.sellerProfile.findUnique({
+        where: { id: rawReceiverId },
+        select: { userId: true },
+      })
+      if (sellerProfile) {
+        receiverId = sellerProfile.userId
+        receiver = await db.user.findUnique({ where: { id: receiverId } })
+      }
+    }
 
     if (!receiver) {
       return NextResponse.json(
@@ -129,7 +154,7 @@ export async function POST(
     const message = await db.privateMessage.create({
       data: {
         content: content.trim(),
-        senderId: session.user.id,
+        senderId: userId,
         receiverId: receiverId,
       },
       include: {
@@ -162,8 +187,9 @@ export async function POST(
     })
   } catch (error) {
     console.error('Error sending private message:', error)
+    const errMsg = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { success: false, error: 'Failed to send message' },
+      { success: false, error: `Failed to send message: ${errMsg}` },
       { status: 500 }
     )
   }

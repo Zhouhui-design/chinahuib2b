@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, copyFile } from 'fs/promises'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
@@ -10,6 +10,9 @@ import { uploadToSpaces, isSpacesConfigured } from '@/lib/spaces'
 // Upload directory configuration
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public/uploads')
 const PUBLIC_URL_PREFIX = '/uploads'
+// Secondary local backup directory — independent from public/uploads,
+// to recover files even if public/uploads is accidentally wiped.
+const BACKUP_DIR = process.env.UPLOAD_BACKUP_DIR || path.join(process.cwd(), 'storage', 'uploads-backup')
 
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
@@ -79,7 +82,9 @@ export async function POST(request: NextRequest) {
     else if (type === 'task_attachment') subDir = 'task-attachments'
 
     const targetDir = path.join(UPLOAD_DIR, subDir)
+    const backupTargetDir = path.join(BACKUP_DIR, subDir)
     await mkdir(targetDir, { recursive: true })
+    await mkdir(backupTargetDir, { recursive: true })
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
@@ -96,7 +101,7 @@ export async function POST(request: NextRequest) {
         const optimizedBuffer = await sharp(buffer)
           .webp({ quality: 80, effort: 6 })
           .toBuffer()
-        
+
         buffer = Buffer.from(optimizedBuffer)
         finalMimeType = 'image/webp'
         ext = '.webp'
@@ -110,27 +115,60 @@ export async function POST(request: NextRequest) {
       ext = getExtensionFromFilename(file.name) || getFileExtension(file.type)
     }
 
-    // Upload to DigitalOcean Spaces if configured, otherwise use local storage
-    if (isSpacesConfigured()) {
+    // Unique final name with the processed extension (critical for Spaces uploads)
+    const uniqueName = `${uuidv4()}${ext}`
+    const localFilePath = path.join(targetDir, uniqueName)
+    const backupFilePath = path.join(backupTargetDir, uniqueName)
+
+    // --- Strategy: 3-level durable storage ---
+    // Level 1 (primary): DigitalOcean Spaces if configured (S3-compatible object storage)
+    // Level 2 (redundancy): Local public/uploads/{subDir}/ (served publicly)
+    // Level 3 (safety net): Local storage/uploads-backup/{subDir}/ (not served, for recovery)
+
+    const primaryFromSpaces = isSpacesConfigured()
+    let spacesSuccess = false
+
+    if (primaryFromSpaces) {
       try {
-        const uploadResult = await uploadToSpaces(buffer, file.name, finalMimeType, subDir)
+        const uploadResult = await uploadToSpaces(buffer, uniqueName, finalMimeType, subDir)
         publicUrl = uploadResult.url
-        console.log('File uploaded to DigitalOcean Spaces:', publicUrl)
+        spacesSuccess = true
+        console.log('[Upload] Saved to Spaces:', publicUrl)
       } catch (error) {
-        console.error('Spaces upload failed, falling back to local storage:', error)
-        // Fallback to local storage
-        const uniqueName = `${uuidv4()}${ext}`
-        const filePath = path.join(targetDir, uniqueName)
-        await writeFile(filePath, buffer)
+        console.error('[Upload] Spaces upload failed, falling back to local URL:', error)
         publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
       }
     } else {
-      // Use local storage
-      const uniqueName = `${uuidv4()}${ext}`
-      const filePath = path.join(targetDir, uniqueName)
-      await writeFile(filePath, buffer)
       publicUrl = `${PUBLIC_URL_PREFIX}/${subDir}/${uniqueName}`
     }
+
+    // --- ALWAYS write both local copies (dual-write) for safety ---
+    // This runs regardless of Spaces success — we keep the file locally as well.
+    // If Spaces was used as primary, the local copies are recoverable fallbacks.
+    // If Spaces failed or was disabled, these are the authoritative copies.
+    try {
+      await writeFile(localFilePath, buffer)
+    } catch (writeError) {
+      console.error('[Upload] Local primary write FAILED:', writeError)
+      if (!spacesSuccess) {
+        // If neither Spaces nor local works, hard failure
+        throw writeError
+      }
+    }
+
+    // Secondary backup copy (independent directory) — don't fail the upload if this errors
+    try {
+      await copyFile(localFilePath, backupFilePath)
+    } catch (backupError) {
+      // Fallback: write directly from buffer
+      try {
+        await writeFile(backupFilePath, buffer)
+      } catch (writeBackupError) {
+        console.warn('[Upload] Backup write failed (non-fatal):', writeBackupError)
+      }
+    }
+
+    console.log(`[Upload] Final URL: ${publicUrl} | Spaces: ${spacesSuccess} | Local: ${localFilePath} | Backup: ${backupFilePath}`)
 
     // Create database record based on type
     const result: any = { url: publicUrl, fileName: file.name, size: fileSize }

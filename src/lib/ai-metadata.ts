@@ -23,7 +23,7 @@ export function generateAIMetadata(
       'og:title': title,
       'og:description': description,
       'og:type': 'website',
-      'og:site_name': 'Global Expo Network',
+      'og:site_name': 'SeaHeart Global | 心海环球',
       
       // Twitter Card
       'twitter:card': 'summary_large_image',
@@ -60,8 +60,8 @@ export function generateProductMetadata(
   category: string,
   imageUrl?: string
 ): Metadata {
-  const title = `${productName} - ${sellerName} | Global Expo Network`
-  const fullDescription = `${description} - Available from ${sellerName} on Global Expo Network B2B Marketplace`
+  const title = `${productName} - ${sellerName} | SeaHeart Global`
+  const fullDescription = `${description} - Available from ${sellerName} on SeaHeart Global B2B Marketplace`
   
   return {
     title,
@@ -100,7 +100,7 @@ export function generateStoreMetadata(
   city: string,
   logoUrl?: string
 ): Metadata {
-  const title = `${companyName} - B2B Supplier from ${city}, ${country} | Global Expo Network`
+  const title = `${companyName} - B2B Supplier from ${city}, ${country} | SeaHeart Global`
   const fullDescription = `${companyName} is a verified supplier from ${city}, ${country}. ${description}`
   
   return {

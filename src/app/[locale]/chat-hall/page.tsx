@@ -1008,7 +1008,7 @@ function ChatHallContent() {
                                   </Link>
                                   {message.sender.sellerProfile && (
                                     <Link
-                                      href={`/stores/${message.sender.sellerProfile.id}`}
+                                      href={(message.sender.sellerProfile as any).storeSlug ? `/${(message.sender.sellerProfile as any).storeSlug}` : `/stores/${message.sender.sellerProfile.id}`}
                                       className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full hover:bg-purple-500 transition-colors"
                                     >
                                       🏪 {dict.chatHall.visitStore}

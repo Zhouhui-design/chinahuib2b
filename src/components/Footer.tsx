@@ -101,7 +101,7 @@ export default function Footer({ locale }: FooterProps) {
               <span className="text-xl font-bold text-white">Global Expo</span>
             </Link>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              {dict.footer?.about || 'Global Expo Network 是全球领先的B2B跨境贸易展览平台，连接全球买家和卖家，促进国际贸易发展。'}
+              {dict.footer?.about || 'SeaHeart Global（心海环球）是全球领先的B2B跨境贸易展览平台，连接全球买家和卖家，促进国际贸易发展。'}
             </p>
             <div className="flex gap-4">
               <a href="https://www.facebook.com/profile.php?id=61591257967248" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
@@ -243,7 +243,7 @@ export default function Footer({ locale }: FooterProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-sm">
-              &copy; {currentYear} Global Expo Network. All rights reserved.
+              &copy; {currentYear} SeaHeart Global. All rights reserved.
             </p>
             <div className="flex gap-6">
               <Link href={`/${locale}/legal/privacy-policy`} className="text-gray-400 hover:text-white text-sm transition-colors">

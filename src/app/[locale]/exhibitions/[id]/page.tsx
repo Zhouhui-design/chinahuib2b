@@ -212,7 +212,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
   const updateSEOMeta = (boothData: Booth) => {
     if (typeof document === 'undefined') return
 
-    const pageTitle = `${boothData.name} at ${boothData.exhibitionName} | X2XHub`
+    const pageTitle = `${boothData.name} at ${boothData.exhibitionName} | SeaHeart Global`
     const pageDescription = `${boothData.name} is exhibiting at ${boothData.exhibitionName}. ${boothData.seller?.companyName || ''} from ${boothData.seller?.city || ''}, ${boothData.seller?.country || ''}. ${boothData.keywords?.join(', ') || ''}. View products and connect with suppliers.`
     
     document.title = pageTitle
@@ -260,7 +260,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
     setProperty('og:description', pageDescription)
     setProperty('og:type', 'website')
     setProperty('og:url', window.location.href)
-    setProperty('og:site_name', 'X2XHub')
+    setProperty('og:site_name', 'SeaHeart Global | 心海环球')
     if (boothData.bannerUrl) {
       setProperty('og:image', boothData.bannerUrl)
     }

@@ -100,7 +100,7 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">G</span>
               </div>
-              <span className="text-xl font-bold text-gray-800 hidden sm:block">Global Expo</span>
+              <span className="text-xl font-bold text-gray-800 hidden sm:block">SeaHeart Global</span>
             </Link>
 
             {/* Navigation Links */}

@@ -113,6 +113,7 @@ export const CACHE_KEYS = {
   
   // Seller/Store caches
   seller: (id: string) => `seller:${id}`,
+  sellerBySlug: (slug: string) => `seller:slug:${slug}`,
   sellerProducts: (sellerId: string) => `seller:${sellerId}:products`,
   storeBrochures: (sellerId: string) => `seller:${sellerId}:brochures`,
   
@@ -136,12 +137,19 @@ export async function invalidateProductCaches(productId: string) {
   ])
 }
 
-export async function invalidateSellerCaches(sellerId: string) {
-  await Promise.all([
+export async function invalidateSellerCaches(sellerId: string, storeSlug?: string) {
+  const tasks: Promise<boolean>[] = [
     cacheDelete(CACHE_KEYS.seller(sellerId)),
     cacheDelete(CACHE_KEYS.sellerProducts(sellerId)),
     cacheDelete(CACHE_KEYS.storeBrochures(sellerId)),
-  ])
+  ]
+  // Also invalidate the slug-keyed cache so a renamed slug stops serving stale data
+  if (storeSlug) {
+    tasks.push(cacheDelete(CACHE_KEYS.sellerBySlug(storeSlug)))
+  }
+  // Slug renames can leave old-slug cache entries; clear them all defensively
+  tasks.push(cacheDeletePattern('seller:slug:*'))
+  await Promise.all(tasks)
 }
 
 export async function invalidateCategoryCaches() {

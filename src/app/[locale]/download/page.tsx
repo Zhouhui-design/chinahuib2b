@@ -110,19 +110,19 @@ export default function DownloadPage() {
   }, [])
 
   const t = {
-    title: language === 'zh' ? '下载 X2XHUB 客户端' :
-           language === 'ja' ? 'X2XHUB クライアントをダウンロード' :
-           language === 'ar' ? 'تنزيل عميل X2XHUB' :
-           language === 'es' ? 'Descargar cliente X2XHUB' :
-           language === 'fr' ? 'Télécharger le client X2XHUB' :
-           language === 'de' ? 'X2XHUB-Client herunterladen' :
-           language === 'ko' ? 'X2XHUB 클라이언트 다운로드' :
-           language === 'ru' ? 'Скачать клиент X2XHUB' :
-           language === 'pt' ? 'Baixar cliente X2XHUB' :
-           language === 'hi' ? 'X2XHUB क्लाइंट डाउनलोड करें' :
-           language === 'th' ? 'ดาวน์โหลดไคลเอนต์ X2XHUB' :
-           language === 'vi' ? 'Tải xuống ứng dụng X2XHUB' :
-           'Download X2XHUB Client',
+    title: language === 'zh' ? '下载 心海环球 客户端' :
+           language === 'ja' ? '心海グローバル クライアントをダウンロード' :
+           language === 'ar' ? 'تنزيل عميل القلب البحري العالمي' :
+           language === 'es' ? 'Descargar cliente CorazónMar Global' :
+           language === 'fr' ? 'Télécharger le client CœurMer Mondial' :
+           language === 'de' ? 'Meerherz Global-Client herunterladen' :
+           language === 'ko' ? '심해글로벌 클라이언트 다운로드' :
+           language === 'ru' ? 'Скачать клиент МорскоеСердце Глобал' :
+           language === 'pt' ? 'Baixar cliente CoraçãoMar Global' :
+           language === 'hi' ? 'समुद्र-हृदय ग्लोबल क्लाइंट डाउनलोड करें' :
+           language === 'th' ? 'ดาวน์โหลดไคลเอนต์ หัวใจทะเลโลก' :
+           language === 'vi' ? 'Tải xuống ứng dụng TráiTimBiển ToànCầu' :
+           'Download SeaHeart Global Client',
     subtitle: language === 'zh' ? '选择您的设备平台下载客户端' :
               language === 'ja' ? 'お使いのデバイスプラットフォームを選択してクライアントをダウンロード' :
               language === 'ar' ? 'اختر منصة جهازك لتنزيل العميل' :
@@ -227,19 +227,19 @@ export default function DownloadPage() {
                 language === 'th' ? 'ติดตั้งแอป PWA' :
                 language === 'vi' ? 'Cài đặt ứng dụng PWA' :
                 'Install PWA App',
-    pwaAvailable: language === 'zh' ? '🎉 您可以将 X2XHUB 安装到您的设备上！' :
-                  language === 'ja' ? '🎉 X2XHUBをお使いのデバイスにインストールできます！' :
-                  language === 'ar' ? '🎉 يمكنك تثبيت X2XHUB على جهازك！' :
-                  language === 'es' ? '🎉 ¡Puede instalar X2XHUB en su dispositivo!' :
-                  language === 'fr' ? '🎉 Vous pouvez installer X2XHUB sur votre dispositif !' :
-                  language === 'de' ? '🎉 Sie können X2XHUB auf Ihrem Gerät installieren!' :
-                  language === 'ko' ? '🎉 X2XHUB를 디바이스에 설치할 수 있습니다!' :
-                  language === 'ru' ? '🎉 Вы можете установить X2XHUB на свое устройство!' :
-                  language === 'pt' ? '🎉 Você pode instalar o X2XHUB no seu dispositivo!' :
-                  language === 'hi' ? '🎉 आप X2XHUB को अपने डिवाइस पर इंस्टॉल कर सकते हैं!' :
-                  language === 'th' ? '🎉 คุณสามารถติดตั้ง X2XHUB บนอุปกรณ์ของคุณได้!' :
-                  language === 'vi' ? '🎉 Bạn có thể cài đặt X2XHUB trên thiết bị của bạn!' :
-                  '🎉 You can install X2XHUB on your device!',
+    pwaAvailable: language === 'zh' ? '🎉 您可以将 心海环球 安装到您的设备上！' :
+                  language === 'ja' ? '🎉 心海グローバルをお使いのデバイスにインストールできます！' :
+                  language === 'ar' ? '🎉 يمكنك تثبيت القلب البحري العالمي على جهازك！' :
+                  language === 'es' ? '🎉 ¡Puede instalar CorazónMar Global en su dispositivo!' :
+                  language === 'fr' ? '🎉 Vous pouvez installer CœurMer Mondial sur votre dispositif !' :
+                  language === 'de' ? '🎉 Sie können Meerherz Global auf Ihrem Gerät installieren!' :
+                  language === 'ko' ? '🎉 심해글로벌를 디바이스에 설치할 수 있습니다!' :
+                  language === 'ru' ? '🎉 Вы можете установить МорскоеСердце Глобал на свое устройство!' :
+                  language === 'pt' ? '🎉 Você pode instalar o CoraçãoMar Global no seu dispositivo!' :
+                  language === 'hi' ? '🎉 आप समुद्र-हृदय ग्लोबल को अपने डिवाइस पर इंस्टॉल कर सकते हैं!' :
+                  language === 'th' ? '🎉 คุณสามารถติดตั้ง หัวใจทะเลโลก บนอุปกรณ์ของคุณได้!' :
+                  language === 'vi' ? '🎉 Bạn có thể cài đặt TráiTimBiển ToànCầu trên thiết bị của bạn!' :
+                  '🎉 You can install SeaHeart Global on your device!',
     allPlatforms: language === 'zh' ? '支持全球所有平台' :
                   language === 'ja' ? '世界中のすべてのプラットフォームをサポート' :
                   language === 'ar' ? 'دعم جميع المنصات العالمية' :

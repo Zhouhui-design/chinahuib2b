@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   })
 
   return {
-    title: `${title} - ${sellerCity}, ${sellerCountry} ${categoryName} Supplier | X2XHub`,
+    title: `${title} - ${sellerCity}, ${sellerCountry} ${categoryName} Supplier | SeaHeart Global`,
     description: `${description.substring(0, 150)}... - ${title} from ${sellerCity}, ${sellerCountry} manufacturer. Wholesale B2B platform.`,
     keywords,
     alternates: {

@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   if (!booth) {
     return {
-      title: `Exhibition - X2XHub`,
-      description: 'Explore exhibitions on X2XHub global B2B trade platform',
+      title: `Exhibition - SeaHeart Global`,
+      description: 'Explore exhibitions on SeaHeart Global B2B trade platform',
       keywords: ['exhibition', 'trade show', 'b2b', 'global marketplace'],
     }
   }
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const boothName = booth.names?.[locale] || booth.names?.en || booth.name
   const exhibitionName = booth.exhibitionName
   
-  const title = `${boothName} at ${exhibitionName} | X2XHub`
+  const title = `${boothName} at ${exhibitionName} | SeaHeart Global`
   const description = `${boothName} is exhibiting at ${exhibitionName}. ${booth.seller?.companyName || ''} from ${booth.seller?.city || ''}, ${booth.seller?.country || ''}. Discover products and connect with suppliers.`
   
   const allKeywords = [
@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       description,
       type: 'website',
       url: `${BASE_URL}/${locale}/exhibitions/${id}`,
-      siteName: 'X2XHub',
+      siteName: 'SeaHeart Global | 心海环球',
       images: booth.bannerUrl ? [{ url: booth.bannerUrl }] : undefined,
     },
     

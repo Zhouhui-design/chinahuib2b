@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { generateUniqueStoreSlug } from "@/services/sellerService"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { checkPasswordBreach, getPasswordStrength } from "@/lib/password-security"
@@ -59,6 +60,10 @@ export async function POST(request: NextRequest) {
     }
     
     const { email, username, password, role } = validation.data
+
+    // Map BOTH to SELLER (Seller already has buyer access inherently)
+    // Database UserRole enum doesn't include BOTH
+    const dbRole = role === 'BOTH' ? 'SELLER' : role
 
     // Validate username with custom rules
     const usernameValidation = validateUsername(username)
@@ -144,12 +149,13 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         username: cleanedUsername,
         password: hashedPassword,
-        role: role as any,
+        role: dbRole,
       },
     })
     
-    // If seller, create seller profile
-    if (role === "SELLER" || role === "BOTH") {
+    // If seller (or BOTH mapped to seller), create seller profile
+    if (dbRole === "SELLER") {
+      const storeSlug = await generateUniqueStoreSlug(username)
       await prisma.sellerProfile.create({
         data: {
           userId: user.id,
@@ -159,6 +165,7 @@ export async function POST(request: NextRequest) {
           city: "Unknown",
           subscriptionStatus: "FREE_TRIAL",
           subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days trial
+          storeSlug,
         },
       })
     }

@@ -173,7 +173,7 @@ async function sendVerificationNotification(user: any, type: 'approved' | 'rejec
             <p>您的拍卖商品「${listing.title}」已通过平台审核。</p>
             <p>商品现已在拍卖大厅展示，全球买家都可以看到并下单购买。</p>
             <p style="margin-top: 20px;">祝您生意兴隆！</p>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">X2XHub 平台</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">心海环球 平台</p>
           </div>
         `,
       })
@@ -189,7 +189,7 @@ async function sendVerificationNotification(user: any, type: 'approved' | 'rejec
             <p><strong>原因：</strong>${reason}</p>
             <p>您可以在个人中心查看详情，并根据提示修改后重新提交审核。</p>
             <p style="margin-top: 20px;">如有疑问，请联系客服。</p>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">X2XHub 平台</p>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">心海环球 平台</p>
           </div>
         `,
       })

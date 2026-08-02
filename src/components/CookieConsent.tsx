@@ -15,7 +15,7 @@ const DEFAULT_STATE: CookieConsentState = {
   necessary: true,
 }
 
-const STORAGE_KEY = 'x2xhub_cookie_consent'
+const STORAGE_KEY = 'seaheart_global_cookie_consent'
 
 function getStoredConsent(): CookieConsentState | null {
   if (typeof window === 'undefined') return null
