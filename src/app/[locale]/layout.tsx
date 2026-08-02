@@ -73,10 +73,14 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
   }
 
   if (!dict) {
+    // Still render children so server-component pages (e.g. permanentRedirect
+    // in legacy store redirect) execute even before the dictionary loads.
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
+      <SessionProvider>
+        <div className="min-h-screen">
+          {children}
+        </div>
+      </SessionProvider>
     );
   }
 

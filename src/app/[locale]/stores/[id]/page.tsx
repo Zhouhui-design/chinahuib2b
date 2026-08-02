@@ -18,13 +18,11 @@ interface Props {
 
 export default async function LegacyStoreRedirect({ params }: Props) {
   const { id } = await params
-  console.log('[LegacyStoreRedirect] Processing redirect for id:', id)
 
   const seller = await prisma.sellerProfile.findUnique({
     where: { id },
     select: { storeSlug: true },
   })
-  console.log('[LegacyStoreRedirect] Seller found:', seller ? `slug=${seller.storeSlug}` : 'NOT FOUND')
 
   // If the seller doesn't exist or has no slug yet, 404
   if (!seller || !seller.storeSlug) {
