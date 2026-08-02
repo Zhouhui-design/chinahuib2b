@@ -64,6 +64,13 @@ export async function GET(request: NextRequest) {
       skip: (page - 1) * limit,
       take: limit,
       include: {
+        postedBy: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+          },
+        },
         taskApplications: {
           select: {
             id: true,
@@ -73,7 +80,7 @@ export async function GET(request: NextRequest) {
         },
       },
     })
-    
+
     // Transform data for frontend
     const transformedTasks = tasks.map(task => ({
       id: task.id,
@@ -87,7 +94,8 @@ export async function GET(request: NextRequest) {
       minOrderQty: task.minOrderQty,
       deadline: task.deadline?.toISOString(),
       status: task.status,
-      postedBy: task.postedBy,
+      postedBy: task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+      postedById: task.postedById,
       contactInfo: task.contactInfo,
       applications: task.applications,
       views: task.views,

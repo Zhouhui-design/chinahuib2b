@@ -8,9 +8,10 @@
 import { useState, useEffect } from 'react'
   import { useParams } from 'next/navigation'
   import Link from 'next/link'
+  import { useSession } from 'next-auth/react'
   import type { LanguageCode } from '@/lib/languages'
   import { dictionaries } from '@/locales/dictionary'
-  import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone, Globe, MapPin, TrendingUp, Building2, DollarSign, ArrowUpRight, Shield } from 'lucide-react'
+  import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone, Globe, MapPin, TrendingUp, Building2, DollarSign, ArrowUpRight, Shield, Pencil, Trash2, AlertTriangle, Loader2, Rocket } from 'lucide-react'
   import { COUNTRIES, getCountryFlag, getCountryName } from '@/lib/geo-location'
 
 // Sample task data (will be replaced with real API calls)
@@ -151,6 +152,7 @@ export default function MarketplacePage() {
     views?: number
     rating?: number
     postedBy?: string
+    postedById?: string
     countryCode?: string
     countryName?: string
   }
@@ -168,6 +170,52 @@ export default function MarketplacePage() {
     participants: 0,
     totalValue: '$0'
   })
+
+  // 当前登录用户会话
+  const { data: session } = useSession()
+
+  // 删除任务相关状态
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+
+  // 多语言标签 - 编辑/删除操作
+  const actionT = {
+    edit: locale === 'zh' ? '编辑' : locale === 'de' ? 'Bearbeiten' : locale === 'ar' ? 'تعديل' : 'Edit',
+    delete: locale === 'zh' ? '删除' : locale === 'de' ? 'Löschen' : locale === 'ar' ? 'حذف' : 'Delete',
+    confirmDelete: locale === 'zh' ? '确认删除' : locale === 'de' ? 'Löschen bestätigen' : locale === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
+    confirmDeleteDesc: locale === 'zh' ? '确定要删除这条信息吗？此操作无法撤销。' : locale === 'de' ? 'Möchten Sie diese Information wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.' : locale === 'ar' ? 'هل أنت متأكد من حذف هذه المعلومات؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete this task? This action cannot be undone.',
+    cancel: locale === 'zh' ? '取消' : locale === 'de' ? 'Abbrechen' : locale === 'ar' ? 'إلغاء' : 'Cancel',
+    confirm: locale === 'zh' ? '确认删除' : locale === 'de' ? 'Bestätigen' : locale === 'ar' ? 'تأكيد' : 'Confirm',
+    deleting: locale === 'zh' ? '删除中...' : locale === 'de' ? 'Wird gelöscht...' : locale === 'ar' ? 'جاري الحذف...' : 'Deleting...',
+    deleteFailed: locale === 'zh' ? '删除失败' : locale === 'de' ? 'Löschen fehlgeschlagen' : locale === 'ar' ? 'فشل الحذف' : 'Delete failed',
+    loginRequired: locale === 'zh' ? '请先登录后操作' : locale === 'de' ? 'Bitte zuerst anmelden' : locale === 'ar' ? 'يرجى تسجيل الدخول أولاً' : 'Please login first',
+  }
+
+  // 处理删除任务
+  const handleDeleteTask = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const response = await fetch(`/api/marketplace/tasks/${deleteTarget}`, {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || actionT.deleteFailed)
+      }
+
+      // 从列表中移除已删除的任务
+      setTasks(prev => prev.filter(t => t.id !== deleteTarget))
+      setDeleteTarget(null)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : actionT.deleteFailed)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   // Fetch marketplace stats
   useEffect(() => {
@@ -529,6 +577,28 @@ export default function MarketplacePage() {
                       >
                         {dict.marketplace.viewDetails}
                       </Link>
+                      {/* 编辑/删除按钮 - 仅任务发布者可见 */}
+                      {session?.user?.id && task.postedById === session.user.id && (
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/${locale}/marketplace/${task.id}/edit`}
+                            className="flex items-center gap-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-semibold"
+                          >
+                            <Pencil className="w-4 h-4" />
+                            {actionT.edit}
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setDeleteTarget(task.id)
+                              setDeleteError('')
+                            }}
+                            className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            {actionT.delete}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1070,6 +1140,52 @@ export default function MarketplacePage() {
           </div>
         </div>
       </section>
+
+      {/* 删除确认对话框 */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">{actionT.confirmDelete}</h3>
+            </div>
+            <p className="text-gray-600 mb-6">{actionT.confirmDeleteDesc}</p>
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {deleteError}
+              </div>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setDeleteTarget(null)
+                  setDeleteError('')
+                }}
+                disabled={deleting}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                {actionT.cancel}
+              </button>
+              <button
+                onClick={handleDeleteTask}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {actionT.deleting}
+                  </>
+                ) : (
+                  actionT.confirm
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

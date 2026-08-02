@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { handleSEOEvent } from '@/lib/seo-automation'
 
 /**
@@ -14,10 +16,17 @@ export async function GET(
   try {
     const { id } = await params
     
-    // Get task with applications
+    // Get task with applications and postedBy relation
     const task = await prisma.marketplaceTask.findUnique({
       where: { id },
       include: {
+        postedBy: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+          },
+        },
         taskApplications: {
           orderBy: { createdAt: 'desc' },
           take: 10, // Limit to recent 10 applications
@@ -51,7 +60,8 @@ export async function GET(
       minOrderQty: task.minOrderQty,
       deadline: task.deadline?.toISOString(),
       status: task.status,
-      postedBy: task.postedBy,
+      postedBy: task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+      postedById: task.postedById,
       contactInfo: task.contactInfo,
       applications: task.applications,
       views: task.views + 1, // Include the increment
@@ -93,6 +103,16 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+
+    // 验证用户登录状态
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Please login first' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     
     // Check if task exists
@@ -104,6 +124,14 @@ export async function PUT(
       return NextResponse.json(
         { success: false, error: 'Task not found' },
         { status: 404 }
+      )
+    }
+
+    // 验证任务所有权：只有发布者本人或管理员可以编辑
+    if (existingTask.postedById !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - You can only edit your own tasks' },
+        { status: 403 }
       )
     }
     
@@ -174,6 +202,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    // 验证用户登录状态
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Please login first' },
+        { status: 401 }
+      )
+    }
     
     // Check if task exists
     const existingTask = await prisma.marketplaceTask.findUnique({
@@ -184,6 +221,14 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, error: 'Task not found' },
         { status: 404 }
+      )
+    }
+
+    // 验证任务所有权：只有发布者本人或管理员可以删除
+    if (existingTask.postedById !== session.user.id && session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden - You can only delete your own tasks' },
+        { status: 403 }
       )
     }
     

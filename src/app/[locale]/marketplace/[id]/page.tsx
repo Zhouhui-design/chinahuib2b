@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { Calendar, DollarSign, Eye, MessageCircle, Tag, User, FileText, MapPin, AlertCircle } from 'lucide-react'
 import { dictionaries } from '@/locales/dictionary'
 import { existsSync } from 'fs'
 import path from 'path'
+import TaskActions from './TaskActions'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }) {
   const dict = dictionaries[params.locale] || dictionaries.en
@@ -57,13 +60,29 @@ export async function generateMetadata({ params }: { params: { id: string; local
 
 export default async function TaskDetailPage({ params }: { params: { id: string; locale: string } }) {
   const dict = dictionaries[params.locale] || dictionaries.en
-  
+
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.id },
   })
-  
+
   if (!task) {
     notFound()
+  }
+
+  // 服务端会话验证：判断当前用户是否为任务发布者
+  const session = await getServerSession(authOptions)
+  const isOwner = !!session?.user?.id && session.user.id === task.postedById
+
+  // 多语言标签 - TaskActions 组件使用
+  const actionLabels = {
+    edit: params.locale === 'zh' ? '编辑' : params.locale === 'de' ? 'Bearbeiten' : params.locale === 'ar' ? 'تعديل' : 'Edit',
+    delete: params.locale === 'zh' ? '删除' : params.locale === 'de' ? 'Löschen' : params.locale === 'ar' ? 'حذف' : 'Delete',
+    confirmDelete: params.locale === 'zh' ? '确认删除' : params.locale === 'de' ? 'Löschen bestätigen' : params.locale === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
+    confirmDeleteDesc: params.locale === 'zh' ? '确定要删除这条信息吗？此操作无法撤销。' : params.locale === 'de' ? 'Möchten Sie diese Information wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.' : params.locale === 'ar' ? 'هل أنت متأكد من حذف هذه المعلومات؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete this task? This action cannot be undone.',
+    cancel: params.locale === 'zh' ? '取消' : params.locale === 'de' ? 'Abbrechen' : params.locale === 'ar' ? 'إلغاء' : 'Cancel',
+    confirm: params.locale === 'zh' ? '确认删除' : params.locale === 'de' ? 'Bestätigen' : params.locale === 'ar' ? 'تأكيد' : 'Confirm',
+    deleting: params.locale === 'zh' ? '删除中...' : params.locale === 'de' ? 'Wird gelöscht...' : params.locale === 'ar' ? 'جاري الحذف...' : 'Deleting...',
+    deleteFailed: params.locale === 'zh' ? '删除失败' : params.locale === 'de' ? 'Löschen fehlgeschlagen' : params.locale === 'ar' ? 'فشل الحذف' : 'Delete failed',
   }
   
   const formatCurrency = (value: number | null, currency: string) => {
@@ -113,6 +132,14 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
               {getStatusLabel(task.status)}
             </span>
+            {isOwner && (
+              <TaskActions
+                taskId={task.id}
+                locale={params.locale}
+                isOwner={isOwner}
+                labels={actionLabels}
+              />
+            )}
           </div>
         </div>
       </div>
