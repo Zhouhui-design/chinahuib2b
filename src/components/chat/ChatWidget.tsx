@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 
 interface ChatWidgetProps {
   sellerId: string
+  sellerUserId?: string
   productId?: string
 }
 
@@ -19,7 +20,7 @@ interface Message {
 
 const POLL_INTERVAL = 3000
 
-export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
+export default function ChatWidget({ sellerId, sellerUserId, productId }: ChatWidgetProps) {
   const { data: session, status: sessionStatus } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -37,12 +38,10 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
   // database session). Fetch /api/auth/session to get the canonical ID.
   useEffect(() => {
     if (sessionStatus !== 'authenticated') return
-    // Prefer id from session if present
     if (session?.user?.id) {
       setResolvedUserId(session.user.id as string)
       return
     }
-    // Fallback: fetch canonical session from server
     fetch('/api/auth/session', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
@@ -52,6 +51,9 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
       })
       .catch(() => {})
   }, [session, sessionStatus])
+
+  // Detect self-chat: current user is the seller
+  const isSelfChat = !!(sellerUserId && resolvedUserId && sellerUserId === resolvedUserId)
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -176,6 +178,58 @@ export default function ChatWidget({ sellerId, productId }: ChatWidgetProps) {
       >
         <MessageCircle className="w-6 h-6" />
       </button>
+    )
+  }
+
+  // Self-chat mode: seller viewing own store
+  if (isSelfChat) {
+    return (
+      <>
+        {!isOpen && (
+          <button
+            onClick={() => setIsOpen(true)}
+            className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
+            title="Seller view"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </button>
+        )}
+        {isOpen && (
+          <div className={`fixed right-6 bg-white rounded-lg shadow-2xl z-50 transition-all ${
+            isMinimized ? 'bottom-6 w-80 h-16' : 'bottom-6 w-96 h-[500px]'
+          }`}>
+            <div className="bg-green-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-white"></div>
+                <span className="font-semibold">Seller Preview Mode</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button onClick={() => setIsMinimized(!isMinimized)} className="hover:bg-green-700 p-1 rounded">
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+                <button onClick={() => setIsOpen(false)} className="hover:bg-green-700 p-1 rounded">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            {!isMinimized && (
+              <div className="p-6 text-center">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 text-green-500 opacity-60" />
+                <p className="font-medium text-gray-900 mb-2">This is your own store</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Buyers will chat with you here. As the seller, you cannot send messages to yourself.
+                </p>
+                <a
+                  href="/zh/seller/messages"
+                  className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Go to Messages Dashboard
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+      </>
     )
   }
 

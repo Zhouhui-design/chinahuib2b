@@ -36,6 +36,14 @@ export async function GET(
       }
     }
 
+    // Prevent fetching messages with self
+    if (currentUserId === otherUserId) {
+      return NextResponse.json({
+        success: true,
+        data: { messages: [], pagination: { limit, offset, hasMore: false } },
+      })
+    }
+
     const messages = await db.privateMessage.findMany({
       where: {
         OR: [
@@ -147,6 +155,14 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: 'Receiver not found' },
         { status: 404 }
+      )
+    }
+
+    // Prevent self-messaging
+    if (userId === receiverId) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot send message to yourself' },
+        { status: 400 }
       )
     }
 

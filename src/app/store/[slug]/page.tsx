@@ -846,8 +846,8 @@ export default async function StorePage({ params }: Props) {
         </div>
       </div>
 
-      {/* Chat Widget */}
-      <ChatWidget sellerId={seller.id} />
+      {/* Chat Widget - pass seller's userId to detect self-chat */}
+      <ChatWidget sellerId={seller.id} sellerUserId={seller.userId} />
     </div>
   )
 }
