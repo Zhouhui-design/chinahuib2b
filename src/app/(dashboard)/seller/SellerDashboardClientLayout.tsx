@@ -33,7 +33,7 @@ export default function SellerDashboardClientLayout({
         const res = await fetch('/api/chat/unread-count', { credentials: 'include' })
         if (res.ok) {
           const data = await res.json()
-          if (data?.success?.data) {
+          if (data?.success && data?.data) {
             setUnreadCount(data.data.unreadCount || 0)
           }
         }

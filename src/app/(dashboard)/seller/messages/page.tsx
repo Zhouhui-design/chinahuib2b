@@ -55,7 +55,7 @@ export default function SellerMessagesPage() {
       const res = await fetch('/api/chat/conversations', { credentials: 'include' })
       if (!res.ok) return
       const data = await res.json()
-      if (data?.success?.data?.conversations) {
+      if (data?.success && data?.data?.conversations) {
         setConversations(data.data.conversations)
       }
     } catch (e) {
@@ -74,7 +74,7 @@ export default function SellerMessagesPage() {
       })
       if (!res.ok) return
       const data = await res.json()
-      if (!data?.success?.data?.messages) return
+      if (!data?.success || !data?.data?.messages) return
 
       const msgs: Message[] = data.data.messages.map((m: any) => ({
         id: m.id,
