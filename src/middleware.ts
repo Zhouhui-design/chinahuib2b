@@ -38,14 +38,17 @@ export function middleware(request: any) {
   }
   
   // Skip middleware for dashboard routes (seller, admin)
-  // These routes don't need language prefix and handle their own i18n
-  // Also skip /store/* (slug-based store pages handle their own locale detection)
-  if (
-    pathname.startsWith('/seller') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/store') ||
-    pathname.startsWith('/auction/')
-  ) {
+  // These routes don't need language prefix and handle their own i18n.
+  // Use trailing-slash-aware checks so slugs like /seller-abc or /store-x
+  // are NOT swallowed by this guard (they must reach slug detection below).
+  const isDashboardRoute =
+    pathname === '/seller' || pathname.startsWith('/seller/') ||
+    pathname === '/admin' || pathname.startsWith('/admin/')
+  const isStoreRoute =
+    pathname === '/store' || pathname.startsWith('/store/')
+  const isAuctionRoute = pathname.startsWith('/auction/')
+
+  if (isDashboardRoute || isStoreRoute || isAuctionRoute) {
     const response = NextResponse.next()
     return addSecurityHeaders(response)
   }

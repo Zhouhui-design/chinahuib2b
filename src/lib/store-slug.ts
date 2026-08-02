@@ -117,15 +117,17 @@ export function deriveSlugFromUsername(username: string): string {
 }
 
 /**
- * Generate a random slug: `store-<8 alphanumeric chars>`
+ * Generate a random slug: 8 lowercase alphanumeric chars (no prefix).
+ * Previously used 'store-' prefix which caused issues when slugs like
+ * 'store-abc' were mistaken for /store/* dashboard routes.
  */
 export function generateRandomSlug(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let suffix = ''
+  let slug = ''
   for (let i = 0; i < 8; i++) {
-    suffix += chars[Math.floor(Math.random() * chars.length)]
+    slug += chars[Math.floor(Math.random() * chars.length)]
   }
-  return `store-${suffix}`
+  return slug
 }
 
 /**
