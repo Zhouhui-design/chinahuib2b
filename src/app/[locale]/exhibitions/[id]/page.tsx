@@ -13,6 +13,7 @@ import {
 import { SocialShare } from '@/components/seo/SocialShare'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
+import ChatWidget from '@/components/chat/ChatWidget'
 
 interface Product {
   id: string
@@ -175,6 +176,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [boothId, setBoothId] = useState<string>('')
   const [copied, setCopied] = useState(false)
+  const [chatOpenSignal, setChatOpenSignal] = useState(0)
 
   useEffect(() => {
     params.then(({ id }) => setBoothId(id))
@@ -365,37 +367,8 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
       router.push(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
       return
     }
-    openFullChat()
-  }
-
-  // 打开 chat-system 与展商进行实时沟通
-  const openFullChat = async () => {
-    if (!booth) return
-
-    // 未登录:直接打开 chat-system(用户可在那边登录或注册)
-    if (!session) {
-      const url = `${CHAT_API_BASE}/?tenant=${CHAT_TENANT}&target=${booth.seller.id}&targetName=${encodeURIComponent(booth.seller.companyName)}&booth=${booth.id}`
-      window.open(url, '_blank', 'noopener,noreferrer')
-      return
-    }
-
-    // 已登录:通过 API 获取带 token 的聊天 URL
-    try {
-      const res = await fetch(`/api/booths/${booth.id}/chat-token`)
-      if (res.ok) {
-        const data = await res.json()
-        if (data.chatUrl) {
-          window.open(data.chatUrl, '_blank', 'noopener,noreferrer')
-          return
-        }
-      }
-    } catch (err) {
-      console.error('Failed to get chat token:', err)
-    }
-
-    // Fallback: 打开不带 token 的 URL
-    const url = `${CHAT_API_BASE}/?tenant=${CHAT_TENANT}&target=${booth.seller.id}&targetName=${encodeURIComponent(booth.seller.companyName)}&booth=${booth.id}`
-    window.open(url, '_blank', 'noopener,noreferrer')
+    // Open the in-page ChatWidget (same as the chat bubble on store pages)
+    setChatOpenSignal(s => s + 1)
   }
 
   if (loading) {
@@ -549,13 +522,6 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   {locale === 'zh' ? `资料下载 (${booth.documents.length})` : `Downloads (${booth.documents.length})`}
                 </a>
               )}
-              <button
-                onClick={openFullChat}
-                className="inline-flex items-center justify-center px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Open Full Chat
-              </button>
             </div>
           </div>
         </div>
@@ -1438,6 +1404,13 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
           isLoggedIn={!!session}
         />
       )}
+
+      {/* In-page Chat Widget - same as store page chat bubble */}
+      <ChatWidget
+        sellerId={booth.seller.id}
+        sellerUserId={booth.seller.userId}
+        openSignal={chatOpenSignal}
+      />
     </div>
   )
 }

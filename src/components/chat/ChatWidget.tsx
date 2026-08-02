@@ -8,6 +8,9 @@ interface ChatWidgetProps {
   sellerId: string
   sellerUserId?: string
   productId?: string
+  // When this number changes (increments), the widget opens automatically.
+  // Allows external buttons (e.g. "Chat with Exhibitor") to trigger the widget.
+  openSignal?: number
 }
 
 interface Message {
@@ -20,7 +23,7 @@ interface Message {
 
 const POLL_INTERVAL = 3000
 
-export default function ChatWidget({ sellerId, sellerUserId, productId }: ChatWidgetProps) {
+export default function ChatWidget({ sellerId, sellerUserId, productId, openSignal }: ChatWidgetProps) {
   const { data: session, status: sessionStatus } = useSession()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -54,6 +57,16 @@ export default function ChatWidget({ sellerId, sellerUserId, productId }: ChatWi
 
   // Detect self-chat: current user is the seller
   const isSelfChat = !!(sellerUserId && resolvedUserId && sellerUserId === resolvedUserId)
+
+  // External trigger: open the widget when openSignal changes
+  const prevSignalRef = useRef<number | undefined>(openSignal)
+  useEffect(() => {
+    if (openSignal !== undefined && openSignal !== prevSignalRef.current) {
+      prevSignalRef.current = openSignal
+      setIsOpen(true)
+      setIsMinimized(false)
+    }
+  }, [openSignal])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
