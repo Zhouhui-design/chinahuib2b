@@ -1,14 +1,26 @@
 /**
  * Edit Task Page
- * 允许任务发布者编辑自己的任务
+ * 允许任务发布者编辑自己的任务，包含文件上传功能
+ *
+ * 上传限制由 src/lib/upload-limits.ts 集中管理，方便以后调整。
  */
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, Save, AlertCircle } from 'lucide-react'
+import { Loader2, Save, AlertCircle, X, Upload, Image as ImageIcon, FileText, FileVideo, FileArchive, Film } from 'lucide-react'
+import {
+  ATTACHMENT_LIMITS,
+  MAX_TOTAL_ATTACHMENTS,
+  validateFile,
+  formatFileSize,
+  getCountDescription,
+  getExtension,
+  type AttachmentTypeKey,
+  type AttachmentTypeLimit,
+} from '@/lib/upload-limits'
 
 interface FormDataType {
   title: string
@@ -23,11 +35,22 @@ interface FormDataType {
   contactInfo: string
 }
 
+interface Attachment {
+  id: string
+  url: string
+  fileName: string
+  type: 'image' | 'video' | 'file' | 'drawing' | 'compressed'
+  size?: number
+  isNew?: boolean // 标记是新上传的（vs 已有的）
+}
+
+type AttachmentCategory = 'image' | 'video' | 'file' | 'compressed'
+
 export default function EditTaskPage() {
   const router = useRouter()
   const params = useParams()
-  const locale = (params.locale as string) || 'en'
-  const taskId = params.id as string
+  const locale = (params['locale'] as string) || 'en'
+  const taskId = params['id'] as string
 
   const [formData, setFormData] = useState<FormDataType>({
     title: '',
@@ -46,6 +69,22 @@ export default function EditTaskPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [authError, setAuthError] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [removedUrls, setRemovedUrls] = useState<string[]>([]) // 标记需要从任务中移除的旧附件 URL
+
+  // 各类型上传状态
+  const [uploadingState, setUploadingState] = useState<Record<AttachmentCategory, boolean>>({
+    image: false,
+    video: false,
+    file: false,
+    compressed: false,
+  })
+
+  // 文件输入引用
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const compressedInputRef = useRef<HTMLInputElement>(null)
 
   // 多语言标签
   const t = {
@@ -73,6 +112,36 @@ export default function EditTaskPage() {
     loadingTask: locale === 'zh' ? '加载中...' : locale === 'de' ? 'Wird geladen...' : locale === 'ar' ? 'جاري التحميل...' : 'Loading...',
     notOwner: locale === 'zh' ? '您无权编辑此信息，只能编辑自己发布的信息' : locale === 'de' ? 'Sie sind nicht berechtigt, diese Information zu bearbeiten. Sie können nur Ihre eigenen Informationen bearbeiten.' : locale === 'ar' ? 'ليس لديك صلاحية تعديل هذه المعلومات. يمكنك فقط تعديل معلوماتك الخاصة' : 'You are not authorized to edit this task. You can only edit your own tasks.',
     notLoggedIn: locale === 'zh' ? '请先登录' : locale === 'de' ? 'Bitte zuerst anmelden' : locale === 'ar' ? 'يرجى تسجيل الدخول أولاً' : 'Please login first',
+    // 附件上传标签
+    attachments: locale === 'zh' ? '附件' : locale === 'de' ? 'Anhänge' : locale === 'ar' ? 'المرفقات' : 'Attachments',
+    uploadImages: locale === 'zh' ? '上传图片' : locale === 'de' ? 'Bilder hochladen' : locale === 'ar' ? 'رفع الصور' : 'Upload Images',
+    uploadVideos: locale === 'zh' ? '上传视频' : locale === 'de' ? 'Videos hochladen' : locale === 'ar' ? 'رفع الفيديوهات' : 'Upload Videos',
+    uploadFiles: locale === 'zh' ? '上传文档' : locale === 'de' ? 'Dokumente hochladen' : locale === 'ar' ? 'رفع المستندات' : 'Upload Documents',
+    uploadCompressed: locale === 'zh' ? '上传压缩包' : locale === 'de' ? 'Archiv hochladen' : locale === 'ar' ? 'رفع الملفات المضغوطة' : 'Upload Archives',
+    maxTotal: locale === 'zh' ? `最多 ${MAX_TOTAL_ATTACHMENTS} 个附件` : locale === 'de' ? `Max. ${MAX_TOTAL_ATTACHMENTS} Anhänge` : locale === 'ar' ? `بحد أقصى ${MAX_TOTAL_ATTACHMENTS} مرفقات` : `Max ${MAX_TOTAL_ATTACHMENTS} attachments total`,
+    uploadFailed: locale === 'zh' ? '上传失败' : locale === 'de' ? 'Upload fehlgeschlagen' : locale === 'ar' ? 'فشل الرفع' : 'Upload failed',
+    removeSuccess: locale === 'zh' ? '已移除' : locale === 'de' ? 'Entfernt' : locale === 'ar' ? 'تمت الإزالة' : 'Removed',
+    totalAttachments: locale === 'zh' ? '当前附件' : locale === 'de' ? 'Aktuelle Anhänge' : locale === 'ar' ? 'المرفقات الحالية' : 'Current Attachments',
+    clickToUpload: locale === 'zh' ? '点击上传' : locale === 'de' ? 'Klicken zum Hochladen' : locale === 'ar' ? 'انقر للرفع' : 'Click to upload',
+    remaining: locale === 'zh' ? '剩余' : locale === 'de' ? 'Verbleibend' : locale === 'ar' ? 'متبقٍ' : 'remaining',
+  }
+
+  // 根据文件 URL 推断附件类型（用于加载已有附件）
+  const inferTypeFromUrl = (url: string): Attachment['type'] => {
+    const ext = getExtension(url)
+    if (['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext)) return 'image'
+    if (['.mp4', '.mov', '.webm', '.avi'].includes(ext)) return 'video'
+    if (['.zip', '.rar', '.7z'].includes(ext)) return 'compressed'
+    if (['.dwg', '.dxf'].includes(ext)) return 'drawing'
+    return 'file'
+  }
+
+  // 附件类型到分类的映射（用于计数）
+  const typeToCategory = (type: Attachment['type']): AttachmentCategory | null => {
+    if (type === 'image' || type === 'video' || type === 'file' || type === 'compressed') {
+      return type
+    }
+    return null // drawing 不在可上传分类中
   }
 
   // 加载任务数据
@@ -97,9 +166,26 @@ export default function EditTaskPage() {
             currency: task.currency || 'USD',
             unit: task.unit || '',
             minOrderQty: task.minOrderQty ? String(task.minOrderQty) : '',
-            deadline: task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : '',
+            deadline: task.deadline ? new Date(task.deadline).toISOString().split('T')[0] || '' : '',
             contactInfo: task.contactInfo || '',
           })
+
+          // 加载已有附件
+          if (task.attachments && Array.isArray(task.attachments)) {
+            const existingAttachments: Attachment[] = task.attachments
+              .filter((url: unknown): url is string => typeof url === 'string' && url.length > 0)
+              .map((url: string, index: number) => {
+                const fileName = url.split('/').pop() || `file-${index}`
+                return {
+                  id: `existing-${index}-${Date.now()}`,
+                  url,
+                  fileName,
+                  type: inferTypeFromUrl(url),
+                  isNew: false,
+                }
+              })
+            setAttachments(existingAttachments)
+          }
         }
       } catch (err) {
         console.error('Error fetching task:', err)
@@ -117,6 +203,126 @@ export default function EditTaskPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
+  /**
+   * 获取指定类型的当前附件数量
+   */
+  const getCountByType = (type: Attachment['type']): number => {
+    return attachments.filter(a => a.type === type).length
+  }
+
+  /**
+   * 处理文件上传
+   * 应用前端限制验证：文件大小、类型、数量配额
+   */
+  const handleFileUpload = async (
+    files: FileList | null,
+    attachmentType: AttachmentCategory
+  ) => {
+    if (!files || files.length === 0) return
+
+    const limit = ATTACHMENT_LIMITS[attachmentType]
+    if (!limit) return
+    const typeKey = attachmentType
+
+    setUploadingState(prev => ({ ...prev, [typeKey]: true }))
+
+    try {
+      const fileList = Array.from(files)
+      const currentCount = getCountByType(attachmentType)
+      const totalCurrent = attachments.length
+      const errors: string[] = []
+
+      // 检查总数限制
+      if (totalCurrent + fileList.length > MAX_TOTAL_ATTACHMENTS) {
+        const allowed = MAX_TOTAL_ATTACHMENTS - totalCurrent
+        if (allowed <= 0) {
+          alert(`${t.maxTotal}\n${t.totalAttachments}: ${totalCurrent}/${MAX_TOTAL_ATTACHMENTS}`)
+          return
+        }
+        alert(`${t.maxTotal}\n${t.remaining}: ${allowed}`)
+        // 截取允许的数量
+        fileList.splice(allowed)
+      }
+
+      // 检查单类型数量限制
+      const remainingForType = limit.maxCount - currentCount
+      if (remainingForType <= 0) {
+        alert(`${attachmentType}: ${getCountDescription(attachmentType, currentCount)}\n${t.remaining}: 0`)
+        return
+      }
+      if (fileList.length > remainingForType) {
+        alert(`${attachmentType}: ${getCountDescription(attachmentType, currentCount)}\n${t.remaining}: ${remainingForType}`)
+        fileList.splice(remainingForType)
+      }
+
+      // 逐个验证并上传
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i]
+        if (!file) continue
+
+        // 前端验证
+        const validationError = validateFile(file, attachmentType)
+        if (validationError) {
+          errors.push(validationError)
+          continue
+        }
+
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', file)
+        uploadFormData.append('type', limit.apiType)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || t.uploadFailed)
+        }
+
+        setAttachments(prev => [...prev, {
+          id: `${Date.now()}-${i}-${Math.random()}`,
+          url: data.url,
+          fileName: file.name,
+          type: attachmentType,
+          size: file.size,
+          isNew: true,
+        }])
+      }
+
+      if (errors.length > 0) {
+        alert(errors.join('\n'))
+      }
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert(err instanceof Error ? err.message : t.uploadFailed)
+    } finally {
+      setUploadingState(prev => ({ ...prev, [typeKey]: false }))
+      // 重置 input 以便可以重复选择同一文件
+      if (typeKey === 'image' && imageInputRef.current) imageInputRef.current.value = ''
+      if (typeKey === 'video' && videoInputRef.current) videoInputRef.current.value = ''
+      if (typeKey === 'file' && fileInputRef.current) fileInputRef.current.value = ''
+      if (typeKey === 'compressed' && compressedInputRef.current) compressedInputRef.current.value = ''
+    }
+  }
+
+  /**
+   * 移除附件
+   * 新上传的直接移除，已有的标记为待删除
+   */
+  const removeAttachment = (id: string) => {
+    const attachment = attachments.find(a => a.id === id)
+    if (!attachment) return
+
+    if (!attachment.isNew) {
+      // 已有附件，标记为待删除
+      setRemovedUrls(prev => [...prev, attachment.url])
+    }
+    setAttachments(prev => prev.filter(a => a.id !== id))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -128,6 +334,9 @@ export default function EditTaskPage() {
     try {
       setSaving(true)
       setError('')
+
+      // 收集所有保留的附件 URL
+      const attachmentUrls = attachments.map(att => att.url)
 
       const response = await fetch(`/api/marketplace/tasks/${taskId}`, {
         method: 'PUT',
@@ -145,6 +354,7 @@ export default function EditTaskPage() {
           minOrderQty: formData.minOrderQty || null,
           deadline: formData.deadline || null,
           contactInfo: formData.contactInfo || null,
+          attachments: attachmentUrls,
         }),
       })
 
@@ -203,6 +413,49 @@ export default function EditTaskPage() {
       </div>
     )
   }
+
+  // 各上传区域的配置
+  const uploadAreas: Array<{
+    type: AttachmentCategory
+    label: string
+    icon: typeof ImageIcon
+    accept: string
+    inputRef: React.RefObject<HTMLInputElement | null>
+    iconColor: string
+  }> = [
+    {
+      type: 'image',
+      label: t.uploadImages,
+      icon: ImageIcon,
+      accept: ATTACHMENT_LIMITS['image'].allowedExtensions.join(','),
+      inputRef: imageInputRef,
+      iconColor: 'text-green-500',
+    },
+    {
+      type: 'video',
+      label: t.uploadVideos,
+      icon: FileVideo,
+      accept: ATTACHMENT_LIMITS['video'].allowedExtensions.join(','),
+      inputRef: videoInputRef,
+      iconColor: 'text-purple-500',
+    },
+    {
+      type: 'file',
+      label: t.uploadFiles,
+      icon: FileText,
+      accept: ATTACHMENT_LIMITS['file'].allowedExtensions.join(','),
+      inputRef: fileInputRef,
+      iconColor: 'text-blue-500',
+    },
+    {
+      type: 'compressed',
+      label: t.uploadCompressed,
+      icon: FileArchive,
+      accept: ATTACHMENT_LIMITS['compressed'].allowedExtensions.join(','),
+      inputRef: compressedInputRef,
+      iconColor: 'text-orange-500',
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -381,6 +634,134 @@ export default function EditTaskPage() {
               placeholder="email: xxx@xxx.com tel: xxxxxxxx"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* ===== 附件上传区域 ===== */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                {t.attachments}
+              </label>
+              <span className="text-xs text-gray-500">
+                {t.totalAttachments}: {attachments.length} / {MAX_TOTAL_ATTACHMENTS} · {t.maxTotal}
+              </span>
+            </div>
+
+            {/* 上传区域网格 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {uploadAreas.map((area) => {
+                const Icon = area.icon
+                const isUploading = uploadingState[area.type]
+                const currentCount = getCountByType(area.type)
+                const limit = ATTACHMENT_LIMITS[area.type]
+                const isFull = currentCount >= limit.maxCount
+                const isDisabled = isUploading || isFull || attachments.length >= MAX_TOTAL_ATTACHMENTS
+
+                return (
+                  <div
+                    key={area.type}
+                    onClick={() => !isDisabled && area.inputRef.current?.click()}
+                    className={`
+                      border-2 border-dashed rounded-lg p-4 text-center transition-all
+                      ${isDisabled
+                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                        : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50 cursor-pointer'
+                      }
+                      ${isUploading ? 'border-blue-400 bg-blue-50' : ''}
+                    `}
+                  >
+                    <input
+                      ref={area.inputRef}
+                      type="file"
+                      accept={area.accept}
+                      multiple
+                      onChange={(e) => handleFileUpload(e.target.files, area.type)}
+                      disabled={isDisabled}
+                      className="hidden"
+                    />
+                    <div className="flex flex-col items-center space-y-2">
+                      {isUploading ? (
+                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                      ) : (
+                        <Icon className={`w-8 h-8 ${area.iconColor}`} />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          {area.label}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {getCountDescription(area.type, currentCount)} · {formatFileSize(limit.maxFileSize)}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {area.accept.split(',').join(' ')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* 已上传附件列表 */}
+            {attachments.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-600 mb-2">
+                  {t.totalAttachments} ({attachments.length})
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {attachments.map((attachment) => {
+                    const Icon = attachment.type === 'image' ? ImageIcon
+                      : attachment.type === 'video' ? FileVideo
+                      : attachment.type === 'compressed' ? FileArchive
+                      : FileText
+                    const iconColor = attachment.type === 'image' ? 'text-green-500'
+                      : attachment.type === 'video' ? 'text-purple-500'
+                      : attachment.type === 'compressed' ? 'text-orange-500'
+                      : 'text-blue-500'
+
+                    return (
+                      <div
+                        key={attachment.id}
+                        className="relative bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between group"
+                      >
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          {attachment.type === 'image' ? (
+                            <img
+                              src={attachment.url}
+                              alt={attachment.fileName}
+                              className="w-10 h-10 object-cover rounded flex-shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <Icon className={`w-5 h-5 ${iconColor} flex-shrink-0`} />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs text-gray-600 truncate block max-w-[120px]">
+                              {attachment.fileName}
+                            </span>
+                            {attachment.size && (
+                              <span className="text-xs text-gray-400">
+                                {formatFileSize(attachment.size)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(attachment.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-2"
+                          title={t.removeSuccess}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 提交按钮 */}

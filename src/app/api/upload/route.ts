@@ -6,6 +6,13 @@ import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
 import { uploadToSpaces, isSpacesConfigured } from '@/lib/spaces'
+import {
+  ATTACHMENT_LIMITS,
+  UPLOAD_RATE_LIMIT,
+  GLOBAL_MAX_FILE_SIZE,
+  getExtension,
+  type AttachmentTypeLimit,
+} from '@/lib/upload-limits'
 
 // Upload directory configuration
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public/uploads')
@@ -13,6 +20,83 @@ const PUBLIC_URL_PREFIX = '/uploads'
 // Secondary local backup directory — independent from public/uploads,
 // to recover files even if public/uploads is accidentally wiped.
 const BACKUP_DIR = process.env.UPLOAD_BACKUP_DIR || path.join(process.cwd(), 'storage', 'uploads-backup')
+
+// ===== 内存频率限制（单实例有效，防止恶意刷量）=====
+// 结构: { [userId]: { count: number, resetAt: timestamp } }
+interface RateLimitEntry {
+  count: number
+  resetAt: number
+}
+const uploadRateLimitMap = new Map<string, RateLimitEntry>()
+
+/**
+ * 检查用户上传频率是否超限
+ * @returns 未超限返回 null，超限返回错误消息
+ */
+function checkUploadRateLimit(userId: string): string | null {
+  const now = Date.now()
+  const entry = uploadRateLimitMap.get(userId)
+
+  if (!entry || now > entry.resetAt) {
+    // 新窗口
+    uploadRateLimitMap.set(userId, {
+      count: 1,
+      resetAt: now + UPLOAD_RATE_LIMIT.windowMs,
+    })
+    return null
+  }
+
+  entry.count++
+  if (entry.count > UPLOAD_RATE_LIMIT.maxUploads) {
+    const remainingMs = entry.resetAt - now
+    const remainingMin = Math.ceil(remainingMs / (60 * 1000))
+    return `Upload rate limit exceeded. Please try again in ${remainingMin} minute(s). Limit: ${UPLOAD_RATE_LIMIT.maxUploads} uploads per hour.`
+  }
+
+  return null
+}
+
+/**
+ * 根据文件名和 MIME 类型推断附件分类
+ * 用于 task_attachment 类型应用更严格的验证
+ */
+function inferAttachmentCategory(
+  filename: string,
+  mimeType: string
+): keyof typeof ATTACHMENT_LIMITS | null {
+  const ext = getExtension(filename)
+
+  // 图片
+  if (ATTACHMENT_LIMITS.image.allowedExtensions.includes(ext) ||
+      ATTACHMENT_LIMITS.image.allowedMimeTypes.includes(mimeType)) {
+    return 'image'
+  }
+
+  // 视频
+  if (ATTACHMENT_LIMITS.video.allowedExtensions.includes(ext) ||
+      ATTACHMENT_LIMITS.video.allowedMimeTypes.includes(mimeType)) {
+    return 'video'
+  }
+
+  // 压缩包
+  if (ATTACHMENT_LIMITS.compressed.allowedExtensions.includes(ext) ||
+      ATTACHMENT_LIMITS.compressed.allowedMimeTypes.includes(mimeType)) {
+    return 'compressed'
+  }
+
+  // 图纸
+  if (ATTACHMENT_LIMITS.drawing.allowedExtensions.includes(ext)) {
+    return 'drawing'
+  }
+
+  // 文档
+  if (ATTACHMENT_LIMITS.file.allowedExtensions.includes(ext) ||
+      ATTACHMENT_LIMITS.file.allowedMimeTypes.includes(mimeType)) {
+    return 'file'
+  }
+
+  return null
+}
 
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
@@ -45,16 +129,55 @@ export async function POST(request: NextRequest) {
     // Allow all logged-in users to upload chat files and task attachments
     const isChatUpload = type === 'chat_image' || type === 'chat_file';
     const isTaskUpload = type === 'task_attachment';
-    
+
     if (!user || (!isChatUpload && !isTaskUpload && user.role !== 'SELLER' && user.role !== 'ADMIN')) {
       console.log('Upload rejected - user:', user?.id, 'role:', user?.role, 'type:', type)
       return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
 
-    // Validate file size based on type
+    // ===== 频率限制：防止恶意刷量上传 =====
+    const rateLimitError = checkUploadRateLimit(session.user.id)
+    if (rateLimitError) {
+      return NextResponse.json({ error: rateLimitError }, { status: 429 })
+    }
+
+    // ===== 全局单文件大小硬上限 =====
+    if (file.size > GLOBAL_MAX_FILE_SIZE) {
+      const maxMB = GLOBAL_MAX_FILE_SIZE / (1024 * 1024)
+      return NextResponse.json(
+        { error: `File too large: global maximum is ${maxMB}MB` },
+        { status: 400 }
+      )
+    }
+
+    // ===== 任务附件类型白名单验证 =====
+    // 对 task_attachment 类型应用更严格的文件类型限制
+    if (isTaskUpload) {
+      const category = inferAttachmentCategory(file.name, file.type)
+      if (!category) {
+        return NextResponse.json(
+          {
+            error: `Unsupported file type: "${file.name}". Allowed: images (jpg/png/webp), videos (mp4/mov/webm), documents (pdf/doc/docx/xls/xlsx/ppt/pptx), archives (zip/rar/7z), drawings (dwg/dxf)`
+          },
+          { status: 400 }
+        )
+      }
+
+      // 应用该类型的文件大小限制
+      const limit: AttachmentTypeLimit = ATTACHMENT_LIMITS[category]
+      if (file.size > limit.maxFileSize) {
+        const maxMB = limit.maxFileSize / (1024 * 1024)
+        return NextResponse.json(
+          { error: `File "${file.name}" exceeds ${maxMB}MB limit for ${category} files` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate file size based on type (原有逻辑保留，适用于其他上传类型)
     const fileSize = file.size
     let maxFileSize = 20 * 1024 * 1024 // 20MB default
-    
+
     if (type === 'product_video') {
       maxFileSize = 100 * 1024 * 1024 // 100MB for videos
     } else if (type === 'product_document') {
@@ -62,7 +185,7 @@ export async function POST(request: NextRequest) {
     } else if (type === 'boothDocument') {
       maxFileSize = 100 * 1024 * 1024 // 100MB for booth documents
     }
-    
+
     if (fileSize > maxFileSize) {
       const maxSizeMB = maxFileSize / (1024 * 1024)
       return NextResponse.json({ error: `File too large (max ${maxSizeMB}MB)` }, { status: 400 })
