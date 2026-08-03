@@ -49,6 +49,22 @@ export interface TranslationResult {
 }
 
 /**
+ * Clean translated text by stripping HTML tags (e.g. <g id="1"> from Google Translate)
+ * and decoding common HTML entities
+ */
+function cleanTranslation(text: string): string {
+  return text
+    .replace(/<[^>]*>/g, '')        // Strip HTML tags
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
+/**
  * Translate text from source language to target language
  */
 export async function translateText(
@@ -107,8 +123,8 @@ async function translateWithMyMemory(
   });
 
   // Add email for higher quota if available
-  if (process.env.MYMEMORY_EMAIL) {
-    params.append('de', process.env.MYMEMORY_EMAIL);
+  if (process.env['MYMEMORY_EMAIL']) {
+    params.append('de', process.env['MYMEMORY_EMAIL']);
   }
 
   try {
@@ -126,7 +142,7 @@ async function translateWithMyMemory(
     const data = await response.json();
 
     if (data?.responseData?.translatedText) {
-      const translatedText = data.responseData.translatedText;
+      const translatedText = cleanTranslation(data.responseData.translatedText);
       // Check for error indicators
       if (translatedText.includes('MYMEMORY WARNING') || translatedText.includes('INVALID')) {
         return { success: false, error: 'MyMemory translation warning' };
@@ -174,9 +190,11 @@ async function translateWithGoogle(
     const data = await response.json();
 
     if (data && data[0]) {
-      const translatedText = data[0]
-        .map((item: [string, string]) => item[0])
-        .join('');
+      const translatedText = cleanTranslation(
+        data[0]
+          .map((item: [string, string]) => item[0])
+          .join('')
+      );
       return { success: true, translatedText };
     }
 

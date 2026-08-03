@@ -53,11 +53,14 @@ export async function POST(request: Request) {
 
     for (const category of categories) {
       const existing = category.translations as Record<string, string> | null
-      const isStale = !category.translatedAt || 
+      const isStale = !category.translatedAt ||
         (Date.now() - category.translatedAt.getTime()) / (1000 * 60 * 60) >= STALE_HOURS
       const missingLangs = SUPPORTED_LANGUAGES.filter(l => !existing?.[l])
-      
-      if (!force && !isStale && missingLangs.length === 0) {
+
+      // Check if any existing translations contain HTML tags (e.g. <g id="1"> from Google Translate)
+      const hasHtmlTags = existing ? Object.values(existing).some(v => typeof v === 'string' && v.includes('<')) : false
+
+      if (!force && !isStale && missingLangs.length === 0 && !hasHtmlTags) {
         skipped++
         continue
       }
@@ -78,19 +81,41 @@ export async function POST(request: Request) {
 
         const translations: Record<string, string> = { ...existing }
         translations[sourceLang] = sourceText
-        
+
         // Keep existing name/nameEn mapping
-        if (category.name) translations.zh = category.name
-        if (category.nameEn) translations.en = category.nameEn
+        if (category.name) translations['zh'] = category.name
+        if (category.nameEn) translations['en'] = category.nameEn
+
+        // Clean HTML tags from existing translations (e.g. <g id="1"> from Google Translate)
+        let cleanedHtml = false
+        for (const lang of SUPPORTED_LANGUAGES) {
+          if (translations[lang] && typeof translations[lang] === 'string' && translations[lang].includes('<')) {
+            translations[lang] = translations[lang].replace(/<[^>]*>/g, '').trim()
+            cleanedHtml = true
+          }
+        }
 
         const langsToTranslate = SUPPORTED_LANGUAGES.filter(l => {
           if (l === sourceLang) return false
           if (force) return true
           // Retry if translation is missing or is an English fallback for non-English languages
           if (!translations[l]) return true
-          if (l !== 'en' && l !== 'zh' && translations[l] === translations.en) return true
+          if (l !== 'en' && l !== 'zh' && translations[l] === translations['en']) return true
           return false
         })
+
+        // Skip API calls if only HTML cleanup was needed and no missing translations
+        if (langsToTranslate.length === 0 && cleanedHtml) {
+          await prisma.category.update({
+            where: { id: category.id },
+            data: {
+              translations: translations,
+              translatedAt: new Date(),
+            },
+          })
+          updated++
+          continue
+        }
 
         for (const targetLang of langsToTranslate) {
           try {
@@ -100,14 +125,14 @@ export async function POST(request: Request) {
               translations[targetLang] = result.translatedText
             } else {
               // Don't overwrite with fallback - leave existing value for retry next time
-              if (!translations[targetLang] || (targetLang !== 'en' && translations[targetLang] === translations.en)) {
-                translations[targetLang] = translations.en || translations.zh || sourceText
+              if (!translations[targetLang] || (targetLang !== 'en' && translations[targetLang] === translations['en'])) {
+                translations[targetLang] = translations['en'] || translations['zh'] || sourceText
               }
             }
           } catch {
             // Don't overwrite with fallback - leave existing value for retry next time
             if (!translations[targetLang]) {
-              translations[targetLang] = translations.en || translations.zh || sourceText
+              translations[targetLang] = translations['en'] || translations['zh'] || sourceText
             }
           }
           // Small delay to avoid rate limits
