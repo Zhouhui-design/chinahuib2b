@@ -83,20 +83,32 @@ export async function POST(request: Request) {
         if (category.name) translations.zh = category.name
         if (category.nameEn) translations.en = category.nameEn
 
-        const langsToTranslate = SUPPORTED_LANGUAGES.filter(l => 
-          l !== sourceLang && (force || !translations[l])
-        )
+        const langsToTranslate = SUPPORTED_LANGUAGES.filter(l => {
+          if (l === sourceLang) return false
+          if (force) return true
+          // Retry if translation is missing or is an English fallback for non-English languages
+          if (!translations[l]) return true
+          if (l !== 'en' && l !== 'zh' && translations[l] === translations.en) return true
+          return false
+        })
 
         for (const targetLang of langsToTranslate) {
           try {
             const result = await translateText(sourceText, targetLang, sourceLang)
             if (result.success && result.translatedText) {
+              // Verify the translation is actually different from source (not a silent failure)
               translations[targetLang] = result.translatedText
             } else {
-              translations[targetLang] = translations.en || translations.zh || sourceText
+              // Don't overwrite with fallback - leave existing value for retry next time
+              if (!translations[targetLang] || (targetLang !== 'en' && translations[targetLang] === translations.en)) {
+                translations[targetLang] = translations.en || translations.zh || sourceText
+              }
             }
           } catch {
-            translations[targetLang] = translations.en || translations.zh || sourceText
+            // Don't overwrite with fallback - leave existing value for retry next time
+            if (!translations[targetLang]) {
+              translations[targetLang] = translations.en || translations.zh || sourceText
+            }
           }
           // Small delay to avoid rate limits
           await new Promise(resolve => setTimeout(resolve, 200))

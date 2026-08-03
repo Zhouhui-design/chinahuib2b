@@ -69,9 +69,9 @@ async function translateCategory(
 
   // For Chinese source, keep name as zh; for English source, keep nameEn as en
   if (sourceLang === 'zh' && category.nameEn) {
-    translations.en = category.nameEn
+    translations['en'] = category.nameEn
   } else if (sourceLang === 'en' && category.name) {
-    translations.zh = category.name
+    translations['zh'] = category.name
   }
 
   // Translate to all other languages (with small delay to avoid rate limits)
@@ -92,11 +92,11 @@ async function translateCategory(
         console.log(`  ✅ ${targetLang}: ${result.translatedText}`)
       } else {
         // Fallback: use English or Chinese
-        translations[targetLang] = translations.en || translations.zh || sourceText
+        translations[targetLang] = translations['en'] || translations['zh'] || sourceText
         console.log(`  ⚠️ ${targetLang}: fallback (${result.error})`)
       }
     } catch (error) {
-      translations[targetLang] = translations.en || translations.zh || sourceText
+      translations[targetLang] = translations['en'] || translations['zh'] || sourceText
       console.log(`  ❌ ${targetLang}: error (${error instanceof Error ? error.message : 'unknown'})`)
     }
 

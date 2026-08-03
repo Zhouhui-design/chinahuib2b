@@ -1,14 +1,32 @@
 /**
  * Translation Service
- * Provides free translation using Google Translate API (free tier) or LibreTranslate
+ * Provides free translation using MyMemory API (primary), Google Translate (fallback), or LibreTranslate
  * Can be extended to support DeepL, OpenAI, etc. in the future
  */
 
+const MYMEMORY_API = 'https://api.mymemory.translated.net/get';
 const GOOGLE_TRANSLATE_FREE_API = 'https://translate.google.com/translate_a/single';
 const LIBRE_TRANSLATE_API = process.env['LIBRE_TRANSLATE_API'] || 'https://libretranslate.com/translate';
 
 // Language codes mapping
 const languageCodeMap: Record<string, string> = {
+  'en': 'en',
+  'zh': 'zh-CN',
+  'ja': 'ja',
+  'ko': 'ko',
+  'ar': 'ar',
+  'es': 'es',
+  'fr': 'fr',
+  'de': 'de',
+  'ru': 'ru',
+  'pt': 'pt',
+  'hi': 'hi',
+  'th': 'th',
+  'vi': 'vi',
+};
+
+// MyMemory language code mapping (uses ISO 639-1 with optional country code)
+const myMemoryLangMap: Record<string, string> = {
   'en': 'en',
   'zh': 'zh-CN',
   'ja': 'ja',
@@ -48,13 +66,19 @@ export async function translateText(
   }
 
   try {
-    // Try Google Translate first (free tier: 500k chars/month)
-    const result = await translateWithGoogle(text, targetLang, sourceLang);
-    if (result.success) {
-      return result;
+    // Try MyMemory first (free: 5000 chars/day without key, 50000 with email)
+    const myMemoryResult = await translateWithMyMemory(text, targetLang, sourceLang);
+    if (myMemoryResult.success && myMemoryResult.translatedText) {
+      return myMemoryResult;
     }
 
-    // Fallback to LibreTranslate
+    // Fallback to Google Translate (may be blocked in some regions)
+    const googleResult = await translateWithGoogle(text, targetLang, sourceLang);
+    if (googleResult.success) {
+      return googleResult;
+    }
+
+    // Last resort: LibreTranslate
     return await translateWithLibre(text, targetLang, sourceLang);
   } catch (error) {
     console.error('Translation error:', error);
@@ -62,6 +86,57 @@ export async function translateText(
       success: false,
       error: error instanceof Error ? error.message : 'Translation failed'
     };
+  }
+}
+
+/**
+ * Translate text using MyMemory API (free, no API key required)
+ * Free tier: 5000 chars/day, 50000 with email parameter
+ */
+async function translateWithMyMemory(
+  text: string,
+  targetLang: string,
+  sourceLang: string
+): Promise<TranslationResult> {
+  const targetCode = myMemoryLangMap[targetLang] || targetLang;
+  const sourceCode = sourceLang === 'auto' ? 'zh-CN' : (myMemoryLangMap[sourceLang] || sourceLang);
+
+  const params = new URLSearchParams({
+    q: text,
+    langpair: `${sourceCode}|${targetCode}`,
+  });
+
+  // Add email for higher quota if available
+  if (process.env.MYMEMORY_EMAIL) {
+    params.append('de', process.env.MYMEMORY_EMAIL);
+  }
+
+  try {
+    const response = await fetch(`${MYMEMORY_API}?${params}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`MyMemory API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data?.responseData?.translatedText) {
+      const translatedText = data.responseData.translatedText;
+      // Check for error indicators
+      if (translatedText.includes('MYMEMORY WARNING') || translatedText.includes('INVALID')) {
+        return { success: false, error: 'MyMemory translation warning' };
+      }
+      return { success: true, translatedText };
+    }
+
+    return { success: false, error: 'Invalid response from MyMemory' };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'MyMemory failed' };
   }
 }
 
