@@ -182,10 +182,23 @@ export default function ChatWidget({ sellerId, sellerUserId, productId, openSign
     }
   }
 
+  // 会话仍在解析中：显示加载动画而非登录按钮
+  // 防止在 useSession() 尚未完成时错误地渲染登录跳转按钮
+  if (sessionStatus === 'loading') {
+    return (
+      <div
+        className="fixed bottom-6 right-6 bg-gray-400 text-white p-4 rounded-full shadow-lg z-50 cursor-wait"
+        title="Loading..."
+      >
+        <Loader2 className="w-6 h-6 animate-spin" />
+      </div>
+    )
+  }
+
   if (sessionStatus === 'unauthenticated') {
     return (
       <button
-        onClick={() => window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`}
+        onClick={() => window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`}
         className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
         title="Login to chat"
       >

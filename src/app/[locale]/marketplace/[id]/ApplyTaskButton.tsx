@@ -6,19 +6,23 @@
  * - 已登录用户：点击后打开 ChatWidget 与发布者在线沟通
  * - 未登录访客：点击后弹出登录提示对话框，说明在线沟通需登录，
  *   同时展示联系方式（邮箱/电话）供访客直接联系作者
+ *
+ * 使用 useSession() 实时检测客户端登录状态，
+ * 避免登录跳转回来后 useSession 尚未解析完成导致的状态不一致问题。
  */
 
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MessageCircle, X, LogIn, Mail, Phone, AlertCircle } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { MessageCircle, X, LogIn, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react'
 import ChatWidget from '@/components/chat/ChatWidget'
 
 interface ApplyTaskButtonProps {
   /** 任务发布者的用户 ID（用于 ChatWidget 的 sellerId） */
   postedById: string
-  /** 当前用户是否已登录 */
+  /** 服务端判断的当前用户登录状态（作为初始值） */
   isLoggedIn: boolean
   /** 任务联系方式信息（可含邮箱、电话等） */
   contactInfo?: string | null
@@ -28,13 +32,23 @@ interface ApplyTaskButtonProps {
 
 export default function ApplyTaskButton({
   postedById,
-  isLoggedIn,
+  isLoggedIn: serverIsLoggedIn,
   contactInfo,
   locale,
 }: ApplyTaskButtonProps) {
   const router = useRouter()
+  // 客户端实时会话状态（优先级高于服务端 prop）
+  const { data: session, status: sessionStatus } = useSession()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [chatOpenSignal, setChatOpenSignal] = useState(0)
+
+  // 结合客户端和服务端的登录状态判断
+  // - 如果客户端会话已解析完成，以客户端为准
+  // - 如果客户端还在加载，使用服务端传递的初始值
+  const isClientLoggedIn = sessionStatus === 'authenticated'
+  const isClientLoading = sessionStatus === 'loading'
+  const isLoggedIn = isClientLoading ? serverIsLoggedIn : isClientLoggedIn
+  const isAuthReady = !isClientLoading
 
   // 多语言文案
   const t = {
@@ -53,6 +67,7 @@ export default function ApplyTaskButton({
     contactDirectly: locale === 'zh' ? '或直接联系作者' : locale === 'de' ? 'Oder direkt kontaktieren' : locale === 'ar' ? 'أو تواصل مباشرة' : 'Or Contact Directly',
     cancel: locale === 'zh' ? '关闭' : locale === 'de' ? 'Schließen' : locale === 'ar' ? 'إغلاق' : 'Close',
     noContactInfo: locale === 'zh' ? '作者未公开联系方式' : locale === 'de' ? 'Keine Kontaktdaten verfügbar' : locale === 'ar' ? 'لا توجد معلومات اتصال' : 'No contact info available',
+    loadingSession: locale === 'zh' ? '会话加载中...' : locale === 'de' ? 'Sitzung wird geladen...' : locale === 'ar' ? 'جاري تحميل الجلسة...' : 'Loading session...',
   }
 
   const handleClick = () => {
@@ -60,7 +75,7 @@ export default function ApplyTaskButton({
       setShowLoginPrompt(true)
       return
     }
-    // 已登录：打开 ChatWidget
+    // 已登录且会话已解析完成：打开 ChatWidget
     setChatOpenSignal(s => s + 1)
   }
 
@@ -85,15 +100,26 @@ export default function ApplyTaskButton({
     <>
       <button
         onClick={handleClick}
-        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+        disabled={!isAuthReady && isLoggedIn}
+        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <MessageCircle className="w-5 h-5" />
-        {t.applyTask}
+        {!isAuthReady && isLoggedIn ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            {t.loadingSession}
+          </>
+        ) : (
+          <>
+            <MessageCircle className="w-5 h-5" />
+            {t.applyTask}
+          </>
+        )}
       </button>
 
-      {/* 已登录用户：ChatWidget */}
-      {isLoggedIn && (
+      {/* 已登录且会话就绪后才渲染 ChatWidget */}
+      {isLoggedIn && isAuthReady && (
         <ChatWidget
+          key={`chat-${session?.user?.id || 'unknown'}`}
           sellerId={postedById}
           sellerUserId={postedById}
           openSignal={chatOpenSignal}
