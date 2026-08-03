@@ -46,6 +46,13 @@ model User {
   apiUsageLogs               APIUsageLog[]
   auctionBids                AuctionBid[]
   auctionListings            AuctionListing[]
+  orders                     Order[]            @relation("OrderBuyer")
+  sellerOrders               Order[]            @relation("OrderSeller")
+  escrowTransactionsAsBuyer  EscrowTransaction[] @relation("EscrowBuyer")
+  escrowTransactionsAsSeller EscrowTransaction[] @relation("EscrowSeller")
+  logisticsRecordsAsBuyer   LogisticsRecord[] @relation("LogisticsBuyer")
+  disputesAsBuyer            Dispute[]          @relation("DisputeBuyer")
+  disputesAsSeller           Dispute[]          @relation("DisputeSeller")
   boothViews                 BoothView[]
   brochuresDownloaded        BrochureDownload[]
   contactViews               ContactView[]
@@ -719,6 +726,8 @@ model AuctionListing {
   currency             String                @default("USD")
   minOrderQty          Int?                  @default(1)
   maxOrderQty          Int?
+  stockQuantity        Int                   @default(0)
+  soldQuantity         Int                   @default(0)
   images               String[]
   videos               String[]
   documents            String[]
@@ -767,6 +776,7 @@ model AuctionListing {
   seller               SellerProfile?        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   unit                 Unit?                 @relation(fields: [unitId], references: [id])
   verificationRequests VerificationRequest[]
+  orders               Order[]
 
   @@index([type])
   @@index([status])
@@ -775,6 +785,7 @@ model AuctionListing {
   @@index([createdAt])
   @@index([isVerified])
   @@index([verificationStatus])
+  @@index([stockQuantity])
 }
 
 model DigitalVoucher {
@@ -1452,6 +1463,82 @@ enum ReviewRating {
   FIVE
 }
 
+enum OrderStatus {
+  PENDING_PAYMENT
+  PENDING_SHIPMENT
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+  ALIPAY
+  WECHAT
+  WORLD_FIRST
+  BANK_TRANSFER
+  CRYPTO
+}
+
+enum PaymentStatus_Order {
+  UNPAID
+  PAID
+  REFUNDED
+  PARTIAL_REFUND
+  FAILED
+}
+
+enum EscrowStatus_Order {
+  PENDING
+  FUNDED
+  RELEASING
+  RELEASED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
+}
+
+enum LogisticsStatus {
+  PENDING_PICKUP
+  PICKED_UP
+  IN_TRANSIT
+  CUSTOMS_CLEARANCE
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  LOST
+}
+
+enum ShippingMethod {
+  FOB
+  CIF
+  EXW
+  CFR
+  DAP
+  DDP
+  FCA
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeType {
+  ITEM_NOT_AS_DESCRIBED
+  ITEM_NOT_RECEIVED
+  ITEM_DAMAGED
+  QUANTITY_MISMATCH
+  QUALITY_ISSUE
+  LATE_DELIVERY
+  OTHER
+}
+
 model Blog {
   id            String        @id @default(cuid())
   title         String
@@ -1557,4 +1644,146 @@ model ReviewHelpfulVote {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, reviewId], name: "ReviewHelpfulVote_userId_reviewId_key")
+}
+
+model Order {
+  id                    String               @id @default(cuid())
+  buyerId               String
+  sellerId              String
+  listingId             String
+  quantity              Int
+  unitPrice             Decimal              @db.Decimal(10, 2)
+  totalAmount           Decimal              @db.Decimal(10, 2)
+  currency              String               @default("USD")
+  status                OrderStatus          @default(PENDING_PAYMENT)
+  paymentMethod         PaymentMethod?
+  paymentStatus         PaymentStatus_Order  @default(UNPAID)
+  paymentGatewayTxId    String?
+  escrowId              String?
+  shippingMethod        ShippingMethod?
+  shippingAddress       Json?
+  portOfLoading         String?
+  portOfDestination     String?
+  incoterms             String?
+  trackingNumber        String?
+  carrierName           String?
+  estimatedDeliveryDate DateTime?
+  actualDeliveryDate    DateTime?
+  buyerNote             String?
+  sellerNote            String?
+  platformFee           Decimal?             @db.Decimal(10, 2)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  paidAt                DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  cancelledAt           DateTime?
+  completedAt           DateTime?
+  buyer                 User                 @relation("OrderBuyer", fields: [buyerId], references: [id])
+  seller                User                 @relation("OrderSeller", fields: [sellerId], references: [id])
+  listing               AuctionListing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  escrow                EscrowTransaction?
+  logisticsRecords      LogisticsRecord[]
+  dispute               Dispute?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([listingId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model EscrowTransaction {
+  id                    String              @id @default(cuid())
+  orderId               String              @unique
+  buyerId               String
+  sellerId              String
+  amount                Decimal             @db.Decimal(10, 2)
+  currency              String              @default("USD")
+  status                EscrowStatus_Order  @default(PENDING)
+  paymentMethod         PaymentMethod
+  paymentGatewayTxId    String?
+  releasedToSellerAt    DateTime?
+  refundedToBuyerAt     DateTime?
+  holdReason            String?
+  autoReleaseDays       Int                 @default(7)
+  releasedAt            DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  order                 Order               @relation(fields: [orderId], references: [id])
+  buyer                 User                @relation("EscrowBuyer", fields: [buyerId], references: [id])
+  seller                User                @relation("EscrowSeller", fields: [sellerId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@index([buyerId])
+}
+
+model LogisticsRecord {
+  id              String        @id @default(cuid())
+  orderId         String
+  buyerId         String
+  carrierName     String?
+  trackingNumber  String?
+  status          LogisticsStatus @default(PENDING_PICKUP)
+  originPort      String?
+  destinationPort String?
+  estimatedArrival DateTime?
+  actualArrival   DateTime?
+  weight          Decimal?      @db.Decimal(10, 2)
+  volume          Decimal?      @db.Decimal(10, 2)
+  shippingDate    DateTime?
+  deliveryDate    DateTime?
+  documents       Json?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  buyer           User          @relation("LogisticsBuyer", fields: [buyerId], references: [id])
+  updates         LogisticsUpdate_Order[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([carrierName])
+}
+
+model LogisticsUpdate_Order {
+  id            String        @id @default(cuid())
+  logisticsId   String
+  status        LogisticsStatus
+  location      String?
+  description   String?
+  timestamp     DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  logistics     LogisticsRecord @relation(fields: [logisticsId], references: [id], onDelete: Cascade)
+
+  @@index([logisticsId])
+  @@index([status])
+}
+
+model Dispute {
+  id            String         @id @default(cuid())
+  orderId       String         @unique
+  buyerId       String
+  sellerId      String
+  type          DisputeType
+  status        DisputeStatus  @default(OPEN)
+  reason        String
+  resolution    String?
+  resolutionAmount Decimal?   @db.Decimal(10, 2)
+  resolutionCurrency String?   @default("USD")
+  resolvedBy    String?
+  resolvedAt    DateTime?
+  buyerDocs     Json?
+  sellerDocs    Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  order         Order          @relation(fields: [orderId], references: [id])
+  buyer         User          @relation("DisputeBuyer", fields: [buyerId], references: [id])
+  seller        User          @relation("DisputeSeller", fields: [sellerId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@index([type])
 }

@@ -9,6 +9,7 @@ import type { LanguageCode } from '@/lib/languages'
 import { dictionaries } from '@/locales/dictionary'
 import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle, Upload, X, Image as ImageIcon, FileText, File, Check } from 'lucide-react'
 import { useCallback } from 'react'
+import PurchaseFlow from '@/components/PurchaseFlow'
 
 type Category = {
   id: string
@@ -71,6 +72,11 @@ type AuctionListing = {
   createdAt: string
   updatedAt: string
   digitalVoucherId: string | null
+  stockQuantity: number
+  soldQuantity: number
+  portOfLoading: string | null
+  portOfDestination: string | null
+  incoterms: string | null
 }
 
 type Bid = {
@@ -130,6 +136,8 @@ export default function AuctionScreenPage() {
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [inquiryQty, setInquiryQty] = useState('')
   const [inquiryMessage, setInquiryMessage] = useState('')
+  const [showPurchaseFlow, setShowPurchaseFlow] = useState(false)
+  const [purchaseListing, setPurchaseListing] = useState<any>(null)
   
   const sseRef = useRef<EventSource | null>(null)
 
@@ -242,6 +250,8 @@ export default function AuctionScreenPage() {
         displayName: raw.poster.displayName || raw.poster.username || 'Anonymous',
       } : { displayName: 'Anonymous', username: 'anonymous' },
       seller: raw.seller || null,
+      stockQuantity: raw.stockQuantity ?? 0,
+      soldQuantity: raw.soldQuantity ?? 0,
     }
   }
 
@@ -842,6 +852,19 @@ export default function AuctionScreenPage() {
                     )}
                   </div>
                 )}
+
+                {selectedListing.type === 'SELLING' && (
+                  <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm flex items-center gap-1">
+                        📦 Stock Available:
+                      </span>
+                      <span className={`font-bold ${(selectedListing.stockQuantity || 0) - (selectedListing.soldQuantity || 0) > 10 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {(selectedListing.stockQuantity || 0) - (selectedListing.soldQuantity || 0)} {selectedListing.unitId || 'pcs'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedListing.description && (
@@ -992,7 +1015,7 @@ export default function AuctionScreenPage() {
 
                 {session && selectedListing.type === 'SELLING' && (
                   <div className="bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-white font-bold mb-3">📝 Send Inquiry / Place Order</h4>
+                    <h4 className="text-white font-bold mb-3">📝 Send Inquiry</h4>
                     
                     <div className="mb-3">
                       <label className="text-gray-400 text-sm block mb-1">Quantity</label>
@@ -1017,12 +1040,23 @@ export default function AuctionScreenPage() {
                       />
                     </div>
 
-                    <button
-                      onClick={handleSubmitInquiry}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white rounded-lg font-bold transition text-lg"
-                    >
-                      🛒 Send Inquiry / Place Order
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleSubmitInquiry}
+                        className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white rounded-lg font-bold transition"
+                      >
+                        📝 Send Inquiry
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPurchaseListing(selectedListing)
+                          setShowPurchaseFlow(true)
+                        }}
+                        className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg font-bold transition text-lg"
+                      >
+                        🛒 Buy Now
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1035,6 +1069,18 @@ export default function AuctionScreenPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showPurchaseFlow && purchaseListing && (
+        <PurchaseFlow
+          listing={purchaseListing}
+          onClose={() => {
+            setShowPurchaseFlow(false)
+            setPurchaseListing(null)
+            setShowDetailModal(false)
+          }}
+          locale={locale}
+        />
       )}
 
       {/* Create Modal */}
