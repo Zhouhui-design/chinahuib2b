@@ -1359,6 +1359,12 @@ function CreateListingModal({
     incoterms: [] as string[],
     portOfLoading: '',
     portOfDestination: '',
+
+    // Trade Type
+    tradeType: 'DOMESTIC' as 'DOMESTIC' | 'EXPORT',
+    loadingService: '' as '' | 'SELLER_LOADING' | 'BUYER_PICKUP',
+    freightPayment: '' as '' | 'FREIGHT_COLLECT' | 'FREIGHT_PREPAID',
+    domesticShippingNote: '',
     
     // Files
     images: [] as string[],
@@ -1579,6 +1585,22 @@ function CreateListingModal({
       alert(dict.auctionScreen.hsCodeRequired)
       return false
     }
+    if (formData.tradeType === 'DOMESTIC') {
+      if (!formData.loadingService) {
+        alert(dict.auctionScreen.loadingService)
+        return false
+      }
+      if (!formData.freightPayment) {
+        alert(dict.auctionScreen.freightPayment)
+        return false
+      }
+    }
+    if (formData.tradeType === 'EXPORT') {
+      if (!formData.portOfLoading.trim()) {
+        alert(dict.auctionScreen.fobPortRequired)
+        return false
+      }
+    }
     return true
   }
 
@@ -1612,6 +1634,19 @@ function CreateListingModal({
 
     if (type === 'selling' && !formData.hsCode.trim()) {
       alert(dict.auctionScreen.hsCode)
+      return
+    }
+
+    if (formData.tradeType === 'DOMESTIC' && !formData.loadingService) {
+      alert(dict.auctionScreen.loadingService)
+      return
+    }
+    if (formData.tradeType === 'DOMESTIC' && !formData.freightPayment) {
+      alert(dict.auctionScreen.freightPayment)
+      return
+    }
+    if (formData.tradeType === 'EXPORT' && !formData.portOfLoading.trim()) {
+      alert(dict.auctionScreen.fobPortRequired)
       return
     }
 
@@ -1661,6 +1696,10 @@ function CreateListingModal({
         incoterms: formData.incoterms,
         portOfLoading: formData.portOfLoading,
         portOfDestination: formData.portOfDestination,
+        tradeType: formData.tradeType,
+        loadingService: formData.loadingService || null,
+        freightPayment: formData.freightPayment || null,
+        domesticShippingNote: formData.domesticShippingNote,
       }
 
       const res = await fetch('/api/auction', {
@@ -1728,6 +1767,10 @@ function CreateListingModal({
       incoterms: formData.incoterms,
       portOfLoading: formData.portOfLoading,
       portOfDestination: formData.portOfDestination,
+      tradeType: formData.tradeType,
+      loadingService: formData.loadingService || null,
+      freightPayment: formData.freightPayment || null,
+      domesticShippingNote: formData.domesticShippingNote,
     }
 
     onSubmitFee(listingData)
@@ -1906,6 +1949,133 @@ function CreateListingModal({
             />
           </div>
 
+          {/* Trade Type Selection */}
+          <div>
+            <label className="block text-gray-300 mb-3 font-medium">{dict.auctionScreen.tradeType} *</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({
+                  ...prev,
+                  tradeType: 'DOMESTIC',
+                  loadingService: prev.loadingService || 'SELLER_LOADING',
+                  freightPayment: prev.freightPayment || 'FREIGHT_COLLECT',
+                }))}
+                className={`p-4 rounded-lg border-2 text-left transition ${
+                  formData.tradeType === 'DOMESTIC'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🏭</span>
+                  <span className={`font-bold ${formData.tradeType === 'DOMESTIC' ? 'text-blue-400' : 'text-white'}`}>
+                    {dict.auctionScreen.tradeTypeDomestic}
+                  </span>
+                  {formData.tradeType === 'DOMESTIC' && (
+                    <span className="text-blue-400">✓</span>
+                  )}
+                </div>
+                <p className="text-gray-400 text-sm">{dict.auctionScreen.tradeTypeDomesticDesc}</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({
+                  ...prev,
+                  tradeType: 'EXPORT',
+                  isFob: 'YES',
+                  incoterms: prev.incoterms.includes('FOB') ? prev.incoterms : [...prev.incoterms, 'FOB'],
+                }))}
+                className={`p-4 rounded-lg border-2 text-left transition ${
+                  formData.tradeType === 'EXPORT'
+                    ? 'border-green-500 bg-green-500/10'
+                    : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🌍</span>
+                  <span className={`font-bold ${formData.tradeType === 'EXPORT' ? 'text-green-400' : 'text-white'}`}>
+                    {dict.auctionScreen.tradeTypeExport}
+                  </span>
+                  {formData.tradeType === 'EXPORT' && (
+                    <span className="text-green-400">✓</span>
+                  )}
+                </div>
+                <p className="text-gray-400 text-sm">{dict.auctionScreen.tradeTypeExportDesc}</p>
+              </button>
+            </div>
+
+            {/* Domestic Trade Fields */}
+            {formData.tradeType === 'DOMESTIC' && (
+              <div className="mt-4 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                <h4 className="text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🏭</span> {dict.auctionScreen.domesticTradeInfo}
+                </h4>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-gray-300 mb-2 text-sm font-medium">{dict.auctionScreen.loadingService} *</label>
+                    <select
+                      value={formData.loadingService}
+                      onChange={(e) => setFormData(prev => ({ ...prev, loadingService: e.target.value as any }))}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">--</option>
+                      <option value="SELLER_LOADING">{dict.auctionScreen.sellerLoading}</option>
+                      <option value="BUYER_PICKUP">{dict.auctionScreen.buyerSelfPickup}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-2 text-sm font-medium">{dict.auctionScreen.freightPayment} *</label>
+                    <select
+                      value={formData.freightPayment}
+                      onChange={(e) => setFormData(prev => ({ ...prev, freightPayment: e.target.value as any }))}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">--</option>
+                      <option value="FREIGHT_COLLECT">{dict.auctionScreen.freightCollect}</option>
+                      <option value="FREIGHT_PREPAID">{dict.auctionScreen.freightPrepaid}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800/50 rounded-lg p-3 text-sm text-gray-400">
+                  <p className="flex items-start gap-2">
+                    <span>📋</span>
+                    <span>
+                      {formData.loadingService === 'SELLER_LOADING' && 'Seller is responsible for loading and packaging the goods. '}
+                      {formData.loadingService === 'BUYER_PICKUP' && 'Buyer comes to pickup the goods at the seller\'s location. '}
+                      {formData.freightPayment === 'FREIGHT_COLLECT' && 'Freight is paid by the buyer upon receiving the goods (cash on delivery).'}
+                      {formData.freightPayment === 'FREIGHT_PREPAID' && 'Freight is prepaid by the seller before shipping.'}
+                      {!formData.loadingService && 'Select loading service and freight payment method.'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Export Trade Fields - FOB Port required */}
+            {formData.tradeType === 'EXPORT' && (
+              <div className="mt-4 p-4 bg-gray-700/50 rounded-lg border border-green-600/50">
+                <h4 className="text-white font-bold mb-3 flex items-center gap-2">
+                  <span>🌍</span> {dict.auctionScreen.exportTradeInfo}
+                </h4>
+
+                <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-3 mb-3">
+                  <div className="flex items-start gap-2 text-sm">
+                    <span className="text-green-400">🚢</span>
+                    <div className="text-gray-300 space-y-1">
+                      <p><strong className="text-green-400">FOB Port:</strong> {dict.auctionScreen.fobPortRequired}</p>
+                      <p><strong className="text-green-400">{dict.auctionScreen.customsClearance}:</strong> {dict.auctionScreen.sellerCustomsResponsibility}</p>
+                      <p><strong className="text-green-400">📦 {dict.auctionScreen.qualificationDocs}:</strong> {dict.auctionScreen.qualificationDocsDesc}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Pricing */}
           <div>
             <h3 className="text-lg font-bold text-white mb-3">{dict.auctionScreen.priceInfo}</h3>
@@ -1962,7 +2132,8 @@ function CreateListingModal({
               </div>
             </div>
 
-            {/* FOB & CIF Options */}
+            {/* FOB & CIF Options - only for EXPORT */}
+            {formData.tradeType === 'EXPORT' && (
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-gray-300 mb-2 font-medium">{dict.auctionScreen.fobAvailable}</label>
@@ -2041,6 +2212,7 @@ function CreateListingModal({
                 </div>
               </div>
             </div>
+            )}
 
             {/* Min Order Qty */}
             <div className="mt-4">
@@ -2056,7 +2228,7 @@ function CreateListingModal({
             </div>
 
           {/* Foreign Trade Fields */}
-          {type === 'selling' && (
+          {type === 'selling' && formData.tradeType === 'EXPORT' && (
             <div className="border-t border-gray-700 pt-4 mt-4">
               <h3 className="text-lg font-bold text-white mb-3">🌍 {dict.auctionScreen.foreignTradeInfo}</h3>
 

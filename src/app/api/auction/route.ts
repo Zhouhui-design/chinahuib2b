@@ -102,6 +102,11 @@ export async function POST(request: NextRequest) {
       incoterms: cleanArray(body.incoterms),
       portOfLoading: cleanOptionalString(body.portOfLoading),
       portOfDestination: cleanOptionalString(body.portOfDestination),
+      stockQuantity: body.stockQuantity ? Number(body.stockQuantity) : undefined,
+      tradeType: body.tradeType || 'DOMESTIC',
+      loadingService: body.loadingService || null,
+      freightPayment: body.freightPayment || null,
+      domesticShippingNote: cleanOptionalString(body.domesticShippingNote),
     };
 
     if (auctionData.type === 'SELLING' && !auctionData.hsCode) {

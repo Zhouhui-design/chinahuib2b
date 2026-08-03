@@ -770,6 +770,10 @@ model AuctionListing {
   incoterms            String?
   portOfLoading        String?
   portOfDestination    String?
+  tradeType            TradeType            @default(DOMESTIC)
+  loadingService       LoadingService?
+  freightPayment       FreightPayment?
+  domesticShippingNote String?
   bids                 AuctionBid[]
   digitalVoucher       DigitalVoucher?       @relation(fields: [digitalVoucherId], references: [id])
   poster               User                  @relation(fields: [posterId], references: [id], onDelete: Cascade)
@@ -1268,6 +1272,21 @@ enum MessageType {
 enum AuctionListingType {
   SELLING
   BUYING
+}
+
+enum TradeType {
+  DOMESTIC
+  EXPORT
+}
+
+enum LoadingService {
+  SELLER_LOADING
+  BUYER_PICKUP
+}
+
+enum FreightPayment {
+  FREIGHT_COLLECT
+  FREIGHT_PREPAID
 }
 
 enum AuctionStatus {
