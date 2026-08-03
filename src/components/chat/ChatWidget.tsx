@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MessageCircle, X, Send, Minimize2, Loader2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import type { Session } from 'next-auth'
+
+type SessionStatus = 'authenticated' | 'loading' | 'unauthenticated'
 
 interface ChatWidgetProps {
   sellerId: string
@@ -11,6 +14,13 @@ interface ChatWidgetProps {
   // When this number changes (increments), the widget opens automatically.
   // Allows external buttons (e.g. "Chat with Exhibitor") to trigger the widget.
   openSignal?: number
+  /**
+   * 外部传入的会话状态（由父组件的 useSession() 控制）。
+   * 如果提供，将使用此状态而非内部调用 useSession()，
+   * 避免父子组件各自独立调用 useSession() 导致的状态不一致。
+   */
+  externalSessionStatus?: SessionStatus
+  externalSession?: Session | null
 }
 
 interface Message {
@@ -23,8 +33,19 @@ interface Message {
 
 const POLL_INTERVAL = 3000
 
-export default function ChatWidget({ sellerId, sellerUserId, productId, openSignal }: ChatWidgetProps) {
-  const { data: session, status: sessionStatus } = useSession()
+export default function ChatWidget({
+  sellerId,
+  sellerUserId,
+  productId,
+  openSignal,
+  externalSessionStatus,
+  externalSession,
+}: ChatWidgetProps) {
+  // 如果父组件提供了会话状态，使用父组件的状态；否则使用内部 useSession()
+  const internalSession = useSession()
+  const session = externalSession !== undefined ? externalSession : internalSession.data
+  const sessionStatus: SessionStatus = externalSessionStatus ?? internalSession.status
+
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -35,6 +56,10 @@ export default function ChatWidget({ sellerId, sellerUserId, productId, openSign
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageIdRef = useRef<string | null>(null)
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Track whether an open was requested while session was loading
+  // When session becomes authenticated, apply the pending open
+  const pendingOpenRef = useRef(false)
 
   // Resolve the logged-in user ID. useSession() may return a user object
   // without an 'id' field on the client (JWT session shape differs from
@@ -58,15 +83,31 @@ export default function ChatWidget({ sellerId, sellerUserId, productId, openSign
   // Detect self-chat: current user is the seller
   const isSelfChat = !!(sellerUserId && resolvedUserId && sellerUserId === resolvedUserId)
 
-  // External trigger: open the widget when openSignal changes
+  // External trigger: open the widget when openSignal changes.
+  // If session is still loading, defer the open until session resolves.
   const prevSignalRef = useRef<number | undefined>(openSignal)
   useEffect(() => {
-    if (openSignal !== undefined && openSignal !== prevSignalRef.current) {
-      prevSignalRef.current = openSignal
+    if (openSignal === undefined || openSignal === prevSignalRef.current) return
+    prevSignalRef.current = openSignal
+
+    if (sessionStatus === 'authenticated') {
+      // Session is ready, open immediately
+      setIsOpen(true)
+      setIsMinimized(false)
+    } else {
+      // Session not ready (loading), mark as pending
+      pendingOpenRef.current = true
+    }
+  }, [openSignal, sessionStatus])
+
+  // Apply pending open when session transitions to authenticated
+  useEffect(() => {
+    if (sessionStatus === 'authenticated' && pendingOpenRef.current) {
+      pendingOpenRef.current = false
       setIsOpen(true)
       setIsMinimized(false)
     }
-  }, [openSignal])
+  }, [sessionStatus])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

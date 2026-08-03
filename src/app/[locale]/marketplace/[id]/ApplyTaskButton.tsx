@@ -116,13 +116,15 @@ export default function ApplyTaskButton({
         )}
       </button>
 
-      {/* 已登录且会话就绪后才渲染 ChatWidget */}
+      {/* 已登录且会话就绪后渲染 ChatWidget，并传递父组件的会话状态 */}
       {isLoggedIn && isAuthReady && (
         <ChatWidget
           key={`chat-${session?.user?.id || 'unknown'}`}
           sellerId={postedById}
           sellerUserId={postedById}
           openSignal={chatOpenSignal}
+          externalSessionStatus={sessionStatus}
+          externalSession={session}
         />
       )}
 
