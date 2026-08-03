@@ -32,7 +32,7 @@ const countries = [
 
 type AuctionListing = {
   id: string
-  type: 'SELLING' | 'BUYING'
+  type: 'SELLING' | 'BUYING' | 'EXPORT' | 'DOMESTIC'
   title: string
   description: string | null
   category: string | null
@@ -77,6 +77,21 @@ type AuctionListing = {
   portOfLoading: string | null
   portOfDestination: string | null
   incoterms: string | null
+  listingFee?: number | null
+  originalPrice?: number | null
+  verificationStatus?: string
+  unitId?: string | null
+  techSpecs?: string | null
+  productFeatures?: string | null
+  fobPort?: string | null
+  feeRecords?: Array<{
+    id: string
+    type: string
+    amount: number
+    currency: string
+    reason?: string | null
+    processedAt: string
+  }>
 }
 
 type Bid = {
@@ -138,6 +153,16 @@ export default function AuctionScreenPage() {
   const [inquiryMessage, setInquiryMessage] = useState('')
   const [showPurchaseFlow, setShowPurchaseFlow] = useState(false)
   const [purchaseListing, setPurchaseListing] = useState<any>(null)
+  const [sellerListings, setSellerListings] = useState<any[]>([])
+  const [showStockModal, setShowStockModal] = useState(false)
+  const [showPriceModal, setShowPriceModal] = useState(false)
+  const [showEditInfoModal, setShowEditInfoModal] = useState(false)
+  const [selectedManageListing, setSelectedManageListing] = useState<any>(null)
+  const [manageNewStock, setManageNewStock] = useState('')
+  const [manageNewPrice, setManageNewPrice] = useState('')
+  const [manageEditData, setManageEditData] = useState<any>({})
+  const [manageResult, setManageResult] = useState<any>(null)
+  const [showBetaNotice, setShowBetaNotice] = useState(true)
   
   const sseRef = useRef<EventSource | null>(null)
 
@@ -283,6 +308,12 @@ export default function AuctionScreenPage() {
   }, [activeTab, search, category])
 
   useEffect(() => {
+    if (session?.user) {
+      fetchSellerListings()
+    }
+  }, [session?.user])
+
+  useEffect(() => {
     if (selectedAuction) {
       sseRef.current = new EventSource(`/api/auction/${selectedAuction.id}/stream`)
       
@@ -327,6 +358,142 @@ export default function AuctionScreenPage() {
       console.error('Error fetching auction:', error)
       alert('Network error. Please try again.')
     }
+  }
+
+  const fetchSellerListings = async () => {
+    if (!session) return
+    try {
+      const res = await fetch('/api/auction/listings/me')
+      if (res.ok) {
+        const data = await res.json()
+        setSellerListings(data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching seller listings:', error)
+    }
+  }
+
+  const handleAdjustStock = async () => {
+    if (!selectedManageListing) return
+    const newStock = Number(manageNewStock)
+    if (isNaN(newStock)) {
+      alert('Please enter a valid number')
+      return
+    }
+    try {
+      const res = await fetch(`/api/auction/${selectedManageListing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stockQuantity: newStock }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setManageResult(data)
+        setShowStockModal(false)
+        setManageNewStock('')
+        fetchSellerListings()
+      } else {
+        alert(data.error || 'Failed to update stock')
+      }
+    } catch (error: any) {
+      alert(error.message || 'Network error')
+    }
+  }
+
+  const handleAdjustPrice = async () => {
+    if (!selectedManageListing) return
+    const newPrice = Number(manageNewPrice)
+    if (isNaN(newPrice) || newPrice < 0) {
+      alert('Please enter a valid price')
+      return
+    }
+    try {
+      const res = await fetch(`/api/auction/${selectedManageListing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price: newPrice }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setManageResult(data)
+        setShowPriceModal(false)
+        setManageNewPrice('')
+        fetchSellerListings()
+      } else {
+        alert(data.error || 'Failed to update price')
+      }
+    } catch (error: any) {
+      alert(error.message || 'Network error')
+    }
+  }
+
+  const handleDelist = async (listingId: string) => {
+    if (!confirm('Are you sure you want to delist this listing? The full listing fee will be refunded.')) return
+    try {
+      const res = await fetch(`/api/auction/${listingId}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(data.message || 'Listing delisted successfully')
+        fetchSellerListings()
+      } else {
+        alert(data.error || 'Failed to delist')
+      }
+    } catch (error: any) {
+      alert(error.message || 'Network error')
+    }
+  }
+
+  const handleSaveEditInfo = async () => {
+    if (!selectedManageListing) return
+    try {
+      const res = await fetch(`/api/auction/${selectedManageListing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(manageEditData),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setManageResult(data)
+        setShowEditInfoModal(false)
+        setManageEditData({})
+        fetchSellerListings()
+      } else {
+        alert(data.error || 'Failed to update listing')
+      }
+    } catch (error: any) {
+      alert(error.message || 'Network error')
+    }
+  }
+
+  const openStockModal = (listing: any) => {
+    setSelectedManageListing(listing)
+    setManageNewStock(String(listing.stockQuantity))
+    setManageResult(null)
+    setShowStockModal(true)
+  }
+
+  const openPriceModal = (listing: any) => {
+    setSelectedManageListing(listing)
+    setManageNewPrice(String(listing.price ?? ''))
+    setManageResult(null)
+    setShowPriceModal(true)
+  }
+
+  const openEditInfoModal = (listing: any) => {
+    setSelectedManageListing(listing)
+    setManageEditData({
+      title: listing.title,
+      description: listing.description,
+      category: listing.category,
+      contactEmail: listing.contactEmail,
+      contactPhone: listing.contactPhone,
+      techSpecs: listing.techSpecs,
+      productFeatures: listing.productFeatures,
+    })
+    setManageResult(null)
+    setShowEditInfoModal(true)
   }
 
   const handleSubmitInquiry = async () => {
@@ -450,6 +617,39 @@ export default function AuctionScreenPage() {
           </div>
         </div>
       </div>
+
+      {/* Beta Feature Warning Notice */}
+      {showBetaNotice && (
+        <div className="max-w-7xl mx-auto px-4 relative z-40">
+          <div className="bg-gradient-to-r from-amber-600/20 via-orange-600/20 to-red-600/20 border border-amber-500/50 rounded-xl p-4 mb-4 relative">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/30 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-amber-400 font-bold text-lg mb-1">
+                  {dict.auctionScreen.betaNoticeTitle}
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  {dict.auctionScreen.betaNoticeMessage}
+                </p>
+                <button
+                  onClick={() => setShowBetaNotice(false)}
+                  className="mt-3 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-gray-900 rounded-lg text-sm font-bold transition"
+                >
+                  {dict.auctionScreen.betaNoticeDismiss}
+                </button>
+              </div>
+              <button
+                onClick={() => setShowBetaNotice(false)}
+                className="flex-shrink-0 text-gray-400 hover:text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Stats Bar */}
@@ -590,6 +790,33 @@ export default function AuctionScreenPage() {
                     </p>
                   )}
 
+                  {listing.stockQuantity != null && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                        (listing.stockQuantity - (listing.soldQuantity || 0)) > 10
+                          ? 'bg-green-600/30 text-green-400'
+                          : (listing.stockQuantity - (listing.soldQuantity || 0)) > 0
+                            ? 'bg-yellow-600/30 text-yellow-400'
+                            : 'bg-red-600/30 text-red-400'
+                      }`}>
+                        📦 {dict.auctionScreen.stock || 'Stock'}: {Math.max(0, (listing.stockQuantity || 0) - (listing.soldQuantity || 0))} {listing.unitId || 'pcs'}
+                        {(listing.soldQuantity || 0) > 0 && (
+                          <span className="text-gray-400 ml-1">({dict.auctionScreen.sold || 'sold'}: {listing.soldQuantity})</span>
+                        )}
+                      </span>
+                      {listing.status === 'DELISTED' && (
+                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-gray-600/30 text-gray-400">
+                          {dict.auctionScreen.delisted || 'Delisted'}
+                        </span>
+                      )}
+                      {listing.verificationStatus === 'PENDING' && (
+                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-orange-600/30 text-orange-400">
+                          ⏳ {dict.auctionScreen.pendingReview || 'Pending Review'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   {listing.category && (
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-gray-500 text-xs">{dict.auctionScreen.category}:</span>
@@ -639,6 +866,414 @@ export default function AuctionScreenPage() {
           </div>
         )}
       </div>
+
+      {/* Seller Management Panel */}
+      {session?.user && sellerListings.length > 0 && (
+        <div className="mt-10 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <span>📋</span> {dict.auctionScreen.myListings || 'My Listings'}
+              <span className="text-sm text-gray-400 font-normal">({sellerListings.length})</span>
+            </h2>
+            <span className="text-xs text-gray-500">
+              {dict.auctionScreen.manageListingsHint || 'Manage your auction listings'}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {sellerListings.map((listing: any) => {
+              const remaining = (listing.stockQuantity || 0) - (listing.soldQuantity || 0)
+              const isDelisted = listing.status === 'DELISTED'
+              const isPending = listing.verificationStatus === 'PENDING'
+              const isSuspended = listing.status === 'SUSPENDED'
+              
+              return (
+                <div key={listing.id} className={`bg-gray-800/50 rounded-lg p-4 border ${
+                  isDelisted ? 'border-gray-600 opacity-60' :
+                  isSuspended ? 'border-red-600' :
+                  isPending ? 'border-yellow-600' : 'border-gray-700'
+                }`}>
+                  <div className="flex flex-col md:flex-row md:items-start gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-white font-bold">{listing.title}</h3>
+                        {isDelisted && <span className="px-2 py-0.5 bg-gray-600 text-white text-xs rounded">Delisted</span>}
+                        {isPending && <span className="px-2 py-0.5 bg-yellow-600 text-white text-xs rounded">Pending Review</span>}
+                        {isSuspended && <span className="px-2 py-0.5 bg-red-600 text-white text-xs rounded">Suspended</span>}
+                        {listing.verificationStatus === 'VERIFIED' && <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded">Verified</span>}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-500 text-xs">{dict.auctionScreen.price || 'Price'}:</span>
+                          <span className="text-green-400 font-bold ml-1">{listing.currency} {Number(listing.price || 0).toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 text-xs">{dict.auctionScreen.stock || 'Stock'}:</span>
+                          <span className="text-white ml-1">{remaining} / {listing.stockQuantity}</span>
+                          {(listing.soldQuantity || 0) > 0 && <span className="text-gray-500 text-xs ml-1">(sold: {listing.soldQuantity})</span>}
+                        </div>
+                        <div>
+                          <span className="text-gray-500 text-xs">{dict.auctionScreen.listingFee || 'Listing Fee'}:</span>
+                          <span className="text-blue-400 ml-1">{listing.currency} {Number(listing.listingFee || 0).toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 text-xs">{dict.auctionScreen.status || 'Status'}:</span>
+                          <span className={`ml-1 ${
+                            listing.status === 'ACTIVE' ? 'text-green-400' :
+                            listing.status === 'PENDING' ? 'text-yellow-400' :
+                            listing.status === 'EXPIRED' ? 'text-gray-400' :
+                            listing.status === 'SOLD' || listing.status === 'COMPLETED' ? 'text-blue-400' :
+                            'text-red-400'
+                          }`}>{listing.status}</span>
+                        </div>
+                      </div>
+
+                      {listing.type === 'EXPORT' && (
+                        <div className="mt-2 flex gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 bg-blue-600/30 text-blue-400 text-xs rounded">🚢 Export</span>
+                          {listing.fobPort && <span className="px-2 py-0.5 bg-gray-600 text-gray-300 text-xs rounded">FOB: {listing.fobPort}</span>}
+                        </div>
+                      )}
+                      {listing.type === 'DOMESTIC' && (
+                        <div className="mt-2">
+                          <span className="px-2 py-0.5 bg-orange-600/30 text-orange-400 text-xs rounded">🏭 Domestic</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {!isDelisted && (
+                      <div className="flex flex-col gap-2 md:w-48">
+                        <button
+                          onClick={() => openStockModal(listing)}
+                          disabled={remaining === 0}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded transition"
+                        >
+                          📦 {dict.auctionScreen.adjustStock || 'Adjust Stock'}
+                        </button>
+                        <button
+                          onClick={() => openPriceModal(listing)}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition"
+                        >
+                          💰 {dict.auctionScreen.adjustPrice || 'Adjust Price'}
+                        </button>
+                        <button
+                          onClick={() => openEditInfoModal(listing)}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition"
+                        >
+                          ✏️ {dict.auctionScreen.editInfo || 'Edit Info'}
+                        </button>
+                        <button
+                          onClick={() => handleDelist(listing.id)}
+                          className="px-3 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-sm rounded transition"
+                        >
+                          🗑️ {dict.auctionScreen.delist || 'Delist'}
+                        </button>
+                      </div>
+                    )}
+                    {isDelisted && (
+                      <div className="flex flex-col gap-2 md:w-48">
+                        <span className="text-gray-500 text-xs text-center">
+                          {listing.feeRecords?.[0]?.type === 'DELIST_FULL_REFUND' 
+                            ? `💰 Refunded: ${listing.currency} ${Number(listing.feeRecords[0].amount).toLocaleString()}` 
+                            : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Fee History */}
+                  {listing.feeRecords && listing.feeRecords.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-700">
+                      <p className="text-xs text-gray-500 mb-2">{dict.auctionScreen.feeHistory || 'Fee History'}:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {listing.feeRecords.map((record: any) => (
+                          <span key={record.id} className={`px-2 py-0.5 text-xs rounded ${
+                            record.type === 'INITIAL' ? 'bg-blue-600/30 text-blue-400' :
+                            record.type === 'PRICE_INCREASE' ? 'bg-yellow-600/30 text-yellow-400' :
+                            record.type === 'PRICE_DECREASE_REFUND' ? 'bg-green-600/30 text-green-400' :
+                            record.type === 'DELIST_FULL_REFUND' ? 'bg-red-600/30 text-red-400' :
+                            'bg-gray-600/30 text-gray-400'
+                          }`}>
+                            {record.type.replace(/_/g, ' ')}: {record.currency} {Number(record.amount).toLocaleString()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Adjust Stock Modal */}
+      {showStockModal && selectedManageListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">📦 {dict.auctionScreen.adjustStock || 'Adjust Stock'}</h2>
+              <button onClick={() => setShowStockModal(false)} className="text-gray-400 hover:text-white text-2xl">×</button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-400 text-sm mb-4">
+                {dict.auctionScreen.stockAdjustNotice || 'Stock can only be decreased. To increase stock, please create a new listing.'}
+              </p>
+              <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                <p className="text-sm text-gray-300">
+                  <span className="text-gray-500">{dict.auctionScreen.currentStock || 'Current Stock'}:</span>{' '}
+                  <span className="text-white font-bold">{selectedManageListing.stockQuantity}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  <span className="text-gray-500">{dict.auctionScreen.sold || 'Sold'}:</span>{' '}
+                  <span className="text-orange-400">{selectedManageListing.soldQuantity || 0}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  <span className="text-gray-500">{dict.auctionScreen.remaining || 'Remaining'}:</span>{' '}
+                  <span className="text-green-400">{(selectedManageListing.stockQuantity || 0) - (selectedManageListing.soldQuantity || 0)}</span>
+                </p>
+              </div>
+              <label className="block text-white text-sm mb-2">{dict.auctionScreen.newStock || 'New Stock Quantity'}</label>
+              <input
+                type="number"
+                value={manageNewStock}
+                onChange={(e) => setManageNewStock(e.target.value)}
+                min={selectedManageListing.soldQuantity || 0}
+                max={selectedManageListing.stockQuantity}
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                placeholder={String(selectedManageListing.stockQuantity)}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {dict.auctionScreen.stockRangeHint || `Must be between ${selectedManageListing.soldQuantity || 0} (sold) and ${selectedManageListing.stockQuantity} (current)`}
+              </p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowStockModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                >
+                  {dict.auctionScreen.cancel || 'Cancel'}
+                </button>
+                <button
+                  onClick={handleAdjustStock}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition"
+                >
+                  {dict.auctionScreen.confirm || 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Adjust Price Modal */}
+      {showPriceModal && selectedManageListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">💰 {dict.auctionScreen.adjustPrice || 'Adjust Price'}</h2>
+              <button onClick={() => setShowPriceModal(false)} className="text-gray-400 hover:text-white text-2xl">×</button>
+            </div>
+            <div className="p-6">
+              <div className="bg-gray-700 rounded-lg p-3 mb-4">
+                <p className="text-sm text-gray-300">
+                  <span className="text-gray-500">{dict.auctionScreen.currentPrice || 'Current Price'}:</span>{' '}
+                  <span className="text-white font-bold">{selectedManageListing.currency} {Number(selectedManageListing.price || 0).toLocaleString()}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  <span className="text-gray-500">{dict.auctionScreen.listingFee || 'Listing Fee Paid'}:</span>{' '}
+                  <span className="text-blue-400">{selectedManageListing.currency} {Number(selectedManageListing.listingFee || 0).toLocaleString()}</span>
+                </p>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                {dict.auctionScreen.priceAdjustNotice || 'Price increase: additional fee will be charged. Price decrease: excess fee will be refunded.'}
+              </p>
+              <label className="block text-white text-sm mb-2">{dict.auctionScreen.newPrice || 'New Price'} ({selectedManageListing.currency})</label>
+              <input
+                type="number"
+                value={manageNewPrice}
+                onChange={(e) => setManageNewPrice(e.target.value)}
+                min={0}
+                step="0.01"
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                placeholder={String(selectedManageListing.price)}
+              />
+              {manageNewPrice && Number(manageNewPrice) !== Number(selectedManageListing.price) && (
+                <div className={`mt-3 p-3 rounded-lg ${
+                  Number(manageNewPrice) > Number(selectedManageListing.price)
+                    ? 'bg-yellow-600/20 border border-yellow-600/40'
+                    : 'bg-green-600/20 border border-green-600/40'
+                }`}>
+                  <p className={`text-sm ${
+                    Number(manageNewPrice) > Number(selectedManageListing.price) ? 'text-yellow-400' : 'text-green-400'
+                  }`}>
+                    {Number(manageNewPrice) > Number(selectedManageListing.price)
+                      ? `⚠️ ${dict.auctionScreen.priceIncreaseNotice || 'Price increased'}: ${dict.auctionScreen.additionalFeeNotice || 'Additional listing fee difference will be charged'}`
+                      : `✅ ${dict.auctionScreen.priceDecreaseNotice || 'Price decreased'}: ${dict.auctionScreen.refundNotice || 'Excess fee will be refunded'}`
+                    }
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowPriceModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                >
+                  {dict.auctionScreen.cancel || 'Cancel'}
+                </button>
+                <button
+                  onClick={handleAdjustPrice}
+                  disabled={!manageNewPrice || Number(manageNewPrice) < 0}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold transition"
+                >
+                  {dict.auctionScreen.confirm || 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Info Modal */}
+      {showEditInfoModal && selectedManageListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
+              <h2 className="text-xl font-bold text-white">✏️ {dict.auctionScreen.editInfo || 'Edit Product Info'}</h2>
+              <button onClick={() => setShowEditInfoModal(false)} className="text-gray-400 hover:text-white text-2xl">×</button>
+            </div>
+            <div className="p-6">
+              <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-300">
+                  ℹ️ {dict.auctionScreen.editInfoNotice || 'Editing info is free. Changes require platform re-verification. Stock quantity and price cannot be changed here.'}
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white text-sm mb-1">{dict.auctionScreen.productTitle || 'Product Title'}</label>
+                  <input
+                    type="text"
+                    value={manageEditData.title || ''}
+                    onChange={(e) => setManageEditData({ ...manageEditData, title: e.target.value })}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-sm mb-1">{dict.auctionScreen.description || 'Description'}</label>
+                  <textarea
+                    value={manageEditData.description || ''}
+                    onChange={(e) => setManageEditData({ ...manageEditData, description: e.target.value })}
+                    rows={4}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white text-sm mb-1">{dict.auctionScreen.category || 'Category'}</label>
+                    <input
+                      type="text"
+                      value={manageEditData.category || ''}
+                      onChange={(e) => setManageEditData({ ...manageEditData, category: e.target.value })}
+                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-white text-sm mb-1">{dict.auctionScreen.contactEmail || 'Contact Email'}</label>
+                    <input
+                      type="email"
+                      value={manageEditData.contactEmail || ''}
+                      onChange={(e) => setManageEditData({ ...manageEditData, contactEmail: e.target.value })}
+                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-white text-sm mb-1">{dict.auctionScreen.techSpecs || 'Technical Specifications'}</label>
+                  <textarea
+                    value={manageEditData.techSpecs || ''}
+                    onChange={(e) => setManageEditData({ ...manageEditData, techSpecs: e.target.value })}
+                    rows={3}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white text-sm mb-1">{dict.auctionScreen.productFeatures || 'Product Features'}</label>
+                  <textarea
+                    value={manageEditData.productFeatures || ''}
+                    onChange={(e) => setManageEditData({ ...manageEditData, productFeatures: e.target.value })}
+                    rows={3}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowEditInfoModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                >
+                  {dict.auctionScreen.cancel || 'Cancel'}
+                </button>
+                <button
+                  onClick={handleSaveEditInfo}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition"
+                >
+                  {dict.auctionScreen.submitForReview || 'Submit for Review'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Management Result Modal */}
+      {manageResult && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">{manageResult.success ? '✅ ' + (dict.auctionScreen.success || 'Success') : '❌ ' + (dict.auctionScreen.error || 'Error')}</h2>
+              <button onClick={() => setManageResult(null)} className="text-gray-400 hover:text-white text-2xl">×</button>
+            </div>
+            <div className="p-6">
+              {manageResult.message && <p className="text-white mb-4">{manageResult.message}</p>}
+              {manageResult.data && (
+                <div className="bg-gray-700 rounded-lg p-4">
+                  {manageResult.data.refundAmount && (
+                    <p className="text-green-400">
+                      💰 {dict.auctionScreen.refundAmount || 'Refund Amount'}: {manageResult.data.currency || 'USD'} {Number(manageResult.data.refundAmount).toLocaleString()}
+                    </p>
+                  )}
+                  {manageResult.data.additionalFee && (
+                    <p className="text-yellow-400">
+                      ⚠️ {dict.auctionScreen.additionalFee || 'Additional Fee'}: {manageResult.data.currency || 'USD'} {Number(manageResult.data.additionalFee).toLocaleString()}
+                    </p>
+                  )}
+                  {manageResult.data.newPrice && (
+                    <p className="text-blue-400">
+                      💰 {dict.auctionScreen.newPrice || 'New Price'}: {manageResult.data.currency || 'USD'} {Number(manageResult.data.newPrice).toLocaleString()}
+                    </p>
+                  )}
+                  {manageResult.data.newStock !== undefined && (
+                    <p className="text-blue-400">
+                      📦 {dict.auctionScreen.newStock || 'New Stock'}: {manageResult.data.newStock}
+                    </p>
+                  )}
+                  {manageResult.data.newVerificationStatus && (
+                    <p className="text-orange-400">
+                      ⏳ {dict.auctionScreen.verificationStatus || 'Verification Status'}: {manageResult.data.newVerificationStatus}
+                    </p>
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => setManageResult(null)}
+                className="w-full mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition"
+              >
+                {dict.auctionScreen.ok || 'OK'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bid Modal with Real-time Updates */}
       {showBidModal && auctionData && (

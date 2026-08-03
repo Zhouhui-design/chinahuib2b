@@ -774,7 +774,13 @@ model AuctionListing {
   loadingService       LoadingService?
   freightPayment       FreightPayment?
   domesticShippingNote String?
+  listingFee           Decimal?              @db.Decimal(10, 2)
+  listingFeeCurrency   String?              @default("USD")
+  originalPrice        Decimal?              @db.Decimal(10, 2)
+  feeRefunded          Boolean               @default(false)
+  lastPriceAdjustmentAt DateTime?
   bids                 AuctionBid[]
+  feeRecords           ListingFeeRecord[]
   digitalVoucher       DigitalVoucher?       @relation(fields: [digitalVoucherId], references: [id])
   poster               User                  @relation(fields: [posterId], references: [id], onDelete: Cascade)
   seller               SellerProfile?        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
@@ -790,6 +796,31 @@ model AuctionListing {
   @@index([isVerified])
   @@index([verificationStatus])
   @@index([stockQuantity])
+}
+
+model ListingFeeRecord {
+  id           String    @id @default(cuid())
+  listingId    String
+  type         FeeType
+  amount       Decimal   @db.Decimal(10, 2)
+  currency     String    @default("USD")
+  reason       String?
+  oldPrice     Decimal?  @db.Decimal(10, 2)
+  newPrice     Decimal?  @db.Decimal(10, 2)
+  processedAt  DateTime  @default(now())
+  listing      AuctionListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([type])
+}
+
+enum FeeType {
+  INITIAL
+  PRICE_INCREASE
+  PRICE_DECREASE_REFUND
+  DELIST_FULL_REFUND
+  ADMIN_ADJUSTMENT
+  PARTIAL_REFUND
 }
 
 model DigitalVoucher {
@@ -1056,7 +1087,7 @@ model WalletTransaction {
 
 model PlatformFee {
   id          String   @id @default(cuid())
-  feeType     FeeType  @unique
+  feeType     PlatformFeeType  @unique
   amount      Decimal  @db.Decimal(10, 2)
   currency    String   @default("USD")
   description String?
@@ -1295,6 +1326,7 @@ enum AuctionStatus {
   EXPIRED
   CLOSED
   COMPLETED
+  DELISTED
 }
 
 enum VerificationStatus {
@@ -1434,7 +1466,7 @@ enum PaymentGateway {
   MANUAL
 }
 
-enum FeeType {
+enum PlatformFeeType {
   SHOUT_OUT
   BOOTH_SUBSCRIPTION
   AUCTION_COMMISSION
