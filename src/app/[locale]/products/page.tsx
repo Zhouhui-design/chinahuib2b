@@ -100,6 +100,7 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
           name: true,
           nameEn: true,
           slug: true,
+          translations: true,
         }
       }
     },
@@ -111,13 +112,23 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
   if (category) {
     selectedCategory = await prisma.category.findUnique({
       where: { slug: category as string },
-      select: { name: true, nameEn: true, slug: true }
+      select: { name: true, nameEn: true, slug: true, translations: true }
     });
   }
 
   const getCategoryDisplayName = (cat: any, loc: string) => {
     if (!cat) return '';
-    return loc === 'zh' ? cat.name : (cat.nameEn || cat.name);
+    // Use auto-translated field if available
+    const translations = cat.translations as Record<string, string> | null;
+    if (translations && translations[loc]) {
+      return translations[loc];
+    }
+    // Fallback to legacy fields
+    if (loc === 'zh') return cat.name;
+    if (loc === 'en') return cat.nameEn || cat.name;
+    // For other languages, try English translation then Chinese
+    if (translations?.en) return translations.en;
+    return cat.nameEn || cat.name;
   };
 
   return (

@@ -18,6 +18,7 @@ type Product = {
     name: string;
     nameEn?: string | null;
     slug: string;
+    translations?: Record<string, string> | null;
   };
 };
 
@@ -25,6 +26,16 @@ type ProductGridProps = {
   products: Product[];
   locale?: string;
 };
+
+function getCategoryName(cat: Product['category'], locale: string): string {
+  if (cat.translations && cat.translations[locale]) {
+    return cat.translations[locale];
+  }
+  if (locale === 'zh') return cat.name;
+  if (locale === 'en') return cat.nameEn || cat.name;
+  if (cat.translations?.en) return cat.translations.en;
+  return cat.nameEn || cat.name;
+}
 
 export default function ProductGrid({ products, locale = 'en' }: ProductGridProps) {
   return (
@@ -67,7 +78,7 @@ export default function ProductGrid({ products, locale = 'en' }: ProductGridProp
             
             <div className="absolute top-3 left-3">
               <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                {locale === 'zh' ? product.category.name : (product.category.nameEn || product.category.name)}
+                {getCategoryName(product.category, locale)}
               </span>
             </div>
           </div>

@@ -211,6 +211,8 @@ model Category {
   seriesEn      String?
   description   String?
   descriptionEn String?
+  translations  Json?      // { en, zh, de, fr, es, ja, ko, ar, ru, pt, hi, th, vi }
+  translatedAt  DateTime?  // Last auto-translation timestamp
   hsCode        String?
   parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children      Category[] @relation("CategoryHierarchy")
