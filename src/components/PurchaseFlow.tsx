@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { ShoppingCart, CreditCard, Truck, CheckCircle, AlertCircle, Package, Shield, Globe, Building } from 'lucide-react'
-import { getSupportedPaymentMethods } from '@/services/paymentService'
 
 interface PurchaseFlowProps {
   listing: any
@@ -12,6 +11,16 @@ interface PurchaseFlowProps {
 }
 
 type PurchaseStep = 'quantity' | 'shipping' | 'payment' | 'processing' | 'success' | 'error'
+
+const CLIENT_PAYMENT_METHODS = [
+  { method: 'STRIPE', name: 'Credit Card (Stripe)', description: 'Visa, Mastercard, Apple Pay, Google Pay', icon: '💳' },
+  { method: 'PAYPAL', name: 'PayPal', description: 'Pay with your PayPal account balance', icon: '🅿️' },
+  { method: 'ALIPAY', name: 'Alipay', description: 'Pay with Alipay (China, Asia)', icon: '🅰️' },
+  { method: 'WECHAT', name: 'WeChat Pay', description: 'Pay with WeChat wallet', icon: '💚' },
+  { method: 'WORLD_FIRST', name: 'WorldFirst', description: 'International money transfer', icon: '🌍' },
+  { method: 'BANK_TRANSFER', name: 'Bank Transfer (T/T)', description: 'Wire transfer to platform account', icon: '🏦' },
+  { method: 'CRYPTO', name: 'Crypto (USDT)', description: 'Pay with USDT or other crypto', icon: '₿' },
+]
 
 export default function PurchaseFlow({ listing, onClose, locale }: PurchaseFlowProps) {
   const { data: session } = useSession()
@@ -31,7 +40,7 @@ export default function PurchaseFlow({ listing, onClose, locale }: PurchaseFlowP
   const unitPrice = listing.price?.toNumber() ?? 0
   const totalAmount = unitPrice * quantity
 
-  const paymentMethods = getSupportedPaymentMethods()
+  const paymentMethods = CLIENT_PAYMENT_METHODS
 
   const shippingOptions = [
     { value: 'FOB', label: 'FOB - Free On Board', desc: 'Seller loads onto ship at origin port. Buyer arranges & pays for shipping.', icon: '🚢' },
