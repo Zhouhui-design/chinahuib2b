@@ -8,6 +8,7 @@ import { dictionaries } from '@/locales/dictionary'
 import { existsSync } from 'fs'
 import path from 'path'
 import TaskActions from './TaskActions'
+import ApplyTaskButton from './ApplyTaskButton'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }) {
   const dict = dictionaries[params.locale] || dictionaries.en
@@ -282,9 +283,15 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
               </div>
               
               <div className="mt-6">
-                <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                  {dict.marketplace.applyTask || 'Apply for Task'}
-                </button>
+                {/* 非发布者才显示"申请任务"按钮；发布者已在页面顶部显示编辑/删除按钮 */}
+                {!isOwner && (
+                  <ApplyTaskButton
+                    postedById={task.postedById}
+                    isLoggedIn={!!session?.user?.id}
+                    contactInfo={task.contactInfo}
+                    locale={params.locale}
+                  />
+                )}
               </div>
             </div>
             
