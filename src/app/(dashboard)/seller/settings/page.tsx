@@ -191,7 +191,7 @@ export default function SellerSettingsPage() {
 
   const copyStoreUrl = () => {
     if (!storeSlug) return
-    const url = `https://x2xhub.com/${storeSlug}`
+    const url = `https://x2xhub.com/${storeSlug}.com`
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -887,16 +887,27 @@ export default function SellerSettingsPage() {
 
                 {storeSlug ? (
                   <div className="space-y-3">
-                    {/* Current URL display */}
+                    {/* Company official URL with .com suffix */}
+                    <div className="flex items-center gap-2 bg-green-50 rounded-lg border border-green-300 px-4 py-3">
+                      <span className="text-gray-400 text-sm">x2xhub.com/</span>
+                      <span className="font-mono font-semibold text-green-700 flex-1 truncate">{storeSlug}.com</span>
+                      <button
+                        onClick={copyStoreUrl}
+                        className="flex-shrink-0 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                      >
+                        {copied ? (language === 'zh' ? '已复制!' : 'Copied!') : (language === 'zh' ? '复制官网' : 'Copy URL')}
+                      </button>
+                    </div>
+                    <p className="text-xs text-green-700 bg-green-50 rounded p-2">
+                      ✅ {language === 'zh'
+                        ? '以上是您的公司官网地址（带 .com 后缀），可在其他平台注册时作为有效公司网址使用。'
+                        : 'This is your official company URL (with .com suffix), recognized as a valid company website by other platforms.'}
+                    </p>
+
+                    {/* Original store link */}
                     <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-300 px-4 py-3">
                       <span className="text-gray-400 text-sm">x2xhub.com/</span>
                       <span className="font-mono font-semibold text-blue-700 flex-1 truncate">{storeSlug}</span>
-                      <button
-                        onClick={copyStoreUrl}
-                        className="flex-shrink-0 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-                      >
-                        {copied ? (language === 'zh' ? '已复制!' : 'Copied!') : (language === 'zh' ? '复制' : 'Copy')}
-                      </button>
                     </div>
 
                     {/* Edit section */}

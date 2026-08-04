@@ -1832,16 +1832,16 @@ export default function StoreProfilePage() {
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
           <span className="text-sm font-medium text-blue-900">
-            🔗 {language === 'zh' ? '您的店铺专属链接：' : 'Your store link:'}
+            🔗 {language === 'zh' ? '您的公司官网地址：' : 'Your company website:'}
           </span>
           {storeSlug ? (
             <a
-              href={`https://x2xhub.com/${storeSlug}`}
+              href={`https://x2xhub.com/${storeSlug}.com`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-mono font-semibold text-blue-700 hover:underline"
+              className="text-sm font-mono font-semibold text-green-700 hover:underline"
             >
-              x2xhub.com/{storeSlug}
+              x2xhub.com/{storeSlug}.com
             </a>
           ) : (
             <span className="text-sm text-gray-400">{language === 'zh' ? '加载中...' : 'Loading...'}</span>

@@ -67,28 +67,40 @@ export function middleware(request: any) {
     'legal', 'checkout', 'cart', 'wishlist', 'favorites', 'notifications',
     'mcp', 'docs', 'debug', 'diagnostic', 'recommendations', 'reviews',
   ])
-  const looksLikeSlug = (s: string) =>
-    s.length >= 1 &&
-    s.length <= 39 &&
-    /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(s) &&
-    !RESERVED_TOP_LEVEL.has(s.toLowerCase()) &&
-    !/^\d+$/.test(s) &&
-    !supportedLanguages.includes(s as any)
+  const looksLikeSlug = (s: string) => {
+    // Strip optional .com suffix for validation (URL keeps .com in browser bar)
+    const base = s.replace(/\.com$/i, '')
+    return (
+      base.length >= 1 &&
+      base.length <= 39 &&
+      /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(base) &&
+      !RESERVED_TOP_LEVEL.has(base.toLowerCase()) &&
+      !/^\d+$/.test(base) &&
+      !supportedLanguages.includes(base as any)
+    )
+  }
+
+  // Strip .com suffix to get the raw slug for DB lookup
+  const stripComSuffix = (s: string) => s.replace(/\.com$/i, '')
 
   // Single-segment slug: /jianhao-fire → /store/jianhao-fire
-  const singleSlugMatch = pathname.match(/^\/([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)$/)
-  if (singleSlugMatch && looksLikeSlug(singleSlugMatch[1])) {
-    const slug = singleSlugMatch[1]
+  // Also supports /huihuan.com → /store/huihuan (URL bar keeps .com suffix)
+  const singleSlugMatch = pathname.match(/^\/([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(\.com)?$/i)
+  if (singleSlugMatch && looksLikeSlug(singleSlugMatch[1] + (singleSlugMatch[2] || ''))) {
+    const slug = stripComSuffix(singleSlugMatch[1] + (singleSlugMatch[2] || ''))
     const newUrl = new URL(`/store/${slug}`, request.url)
     const response = NextResponse.rewrite(newUrl)
     return addSecurityHeaders(response)
   }
 
   // Locale + slug: /de/jianhao-fire → /store/jianhao-fire (strip locale, keep slug)
-  const localeSlugMatch = pathname.match(/^\/([a-z]{2})\/([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)$/)
+  // Also supports /de/huihuan.com → /store/huihuan
+  const localeSlugMatch = pathname.match(/^\/([a-z]{2})\/([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)(\.com)?$/i)
   if (localeSlugMatch) {
-    const [, locale, slug] = localeSlugMatch
-    if (supportedLanguages.includes(locale) && looksLikeSlug(slug)) {
+    const [, locale, slugPart, comSuffix] = localeSlugMatch
+    const fullSlug = slugPart + (comSuffix || '')
+    if (supportedLanguages.includes(locale) && looksLikeSlug(fullSlug)) {
+      const slug = stripComSuffix(fullSlug)
       const newUrl = new URL(`/store/${slug}`, request.url)
       const response = NextResponse.rewrite(newUrl)
       return addSecurityHeaders(response)
