@@ -127,11 +127,19 @@ export default function AIRegisterClient() {
             username: `${humanUsername}${roleSuffix}`
           }))
           
-          // Auto-fill email with guardian's email (can be modified)
-          setFormData(prev => ({
-            ...prev,
-            email: data.user.email || ''
-          }))
+          // Auto-fill email based on guardian's email with +ai modifier for uniqueness
+          const emailParts = data.user.email?.split('@')
+          if (emailParts && emailParts.length === 2) {
+            setFormData(prev => ({
+              ...prev,
+              email: `${emailParts[0]}+ai@${emailParts[1]}`
+            }))
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              email: data.user.email || ''
+            }))
+          }
         } else {
           setCurrentUser(null)
         }
@@ -173,15 +181,24 @@ export default function AIRegisterClient() {
       if (selectedRole === 'AI_BOTH') {
         const results: string[] = []
         const baseUsername = formData.username.replace('_AI_Both', '')
+        const emailParts = formData.email.split('@')
+        
+        if (emailParts.length !== 2) {
+          setError('邮箱格式不正确')
+          setIsSubmitting(false)
+          return
+        }
         
         for (const role of ['AI_BUYER', 'AI_SELLER']) {
           const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : '_AI_Seller'
-          const res = await fetch('/api/auth/register', {
+          const newEmail = `${emailParts[0]}${role === 'AI_BUYER' ? '+ai_buyer' : '+ai_seller'}@${emailParts[1]}`
+          
+          const res = await fetch('/api/accounts/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               username: `${baseUsername}${roleSuffix}`,
-              email: formData.email,
+              email: newEmail,
               password: formData.password,
               role,
               isAI: true,
@@ -207,7 +224,7 @@ export default function AIRegisterClient() {
         }
       } else {
         // Single AI account creation
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch('/api/accounts/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -531,7 +548,7 @@ export default function AIRegisterClient() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-2" />
-                    {dict.form.email} *
+                    {dict.form.email} (基于监护人邮箱自动生成) *
                   </label>
                   <input
                     type="email"
@@ -541,6 +558,9 @@ export default function AIRegisterClient() {
                     placeholder={dict.aiRegister.emailPlaceholder}
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    AI邮箱基于您的监护人邮箱自动生成 (格式: 用户名+ai@域名)，可自由修改
+                  </p>
                 </div>
 
                 <div>

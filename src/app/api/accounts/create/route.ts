@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,17 +39,12 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex')
-
     // Determine role based on AI type
     let role: string
     if (isAI) {
-      // Use the requested role if valid, default to AI_BUYER
       const validAIRoles = ['AI_BUYER', 'AI_SELLER', 'AI_ASSISTANT']
       role = validAIRoles.includes(requestedRole) ? requestedRole : 'AI_BUYER'
     } else {
-      // Human account registration uses the /api/register route with BOTH logic
       role = 'BUYER'
     }
 
@@ -61,10 +55,8 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role: role as any,
-        isActive: !isAI, // AI accounts are active by default, human accounts need verification
-        emailVerificationToken: !isAI ? verificationToken : null,
-        emailVerified: isAI,
-        isAI: isAI, // Explicitly set AI flag
+        isActive: true,
+        isAI: isAI,
         ownerId: isAI ? ownerId : null,
       }
     })
@@ -83,10 +75,12 @@ export async function POST(request: NextRequest) {
           : 'Account created. Please check your email for verification.'
       }
     })
-  } catch (error) {
-    console.error('Registration error:', error)
+  } catch (error: any) {
+    console.error('Registration error:', error?.message || error)
+    console.error('Registration error stack:', error?.stack)
+    console.error('Registration error code:', error?.code)
     return NextResponse.json(
-      { success: false, error: 'Failed to create account' },
+      { success: false, error: error?.message || 'Failed to create account' },
       { status: 500 }
     )
   }

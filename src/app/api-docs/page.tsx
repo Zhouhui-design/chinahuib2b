@@ -17,7 +17,7 @@ const apiEndpoints = [
   {
     category: 'Authentication',
     endpoints: [
-      { method: 'POST', path: '/api/auth/register', description: 'Register new user (seller/buyer)' },
+      { method: 'POST', path: '/api/accounts/create', description: 'Register new user (seller/buyer)' },
       { method: 'POST', path: '/api/auth/login', description: 'Login and get JWT token' },
       { method: 'GET', path: '/api/user/profile', description: 'Get current user profile' },
     ]

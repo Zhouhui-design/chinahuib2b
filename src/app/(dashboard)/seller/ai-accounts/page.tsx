@@ -78,7 +78,7 @@ export default function AIAccountsPage() {
     if (!formData.username || !formData.email || !formData.password) return
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/accounts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
