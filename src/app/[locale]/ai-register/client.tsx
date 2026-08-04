@@ -23,7 +23,53 @@ export default function AIRegisterClient() {
   const [aiRoles, setAIRoles] = useState<AIRole[]>(['AI_BUYER', 'AI_SELLER'])
   const [isDualRoleUser, setIsDualRoleUser] = useState(false)
   const [agreedToAITerms, setAgreedToAITerms] = useState(false)
-  
+
+  const [showPassword, setShowPassword] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [generatedPassword, setGeneratedPassword] = useState('')
+
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  })
+
+  const generateAIUsername = (humanUsername?: string, role?: AIRole) => {
+    const baseUsername = humanUsername || currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
+    const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : role === 'AI_SELLER' ? '_AI_Seller' : '_AI'
+    const newUsername = `${baseUsername}${roleSuffix}`
+    setFormData(prev => ({
+      ...prev,
+      username: newUsername
+    }))
+  }
+
+  const refreshAIUsername = () => {
+    const baseUsername = currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
+    const randomSuffix = Math.random().toString(36).slice(-4)
+    const roleSuffix = selectedRole === 'AI_BUYER' ? '_AI_Buyer' : selectedRole === 'AI_SELLER' ? '_AI_Seller' : '_AI_Both'
+    setFormData(prev => ({
+      ...prev,
+      username: `${baseUsername}${roleSuffix}_${randomSuffix}`
+    }))
+  }
+
+  const generatePassword = () => {
+    const password = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-8).toUpperCase()
+    setGeneratedPassword(password)
+    setFormData({ ...formData, password })
+  }
+
+  const handleCopyCredentials = () => {
+    const credentials = `Email: ${formData.email}\nPassword: ${formData.password}`
+    navigator.clipboard.writeText(credentials)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       const dictionary = await loadTranslations(locale)
@@ -52,12 +98,10 @@ export default function AIRegisterClient() {
           
           // Set default AI role based on user's human role
           if (userRole === 'SELLER') {
-            // Seller or dual-role user: default to AI_SELLER, show all 3 options
             setSelectedRole('AI_SELLER')
             setAIRoles(['AI_BUYER', 'AI_SELLER', 'AI_BOTH'])
             setIsDualRoleUser(true)
           } else if (userRole === 'BUYER') {
-            // Buyer: default to AI_BUYER, show 2 options
             setSelectedRole('AI_BUYER')
             setAIRoles(['AI_BUYER', 'AI_SELLER'])
             setIsDualRoleUser(false)
@@ -65,8 +109,9 @@ export default function AIRegisterClient() {
 
           // Auto-generate AI username based on human username
           const humanUsername = data.user.username || data.user.email?.split('@')[0] || 'user'
-          generateAIUsername(humanUsername, 'AI_BUYER')
-          // Auto-fill email with +ai modifier for Gmail-like services
+          generateAIUsername(humanUsername, selectedRole)
+          
+          // Auto-fill email with +ai modifier
           const emailParts = data.user.email?.split('@')
           if (emailParts && emailParts.length === 2) {
             setFormData(prev => ({
@@ -94,52 +139,6 @@ export default function AIRegisterClient() {
       window.removeEventListener('focus', handleFocus)
     }
   }, [])
-
-  const [showPassword, setShowPassword] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [generatedPassword, setGeneratedPassword] = useState('')
-
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: ''
-  })
-
-  const generatePassword = () => {
-    const password = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-8).toUpperCase()
-    setGeneratedPassword(password)
-    setFormData({ ...formData, password })
-  }
-
-  const generateAIUsername = (humanUsername?: string, role?: AIRole) => {
-    const baseUsername = humanUsername || currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
-    const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : role === 'AI_SELLER' ? '_AI_Seller' : '_AI'
-    const newUsername = `${baseUsername}${roleSuffix}`
-    setFormData(prev => ({
-      ...prev,
-      username: newUsername
-    }))
-  }
-
-  const refreshAIUsername = () => {
-    const baseUsername = currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
-    const randomSuffix = Math.random().toString(36).slice(-4)
-    const roleSuffix = selectedRole === 'AI_BUYER' ? '_AI_Buyer' : selectedRole === 'AI_SELLER' ? '_AI_Seller' : '_AI_Both'
-    setFormData(prev => ({
-      ...prev,
-      username: `${baseUsername}${roleSuffix}_${randomSuffix}`
-    }))
-  }
-
-  const handleCopyCredentials = () => {
-    const credentials = `Email: ${formData.email}\nPassword: ${formData.password}`
-    navigator.clipboard.writeText(credentials)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
