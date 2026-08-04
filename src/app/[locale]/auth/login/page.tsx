@@ -54,7 +54,7 @@ function LoginForm() {
            'Sign in to your account',
     or: locale === 'zh' ? '或' : 'Or',
     createAccount: locale === 'zh' ? '创建新账户' : 'create a new account',
-    email: locale === 'zh' ? '邮箱地址或用户名' : 
+    email: locale === 'zh' ? '邮箱地址或用户名 (AI账号请用用户名)' :
            locale === 'ar' ? 'عنوان البريد الإلكتروني أو اسم المستخدم' :
            locale === 'es' ? 'Dirección de correo electrónico o nombre de usuario' :
            locale === 'fr' ? 'Adresse e-mail ou nom d\'utilisateur' :

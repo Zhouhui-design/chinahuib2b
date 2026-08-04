@@ -88,6 +88,7 @@ export default function AIRegisterClient() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [generatedPassword, setGeneratedPassword] = useState('')
+  const [existingAIAccounts, setExistingAIAccounts] = useState<{username: string; role: string}[]>([])
 
   const [formData, setFormData] = useState({
     username: '',
@@ -211,6 +212,17 @@ export default function AIRegisterClient() {
             ...prev,
             email: data.user.email || ''
           }))
+
+          // Check if user already has AI accounts
+          try {
+            const aiRes = await fetch('/api/ai/accounts')
+            const aiData = await aiRes.json()
+            if (aiData?.success && aiData?.accounts?.length > 0) {
+              setExistingAIAccounts(aiData.accounts.map((a: any) => ({ username: a.username, role: a.role })))
+            }
+          } catch (e) {
+            console.warn('Failed to fetch existing AI accounts:', e)
+          }
         } else {
           setCurrentUser(null)
         }
@@ -330,15 +342,20 @@ export default function AIRegisterClient() {
           </p>
           <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
             <p className="text-sm text-gray-600 text-center mb-3">📋 AI 账户凭证（请妥善保存）</p>
-            <p className="font-mono text-sm mb-1">用户名: {formData.username}</p>
-            <p className="font-mono text-sm mb-1">Email: {formData.email}</p>
-            <p className="font-mono text-sm">Password: {formData.password}</p>
+            <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mb-3">
+              <p className="text-xs text-yellow-800 font-semibold">
+                ⚠️ 登录时请使用「用户名」，不要使用邮箱
+              </p>
+            </div>
+            <p className="font-mono text-sm mb-1"><strong>用户名 (用于登录):</strong> {formData.username}</p>
+            <p className="font-mono text-sm mb-1 text-gray-500"><strong>Email (仅记录):</strong> {formData.email}</p>
+            <p className="font-mono text-sm"><strong>Password:</strong> {formData.password}</p>
             {isDualAccount && (
               <div className="mt-3 pt-3 border-t border-blue-200">
                 <p className="text-xs text-gray-600">双角色账户：</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  买家账号: {formData.username.replace('_AI_Both', '_AI_Buyer')}_buyer<br/>
-                  卖家账号: {formData.username.replace('_AI_Both', '_AI_Seller')}_seller
+                  买家账号: {formData.username.replace('_AI_Both', '_AI_Buyer')}<br/>
+                  卖家账号: {formData.username.replace('_AI_Both', '_AI_Seller')}
                 </p>
               </div>
             )}
@@ -500,6 +517,35 @@ export default function AIRegisterClient() {
                 </div>
               )}
 
+              {existingAIAccounts.length > 0 && (
+                <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-amber-600 inline mr-2 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-amber-800 font-medium text-sm mb-2">
+                        ⚠️ 您已拥有以下 AI 账号：
+                      </p>
+                      <ul className="text-amber-700 text-sm space-y-1">
+                        {existingAIAccounts.map((acc, i) => (
+                          <li key={i} className="font-mono">
+                            • 用户名: <strong>{acc.username}</strong> （角色: {acc.role === 'AI_SELLER' ? 'AI卖家' : acc.role === 'AI_BUYER' ? 'AI买家' : acc.role}）
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-amber-700 text-xs mt-2">
+                        请直接使用上述用户名登录。如需创建不同角色的 AI 账号，请选择其他角色。
+                      </p>
+                      <Link
+                        href={`/${locale}/auth/login`}
+                        className="inline-block mt-2 px-3 py-1 bg-amber-600 text-white text-xs rounded hover:bg-amber-700 transition-colors"
+                      >
+                        前往登录 →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -571,29 +617,20 @@ export default function AIRegisterClient() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <User className="w-4 h-4 inline mr-2" />
-                    AI 用户名 (自动生成)
+                    AI 用户名 (自动生成，不可修改)
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       value={formData.username}
-                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-24 bg-gray-50"
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-gray-100 text-gray-700 cursor-not-allowed"
                       placeholder="自动生成"
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={refreshAIUsername}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-                      title="重新生成用户名"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      刷新
-                    </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    AI 用户名基于您的人类用户名自动生成，格式: 人类用户名_AI_角色，便于识别
+                    🔒 AI 用户名基于您的人类用户名自动生成，格式: 人类用户名_AI_角色，不可修改。登录时请使用此用户名。
                   </p>
                 </div>
 

@@ -55,15 +55,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const input = String(email).toLowerCase().trim()
+    // Keep original case for username lookup (usernames like "sardenesy_AI_Seller" are case-sensitive)
+    // Only lowercase for email comparison
+    const rawInput = String(email).trim()
+    const lowerInput = rawInput.toLowerCase()
 
+    // Detect if input looks like an email (contains @)
+    const isEmail = rawInput.includes("@")
+
+    // AI agents MUST login with username (not email).
+    // When input is an email, only match human (non-AI) accounts.
+    // When input is a username, match case-insensitively to handle "sardenesy_AI_Seller" etc.
     const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: input },
-          { username: input },
-        ],
-      },
+      where: isEmail
+        ? { email: lowerInput, isAI: false }
+        : {
+            OR: [
+              { username: rawInput },                                    // exact case match
+              { username: { equals: rawInput, mode: "insensitive" } },   // case-insensitive fallback
+            ],
+          },
     })
 
     if (!user || !user.password) {
