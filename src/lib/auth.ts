@@ -44,7 +44,9 @@ export const authOptions: AuthOptions = {
           id: user.id,
           email: user.email,
           name: user.username,
-          role: user.role
+          role: user.role,
+          isAI: user.isAI,
+          ownerId: user.ownerId,
         }
       }
     })
@@ -54,6 +56,8 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.role = user.role
         token.id = user.id
+        token.isAI = (user as any).isAI
+        token.ownerId = (user as any).ownerId
       }
       // Ensure id is always present (token.sub is the JWT standard subject field)
       if (!token.id && token.sub) {
@@ -70,6 +74,12 @@ export const authOptions: AuthOptions = {
         }
         if (token.role) {
           session.user.role = token.role as string
+        }
+        if (token.isAI !== undefined) {
+          session.user.isAI = token.isAI as boolean
+        }
+        if (token.ownerId) {
+          session.user.ownerId = token.ownerId as string
         }
       }
       return session

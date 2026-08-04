@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot, MessageCircle } from 'lucide-react'
 import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
@@ -22,6 +23,7 @@ export default function SellerDashboardClientLayout({
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
+  const { data: session } = useSession()
   const [showQuickMenu, setShowQuickMenu] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -256,6 +258,11 @@ export default function SellerDashboardClientLayout({
                  language === 'vi' ? 'Bảng điều khiển Người bán' :
                  'Seller Dashboard'}
               </span>
+              {session?.user?.isAI && (
+                <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center">
+                  <Bot className="w-3 h-3 mr-1" /> AI 模式
+                </span>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}

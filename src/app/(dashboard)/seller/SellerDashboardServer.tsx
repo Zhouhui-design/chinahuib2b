@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
+import { getEffectiveUserId } from '@/lib/ai-permissions'
 import SellerDashboardPage from './SellerDashboardClient'
 
 export default async function SellerDashboardServer() {
   const session = await auth()
-  
+
   if (!session?.user?.id) {
     // Get language from cookie or use default 'en'
     const { cookies } = await import('next/headers')
@@ -14,9 +15,12 @@ export default async function SellerDashboardServer() {
     redirect(`/${language}/auth/login`)
   }
 
-  // Get seller profile
+  // AI_SELLER uses ownerId to find guardian's SellerProfile (proxy identity)
+  const effectiveUserId = getEffectiveUserId(session)
+
+  // Get seller profile using effective user ID
   const seller = await prisma.sellerProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: effectiveUserId || session.user.id },
   })
 
   if (!seller) {

@@ -123,6 +123,8 @@ export async function POST(request: NextRequest) {
       sub: user.id,
       id: user.id,
       role: user.role,
+      isAI: user.isAI,
+      ownerId: user.ownerId,
     }
 
     const sessionToken = await encodeAuthToken(tokenPayload, secret)
@@ -139,6 +141,8 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.username,
         role: user.role,
+        isAI: user.isAI,
+        ownerId: user.ownerId,
       }
     })
 

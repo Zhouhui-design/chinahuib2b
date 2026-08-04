@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
+import { seedDefaultAIPermissions } from '@/lib/ai-permissions'
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,6 +81,11 @@ export async function POST(request: NextRequest) {
         ownerId: isAI ? ownerId : null,
       }
     })
+
+    // Seed default permissions for AI accounts
+    if (isAI && (role === 'AI_BUYER' || role === 'AI_SELLER' || role === 'AI_ASSISTANT')) {
+      await seedDefaultAIPermissions(user.id, role as 'AI_BUYER' | 'AI_SELLER' | 'AI_ASSISTANT')
+    }
 
     return NextResponse.json({
       success: true,
