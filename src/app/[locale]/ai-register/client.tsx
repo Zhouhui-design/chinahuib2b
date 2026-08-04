@@ -7,6 +7,64 @@ import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Spa
 import { getDictionary } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
 
+const FALLBACK_AI_REGISTER = {
+  loggedInAs: "Logged in as",
+  title: "AI Identity Registration",
+  subtitle: "Create your AI account and explore the future of B2B commerce",
+  feature1: "AI-Powered Trading",
+  feature2: "24/7 Availability",
+  feature3: "Smart Negotiation",
+  capabilities: "AI Capabilities",
+  capability1: "Intelligent Product Search",
+  capability1Desc: "Find products faster with AI-powered search and recommendations",
+  capability2: "Automated Negotiation",
+  capability2Desc: "AI can negotiate prices and terms on your behalf",
+  capability3: "Market Analysis",
+  capability3Desc: "Get real-time market insights and trends",
+  capability4: "Multi-language Support",
+  capability4Desc: "Communicate globally with built-in translation",
+  termsNote: "AI accounts must be registered under a human owner account. By registering, you agree to our AI usage policies.",
+  register: "Create AI Account",
+  registerDesc: "Register your AI to start trading",
+  needLogin: "Please log in with your human account first to register an AI account.",
+  bindingTo: "This AI account will be bound to:",
+  selectRole: "Select AI Role",
+  aiBuyer: "AI Buyer",
+  aiBuyerDesc: "Purchase products automatically",
+  aiSeller: "AI Seller",
+  aiSellerDesc: "Sell products automatically",
+  usernamePlaceholder: "Enter AI username",
+  emailPlaceholder: "Enter AI email address",
+  passwordPlaceholder: "Enter password or generate one",
+  generatePassword: "Generate Random Password",
+  agreeTerms: "I agree to the AI Terms of Service and Privacy Policy",
+  createAccount: "Create AI Account",
+  copyCredentials: "Copy Credentials",
+  haveAccount: "Already have an AI account?",
+  successTitle: "AI Account Created Successfully!",
+  successMessage: "Your AI account has been created and is now ready to use.",
+  saveCredentials: "Please save your credentials:",
+  footer: "AI accounts are subject to our AI-specific terms and conditions.",
+}
+
+const INITIAL_DICT = {
+  aiRegister: FALLBACK_AI_REGISTER,
+  nav: {
+    login: "Login",
+    backToHome: "Back to Home",
+  },
+  form: {
+    email: "Email",
+    password: "Password",
+    submitting: "Submitting...",
+    copied: "Copied!",
+  },
+  errors: {
+    registerFailed: "Registration failed, please try again",
+    networkError: "Network error, please try again",
+  },
+}
+
 // AI role options based on user role
 type AIRole = 'AI_BUYER' | 'AI_SELLER' | 'AI_BOTH'
 
@@ -16,7 +74,7 @@ export default function AIRegisterClient() {
   const params = useParams()
   const locale = (params?.locale as LanguageCode) || 'en'
   
-  const [dict, setDict] = useState<Record<string, any> | null>(null)
+  const [dict, setDict] = useState<Record<string, any>>(INITIAL_DICT)
   const [selectedRole, setSelectedRole] = useState<AIRole>('AI_BUYER')
   const [currentUser, setCurrentUser] = useState<{ id?: string; name?: string; email?: string; username?: string; role?: string } | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
@@ -78,10 +136,30 @@ export default function AIRegisterClient() {
     const fetchData = async () => {
       try {
         const dictionary = await getDictionary(locale as LanguageCode)
-        setDict(dictionary)
+        const mergedDict = {
+          ...INITIAL_DICT,
+          ...dictionary,
+          aiRegister: {
+            ...FALLBACK_AI_REGISTER,
+            ...(dictionary.aiRegister || {}),
+          },
+          nav: {
+            ...INITIAL_DICT.nav,
+            ...(dictionary.nav || {}),
+          },
+          form: {
+            ...INITIAL_DICT.form,
+            ...(dictionary.form || {}),
+          },
+          errors: {
+            ...INITIAL_DICT.errors,
+            ...(dictionary.errors || {}),
+          },
+        }
+        setDict(mergedDict)
       } catch (err) {
         console.error('Failed to load dictionary:', err)
-        setDict({} as any)
+        setDict(INITIAL_DICT)
       }
     }
     fetchData()
@@ -254,7 +332,7 @@ export default function AIRegisterClient() {
     }
   }
 
-  if (!dict || isCheckingAuth) {
+  if (isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
