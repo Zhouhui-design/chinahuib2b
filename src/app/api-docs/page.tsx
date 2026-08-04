@@ -177,208 +177,158 @@ ws.onerror = (error) => {
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            AI Agent API Documentation
-          </h1>
-          <p className="text-xl text-gray-600">
-            Integrate your AI agent with China Hui B2B platform
-          </p>
-          <div className="mt-4 flex justify-center gap-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              REST API
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              MCP Protocol
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-              CLI Tool
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
-              WebSocket
-            </span>
-          </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          AI Agent API Documentation
+        </h1>
+        <p className="text-xl text-gray-600">
+          Integrate your AI agent with China Hui B2B platform
+        </p>
+        <div className="mt-4 flex justify-center gap-4 flex-wrap">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            REST API
+          </span>
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            MCP Protocol
+          </span>
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+            CLI Tool
+          </span>
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+            WebSocket
+          </span>
         </div>
+      </div>
 
-        {/* Quick Start */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Start</h2>
-          <ol className="list-decimal list-inside space-y-3 text-gray-700">
-            <li><strong>Register:</strong> Create an account at <Link href="/auth/register" className="text-blue-600 hover:underline">x2xhub.com/auth/register</Link></li>
-            <li><strong>Get API Token:</strong> Login and obtain your API token from the dashboard</li>
-            <li><strong>Choose Integration Method:</strong> REST API, MCP, CLI, or WebSocket</li>
-            <li><strong>Start Building:</strong> Use the examples below to integrate your AI agent</li>
-          </ol>
-        </div>
+      {/* Quick Start */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Start</h2>
+        <ol className="list-decimal list-inside space-y-3 text-gray-700">
+          <li><strong>Register:</strong> Create an account at <Link href="/auth/register" className="text-blue-600 hover:underline">x2xhub.com/auth/register</Link></li>
+          <li><strong>Get API Token:</strong> Login and obtain your API token from the dashboard</li>
+          <li><strong>Choose Integration Method:</strong> REST API, MCP, CLI, or WebSocket</li>
+          <li><strong>Start Building:</strong> Use the examples below to integrate your AI agent</li>
+        </ol>
+      </div>
 
-        {/* API Endpoints */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">API Endpoints</h2>
-          
-          {apiEndpoints.map((category, idx) => (
-            <div key={idx} className="mb-8">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">{category.category}</h3>
-              <div className="space-y-3">
-                {category.endpoints.map((endpoint, eidx) => (
-                  <div key={eidx} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start gap-3">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-mono font-bold ${
-                        endpoint.method === 'GET' ? 'bg-green-100 text-green-800' :
-                        endpoint.method === 'POST' ? 'bg-blue-100 text-blue-800' :
-                        endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
-                        endpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {endpoint.method}
-                      </span>
-                      <code className="flex-1 text-sm text-gray-700 font-mono">{endpoint.path}</code>
-                    </div>
-                    <p className="mt-2 text-sm text-gray-600 ml-16">{endpoint.description}</p>
+      {/* API Endpoints */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">API Endpoints</h2>
+        
+        {apiEndpoints.map((category, idx) => (
+          <div key={idx} className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">{category.category}</h3>
+            <div className="space-y-3">
+              {category.endpoints.map((endpoint, eidx) => (
+                <div key={eidx} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <span className={`inline-block px-2 py-1 rounded text-xs font-mono font-bold ${
+                      endpoint.method === 'GET' ? 'bg-green-100 text-green-800' :
+                      endpoint.method === 'POST' ? 'bg-blue-100 text-blue-800' :
+                      endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
+                      endpoint.method === 'DELETE' ? 'bg-red-100 text-red-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {endpoint.method}
+                    </span>
+                    <code className="flex-1 text-sm text-gray-700 font-mono">{endpoint.path}</code>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Integration Examples */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Integration Examples</h2>
-          
-          <div className="space-y-8">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">REST API Example</h3>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{integrationExamples.rest}</code>
-              </pre>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">MCP (Model Context Protocol) Example</h3>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{integrationExamples.mcp}</code>
-              </pre>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">CLI Tool Example</h3>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{integrationExamples.cli}</code>
-              </pre>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">WebSocket Real-time Chat Example</h3>
-              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{integrationExamples.websocket}</code>
-              </pre>
+                  <p className="mt-2 text-sm text-gray-600 ml-16">{endpoint.description}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Authentication */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication</h2>
-          <p className="text-gray-700 mb-4">
-            All API endpoints require authentication using JWT tokens. Include your token in the Authorization header:
-          </p>
-          <pre className="bg-gray-100 p-4 rounded-lg text-sm">
-            <code>Authorization: Bearer YOUR_API_TOKEN</code>
-          </pre>
-        </div>
-
-        {/* Rate Limiting */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Rate Limiting</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-2">Free Tier</h3>
-              <p className="text-sm text-gray-600">100 requests/hour</p>
-            </div>
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-2">Pro Tier</h3>
-              <p className="text-sm text-gray-600">1000 requests/hour</p>
-            </div>
-            <div className="border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-2">Enterprise</h3>
-              <p className="text-sm text-gray-600">Unlimited</p>
-            </div>
+      {/* Integration Examples */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Integration Examples</h2>
+        
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">REST API Example</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+              <code>{integrationExamples.rest}</code>
+            </pre>
           </div>
-        </div>
 
-        {/* Support */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-md p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
-          <p className="mb-4">
-            Our team is here to help you integrate your AI agent with China Hui B2B platform.
-          </p>
-          <div className="flex gap-4">
-            <Link 
-              href="/contact" 
-              className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Contact Support
-            </Link>
-            <a 
-              href="mailto:api-support@x2xhub.com" 
-              className="inline-block border-2 border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
-            >
-              Email Us
-            </a>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">MCP (Model Context Protocol) Example</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+              <code>{integrationExamples.mcp}</code>
+            </pre>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">CLI Tool Example</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+              <code>{integrationExamples.cli}</code>
+            </pre>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">WebSocket Real-time Chat Example</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+              <code>{integrationExamples.websocket}</code>
+            </pre>
           </div>
         </div>
       </div>
-      
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-bold mb-2">SeaHeart Global | 心海环球</h3>
-              <p className="text-sm text-gray-400">
-                Your gateway to global B2B trade exhibitions
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">Quick Links</h3>
-              <ul className="space-y-1 text-sm text-gray-400">
-                <li><Link href="/about" className="hover:text-white">About Us</Link></li>
-                <li><Link href="/rules" className="hover:text-white">Exhibition Rules</Link></li>
-                <li><Link href="/help" className="hover:text-white">Help Center</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">Contact</h3>
-              <p className="text-sm text-gray-400 mb-2">
-                Email: support@x2xhub.com
-              </p>
-              <p className="text-sm text-gray-400 mb-4">
-                Skype: aardenx@outlook.com
-              </p>
-              <div className="flex space-x-3">
-                <a 
-                  href="skype:aardenx@outlook.com?chat"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
-                  title="Skype"
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.84 13.58c-.28.28-.66.44-1.07.44h-1.29c-.41 0-.79-.16-1.07-.44l-1.41-1.41c-.28-.28-.44-.66-.44-1.07v-1.29c0-.41.16-.79.44-1.07l1.41-1.41c.28-.28.66-.44 1.07-.44h1.29c.41 0 .79.16 1.07.44l1.41 1.41c.28.28.44.66.44 1.07v1.29c0 .41-.16.79-.44 1.07l-1.41 1.41zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
-                  </svg>
-                </a>
-              </div>
-            </div>
+
+      {/* Authentication */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication</h2>
+        <p className="text-gray-700 mb-4">
+          All API endpoints require authentication using JWT tokens. Include your token in the Authorization header:
+        </p>
+        <pre className="bg-gray-100 p-4 rounded-lg text-sm">
+          <code>Authorization: Bearer YOUR_API_TOKEN</code>
+        </pre>
+      </div>
+
+      {/* Rate Limiting */}
+      <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Rate Limiting</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Free Tier</h3>
+            <p className="text-sm text-gray-600">100 requests/hour</p>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2026 SeaHeart Global. All rights reserved.
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Pro Tier</h3>
+            <p className="text-sm text-gray-600">1000 requests/hour</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Enterprise</h3>
+            <p className="text-sm text-gray-600">Unlimited</p>
           </div>
         </div>
-      </footer>
+      </div>
+
+      {/* Support */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-md p-8 text-white">
+        <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
+        <p className="mb-4">
+          Our team is here to help you integrate your AI agent with China Hui B2B platform.
+        </p>
+        <div className="flex gap-4 flex-wrap">
+          <Link 
+            href="/contact" 
+            className="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
+            Contact Support
+          </Link>
+          <a 
+            href="mailto:api-support@x2xhub.com" 
+            className="inline-block border-2 border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+          >
+            Email Us
+          </a>
+        </div>
+      </div>
     </div>
   )
 }
