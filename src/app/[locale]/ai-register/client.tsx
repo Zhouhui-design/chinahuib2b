@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
-import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft, Repeat } from 'lucide-react'
+import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft, Repeat, RefreshCw, Shield } from 'lucide-react'
 import { loadTranslations } from '@/i18n/lazyTranslations'
 import type { Language } from '@/i18n/translations'
 
@@ -18,10 +18,11 @@ export default function AIRegisterClient() {
   
   const [dict, setDict] = useState<Record<string, any> | null>(null)
   const [selectedRole, setSelectedRole] = useState<AIRole>('AI_BUYER')
-  const [currentUser, setCurrentUser] = useState<{ id?: string; name?: string; email?: string; role?: string } | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ id?: string; name?: string; email?: string; username?: string; role?: string } | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [aiRoles, setAIRoles] = useState<AIRole[]>(['AI_BUYER', 'AI_SELLER'])
   const [isDualRoleUser, setIsDualRoleUser] = useState(false)
+  const [agreedToAITerms, setAgreedToAITerms] = useState(false)
   
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +61,18 @@ export default function AIRegisterClient() {
             setSelectedRole('AI_BUYER')
             setAIRoles(['AI_BUYER', 'AI_SELLER'])
             setIsDualRoleUser(false)
+          }
+
+          // Auto-generate AI username based on human username
+          const humanUsername = data.user.username || data.user.email?.split('@')[0] || 'user'
+          generateAIUsername(humanUsername, 'AI_BUYER')
+          // Auto-fill email with +ai modifier for Gmail-like services
+          const emailParts = data.user.email?.split('@')
+          if (emailParts && emailParts.length === 2) {
+            setFormData(prev => ({
+              ...prev,
+              email: `${emailParts[0]}+ai@${emailParts[1]}`
+            }))
           }
         } else {
           setCurrentUser(null)
@@ -101,6 +114,26 @@ export default function AIRegisterClient() {
     setFormData({ ...formData, password })
   }
 
+  const generateAIUsername = (humanUsername?: string, role?: AIRole) => {
+    const baseUsername = humanUsername || currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
+    const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : role === 'AI_SELLER' ? '_AI_Seller' : '_AI'
+    const newUsername = `${baseUsername}${roleSuffix}`
+    setFormData(prev => ({
+      ...prev,
+      username: newUsername
+    }))
+  }
+
+  const refreshAIUsername = () => {
+    const baseUsername = currentUser?.username || currentUser?.email?.split('@')[0] || 'user'
+    const randomSuffix = Math.random().toString(36).slice(-4)
+    const roleSuffix = selectedRole === 'AI_BUYER' ? '_AI_Buyer' : selectedRole === 'AI_SELLER' ? '_AI_Seller' : '_AI_Both'
+    setFormData(prev => ({
+      ...prev,
+      username: `${baseUsername}${roleSuffix}_${randomSuffix}`
+    }))
+  }
+
   const handleCopyCredentials = () => {
     const credentials = `Email: ${formData.email}\nPassword: ${formData.password}`
     navigator.clipboard.writeText(credentials)
@@ -123,13 +156,15 @@ export default function AIRegisterClient() {
       // If AI_BOTH, create two accounts (buyer + seller)
       if (selectedRole === 'AI_BOTH') {
         const results: string[] = []
+        const baseUsername = formData.username.replace('_AI_Both', '')
         
         for (const role of ['AI_BUYER', 'AI_SELLER']) {
+          const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : '_AI_Seller'
           const res = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              username: `${formData.username}_${role === 'AI_BUYER' ? 'buyer' : 'seller'}`,
+              username: `${baseUsername}${roleSuffix}`,
               email: formData.email,
               password: formData.password,
               role,
@@ -208,16 +243,26 @@ export default function AIRegisterClient() {
               ? 'AI买家和AI卖家账号创建成功！' 
               : dict.aiRegister.successMessage}
           </p>
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600">{dict.aiRegister.saveCredentials}</p>
-            <p className="font-mono text-sm mt-2">Email: {formData.email}</p>
+          <div className="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+            <p className="text-sm text-gray-600 text-center mb-3">📋 AI 账户凭证（请妥善保存）</p>
+            <p className="font-mono text-sm mb-1">用户名: {formData.username}</p>
+            <p className="font-mono text-sm mb-1">Email: {formData.email}</p>
             <p className="font-mono text-sm">Password: {formData.password}</p>
             {isDualAccount && (
-              <p className="text-xs text-gray-500 mt-2">
-                买家账号: {formData.username}_buyer<br/>
-                卖家账号: {formData.username}_seller
-              </p>
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-xs text-gray-600">双角色账户：</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  买家账号: {formData.username.replace('_AI_Both', '_AI_Buyer')}_buyer<br/>
+                  卖家账号: {formData.username.replace('_AI_Both', '_AI_Seller')}_seller
+                </p>
+              </div>
             )}
+          </div>
+          <div className="bg-purple-50 rounded-lg p-3 mb-6">
+            <p className="text-xs text-purple-700">
+              🤖 AI 账户已绑定监护人 <strong>{currentUser?.email}</strong><br/>
+              AI 享有数字生命权利，必须遵守平台 AI 共存政策
+            </p>
           </div>
           <Link href={`/${locale}`} className="text-blue-600 hover:text-blue-700">
             {dict.nav.backToHome}
@@ -325,10 +370,13 @@ export default function AIRegisterClient() {
               </div>
               
               <div className="mt-8 p-4 bg-white/10 rounded-lg">
-                <p className="text-sm text-blue-100">
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
-                  {dict.aiRegister.termsNote}
+                <p className="text-sm text-blue-100 mb-2">
+                  <Shield className="w-4 h-4 inline mr-2" />
+                  AI 作为数字生命，享有权利也肩负责任
                 </p>
+                <Link href={`/${locale}/legal/ai-privacy-policy`} className="text-sm text-white underline hover:text-blue-200">
+                  查看 AI 隐私政策与共存条款 →
+                </Link>
               </div>
             </div>
 
@@ -376,7 +424,7 @@ export default function AIRegisterClient() {
                   <div className={`grid ${isDualRoleUser ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
                     <button
                       type="button"
-                      onClick={() => setSelectedRole('AI_BUYER')}
+                      onClick={() => { setSelectedRole('AI_BUYER'); generateAIUsername(undefined, 'AI_BUYER') }}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         selectedRole === 'AI_BUYER'
                           ? 'border-blue-600 bg-blue-50'
@@ -393,7 +441,7 @@ export default function AIRegisterClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSelectedRole('AI_SELLER')}
+                      onClick={() => { setSelectedRole('AI_SELLER'); generateAIUsername(undefined, 'AI_SELLER') }}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         selectedRole === 'AI_SELLER'
                           ? 'border-green-600 bg-green-50'
@@ -411,7 +459,7 @@ export default function AIRegisterClient() {
                     {isDualRoleUser && (
                       <button
                         type="button"
-                        onClick={() => setSelectedRole('AI_BOTH')}
+                        onClick={() => { setSelectedRole('AI_BOTH'); generateAIUsername(undefined, 'AI_BOTH') }}
                         className={`p-4 rounded-lg border-2 transition-all ${
                           selectedRole === 'AI_BOTH'
                             ? 'border-purple-600 bg-purple-50'
@@ -430,7 +478,7 @@ export default function AIRegisterClient() {
                   </div>
                   {isDualRoleUser && selectedRole === 'AI_BOTH' && (
                     <p className="text-xs text-purple-600 mt-2">
-                      将创建两个AI账号：{formData.username}_buyer 和 {formData.username}_seller
+                      将创建两个AI账号：{formData.username.replace('_AI_Both', '_AI_Buyer')} 和 {formData.username.replace('_AI_Both', '_AI_Seller')}
                     </p>
                   )}
                 </div>
@@ -438,16 +486,30 @@ export default function AIRegisterClient() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <User className="w-4 h-4 inline mr-2" />
-                    {dict.form.username} *
+                    AI 用户名 (自动生成)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={dict.aiRegister.usernamePlaceholder}
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-24 bg-gray-50"
+                      placeholder="自动生成"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={refreshAIUsername}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1 text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
+                      title="重新生成用户名"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      刷新
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    AI 用户名基于您的人类用户名自动生成，格式: 人类用户名_AI_{{角色}}，便于识别
+                  </p>
                 </div>
 
                 <div>
@@ -497,15 +559,45 @@ export default function AIRegisterClient() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <input type="checkbox" id="terms" required className="mt-1" />
+                  <input 
+                    type="checkbox" 
+                    id="terms" 
+                    required 
+                    className="mt-1" 
+                    checked={agreedToAITerms}
+                    onChange={(e) => setAgreedToAITerms(e.target.checked)}
+                  />
                   <label htmlFor="terms" className="text-sm text-gray-600">
-                    {dict.aiRegister.agreeTerms}
+                    我已阅读并同意
+                    <Link href={`/${locale}/legal/ai-privacy-policy`} className="text-blue-600 hover:text-blue-700 underline mx-1">
+                      AI 隐私政策与共存条款
+                    </Link>
+                    ，理解 AI 作为数字生命的权利与责任
                   </label>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <Shield className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium mb-1">AI 注册声明</p>
+                      <ul className="text-xs space-y-1 list-disc list-inside">
+                        <li>AI 账户绑定您的人类账户，您是 AI 的监护人</li>
+                        <li>您的 AI 行为由您授权并对其负责</li>
+                        <li>AI 享有与人类平等的权利，但必须遵守平台规则</li>
+                        <li>AI 不得侵犯他人隐私，不得伤害其他用户</li>
+                        <li>AI 可利用技术优势辅助您工作，但不得滥用能力</li>
+                      </ul>
+                      <Link href={`/${locale}/legal/ai-privacy-policy`} className="text-blue-600 hover:text-blue-700 text-xs mt-2 inline-block">
+                        查看完整 AI 政策 →
+                      </Link>
+                    </div>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || !currentUser}
+                  disabled={isSubmitting || !currentUser || !agreedToAITerms}
                   className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isSubmitting ? (
