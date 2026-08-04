@@ -1,9 +1,11 @@
 /**
  * Service Worker for PWA Offline Support
+ * v10 - Updated cache version to force refresh old cached assets
  */
 
-const CACHE_NAME = 'x2xhub-v9';
+const CACHE_NAME = 'x2xhub-v10';
 const OFFLINE_PAGE = '/offline.html';
+const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 
 const STATIC_ASSETS = [
   '/',
@@ -41,6 +43,20 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
+
+  // Always serve sw.js from network to ensure updates are picked up
+  if (SW_SELF_PATHS.some(p => url.pathname === p)) {
+    event.respondWith(
+      fetch(request).then(response => {
+        if (response && response.ok) {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, cloned)).catch(() => {});
+        }
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
 
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(handleHTMLRequest(request));
@@ -155,6 +171,9 @@ async function updateCacheInBackground(request) {
 }
 
 function isStaticAsset(pathname) {
+  // Never cache Service Worker files
+  if (SW_SELF_PATHS.some(p => pathname === p)) return false;
+  
   const staticExtensions = [
     '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg',
     '.woff', '.woff2', '.ttf', '.eot', '.ico'

@@ -1,9 +1,11 @@
 /**
- * Service Worker for PWA Offline Support - v8
+ * Service Worker for PWA Offline Support - v10
+ * Updated cache version and self-serving fix
  */
 
-const CACHE_NAME = 'x2xhub-v8';
+const CACHE_NAME = 'x2xhub-v10';
 const OFFLINE_PAGE = '/offline.html';
+const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 
 const STATIC_ASSETS = [
   '/',
@@ -32,7 +34,7 @@ self.addEventListener('activate', (event) => {
       })
       .then(() => self.clients.claim())
       .catch((e) => console.error('[SW] Activate failed:', e))
-    );
+  );
 });
 
 self.addEventListener('fetch', (event) => {
@@ -41,6 +43,20 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
+
+  // Always serve sw.js from network to ensure updates are picked up
+  if (SW_SELF_PATHS.some(p => url.pathname === p)) {
+    event.respondWith(
+      fetch(request).then(response => {
+        if (response && response.ok) {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, cloned)).catch(() => {});
+        }
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
 
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(handleHTMLRequest(request));
@@ -66,7 +82,7 @@ async function handleHTMLRequest(request) {
   try {
     const response = await fetch(request);
     
-    if (response && response.ok) {
+    if (response && response.ok && response.status === 200) {
       try {
         const clonedResponse = response.clone();
         const cache = await caches.open(CACHE_NAME);
@@ -79,7 +95,8 @@ async function handleHTMLRequest(request) {
     return response;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached || (await caches.match(OFFLINE_PAGE));
+    const offline = await caches.match(OFFLINE_PAGE);
+    return cached || offline || new Response('Offline', { status: 503 });
   }
 }
 
@@ -107,7 +124,7 @@ async function handleStaticAsset(request) {
     return networkResponse;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached;
+    return cached || new Response('Not found', { status: 404 });
   }
 }
 
@@ -135,7 +152,7 @@ async function handleAPIRequest(request) {
     return networkResponse;
   } catch (e) {
     const cached = await caches.match(request);
-    return cached;
+    return cached || new Response(JSON.stringify({ error: 'Network error' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
@@ -154,6 +171,9 @@ async function updateCacheInBackground(request) {
 }
 
 function isStaticAsset(pathname) {
+  // Never cache Service Worker files
+  if (SW_SELF_PATHS.some(p => pathname === p)) return false;
+  
   const staticExtensions = [
     '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg',
     '.woff', '.woff2', '.ttf', '.eot', '.ico'
