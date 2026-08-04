@@ -397,7 +397,7 @@ export default function AIRegisterClient() {
             <div className="flex items-center space-x-4">
               {currentUser ? (
                 <span className="text-gray-600">
-                  {dict.aiRegister.loggedInAs}: {currentUser.email}
+                  {dict?.aiRegister?.loggedInAs || FALLBACK_AI_REGISTER.loggedInAs}: {currentUser.email}
                 </span>
               ) : (
                 <Link href={`/${locale}/auth/login`} className="text-gray-600 hover:text-blue-600 flex items-center">

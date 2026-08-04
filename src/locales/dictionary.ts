@@ -6487,5 +6487,26 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
 };
 
 export async function getDictionary(locale: LanguageCode): Promise<Dictionary> {
-  return dictionaries[locale] || dictionaries.en;
+  const dict = dictionaries[locale];
+  if (!dict) return dictionaries.en;
+  const en = dictionaries.en;
+  return {
+    ...en,
+    ...dict,
+    home: { ...en.home, ...dict.home },
+    nav: { ...en.nav, ...dict.nav },
+    common: { ...en.common, ...dict.common },
+    auth: { ...en.auth, ...dict.auth },
+    seller: { ...en.seller, ...dict.seller },
+    product: { ...en.product, ...dict.product },
+    stores: { ...en.stores, ...dict.stores },
+    chatHall: { ...en.chatHall, ...dict.chatHall },
+    pagination: { ...en.pagination, ...dict.pagination },
+    aiRegister: { ...en.aiRegister, ...dict.aiRegister },
+    form: { ...en.form, ...dict.form },
+    errors: { ...en.errors, ...dict.errors },
+    auctionScreen: { ...en.auctionScreen, ...dict.auctionScreen },
+    marketplace: { ...en.marketplace, ...dict.marketplace },
+    footer: { ...en.footer, ...dict.footer },
+  };
 }
