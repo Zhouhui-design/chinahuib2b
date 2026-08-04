@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft, Repeat, RefreshCw, Shield } from 'lucide-react'
-import { loadTranslations } from '@/i18n/lazyTranslations'
-import type { Language } from '@/i18n/translations'
+import { getDictionary } from '@/locales/dictionary'
+import type { LanguageCode } from '@/lib/languages'
 
 // AI role options based on user role
 type AIRole = 'AI_BUYER' | 'AI_SELLER' | 'AI_BOTH'
@@ -14,7 +14,7 @@ export default function AIRegisterClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const params = useParams()
-  const locale = (params?.locale as Language) || 'en'
+  const locale = (params?.locale as LanguageCode) || 'en'
   
   const [dict, setDict] = useState<Record<string, any> | null>(null)
   const [selectedRole, setSelectedRole] = useState<AIRole>('AI_BUYER')
@@ -63,17 +63,26 @@ export default function AIRegisterClient() {
     setFormData({ ...formData, password })
   }
 
-  const handleCopyCredentials = () => {
+  const handleCopyCredentials = useCallback(() => {
     const credentials = `Email: ${formData.email}\nPassword: ${formData.password}`
-    navigator.clipboard.writeText(credentials)
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(credentials).catch(() => {
+        console.warn('Clipboard write failed')
+      })
+    }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
+  }, [formData.email, formData.password])
 
   useEffect(() => {
     const fetchData = async () => {
-      const dictionary = await loadTranslations(locale)
-      setDict(dictionary)
+      try {
+        const dictionary = await getDictionary(locale as LanguageCode)
+        setDict(dictionary)
+      } catch (err) {
+        console.error('Failed to load dictionary:', err)
+        setDict({} as any)
+      }
     }
     fetchData()
   }, [locale])
@@ -96,12 +105,15 @@ export default function AIRegisterClient() {
           const userRole = data.user.role || 'BUYER'
           setCurrentUser(data.user)
           
-          // Set default AI role based on user's human role
+          // Determine AI role based on user's human role
+          let aiRole: AIRole = 'AI_BUYER'
           if (userRole === 'SELLER') {
+            aiRole = 'AI_SELLER'
             setSelectedRole('AI_SELLER')
             setAIRoles(['AI_BUYER', 'AI_SELLER', 'AI_BOTH'])
             setIsDualRoleUser(true)
           } else if (userRole === 'BUYER') {
+            aiRole = 'AI_BUYER'
             setSelectedRole('AI_BUYER')
             setAIRoles(['AI_BUYER', 'AI_SELLER'])
             setIsDualRoleUser(false)
@@ -109,16 +121,17 @@ export default function AIRegisterClient() {
 
           // Auto-generate AI username based on human username
           const humanUsername = data.user.username || data.user.email?.split('@')[0] || 'user'
-          generateAIUsername(humanUsername, selectedRole)
+          const roleSuffix = aiRole === 'AI_BUYER' ? '_AI_Buyer' : aiRole === 'AI_SELLER' ? '_AI_Seller' : '_AI'
+          setFormData(prev => ({
+            ...prev,
+            username: `${humanUsername}${roleSuffix}`
+          }))
           
-          // Auto-fill email with +ai modifier
-          const emailParts = data.user.email?.split('@')
-          if (emailParts && emailParts.length === 2) {
-            setFormData(prev => ({
-              ...prev,
-              email: `${emailParts[0]}+ai@${emailParts[1]}`
-            }))
-          }
+          // Auto-fill email with guardian's email (can be modified)
+          setFormData(prev => ({
+            ...prev,
+            email: data.user.email || ''
+          }))
         } else {
           setCurrentUser(null)
         }
@@ -133,10 +146,14 @@ export default function AIRegisterClient() {
     fetchSession()
 
     const handleFocus = () => fetchSession()
-    window.addEventListener('focus', handleFocus)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', handleFocus)
+    }
 
     return () => {
-      window.removeEventListener('focus', handleFocus)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', handleFocus)
+      }
     }
   }, [])
 
@@ -507,7 +524,7 @@ export default function AIRegisterClient() {
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    AI 用户名基于您的人类用户名自动生成，格式: 人类用户名_AI_{{角色}}，便于识别
+                    AI 用户名基于您的人类用户名自动生成，格式: 人类用户名_AI_角色，便于识别
                   </p>
                 </div>
 
