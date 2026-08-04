@@ -205,19 +205,12 @@ export default function AIRegisterClient() {
             username: `${humanUsername}${roleSuffix}`
           }))
           
-          // Auto-fill email based on guardian's email with +ai modifier for uniqueness
-          const emailParts = data.user.email?.split('@')
-          if (emailParts && emailParts.length === 2) {
-            setFormData(prev => ({
-              ...prev,
-              email: `${emailParts[0]}+ai@${emailParts[1]}`
-            }))
-          } else {
-            setFormData(prev => ({
-              ...prev,
-              email: data.user.email || ''
-            }))
-          }
+          // Auto-fill email with guardian's email (same email, no +ai suffix needed)
+          // AI accounts share the guardian's email, distinguished by isAI flag in DB
+          setFormData(prev => ({
+            ...prev,
+            email: data.user.email || ''
+          }))
         } else {
           setCurrentUser(null)
         }
@@ -230,17 +223,6 @@ export default function AIRegisterClient() {
     }
 
     fetchSession()
-
-    const handleFocus = () => fetchSession()
-    if (typeof window !== 'undefined') {
-      window.addEventListener('focus', handleFocus)
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('focus', handleFocus)
-      }
-    }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -255,28 +237,20 @@ export default function AIRegisterClient() {
     }
 
     try {
-      // If AI_BOTH, create two accounts (buyer + seller)
+      // If AI_BOTH, create two accounts (buyer + seller) using same guardian email
       if (selectedRole === 'AI_BOTH') {
         const results: string[] = []
         const baseUsername = formData.username.replace('_AI_Both', '')
-        const emailParts = formData.email.split('@')
-        
-        if (emailParts.length !== 2) {
-          setError('邮箱格式不正确')
-          setIsSubmitting(false)
-          return
-        }
         
         for (const role of ['AI_BUYER', 'AI_SELLER']) {
           const roleSuffix = role === 'AI_BUYER' ? '_AI_Buyer' : '_AI_Seller'
-          const newEmail = `${emailParts[0]}${role === 'AI_BUYER' ? '+ai_buyer' : '+ai_seller'}@${emailParts[1]}`
           
           const res = await fetch('/api/accounts/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               username: `${baseUsername}${roleSuffix}`,
-              email: newEmail,
+              email: formData.email,
               password: formData.password,
               role,
               isAI: true,
@@ -637,7 +611,7 @@ export default function AIRegisterClient() {
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    AI邮箱基于您的监护人邮箱自动生成 (格式: 用户名+ai@域名)，可自由修改
+                    AI 邮箱默认等于监护人的邮箱，可自由修改为其他邮箱
                   </p>
                 </div>
 

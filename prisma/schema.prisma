@@ -8,7 +8,7 @@ datasource db {
 
 model User {
   id                         String                      @id @default(cuid())
-  email                      String                      @unique
+  email                      String
   username                   String                      @unique
   password                   String
   role                       UserRole                    @default(BUYER)
@@ -83,6 +83,7 @@ model User {
   reviews                    Review[]
   reviewHelpfulVotes         ReviewHelpfulVote[]
 
+  @@unique([email, isAI, role])
   @@index([email])
   @@index([lastLoginAt])
   @@index([role])

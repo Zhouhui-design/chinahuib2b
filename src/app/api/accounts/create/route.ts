@@ -14,15 +14,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists
-    const existingEmail = await prisma.user.findUnique({
-      where: { email }
-    })
-    if (existingEmail) {
-      return NextResponse.json(
-        { success: false, error: 'Email already registered' },
-        { status: 400 }
-      )
+    // Check if email already exists for human accounts
+    // AI accounts can share the same email as their guardian
+    if (!isAI) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email }
+      })
+      if (existingEmail) {
+        return NextResponse.json(
+          { success: false, error: 'Email already registered' },
+          { status: 400 }
+        )
+      }
+    } else {
+      // For AI accounts, check composite uniqueness: (email, isAI, role)
+      // This allows AI accounts to share the same email as their human guardian
+      // but prevents duplicate AI accounts with same email, isAI, and role
+      const existingAI = await prisma.user.findFirst({
+        where: {
+          email,
+          isAI: true,
+          role: requestedRole as string
+        }
+      })
+      if (existingAI) {
+        return NextResponse.json(
+          { success: false, error: 'You already have an AI account with this email and role' },
+          { status: 400 }
+        )
+      }
     }
 
     // Check if username already exists
