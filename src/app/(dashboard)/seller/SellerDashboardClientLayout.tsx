@@ -23,7 +23,9 @@ export default function SellerDashboardClientLayout({
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
-  const { data: session } = useSession()
+  // useSession may return undefined if SessionProvider is not yet loaded
+  const sessionResult = useSession()
+  const session = sessionResult?.data
   const [showQuickMenu, setShowQuickMenu] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
