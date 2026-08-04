@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
-import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft } from 'lucide-react'
+import { Bot, Mail, Lock, User, CheckCircle, AlertCircle, Eye, EyeOff, Copy, Sparkles, LogIn, ArrowLeft, Repeat } from 'lucide-react'
 import { loadTranslations } from '@/i18n/lazyTranslations'
 import type { Language } from '@/i18n/translations'
+
+// AI role options based on user role
+type AIRole = 'AI_BUYER' | 'AI_SELLER' | 'AI_BOTH'
 
 export default function AIRegisterClient() {
   const router = useRouter()
@@ -14,9 +17,11 @@ export default function AIRegisterClient() {
   const locale = (params?.locale as Language) || 'en'
   
   const [dict, setDict] = useState<Record<string, any> | null>(null)
-  const [selectedRole, setSelectedRole] = useState('AI_BUYER')
+  const [selectedRole, setSelectedRole] = useState<AIRole>('AI_BUYER')
   const [currentUser, setCurrentUser] = useState<{ id?: string; name?: string; email?: string; role?: string } | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [aiRoles, setAIRoles] = useState<AIRole[]>(['AI_BUYER', 'AI_SELLER'])
+  const [isDualRoleUser, setIsDualRoleUser] = useState(false)
   
   useEffect(() => {
     const fetchData = async () => {
@@ -29,8 +34,8 @@ export default function AIRegisterClient() {
   useEffect(() => {
     if (searchParams) {
       const role = searchParams.get('role')
-      if (role) {
-        setSelectedRole(role)
+      if (role && ['AI_BUYER', 'AI_SELLER'].includes(role)) {
+        setSelectedRole(role as AIRole)
       }
     }
   }, [searchParams])
@@ -41,7 +46,21 @@ export default function AIRegisterClient() {
         const res = await fetch('/api/auth/session')
         const data = await res.json()
         if (data?.user) {
+          const userRole = data.user.role || 'BUYER'
           setCurrentUser(data.user)
+          
+          // Set default AI role based on user's human role
+          if (userRole === 'SELLER') {
+            // Seller or dual-role user: default to AI_SELLER, show all 3 options
+            setSelectedRole('AI_SELLER')
+            setAIRoles(['AI_BUYER', 'AI_SELLER', 'AI_BOTH'])
+            setIsDualRoleUser(true)
+          } else if (userRole === 'BUYER') {
+            // Buyer: default to AI_BUYER, show 2 options
+            setSelectedRole('AI_BUYER')
+            setAIRoles(['AI_BUYER', 'AI_SELLER'])
+            setIsDualRoleUser(false)
+          }
         } else {
           setCurrentUser(null)
         }
@@ -101,27 +120,64 @@ export default function AIRegisterClient() {
     }
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          role: selectedRole,
-          isAI: true,
-          ownerId: currentUser.id
-        })
-      })
+      // If AI_BOTH, create two accounts (buyer + seller)
+      if (selectedRole === 'AI_BOTH') {
+        const results: string[] = []
+        
+        for (const role of ['AI_BUYER', 'AI_SELLER']) {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: `${formData.username}_${role === 'AI_BUYER' ? 'buyer' : 'seller'}`,
+              email: formData.email,
+              password: formData.password,
+              role,
+              isAI: true,
+              ownerId: currentUser.id
+            })
+          })
 
-      if (res.ok) {
-        setSuccess(true)
-        setTimeout(() => {
-          router.push(`/${locale}`)
-        }, 3000)
+          if (res.ok) {
+            results.push(role)
+          } else {
+            const data = await res.json()
+            setError(data.error || `创建${role === 'AI_BUYER' ? 'AI买家' : 'AI卖家'}账号失败`)
+            setIsSubmitting(false)
+            return
+          }
+        }
+
+        if (results.length === 2) {
+          setSuccess(true)
+          setTimeout(() => {
+            router.push(`/${locale}`)
+          }, 3000)
+        }
       } else {
-        const data = await res.json()
-        setError(data.error || dict?.errors.registerFailed || '注册失败，请重试')
+        // Single AI account creation
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            role: selectedRole,
+            isAI: true,
+            ownerId: currentUser.id
+          })
+        })
+
+        if (res.ok) {
+          setSuccess(true)
+          setTimeout(() => {
+            router.push(`/${locale}`)
+          }, 3000)
+        } else {
+          const data = await res.json()
+          setError(data.error || dict?.errors.registerFailed || '注册失败，请重试')
+        }
       }
     } catch (error) {
       setError(dict?.errors.networkError || '网络错误，请重试')
@@ -139,6 +195,7 @@ export default function AIRegisterClient() {
   }
 
   if (success) {
+    const isDualAccount = selectedRole === 'AI_BOTH'
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
@@ -146,11 +203,21 @@ export default function AIRegisterClient() {
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{dict.aiRegister.successTitle}</h2>
-          <p className="text-gray-600 mb-6">{dict.aiRegister.successMessage}</p>
+          <p className="text-gray-600 mb-6">
+            {isDualAccount 
+              ? 'AI买家和AI卖家账号创建成功！' 
+              : dict.aiRegister.successMessage}
+          </p>
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600">{dict.aiRegister.saveCredentials}</p>
             <p className="font-mono text-sm mt-2">Email: {formData.email}</p>
             <p className="font-mono text-sm">Password: {formData.password}</p>
+            {isDualAccount && (
+              <p className="text-xs text-gray-500 mt-2">
+                买家账号: {formData.username}_buyer<br/>
+                卖家账号: {formData.username}_seller
+              </p>
+            )}
           </div>
           <Link href={`/${locale}`} className="text-blue-600 hover:text-blue-700">
             {dict.nav.backToHome}
@@ -306,7 +373,7 @@ export default function AIRegisterClient() {
                     <User className="w-4 h-4 inline mr-2" />
                     {dict.aiRegister.selectRole}
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className={`grid ${isDualRoleUser ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
                     <button
                       type="button"
                       onClick={() => setSelectedRole('AI_BUYER')}
@@ -341,7 +408,31 @@ export default function AIRegisterClient() {
                       <p className="font-semibold text-gray-900">{dict.aiRegister.aiSeller}</p>
                       <p className="text-xs text-gray-500 mt-1">{dict.aiRegister.aiSellerDesc}</p>
                     </button>
+                    {isDualRoleUser && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('AI_BOTH')}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          selectedRole === 'AI_BOTH'
+                            ? 'border-purple-600 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                          selectedRole === 'AI_BOTH' ? 'bg-purple-600' : 'bg-gray-200'
+                        }`}>
+                          <Repeat className="w-4 h-4 text-white" />
+                        </div>
+                        <p className="font-semibold text-gray-900">AI 双重身份</p>
+                        <p className="text-xs text-gray-500 mt-1">同时创建买家+卖家</p>
+                      </button>
+                    )}
                   </div>
+                  {isDualRoleUser && selectedRole === 'AI_BOTH' && (
+                    <p className="text-xs text-purple-600 mt-2">
+                      将创建两个AI账号：{formData.username}_buyer 和 {formData.username}_seller
+                    </p>
+                  )}
                 </div>
 
                 <div>

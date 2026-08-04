@@ -6,7 +6,7 @@ import crypto from 'crypto'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { username, email, password, isAI = false, ownerId = null } = body
+    const { username, email, password, isAI = false, ownerId = null, role: requestedRole } = body
 
     if (!username || !email || !password) {
       return NextResponse.json(
@@ -44,7 +44,15 @@ export async function POST(request: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex')
 
     // Determine role based on AI type
-    const role = isAI ? 'AI_BUYER' as const : 'BUYER' as const
+    let role: string
+    if (isAI) {
+      // Use the requested role if valid, default to AI_BUYER
+      const validAIRoles = ['AI_BUYER', 'AI_SELLER', 'AI_ASSISTANT']
+      role = validAIRoles.includes(requestedRole) ? requestedRole : 'AI_BUYER'
+    } else {
+      // Human account registration uses the /api/register route with BOTH logic
+      role = 'BUYER'
+    }
 
     // Create user
     const user = await prisma.user.create({
@@ -52,7 +60,7 @@ export async function POST(request: NextRequest) {
         username,
         email,
         password: hashedPassword,
-        role,
+        role: role as any,
         isActive: !isAI, // AI accounts are active by default, human accounts need verification
         emailVerificationToken: !isAI ? verificationToken : null,
         emailVerified: isAI,
@@ -71,7 +79,7 @@ export async function POST(request: NextRequest) {
         isAI: user.isAI,
         ownerId: user.ownerId,
         message: isAI 
-          ? 'AI account created successfully. You can now login.' 
+          ? `AI ${role.replace('AI_', '').toLowerCase()} account created successfully. You can now login.` 
           : 'Account created. Please check your email for verification.'
       }
     })
