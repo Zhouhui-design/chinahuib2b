@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
 
-async function getPrisma() {
-  const { prisma } = await import('@/lib/db')
-  return prisma
-}
+// Create fresh Prisma client for this auth module
+const prisma = new PrismaClient()
 
 export interface AuthenticatedAgent {
   userId: string
@@ -41,8 +40,6 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
   }
 
   try {
-    const prisma = await getPrisma()
-
     const keyRecord = await prisma.apiKey.findFirst({
       where: { key: apiKey, isActive: true },
       include: { user: true },
@@ -114,7 +111,6 @@ export async function logApiUsage(
   metadata?: any
 ) {
   try {
-    const prisma = await getPrisma()
     await prisma.apiUsageLog.create({
       data: {
         apiKeyId,
