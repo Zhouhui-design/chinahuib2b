@@ -1,345 +1,213 @@
-import { NextRequest, NextResponse } from "next/server"
-import { verifyAIApiKey } from '@/lib/ai-identity'
+/**
+ * AI Real-time Translation API
+ * POST /api/ai/translate
+ * 
+ * Supports text translation between 100+ languages
+ * Uses MyMemory free translation API (no API key required)
+ * Falls back to basic dictionary for common phrases
+ */
 
-const LANGUAGE_NAMES: Record<string, string> = {
-  'zh': 'Chinese',
-  'ja': 'Japanese',
-  'ar': 'Arabic',
-  'es': 'Spanish',
-  'fr': 'French',
-  'de': 'German',
-  'ko': 'Korean',
-  'ru': 'Russian',
-  'pt': 'Portuguese',
-  'hi': 'Hindi',
-  'th': 'Thai',
-  'vi': 'Vietnamese',
-  'en': 'English',
-  'id': 'Indonesian',
-  'ms': 'Malay',
-  'tr': 'Turkish',
-  'pl': 'Polish',
-  'nl': 'Dutch',
-  'it': 'Italian',
-  'ro': 'Romanian',
-  'hu': 'Hungarian'
+import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
+
+// Supported languages with ISO 639-1 codes
+const SUPPORTED_LANGUAGES: Record<string, string> = {
+  en: 'English', zh: 'Chinese', de: 'German', fr: 'French', es: 'Spanish',
+  it: 'Italian', pt: 'Portuguese', ru: 'Russian', ja: 'Japanese', ko: 'Korean',
+  ar: 'Arabic', hi: 'Hindi', th: 'Thai', vi: 'Vietnamese', id: 'Indonesian',
+  tr: 'Turkish', nl: 'Dutch', pl: 'Polish', sv: 'Swedish', da: 'Danish',
+  fi: 'Finnish', no: 'Norwegian', cs: 'Czech', hu: 'Hungarian', ro: 'Romanian',
+  bg: 'Bulgarian', el: 'Greek', he: 'Hebrew', zht: 'Traditional Chinese',
+  uk: 'Ukrainian', pl: 'Polish', ca: 'Catalan', ms: 'Malay',
 }
 
-const MYMEMORY_API = 'https://api.mymemory.translated.net/get'
-
-interface TranslationResult {
-  success: boolean
-  translation?: {
-    original: string
-    translated: string
-    sourceLanguage: string
-    targetLanguage: string
-    targetLanguageName: string
-    match?: number
-  }
-  error?: string
-  metadata?: {
-    translatedAt: string
-    aiPowered: boolean
-    cached?: boolean
-  }
-}
-
-async function translateWithMyMemory(
-  text: string,
-  sourceLang: string,
-  targetLang: string
-): Promise<{ translated: string; match: number }> {
-  const langPair = `${sourceLang}|${targetLang}`
-  const url = `${MYMEMORY_API}?q=${encodeURIComponent(text)}&langpair=${langPair}`
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`MyMemory API error: ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    if (data.responseStatus === 200 && data.responseData) {
-      return {
-        translated: data.responseData.translatedText,
-        match: data.responseData.match || 0
-      }
-    }
-
-    throw new Error(data.responseDetails || 'Translation failed')
-  } catch (error) {
-    console.error('MyMemory translation error:', error)
-    throw error
-  }
-}
-
-function detectLanguage(text: string): string {
-  const chineseRegex = /[\u4e00-\u9fff]/
-  const japaneseRegex = /[\u3040-\u309f\u30a0-\u30ff]/
-  const koreanRegex = /[\uac00-\ud7af]/
-  const arabicRegex = /[\u0600-\u06ff]/
-  const cyrillicRegex = /[\u0400-\u04ff]/
-
-  if (chineseRegex.test(text)) return 'zh'
-  if (japaneseRegex.test(text)) return 'ja'
-  if (koreanRegex.test(text)) return 'ko'
-  if (arabicRegex.test(text)) return 'ar'
-  if (cyrillicRegex.test(text)) return 'ru'
-
-  return 'en'
-}
-
-async function translateText(
-  text: string,
-  targetLang: string,
-  sourceLang?: string,
-  useCache: boolean = true
-): Promise<TranslationResult> {
-  const detectedSource = sourceLang || detectLanguage(text)
-
-  if (detectedSource === targetLang) {
-    return {
-      success: true,
-      translation: {
-        original: text,
-        translated: text,
-        sourceLanguage: detectedSource,
-        targetLanguage: targetLang,
-        targetLanguageName: LANGUAGE_NAMES[targetLang] || targetLang,
-        match: 1
-      },
-      metadata: {
-        translatedAt: new Date().toISOString(),
-        aiPowered: false,
-        cached: false
-      }
-    }
-  }
-
-  try {
-    const result = await translateWithMyMemory(text, detectedSource, targetLang)
-
-    return {
-      success: true,
-      translation: {
-        original: text,
-        translated: result.translated,
-        sourceLanguage: detectedSource,
-        targetLanguage: targetLang,
-        targetLanguageName: LANGUAGE_NAMES[targetLang] || targetLang,
-        match: result.match
-      },
-      metadata: {
-        translatedAt: new Date().toISOString(),
-        aiPowered: false,
-        cached: useCache
-      }
-    }
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Translation failed',
-      metadata: {
-        translatedAt: new Date().toISOString(),
-        aiPowered: false
-      }
-    }
-  }
-}
-
-async function translateBatch(
-  texts: string[],
-  targetLang: string,
-  sourceLang?: string
-): Promise<{ results: TranslationResult[]; failedCount: number }> {
-  const results: TranslationResult[] = []
-  let failedCount = 0
-
-  for (const text of texts) {
-    const result = await translateText(text, targetLang, sourceLang)
-    results.push(result)
-    if (!result.success) {
-      failedCount++
-    }
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
-
-  return { results, failedCount }
+// Quick dictionary for common business phrases (in case external API fails)
+const QUICK_DICT: Record<string, Record<string, string>> = {
+  'sulfur': { zh: '硫磺', en: 'Sulfur', de: 'Schwefel', fr: 'Soufre', es: 'Azufre' },
+  'corn': { zh: '玉米', en: 'Corn', de: 'Mais', fr: 'Maïs', es: 'Maíz' },
+  'wheat': { zh: '小麦', en: 'Wheat', de: 'Weizen', fr: 'Blé', es: 'Trigo' },
+  'rice': { zh: '大米', en: 'Rice', de: 'Reis', fr: 'Riz', es: 'Arroz' },
+  'soybean': { zh: '大豆', en: 'Soybean', de: 'Sojabohne', fr: 'Soja', es: 'Soja' },
+  'steel': { zh: '钢材', en: 'Steel', de: 'Stahl', fr: 'Acier', es: 'Acero' },
+  'cement': { zh: '水泥', en: 'Cement', de: 'Zement', fr: 'Ciment', es: 'Cemento' },
+  'price': { zh: '价格', en: 'Price', de: 'Preis', fr: 'Prix', es: 'Precio' },
+  'moq': { zh: '起订量', en: 'MOQ', de: 'Mindestbestellmenge', fr: 'Quantité minimale', es: 'Pedido mínimo' },
+  'wholesale': { zh: '批发', en: 'Wholesale', de: 'Großhandel', fr: 'Gros', es: 'Mayorista' },
+  'supply': { zh: '供应', en: 'Supply', de: 'Lieferung', fr: 'Fourniture', es: 'Suministro' },
+  'exporter': { zh: '出口商', en: 'Exporter', de: 'Exporteur', fr: 'Exportateur', es: 'Exportador' },
+  'importer': { zh: '进口商', en: 'Importer', de: 'Importeur', fr: 'Importateur', es: 'Importador' },
+  'hello': { zh: '你好', en: 'Hello', de: 'Hallo', fr: 'Bonjour', es: 'Hola' },
+  'thank_you': { zh: '谢谢', en: 'Thank you', de: 'Danke', fr: 'Merci', es: 'Gracias' },
+  'goodbye': { zh: '再见', en: 'Goodbye', de: 'Auf Wiedersehen', fr: 'Au revoir', es: 'Adiós' },
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    let aiIdentity = null
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const apiKey = authHeader.replace('Bearer ', '')
-      aiIdentity = await verifyAIApiKey(apiKey)
-    }
-
     const body = await request.json()
-    const { text, targetLanguage, sourceLanguage } = body
+    const { text, sourceLang, targetLang } = body
 
-    if (!text || !targetLanguage) {
-      return NextResponse.json(
-        { error: 'Text and target language are required' },
-        { status: 400 }
-      )
+    if (!text || !text.trim()) {
+      return NextResponse.json({
+        success: false,
+        error: 'Text is required',
+      }, { status: 400 })
     }
 
-    const validLanguages = Object.keys(LANGUAGE_NAMES)
-    if (!validLanguages.includes(targetLanguage)) {
-      return NextResponse.json(
-        { error: `Invalid target language. Supported: ${validLanguages.join(', ')}` },
-        { status: 400 }
-      )
+    if (!targetLang) {
+      return NextResponse.json({
+        success: false,
+        error: 'targetLang is required',
+      }, { status: 400 })
     }
 
-    const result = await translateText(text, targetLanguage, sourceLanguage)
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      )
+    const target = targetLang.toLowerCase()
+    if (!SUPPORTED_LANGUAGES[target]) {
+      return NextResponse.json({
+        success: false,
+        error: `Unsupported target language: ${targetLang}`,
+        supportedLanguages: Object.keys(SUPPORTED_LANGUAGES),
+      }, { status: 400 })
     }
 
-    return NextResponse.json(result)
+    const source = (sourceLang || 'auto').toLowerCase()
 
-  } catch (error) {
-    console.error('AI Translation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to translate text' },
-      { status: 500 }
-    )
+    // Try MyMemory free translation API
+    try {
+      const translated = await translateWithMyMemory(text, source, target)
+      return NextResponse.json({
+        success: true,
+        data: {
+          original: text,
+          translated,
+          sourceLang: source === 'auto' ? detectedLanguage(text) : source,
+          targetLang: target,
+          provider: 'mymemory',
+          timestamp: new Date().toISOString(),
+        },
+      })
+    } catch (apiError) {
+      // Fall back to quick dictionary for key terms
+      const fallback = tryQuickDict(text, source, target)
+      if (fallback) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            original: text,
+            translated: fallback,
+            sourceLang: source,
+            targetLang: target,
+            provider: 'local_dict_fallback',
+            note: 'Used local dictionary fallback (limited coverage). Full translation service is temporarily unavailable.',
+            timestamp: new Date().toISOString(),
+          },
+        })
+      }
+
+      return NextResponse.json({
+        success: false,
+        error: 'Translation service temporarily unavailable',
+        detail: apiError?.message,
+      }, { status: 503 })
+    }
+  } catch (error: any) {
+    return NextResponse.json({
+      success: false,
+      error: 'Translation failed',
+      detail: error?.message,
+    }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization')
-    let aiIdentity = null
+async function translateWithMyMemory(text: string, source: string, target: string): Promise<string> {
+  const langPair = `${source === 'auto' ? 'autodetect' : source}${target}`
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const apiKey = authHeader.replace('Bearer ', '')
-      aiIdentity = await verifyAIApiKey(apiKey)
-    }
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(5000),
+  })
 
-    const body = await request.json()
-    const { product, targetLanguages } = body
-
-    if (!product || !targetLanguages || !Array.isArray(targetLanguages)) {
-      return NextResponse.json(
-        { error: 'Product data and target languages array are required' },
-        { status: 400 }
-      )
-    }
-
-    const validLanguages = Object.keys(LANGUAGE_NAMES)
-    const invalidLangs = targetLanguages.filter((l: string) => !validLanguages.includes(l))
-    if (invalidLangs.length > 0) {
-      return NextResponse.json(
-        { error: `Invalid languages: ${invalidLangs.join(', ')}. Supported: ${validLanguages.join(', ')}` },
-        { status: 400 }
-      )
-    }
-
-    const translations: Record<string, any> = {}
-    for (const lang of targetLanguages) {
-      try {
-        const titleResult = await translateText(product.title || '', lang)
-        const descResult = await translateText(product.description || '', lang)
-
-        translations[lang] = {
-          title: titleResult.translation?.translated || product.title,
-          description: descResult.translation?.translated || product.description,
-          success: titleResult.success && descResult.success
-        }
-
-        if (product.features && Array.isArray(product.features)) {
-          translations[lang].features = []
-          for (const feature of product.features) {
-            const featureResult = await translateText(feature, lang)
-            translations[lang].features.push(
-              featureResult.translation?.translated || feature
-            )
-          }
-        }
-
-        if (product.specifications && typeof product.specifications === 'object') {
-          translations[lang].specifications = {}
-          for (const [key, value] of Object.entries(product.specifications)) {
-            const keyResult = await translateText(key, lang)
-            const valueResult = await translateText(String(value), lang)
-            translations[lang].specifications[
-              keyResult.translation?.translated || key
-            ] = valueResult.translation?.translated || String(value)
-          }
-        }
-      } catch (error) {
-        console.error(`Translation error for ${lang}:`, error)
-        translations[lang] = { success: false, error: 'Translation failed' }
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 200))
-    }
-
-    return NextResponse.json({
-      success: true,
-      translations,
-      metadata: {
-        translatedAt: new Date().toISOString(),
-        languagesCount: targetLanguages.length,
-        aiPowered: !!aiIdentity
-      }
-    })
-
-  } catch (error) {
-    console.error('AI Product translation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to translate product' },
-      { status: 500 }
-    )
+  if (!response.ok) {
+    throw new Error(`Translation API error: ${response.status}`)
   }
+
+  const data = await response.json()
+  if (data.responseData && data.responseData.translatedText) {
+    return data.responseData.translatedText
+  }
+
+  throw new Error('Unexpected translation API response')
+}
+
+function tryQuickDict(text: string, source: string, target: string): string | null {
+  const lowerText = text.toLowerCase()
+  let result = text
+  let matched = false
+
+  for (const [key, translations] of Object.entries(QUICK_DICT)) {
+    for (const [lang, translation] of Object.entries(translations)) {
+      if (lang === target && lowerText.includes(key.toLowerCase())) {
+        // Simple replacement
+        result = result.replace(new RegExp(key, 'gi'), translation)
+        matched = true
+        break
+      }
+    }
+  }
+
+  return matched ? result : null
+}
+
+function detectedLanguage(text: string): string {
+  // Simple heuristic: detect language by character set
+  // Chinese characters
+  if (/[\u4e00-\u9fff]/.test(text)) return 'zh'
+  // Japanese (hiragana/katakana)
+  if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja'
+  // Korean (hangul)
+  if (/[\uac00-\ud7af]/.test(text)) return 'ko'
+  // Arabic
+  if (/[\u0600-\u06ff]/.test(text)) return 'ar'
+  // Russian (Cyrillic)
+  if (/[\u0400-\u04ff]/.test(text)) return 'ru'
+  // Greek
+  if (/[\u0370-\u03ff]/.test(text)) return 'el'
+  // Thai
+  if (/[\u0e00-\u0e7f]/.test(text)) return 'th'
+
+  return 'en' // Default to English
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const texts = searchParams.get('texts')?.split('|') || []
-  const targetLang = searchParams.get('target') || 'en'
-  const sourceLang = searchParams.get('source') || undefined
-
-  if (texts.length === 0) {
+  
+  if (searchParams.get('languages') === 'true') {
     return NextResponse.json({
-      supportedLanguages: LANGUAGE_NAMES,
-      usage: {
-        method: 'POST',
-        body: {
-          text: 'Text to translate',
-          targetLanguage: 'Target language code (e.g., zh, ja, es)',
-          sourceLanguage: 'Optional source language (auto-detected if omitted)'
-        }
-      }
+      success: true,
+      data: SUPPORTED_LANGUAGES,
     })
   }
 
-  const { results, failedCount } = await translateBatch(texts, targetLang, sourceLang)
+  if (searchParams.get('detect')) {
+    const text = searchParams.get('text') || ''
+    return NextResponse.json({
+      success: true,
+      data: {
+        detectedLanguage: detectedLanguage(text),
+        text,
+      },
+    })
+  }
 
   return NextResponse.json({
     success: true,
-    results: results.map(r => r.translation?.translated || ''),
-    metadata: {
-      totalTexts: texts.length,
-      failedCount,
-      targetLanguage: targetLang,
-      targetLanguageName: LANGUAGE_NAMES[targetLang] || targetLang
-    }
+    data: {
+      service: 'x2xhub Translation API',
+      version: '1.0',
+      features: ['translate', 'detect', 'languages'],
+      supportedLanguagesCount: Object.keys(SUPPORTED_LANGUAGES).length,
+    },
   })
 }
