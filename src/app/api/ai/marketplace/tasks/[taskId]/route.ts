@@ -26,7 +26,7 @@ async function authenticate(request: NextRequest) {
     const pg = await getPool()
     const result = await pg.query(`
       SELECT u.id as user_id, u.role as user_role, u."isAI" as user_is_ai
-      FROM "ApiKey" ak
+      FROM "APIKey" ak
       JOIN "User" u ON u.id = ak."userId"
       WHERE ak.key = $1 AND ak."isActive" = true
     `, [key])

@@ -39,7 +39,7 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
     const result = await pg.query(`
       SELECT ak.id as key_id, ak.name as key_name, ak.permissions,
              u.id as user_id, u.role as user_role, u."isAI" as user_is_ai
-      FROM "ApiKey" ak
+      FROM "APIKey" ak
       JOIN "User" u ON u.id = ak."userId"
       WHERE ak.key = $1 AND ak."isActive" = true
     `, [key])
@@ -49,7 +49,7 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
       const perms = typeof row.permissions === 'string' ? JSON.parse(row.permissions) : (row.permissions || {})
 
       // Update last used (non-blocking)
-      pg.query(`UPDATE "ApiKey" SET "lastUsedAt" = NOW() WHERE id = $1`, [row.key_id]).catch(() => {})
+      pg.query(`UPDATE "APIKey" SET "lastUsedAt" = NOW() WHERE id = $1`, [row.key_id]).catch(() => {})
 
       return {
         success: true,
@@ -66,7 +66,7 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
     }
 
     // Check inactive
-    const inactive = await pg.query(`SELECT 1 FROM "ApiKey" WHERE key = $1 AND "isActive" = false`, [key])
+    const inactive = await pg.query(`SELECT 1 FROM "APIKey" WHERE key = $1 AND "isActive" = false`, [key])
     if (inactive.rows.length > 0) return { success: false, error: 'API key is inactive', status: 403 }
 
     return { success: false, error: 'Invalid API key', status: 401 }
