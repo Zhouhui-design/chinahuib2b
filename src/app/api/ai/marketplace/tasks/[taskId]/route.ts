@@ -5,12 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
+import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
-
-async function getPrisma() {
-  const { prisma } = await import('@/lib/db')
-  return prisma
-}
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +19,6 @@ export async function GET(
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
-  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.taskId },
     include: {
@@ -112,7 +107,6 @@ export async function PUT(
 
   updates.updatedAt = new Date()
 
-  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.update({
     where: { id: params.taskId },
     data: updates,
@@ -131,7 +125,6 @@ export async function DELETE(
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
-  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.taskId },
     select: { postedById: true, status: true },

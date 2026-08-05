@@ -10,14 +10,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
+import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { getServerLocation } from '@/lib/geo-location'
-
-async function getPrisma() {
-  const { prisma } = await import('@/lib/db')
-  return prisma
-}
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +23,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
-  const prisma = await getPrisma()
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
@@ -90,7 +85,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const typeValue = type.toUpperCase().replace(/_/g, '_') as any
+  const typeValue = type.toUpperCase() as any
   if (!['PRODUCT_SALE', 'MANUFACTURING', 'SERVICE'].includes(typeValue)) {
     return NextResponse.json(
       { success: false, error: 'Invalid task type. Use: PRODUCT_SALE, MANUFACTURING, SERVICE' },
@@ -111,7 +106,6 @@ export async function POST(request: NextRequest) {
     } catch {}
   }
 
-  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.create({
     data: {
       title,
