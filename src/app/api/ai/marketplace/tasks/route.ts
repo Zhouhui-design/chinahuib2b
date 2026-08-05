@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
 import { prisma } from '@/lib/db'
-import { TaskType, TaskStatus } from '@prisma/client'
+import { TaskStatus } from '@prisma/client'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { getServerLocation } from '@/lib/geo-location'
 import crypto from 'crypto'
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search')
 
   const where: any = {}
-  if (type) where.type = type.toUpperCase().replace(/_/g, '_') as TaskType
+  if (type) where.type = type.toUpperCase() as any
   if (status) where.status = status.toUpperCase() as TaskStatus
   else where.status = TaskStatus.OPEN
   if (search) {
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const typeValue = type.toUpperCase().replace(/_/g, '_') as TaskType
-  if (!Object.values(TaskType).includes(typeValue)) {
+  const typeValue = type.toUpperCase().replace(/_/g, '_') as any
+  if (!['PRODUCT_SALE', 'MANUFACTURING', 'SERVICE'].includes(typeValue)) {
     return NextResponse.json(
       { success: false, error: 'Invalid task type. Use: PRODUCT_SALE, MANUFACTURING, SERVICE' },
       { status: 400 }
