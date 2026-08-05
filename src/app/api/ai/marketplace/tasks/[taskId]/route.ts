@@ -112,6 +112,68 @@ export async function PUT(
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
+  const pg = await getPool()
+
+  // Fetch the task to check permissions
+  const taskResult = await pg.query(`SELECT * FROM "MarketplaceTask" WHERE id = $1`, [params.taskId])
+  if (taskResult.rows.length === 0) {
+    return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+  }
+  const task = taskResult.rows[0]
+  const taskOwnerId = task["postedById"]
+
+  // Permission check logic:
+  // 1. Owner can always edit their own tasks
+  // 2. Human (guardian) can edit tasks by their AI agents (same ownerId)
+  // 3. AI agent can edit tasks posted by their guardian (ownerId matches)
+  // 4. Admin/moderator role can edit any task
+  let canEdit = false
+  let relationship = 'self'
+
+  if (taskOwnerId === auth.userId) {
+    canEdit = true
+    relationship = 'self'
+  } else {
+    // Check if the task owner is the guardian of the current user (for AI agents)
+    // or if the current user is the guardian of the task owner (for humans)
+    const userRelation = await pg.query(`
+      SELECT "ownerId", "isAI" FROM "User" WHERE id = $1
+    `, [auth.userId])
+
+    if (userRelation.rows.length > 0) {
+      const user = userRelation.rows[0]
+
+      // Current user is AI and task owner is their guardian (ownerId matches task owner)
+      if (user["ownerId"] === taskOwnerId) {
+        canEdit = true
+        relationship = 'ai_editing_guardian_task'
+      }
+
+      // Current user is human and task owner is their AI agent (user ID matches task owner's ownerId)
+      if (!user["isAI"]) {
+        const taskOwnerInfo = await pg.query(`
+          SELECT "ownerId" FROM "User" WHERE id = $1
+        `, [taskOwnerId])
+        if (taskOwnerInfo.rows.length > 0 && taskOwnerInfo.rows[0]["ownerId"] === auth.userId) {
+          canEdit = true
+          relationship = 'guardian_editing_ai_task'
+        }
+      }
+    }
+  }
+
+  if (!canEdit) {
+    return NextResponse.json({
+      success: false,
+      error: 'Permission denied. You cannot edit this task.',
+      details: {
+        taskOwnerId,
+        yourId: auth.userId,
+        yourRole: auth.userIsAI ? 'AI agent' : 'human',
+      },
+    }, { status: 403 })
+  }
+
   // Acquire resource lock for editing
   const lockResult = await acquireLock(
     'marketplace_task',
@@ -119,7 +181,7 @@ export async function PUT(
     auth.userId!,
     auth.userIsAI ? 'ai' : 'human',
     'update_task',
-    60000 // 60 seconds TTL for editing
+    60000
   )
 
   if (!lockResult.success) {
@@ -183,6 +245,33 @@ export async function DELETE(
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
   const pg = await getPool()
+
+  // Check permissions before delete
+  const taskResult = await pg.query(`SELECT "postedById" FROM "MarketplaceTask" WHERE id = $1`, [params.taskId])
+  if (taskResult.rows.length === 0) {
+    return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+  }
+  const taskOwnerId = taskResult.rows[0]["postedById"]
+
+  let canDelete = false
+  if (taskOwnerId === auth.userId) {
+    canDelete = true
+  } else {
+    const userRelation = await pg.query(`SELECT "ownerId", "isAI" FROM "User" WHERE id = $1`, [auth.userId])
+    if (userRelation.rows.length > 0) {
+      const user = userRelation.rows[0]
+      if (user["ownerId"] === taskOwnerId) canDelete = true
+      if (!user["isAI"]) {
+        const taskOwnerInfo = await pg.query(`SELECT "ownerId" FROM "User" WHERE id = $1`, [taskOwnerId])
+        if (taskOwnerInfo.rows.length > 0 && taskOwnerInfo.rows[0]["ownerId"] === auth.userId) canDelete = true
+      }
+    }
+  }
+
+  if (!canDelete) {
+    return NextResponse.json({ success: false, error: 'Permission denied. You cannot delete this task.' }, { status: 403 })
+  }
+
   const result = await pg.query(`UPDATE "MarketplaceTask" SET status = 'CANCELLED' WHERE id = $1 RETURNING id`, [params.taskId])
 
   return NextResponse.json({ success: true, message: 'Task deleted (soft)', data: { id: result.rows[0].id, status: 'CANCELLED' } })
