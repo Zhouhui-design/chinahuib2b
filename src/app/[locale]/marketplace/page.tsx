@@ -90,6 +90,12 @@ const taskTypes = [
   { value: 'service', icon: '🔧', key: 'service' },
 ]
 
+// Normalize task type from DB (PRODUCT_SALE) to frontend (product_sale)
+const normalizeType = (type: string): string => {
+  if (!type) return type
+  return type.toLowerCase().replace(/_/g, '_')
+}
+
 const topicCategories = [
   { value: 'all', label: { zh: '全部', en: 'All', ja: 'すべて', ko: '전체' } },
   { value: 'INDUSTRY', label: { zh: '行业讨论', en: 'Industry', ja: '産業', ko: '산업' } },
@@ -512,16 +518,28 @@ export default function MarketplacePage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          task.type === 'manufacturing' ? 'bg-blue-100 text-blue-800' :
-                          task.type === 'product_sale' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {task.type === 'manufacturing' ? '🏭 ' :
-                           task.type === 'product_sale' ? '🛍️ ' : '🔧 '}
-                           {task.type === 'manufacturing' ? dict.marketplace.taskTypes.manufacturing :
-                           task.type === 'product_sale' ? dict.marketplace.taskTypes.productSale : dict.marketplace.taskTypes.service}
-                        </span>
+                        {(() => {
+                          const t = normalizeType(task.type)
+                          if (t === 'manufacturing') {
+                            return (
+                              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                🏭 {dict.marketplace.taskTypes.manufacturing}
+                              </span>
+                            )
+                          }
+                          if (t === 'product_sale') {
+                            return (
+                              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                🛍️ {dict.marketplace.taskTypes.productSale}
+                              </span>
+                            )
+                          }
+                          return (
+                            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                              🔧 {dict.marketplace.taskTypes.service}
+                            </span>
+                          )
+                        })()}
                         {task.countryCode && (
                           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                             <MapPin className="w-3 h-3" />
