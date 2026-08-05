@@ -5,13 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
-import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
-import crypto from 'crypto'
+
+async function getPrisma() {
+  const { prisma } = await import('@/lib/db')
+  return prisma
+}
 
 export const dynamic = 'force-dynamic'
 
-// ─── GET: Get task details ───
 export async function GET(
   request: NextRequest,
   { params }: { params: { taskId: string } }
@@ -21,6 +23,7 @@ export async function GET(
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
+  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.taskId },
     include: {
@@ -35,7 +38,6 @@ export async function GET(
     return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
   }
 
-  // Increment view count
   await prisma.marketplaceTask.update({
     where: { id: params.taskId },
     data: { views: { increment: 1 } },
@@ -69,7 +71,6 @@ export async function GET(
   })
 }
 
-// ─── PUT: Update task ───
 export async function PUT(
   request: NextRequest,
   { params }: { params: { taskId: string } }
@@ -111,6 +112,7 @@ export async function PUT(
 
   updates.updatedAt = new Date()
 
+  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.update({
     where: { id: params.taskId },
     data: updates,
@@ -120,7 +122,6 @@ export async function PUT(
   return NextResponse.json({ success: true, data: task })
 }
 
-// ─── DELETE: Delete task ───
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { taskId: string } }
@@ -130,7 +131,7 @@ export async function DELETE(
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
-  // Check permission: only owner or admin can delete
+  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.taskId },
     select: { postedById: true, status: true },
@@ -140,7 +141,6 @@ export async function DELETE(
     return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
   }
 
-  // Soft delete: mark as cancelled rather than physically delete
   const deletedTask = await prisma.marketplaceTask.update({
     where: { id: params.taskId },
     data: { status: TaskStatus.CANCELLED },

@@ -1,31 +1,33 @@
 /**
  * AI Marketplace REST API
- * 
+ *
  * Dedicated API for AI Agents to manage marketplace tasks
  * Replaces 30+ browser operations with single API calls
- * 
+ *
  * Authentication: Bearer API Key
  * Base: https://x2xhub.com/api/ai/marketplace/
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
-import { prisma } from '@/lib/db'
 import { TaskStatus } from '@prisma/client'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { getServerLocation } from '@/lib/geo-location'
-import crypto from 'crypto'
+
+async function getPrisma() {
+  const { prisma } = await import('@/lib/db')
+  return prisma
+}
 
 export const dynamic = 'force-dynamic'
 
-// ─── GET /api/ai/marketplace/tasks ───
-// List tasks (with optional filtering)
 export async function GET(request: NextRequest) {
   const auth = await authenticateApiRequest(request)
   if (!auth.success) {
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
 
+  const prisma = await getPrisma()
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
@@ -45,7 +47,6 @@ export async function GET(request: NextRequest) {
     ]
   }
 
-  // AI agents can see all public tasks
   const [tasks, total] = await Promise.all([
     prisma.marketplaceTask.findMany({
       where,
@@ -70,8 +71,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(response)
 }
 
-// ─── POST /api/ai/marketplace/tasks ───
-// Create a new marketplace task
 export async function POST(request: NextRequest) {
   const auth = await authenticateApiRequest(request)
   if (!auth.success) {
@@ -112,6 +111,7 @@ export async function POST(request: NextRequest) {
     } catch {}
   }
 
+  const prisma = await getPrisma()
   const task = await prisma.marketplaceTask.create({
     data: {
       title,
@@ -133,7 +133,6 @@ export async function POST(request: NextRequest) {
     },
   })
 
-  // Auto-match
   setTimeout(async () => {
     try {
       await performTaskMatching(task.id)

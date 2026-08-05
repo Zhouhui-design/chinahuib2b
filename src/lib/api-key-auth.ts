@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+
+async function getPrisma() {
+  const { prisma } = await import('@/lib/db')
+  return prisma
+}
 
 export interface AuthenticatedAgent {
   userId: string
@@ -37,14 +41,14 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
   }
 
   try {
-    // Try database lookup (most reliable)
+    const prisma = await getPrisma()
+
     const keyRecord = await prisma.apiKey.findFirst({
       where: { key: apiKey, isActive: true },
       include: { user: true },
     })
 
     if (keyRecord && keyRecord.user) {
-      // Update last used
       await prisma.apiKey.update({
         where: { id: keyRecord.id },
         data: { lastUsedAt: new Date() },
@@ -74,7 +78,6 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
       }
     }
 
-    // Check inactive keys
     const inactiveKey = await prisma.apiKey.findFirst({
       where: { key: apiKey, isActive: false },
     })
@@ -85,7 +88,7 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
 
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (error: any) {
-    console.error('[API Auth Error]', error)
+    console.error('[API Auth Error]', error?.message)
     console.error('[API Auth Stack]', error?.stack?.substring(0, 500))
     return { success: false, error: 'Authentication service error', status: 500 }
   }
@@ -101,7 +104,7 @@ export function requireCapability(agent: AuthenticatedAgent, capability: keyof A
   return null
 }
 
-export function logApiUsage(
+export async function logApiUsage(
   apiKeyId: string,
   userId: string,
   endpoint: string,
@@ -110,8 +113,9 @@ export function logApiUsage(
   responseTime?: number,
   metadata?: any
 ) {
-  prisma.apiUsageLog
-    .create({
+  try {
+    const prisma = await getPrisma()
+    await prisma.apiUsageLog.create({
       data: {
         apiKeyId,
         userId,
@@ -123,5 +127,5 @@ export function logApiUsage(
         metadata: metadata || {},
       },
     })
-    .catch(() => {})
+  } catch {}
 }
