@@ -228,7 +228,6 @@ export async function PUT(
 
   updates.push(`"updatedAt" = NOW()`)
 
-  const pg = await getPool()
   const result = await pg.query(`UPDATE "MarketplaceTask" SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, [...values, params.taskId])
 
   // Release lock after successful update
