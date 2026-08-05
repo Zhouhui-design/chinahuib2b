@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { acquireLock, releaseLock } from '@/lib/ai-operation-lock'
+import { getOrSetCache, cacheSetJSON, invalidateCachePattern, checkRateLimit } from '@/lib/redis-cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -82,6 +83,20 @@ export async function GET(request: NextRequest) {
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
+  // Rate limiting for AI agents
+  const rateLimit = await checkRateLimit(
+    auth.userId!,
+    auth.userIsAI ? 200 : 500, // AI agents get 200 req/min, humans 500
+    60
+  )
+  if (!rateLimit.allowed) {
+    return NextResponse.json({
+      error: 'Rate limit exceeded',
+      resetTime: new Date(rateLimit.resetTime * 1000).toISOString(),
+      remaining: rateLimit.remaining,
+    }, { status: 429 })
+  }
+
   const pg = await getPool()
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
@@ -90,26 +105,31 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status')
   const search = searchParams.get('search')
 
-  const where: string[] = []
-  const params: any[] = []
-  let paramIdx = 1
+  // Cache key for this query
+  const cacheKey = `tasks:list:${page}:${limit}:${type || 'all'}:${status || 'open'}:${search || 'none'}`
 
-  if (type) { where.push(`type = $${paramIdx}`); params.push(type.toUpperCase()); paramIdx++ }
-  if (status) { where.push(`status = $${paramIdx}`); params.push(status.toUpperCase()); paramIdx++ }
-  else { where.push(`status = 'OPEN'`) }
+  // Try to get from cache first
+  const cached = await getOrSetCache(cacheKey, async () => {
+    const where: string[] = []
+    const params: any[] = []
+    let paramIdx = 1
 
-  if (search) {
-    where.push(`(title ILIKE $${paramIdx} OR description ILIKE $${paramIdx})`)
-    params.push(`%${search}%`)
-    paramIdx++
-  }
+    if (type) { where.push(`type = $${paramIdx}`); params.push(type.toUpperCase()); paramIdx++ }
+    if (status) { where.push(`status = $${paramIdx}`); params.push(status.toUpperCase()); paramIdx++ }
+    else { where.push(`status = 'OPEN'`) }
 
-  const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''
+    if (search) {
+      where.push(`(title ILIKE $${paramIdx} OR description ILIKE $${paramIdx})`)
+      params.push(`%${search}%`)
+      paramIdx++
+    }
 
-  const totalResult = await pg.query(`SELECT COUNT(*) as total FROM "MarketplaceTask" ${whereClause}`, params)
-  const total = parseInt(totalResult.rows[0].total)
+    const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''
 
-  const tasksResult = await pg.query(`
+    const totalResult = await pg.query(`SELECT COUNT(*) as total FROM "MarketplaceTask" ${whereClause}`, params)
+    const total = parseInt(totalResult.rows[0].total)
+
+    const tasksResult = await pg.query(`
     SELECT t.*, u.username as poster_name, u."displayName" as poster_display_name
     FROM "MarketplaceTask" t
     LEFT JOIN "User" u ON u.id = t."postedById"
@@ -141,9 +161,13 @@ export async function GET(request: NextRequest) {
     updatedAt: row["updatedAt"] ? new Date(row["updatedAt"]).toISOString() : null,
   }))
 
+  return { tasks, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }
+  }, 60) // 60 seconds cache for listings
+
   return NextResponse.json({
     success: true,
-    data: { tasks, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } },
+    data: cached,
+    cachedAt: new Date().toISOString(),
   })
 }
 
@@ -224,6 +248,9 @@ export async function POST(request: NextRequest) {
 
   // Release creation lock after successful creation
   await releaseLock('marketplace_task', `create:${auth.userId}`, auth.userId!)
+
+  // Invalidate cache for listings
+  await invalidateCachePattern('tasks:list:*')
 
   return NextResponse.json({
     success: true,
