@@ -86,10 +86,51 @@ export default function PostTaskPage() {
     fetchTranslations()
   }, [locale])
 
-  if (loadingTranslations || !translations) {
+  // Check login status — upload API requires authentication
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  useEffect(() => {
+    fetch('/api/auth/session', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        setIsLoggedIn(!!data?.user?.id)
+        setAuthChecked(true)
+      })
+      .catch(() => {
+        setIsLoggedIn(false)
+        setAuthChecked(true)
+      })
+  }, [])
+
+  if (!authChecked || loadingTranslations || !translations) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show login prompt if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {locale === 'zh' ? '请先登录' : 'Please Login First'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {locale === 'zh'
+              ? '您需要登录后才能发布任务和上传附件。'
+              : 'You need to login before posting tasks and uploading attachments.'}
+          </p>
+          <a
+            href={`/${locale}/auth/login`}
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            {locale === 'zh' ? '前往登录' : 'Go to Login'}
+          </a>
+        </div>
       </div>
     )
   }
@@ -242,6 +283,7 @@ Contact us today to discuss your requirements and get a custom quote.`
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
+          credentials: 'include',
         })
 
         const data = await response.json()
