@@ -10,9 +10,42 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateApiRequest, requireCapability } from '@/lib/api-key-auth'
 
 export const dynamic = 'force-dynamic'
+
+let pool: any = null
+
+async function getPool() {
+  if (!pool) {
+    const { Pool } = await import('pg')
+    pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  }
+  return pool
+}
+
+async function authenticate(request: NextRequest) {
+  const header = request.headers.get('authorization') || ''
+  const key = header.startsWith('Bearer ') ? header.slice(7) : header
+  if (!key) return { success: false, error: 'Missing API key', status: 401 }
+
+  try {
+    const pg = await getPool()
+    const result = await pg.query(`
+      SELECT u.id as user_id, u.role as user_role
+      FROM "APIKey" ak
+      JOIN "User" u ON u.id = ak."userId"
+      WHERE ak.key = $1 AND ak."isActive" = true
+    `, [key])
+
+    if (result.rows.length > 0) {
+      return { success: true, userId: result.rows[0].user_id }
+    }
+    return { success: false, error: 'Invalid API key', status: 401 }
+  } catch (e: any) {
+    console.error('[AI Parse Auth Error]', e?.message)
+    return { success: false, error: 'Authentication service error', status: 500 }
+  }
+}
 
 // Product keyword patterns for structured extraction
 const PRODUCT_PATTERNS: Record<string, { zh: string[]; en: string[] }> = {
@@ -47,7 +80,7 @@ const PRODUCT_PATTERNS: Record<string, { zh: string[]; en: string[] }> = {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await authenticateApiRequest(request)
+  const auth = await authenticate(request)
   if (!auth.success) {
     return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
   }
