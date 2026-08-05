@@ -6,13 +6,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
 
 export const dynamic = 'force-dynamic'
+
+let pool: any = null
+
+async function getPool() {
+  if (!pool) {
+    const { Pool } = await import('pg')
+    pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  }
+  return pool
+}
 
 interface AuthResult {
   success: boolean
@@ -30,7 +35,8 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
   if (!key) return { success: false, error: 'Missing API key', status: 401 }
 
   try {
-    const result = await pool.query(`
+    const pg = await getPool()
+    const result = await pg.query(`
       SELECT ak.id as key_id, ak.name as key_name, ak.permissions,
              u.id as user_id, u.role as user_role, u."isAI" as user_is_ai
       FROM "ApiKey" ak
@@ -43,7 +49,7 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
       const perms = typeof row.permissions === 'string' ? JSON.parse(row.permissions) : (row.permissions || {})
 
       // Update last used (non-blocking)
-      pool.query(`UPDATE "ApiKey" SET "lastUsedAt" = NOW() WHERE id = $1`, [row.key_id]).catch(() => {})
+      pg.query(`UPDATE "ApiKey" SET "lastUsedAt" = NOW() WHERE id = $1`, [row.key_id]).catch(() => {})
 
       return {
         success: true,
@@ -60,7 +66,7 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
     }
 
     // Check inactive
-    const inactive = await pool.query(`SELECT 1 FROM "ApiKey" WHERE key = $1 AND "isActive" = false`, [key])
+    const inactive = await pg.query(`SELECT 1 FROM "ApiKey" WHERE key = $1 AND "isActive" = false`, [key])
     if (inactive.rows.length > 0) return { success: false, error: 'API key is inactive', status: 403 }
 
     return { success: false, error: 'Invalid API key', status: 401 }
@@ -74,6 +80,7 @@ export async function GET(request: NextRequest) {
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
+  const pg = await getPool()
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
@@ -97,10 +104,10 @@ export async function GET(request: NextRequest) {
 
   const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''
 
-  const totalResult = await pool.query(`SELECT COUNT(*) as total FROM "MarketplaceTask" ${whereClause}`, params)
+  const totalResult = await pg.query(`SELECT COUNT(*) as total FROM "MarketplaceTask" ${whereClause}`, params)
   const total = parseInt(totalResult.rows[0].total)
 
-  const tasksResult = await pool.query(`
+  const tasksResult = await pg.query(`
     SELECT t.*, u.username as poster_name, u."displayName" as poster_display_name
     FROM "MarketplaceTask" t
     LEFT JOIN "User" u ON u.id = t."postedById"
@@ -142,6 +149,7 @@ export async function POST(request: NextRequest) {
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
+  const pg = await getPool()
   const body = await request.json()
   const { title, description, type } = body
 
@@ -167,7 +175,7 @@ export async function POST(request: NextRequest) {
     } catch {}
   }
 
-  const result = await pool.query(`
+  const result = await pg.query(`
     INSERT INTO "MarketplaceTask" (
       id, title, description, type, budget, price, currency, unit,
       "minOrderQty", deadline, "postedById", "contactInfo", attachments,

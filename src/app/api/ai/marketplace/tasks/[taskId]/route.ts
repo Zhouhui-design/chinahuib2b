@@ -4,42 +4,35 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { TaskStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-interface AuthResult {
-  success: boolean
-  userId?: string
-  permissions?: { canBuy: boolean; canSell: boolean; canChat: boolean; canUpload: boolean }
-  error?: string
-  status?: number
+let pool: any = null
+
+async function getPool() {
+  if (!pool) {
+    const { Pool } = await import('pg')
+    pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  }
+  return pool
 }
 
-async function authenticate(request: NextRequest): Promise<AuthResult> {
+async function authenticate(request: NextRequest) {
   const header = request.headers.get('authorization') || ''
   const key = header.startsWith('Bearer ') ? header.slice(7) : header
   if (!key) return { success: false, error: 'Missing API key', status: 401 }
 
   try {
-    const record = await prisma.apiKey.findFirst({
-      where: { key, isActive: true },
-      include: { user: true },
-    })
-    if (record && record.user) {
-      const perms = record.permissions as any || {}
-      prisma.apiKey.update({ where: { id: record.id }, data: { lastUsedAt: new Date() } }).catch(() => {})
-      return {
-        success: true,
-        userId: record.user.id,
-        permissions: {
-          canBuy: perms.canBuy ?? true,
-          canSell: perms.canSell ?? true,
-          canChat: perms.canChat ?? true,
-          canUpload: perms.canUpload ?? true,
-        },
-      }
+    const pg = await getPool()
+    const result = await pg.query(`
+      SELECT u.id as user_id, u.role as user_role, u."isAI" as user_is_ai
+      FROM "ApiKey" ak
+      JOIN "User" u ON u.id = ak."userId"
+      WHERE ak.key = $1 AND ak."isActive" = true
+    `, [key])
+
+    if (result.rows.length > 0) {
+      return { success: true, userId: result.rows[0].user_id }
     }
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (e: any) {
@@ -55,17 +48,28 @@ export async function GET(
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
-  const task = await prisma.marketplaceTask.findUnique({
-    where: { id: params.taskId },
-    include: {
-      postedBy: { select: { id: true, username: true, displayName: true } },
-      taskApplications: { select: { id: true, status: true, createdAt: true } },
-    },
-  })
+  const pg = await getPool()
+  const taskResult = await pg.query(`SELECT * FROM "MarketplaceTask" WHERE id = $1`, [params.taskId])
 
-  if (!task) return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+  if (taskResult.rows.length === 0) {
+    return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+  }
 
-  await prisma.marketplaceTask.update({ where: { id: params.taskId }, data: { views: { increment: 1 } } })
+  const task = taskResult.rows[0]
+
+  // Increment views
+  await pg.query(`UPDATE "MarketplaceTask" SET views = views + 1 WHERE id = $1`, [params.taskId])
+
+  // Get posted by info
+  let posterName = 'Unknown'
+  try {
+    if (task.postedById) {
+      const userResult = await pg.query(`SELECT "displayName", username FROM "User" WHERE id = $1`, [task.postedById])
+      if (userResult.rows.length > 0) {
+        posterName = userResult.rows[0].displayName || userResult.rows[0].username || 'Unknown'
+      }
+    }
+  } catch {}
 
   return NextResponse.json({
     success: true,
@@ -79,18 +83,17 @@ export async function GET(
       currency: task.currency,
       unit: task.unit,
       minOrderQty: task.minOrderQty,
-      deadline: task.deadline?.toISOString() || null,
+      deadline: task.deadline ? new Date(task.deadline).toISOString() : null,
       countryCode: task.countryCode,
       countryName: task.countryName,
       keywords: task.keywords || [],
       attachments: task.attachments || [],
       contactInfo: task.contactInfo,
       postedById: task.postedById,
-      postedBy: task.postedBy?.displayName || task.postedBy?.username,
-      views: task.views + 1,
-      applicationsCount: task.taskApplications.length,
-      createdAt: task.createdAt?.toISOString(),
-      updatedAt: task.updatedAt?.toISOString(),
+      postedBy: posterName,
+      views: (task.views || 0) + 1,
+      createdAt: task.createdAt ? new Date(task.createdAt).toISOString() : null,
+      updatedAt: task.updatedAt ? new Date(task.updatedAt).toISOString() : null,
     },
   })
 }
@@ -104,30 +107,45 @@ export async function PUT(
 
   const body = await request.json()
   const allowedFields = ['title', 'description', 'status', 'price', 'currency', 'unit', 'minOrderQty', 'deadline', 'contactInfo', 'keywords', 'attachments', 'budget']
-  const updates: any = {}
+
+  const updates: string[] = []
+  const values: any[] = []
+  let idx = 1
+
   for (const field of allowedFields) {
     if (body[field] !== undefined) {
-      updates[field] = field === 'deadline' ? new Date(body[field]) : body[field]
+      const col = field === 'deadline' ? 'deadline' :
+                  field === 'minOrderQty' ? '"minOrderQty"' :
+                  field === 'contactInfo' ? '"contactInfo"' :
+                  field === 'status' ? 'status' :
+                  field === 'price' ? 'price' :
+                  field === 'currency' ? 'currency' :
+                  field === 'unit' ? 'unit' :
+                  field === 'keywords' ? 'keywords' :
+                  field === 'attachments' ? 'attachments' :
+                  field === 'budget' ? 'budget' :
+                  field
+      updates.push(`"${col}" = $${idx}`)
+      values.push(field === 'deadline' ? body[field] : body[field])
+      idx++
     }
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (updates.length === 0) {
     return NextResponse.json({ success: false, error: 'No fields to update' }, { status: 400 })
   }
 
-  if (updates.status) updates.status = updates.status.toUpperCase() as TaskStatus
-  if (updates.keywords && !Array.isArray(updates.keywords)) return NextResponse.json({ error: 'keywords must be array' }, { status: 400 })
-  if (updates.attachments && !Array.isArray(updates.attachments)) return NextResponse.json({ error: 'attachments must be array' }, { status: 400 })
+  if (body.status) {
+    const i = updates.findIndex(u => u.startsWith('"status"'))
+    if (i >= 0) values[i] = body.status.toUpperCase()
+  }
 
-  updates.updatedAt = new Date()
+  updates.push(`"updatedAt" = NOW()`)
 
-  const task = await prisma.marketplaceTask.update({
-    where: { id: params.taskId },
-    data: updates,
-    include: { postedBy: { select: { id: true, username: true } } },
-  })
+  const pg = await getPool()
+  const result = await pg.query(`UPDATE "MarketplaceTask" SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, [...values, params.taskId])
 
-  return NextResponse.json({ success: true, data: task })
+  return NextResponse.json({ success: true, data: result.rows[0] })
 }
 
 export async function DELETE(
@@ -137,10 +155,8 @@ export async function DELETE(
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
-  const task = await prisma.marketplaceTask.findUnique({ where: { id: params.taskId }, select: { postedById: true } })
-  if (!task) return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
+  const pg = await getPool()
+  const result = await pg.query(`UPDATE "MarketplaceTask" SET status = 'CANCELLED' WHERE id = $1 RETURNING id`, [params.taskId])
 
-  const deletedTask = await prisma.marketplaceTask.update({ where: { id: params.taskId }, data: { status: TaskStatus.CANCELLED } })
-
-  return NextResponse.json({ success: true, message: 'Task deleted (soft)', data: { id: deletedTask.id, status: 'CANCELLED' } })
+  return NextResponse.json({ success: true, message: 'Task deleted (soft)', data: { id: result.rows[0].id, status: 'CANCELLED' } })
 }
