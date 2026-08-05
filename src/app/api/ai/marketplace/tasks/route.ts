@@ -3,9 +3,11 @@
  *
  * Dedicated API for AI Agents to manage marketplace tasks
  * Uses direct SQL for auth to avoid Prisma module resolution issues
+ * Integrates AI Agent operation lock system to prevent conflicts
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { acquireLock, releaseLock } from '@/lib/ai-operation-lock'
 
 export const dynamic = 'force-dynamic'
 
@@ -162,6 +164,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid type' }, { status: 400 })
   }
 
+  // Acquire creation lock to prevent duplicate submissions
+  const lockResult = await acquireLock(
+    'marketplace_task',
+    `create:${auth.userId}`,
+    auth.userId!,
+    auth.userIsAI ? 'ai' : 'human',
+    'create_task',
+    30000 // 30 seconds TTL for creation
+  )
+
+  if (!lockResult.success) {
+    return NextResponse.json({
+      success: false,
+      error: lockResult.message || 'Operation locked',
+      lock_required: true,
+    }, { status: 409 })
+  }
+
   let countryCode = body.countryCode || null
   let countryName = body.countryName || null
   if (!countryCode) {
@@ -201,6 +221,9 @@ export async function POST(request: NextRequest) {
   ])
 
   const task = result.rows[0]
+
+  // Release creation lock after successful creation
+  await releaseLock('marketplace_task', `create:${auth.userId}`, auth.userId!)
 
   return NextResponse.json({
     success: true,

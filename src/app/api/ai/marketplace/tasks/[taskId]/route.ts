@@ -1,9 +1,11 @@
 /**
  * AI Marketplace Task Detail API
  * GET / PUT / DELETE /api/ai/marketplace/tasks/[taskId]
+ * Integrates AI Agent operation lock system
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { acquireLock, releaseLock } from '@/lib/ai-operation-lock'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +34,12 @@ async function authenticate(request: NextRequest) {
     `, [key])
 
     if (result.rows.length > 0) {
-      return { success: true, userId: result.rows[0].user_id }
+      return {
+        success: true,
+        userId: result.rows[0].user_id,
+        userRole: result.rows[0].user_role,
+        userIsAI: result.rows[0].user_is_ai,
+      }
     }
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (e: any) {
@@ -105,6 +112,23 @@ export async function PUT(
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
 
+  // Acquire resource lock for editing
+  const lockResult = await acquireLock(
+    'marketplace_task',
+    params.taskId,
+    auth.userId!,
+    auth.userIsAI ? 'ai' : 'human',
+    'update_task',
+    60000 // 60 seconds TTL for editing
+  )
+
+  if (!lockResult.success) {
+    return NextResponse.json({
+      success: false,
+      error: lockResult.message || 'Resource locked',
+    }, { status: 409 })
+  }
+
   const body = await request.json()
   const allowedFields = ['title', 'description', 'status', 'price', 'currency', 'unit', 'minOrderQty', 'deadline', 'contactInfo', 'keywords', 'attachments', 'budget']
 
@@ -144,6 +168,9 @@ export async function PUT(
 
   const pg = await getPool()
   const result = await pg.query(`UPDATE "MarketplaceTask" SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, [...values, params.taskId])
+
+  // Release lock after successful update
+  await releaseLock('marketplace_task', params.taskId, auth.userId!)
 
   return NextResponse.json({ success: true, data: result.rows[0] })
 }
