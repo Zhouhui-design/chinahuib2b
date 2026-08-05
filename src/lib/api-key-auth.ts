@@ -85,7 +85,8 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
 
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (error: any) {
-    console.error('[API Auth Error]', error?.message)
+    console.error('[API Auth Error]', error)
+    console.error('[API Auth Stack]', error?.stack?.substring(0, 500))
     return { success: false, error: 'Authentication service error', status: 500 }
   }
 }
