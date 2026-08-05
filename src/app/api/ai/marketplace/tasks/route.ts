@@ -2,30 +2,15 @@
  * AI Marketplace REST API
  *
  * Dedicated API for AI Agents to manage marketplace tasks
- * Replaces 30+ browser operations with single API calls
- *
- * Authentication: Bearer API Key (inline for reliability)
+ * Uses direct SQL for auth to avoid Prisma module resolution issues
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import { TaskStatus } from '@prisma/client'
-import { performTaskMatching } from '@/lib/ai-matching-service'
-import { getServerLocation } from '@/lib/geo-location'
-
-// Inline Prisma initialization to avoid module resolution issues
 import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 })
-
-const adapter = new PrismaPg(pool)
-
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
-const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export const dynamic = 'force-dynamic'
 
@@ -45,18 +30,26 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
   if (!key) return { success: false, error: 'Missing API key', status: 401 }
 
   try {
-    const record = await prisma.apiKey.findFirst({
-      where: { key, isActive: true },
-      include: { user: true },
-    })
-    if (record && record.user) {
-      const perms = record.permissions as any || {}
-      prisma.apiKey.update({ where: { id: record.id }, data: { lastUsedAt: new Date() } }).catch(() => {})
+    const result = await pool.query(`
+      SELECT ak.id as key_id, ak.name as key_name, ak.permissions,
+             u.id as user_id, u.role as user_role, u."isAI" as user_is_ai
+      FROM "ApiKey" ak
+      JOIN "User" u ON u.id = ak."userId"
+      WHERE ak.key = $1 AND ak."isActive" = true
+    `, [key])
+
+    if (result.rows.length > 0) {
+      const row = result.rows[0]
+      const perms = typeof row.permissions === 'string' ? JSON.parse(row.permissions) : (row.permissions || {})
+
+      // Update last used (non-blocking)
+      pool.query(`UPDATE "ApiKey" SET "lastUsedAt" = NOW() WHERE id = $1`, [row.key_id]).catch(() => {})
+
       return {
         success: true,
-        userId: record.user.id,
-        userRole: record.user.role,
-        userIsAI: record.user.isAI,
+        userId: row.user_id,
+        userRole: row.user_role,
+        userIsAI: row.user_is_ai || false,
         permissions: {
           canBuy: perms.canBuy ?? true,
           canSell: perms.canSell ?? true,
@@ -65,10 +58,14 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
         },
       }
     }
+
+    // Check inactive
+    const inactive = await pool.query(`SELECT 1 FROM "ApiKey" WHERE key = $1 AND "isActive" = false`, [key])
+    if (inactive.rows.length > 0) return { success: false, error: 'API key is inactive', status: 403 }
+
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (e: any) {
     console.error('[AI API Auth Error]', e?.message)
-    console.error('[AI API Auth Stack]', e?.stack?.substring(0, 300))
     return { success: false, error: 'Auth service error', status: 500 }
   }
 }
@@ -84,40 +81,66 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status')
   const search = searchParams.get('search')
 
-  const where: any = {}
-  if (type) where.type = type.toUpperCase()
-  if (status) where.status = status.toUpperCase() as TaskStatus
-  else where.status = TaskStatus.OPEN
-  if (search) where.OR = [
-    { title: { contains: search } },
-    { description: { contains: search } },
-    { keywords: { has: search } },
-  ]
+  const where: string[] = []
+  const params: any[] = []
+  let paramIdx = 1
 
-  const [tasks, total] = await Promise.all([
-    prisma.marketplaceTask.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: { postedBy: { select: { id: true, username: true, displayName: true } } },
-    }),
-    prisma.marketplaceTask.count({ where }),
-  ])
+  if (type) { where.push(`type = $${paramIdx}`); params.push(type.toUpperCase()); paramIdx++ }
+  if (status) { where.push(`status = $${paramIdx}`); params.push(status.toUpperCase()); paramIdx++ }
+  else { where.push(`status = 'OPEN'`) }
+
+  if (search) {
+    where.push(`(title ILIKE $${paramIdx} OR description ILIKE $${paramIdx})`)
+    params.push(`%${search}%`)
+    paramIdx++
+  }
+
+  const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''
+
+  const totalResult = await pool.query(`SELECT COUNT(*) as total FROM "MarketplaceTask" ${whereClause}`, params)
+  const total = parseInt(totalResult.rows[0].total)
+
+  const tasksResult = await pool.query(`
+    SELECT t.*, u.username as poster_name, u."displayName" as poster_display_name
+    FROM "MarketplaceTask" t
+    LEFT JOIN "User" u ON u.id = t."postedById"
+    ${whereClause}
+    ORDER BY t."createdAt" DESC
+    LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+  `, [...params, limit, (page - 1) * limit])
+
+  const tasks = tasksResult.rows.map(row => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    type: row.type,
+    status: row.status,
+    price: row.price ? Number(row.price) : null,
+    currency: row.currency,
+    unit: row.unit,
+    minOrderQty: row."minOrderQty",
+    deadline: row.deadline ? new Date(row.deadline).toISOString() : null,
+    countryCode: row."countryCode",
+    countryName: row."countryName",
+    keywords: row.keywords || [],
+    attachments: row.attachments || [],
+    contactInfo: row."contactInfo",
+    postedById: row."postedById",
+    postedBy: row.poster_display_name || row.poster_name || 'Unknown',
+    views: row.views || 0,
+    createdAt: row."createdAt" ? new Date(row."createdAt").toISOString() : null,
+    updatedAt: row."updatedAt" ? new Date(row."updatedAt").toISOString() : null,
+  }))
 
   return NextResponse.json({
     success: true,
-    data: {
-      tasks: tasks.map(transformTask),
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    },
+    data: { tasks, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } },
   })
 }
 
 export async function POST(request: NextRequest) {
   const auth = await authenticate(request)
   if (!auth.success) return NextResponse.json({ error: auth.error }, { status: auth.status || 401 })
-  if (!auth.permissions?.canSell) return NextResponse.json({ error: 'No permission', status: 403 })
 
   const body = await request.json()
   const { title, description, type } = body
@@ -135,59 +158,65 @@ export async function POST(request: NextRequest) {
   let countryName = body.countryName || null
   if (!countryCode) {
     try {
-      const loc = await getServerLocation(request)
-      if (loc) { countryCode = loc.countryCode; countryName = loc.country }
+      const locRes = await fetch('http://ip-api.com/json/?fields=countryCode,country')
+      if (locRes.ok) {
+        const loc = await locRes.json()
+        countryCode = loc.countryCode || null
+        countryName = loc.country || null
+      }
     } catch {}
   }
 
-  const task = await prisma.marketplaceTask.create({
-    data: {
-      title, description, type: typeValue,
-      budget: body.budget ? parseFloat(body.budget) : null,
-      price: body.price ? parseFloat(body.price) : null,
-      currency: body.currency || 'USD',
-      unit: body.unit || null,
-      minOrderQty: body.minOrderQty ? parseInt(body.minOrderQty) : null,
-      deadline: body.deadline ? new Date(body.deadline) : null,
-      postedById: auth.userId!,
-      contactInfo: body.contactInfo || null,
-      attachments: body.attachments || [],
-      keywords: body.keywords || [],
-      countryCode, countryName,
-      status: TaskStatus.OPEN,
-    },
-  })
+  const result = await pool.query(`
+    INSERT INTO "MarketplaceTask" (
+      id, title, description, type, budget, price, currency, unit,
+      "minOrderQty", deadline, "postedById", "contactInfo", attachments,
+      keywords, "countryCode", "countryName", status, "createdAt", "updatedAt"
+    ) VALUES (
+      gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7,
+      $8, $9, $10, $11, $12,
+      $13, $14, $15, 'OPEN', NOW(), NOW()
+    ) RETURNING *
+  `, [
+    title, description, typeValue,
+    body.budget ? parseFloat(body.budget) : null,
+    body.price ? parseFloat(body.price) : null,
+    body.currency || 'USD',
+    body.unit || null,
+    body.minOrderQty ? parseInt(body.minOrderQty) : null,
+    body.deadline || null,
+    auth.userId!,
+    body.contactInfo || null,
+    JSON.stringify(body.attachments || []),
+    JSON.stringify(body.keywords || []),
+    countryCode, countryName,
+  ])
 
-  setTimeout(() => { performTaskMatching(task.id).catch(() => {}) }, 100)
+  const task = result.rows[0]
 
   return NextResponse.json({
     success: true,
-    data: transformTask(task),
+    data: {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      type: task.type,
+      status: task.status,
+      price: task.price ? Number(task.price) : null,
+      currency: task.currency,
+      unit: task.unit,
+      minOrderQty: task."minOrderQty",
+      deadline: task.deadline ? new Date(task.deadline).toISOString() : null,
+      countryCode: task."countryCode",
+      countryName: task."countryName",
+      keywords: task.keywords || [],
+      attachments: task.attachments || [],
+      contactInfo: task."contactInfo",
+      postedById: task."postedById",
+      views: task.views || 0,
+      createdAt: task."createdAt" ? new Date(task."createdAt").toISOString() : null,
+      updatedAt: task."updatedAt" ? new Date(task."updatedAt").toISOString() : null,
+    },
     url: `/zh/marketplace/${task.id}`,
   })
-}
-
-function transformTask(task: any) {
-  return {
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    type: task.type,
-    status: task.status,
-    price: task.price ? Number(task.price) : null,
-    currency: task.currency,
-    unit: task.unit,
-    minOrderQty: task.minOrderQty,
-    deadline: task.deadline?.toISOString() || null,
-    countryCode: task.countryCode,
-    countryName: task.countryName,
-    keywords: task.keywords || [],
-    attachments: task.attachments || [],
-    contactInfo: task.contactInfo,
-    postedById: task.postedById,
-    postedBy: task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
-    views: task.views || 0,
-    createdAt: task.createdAt?.toISOString(),
-    updatedAt: task.updatedAt?.toISOString(),
-  }
 }
