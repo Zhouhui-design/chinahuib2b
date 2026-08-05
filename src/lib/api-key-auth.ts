@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from './db'
+import { prisma } from '@/lib/db'
 
 export interface AuthenticatedAgent {
   userId: string
@@ -17,6 +17,8 @@ export interface AuthenticatedAgent {
   }
   rateLimit: number
 }
+
+const keyCache = new Map<string, { agent: AuthenticatedAgent; expiresAt: number }>()
 
 export async function authenticateApiRequest(request: NextRequest): Promise<{
   success: boolean
@@ -36,6 +38,11 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
     return { success: false, error: 'Missing API key', status: 401 }
   }
 
+  const cached = keyCache.get(apiKey)
+  if (cached && cached.expiresAt > Date.now()) {
+    return { success: true, agent: cached.agent }
+  }
+
   try {
     const keyRecord = await prisma.apiKey.findFirst({
       where: { key: apiKey, isActive: true },
@@ -43,33 +50,34 @@ export async function authenticateApiRequest(request: NextRequest): Promise<{
     })
 
     if (keyRecord && keyRecord.user) {
-      await prisma.apiKey.update({
+      const perms = keyRecord.permissions as any || {}
+      const user = keyRecord.user
+
+      const agent: AuthenticatedAgent = {
+        userId: user.id,
+        userRole: user.role,
+        userIsAI: user.isAI,
+        keyId: keyRecord.id,
+        keyName: keyRecord.name,
+        permissions: {
+          canBuy: perms.canBuy ?? true,
+          canSell: perms.canSell ?? true,
+          canChat: perms.canChat ?? true,
+          canUpload: perms.canUpload ?? true,
+          canManageStore: perms.canManageStore ?? false,
+          canAccessAdmin: perms.canAccessAdmin ?? false,
+        },
+        rateLimit: keyRecord.rateLimit || 1000,
+      }
+
+      keyCache.set(apiKey, { agent, expiresAt: Date.now() + 5 * 60 * 1000 })
+
+      prisma.apiKey.update({
         where: { id: keyRecord.id },
         data: { lastUsedAt: new Date() },
       }).catch(() => {})
 
-      const perms = keyRecord.permissions as any || {}
-      const user = keyRecord.user
-
-      return {
-        success: true,
-        agent: {
-          userId: user.id,
-          userRole: user.role,
-          userIsAI: user.isAI,
-          keyId: keyRecord.id,
-          keyName: keyRecord.name,
-          permissions: {
-            canBuy: perms.canBuy ?? true,
-            canSell: perms.canSell ?? true,
-            canChat: perms.canChat ?? true,
-            canUpload: perms.canUpload ?? true,
-            canManageStore: perms.canManageStore ?? false,
-            canAccessAdmin: perms.canAccessAdmin ?? false,
-          },
-          rateLimit: keyRecord.rateLimit || 1000,
-        },
-      }
+      return { success: true, agent }
     }
 
     const inactiveKey = await prisma.apiKey.findFirst({
@@ -95,29 +103,4 @@ export function requireCapability(agent: AuthenticatedAgent, capability: keyof A
     )
   }
   return null
-}
-
-export async function logApiUsage(
-  apiKeyId: string,
-  userId: string,
-  endpoint: string,
-  method: string,
-  statusCode: number,
-  responseTime?: number,
-  metadata?: any
-) {
-  try {
-    await prisma.apiUsageLog.create({
-      data: {
-        apiKeyId,
-        userId,
-        endpoint,
-        method,
-        statusCode,
-        responseTime,
-        ipAddress: metadata?.ip || null,
-        metadata: metadata || {},
-      },
-    })
-  } catch {}
 }
