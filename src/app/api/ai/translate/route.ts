@@ -120,7 +120,11 @@ export async function POST(request: NextRequest) {
 }
 
 async function translateWithMyMemory(text: string, source: string, target: string): Promise<string> {
-  const langPair = `${source === 'auto' ? 'autodetect' : source}${target}`
+  // MyMemory expects langpair format: "EN|ZH-CN" (uppercase with pipe separator)
+  // Or "autodetect|EN" for auto-detection
+  const sourceCode = source === 'auto' ? 'autodetect' : source.toUpperCase()
+  const targetCode = target === 'zht' ? 'ZH-CN' : target.toUpperCase()
+  const langPair = `${sourceCode}|${targetCode}`
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`
 
   const response = await fetch(url, {
@@ -135,7 +139,12 @@ async function translateWithMyMemory(text: string, source: string, target: strin
 
   const data = await response.json()
   if (data.responseData && data.responseData.translatedText) {
-    return data.responseData.translatedText
+    const translatedText = data.responseData.translatedText
+    // Check for error messages in the translation
+    if (translatedText.includes('INVALID LANGUAGE') || translatedText.includes('LANGUAGE PAIR')) {
+      throw new Error(`Invalid language pair: ${langPair}`)
+    }
+    return translatedText
   }
 
   throw new Error('Unexpected translation API response')
