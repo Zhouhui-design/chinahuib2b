@@ -8,10 +8,24 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { PrismaClient } from '@prisma/client'
 import { TaskStatus } from '@prisma/client'
 import { performTaskMatching } from '@/lib/ai-matching-service'
 import { getServerLocation } from '@/lib/geo-location'
+
+// Inline Prisma initialization to avoid module resolution issues
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+})
+
+const adapter = new PrismaPg(pool)
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
+const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export const dynamic = 'force-dynamic'
 
@@ -20,12 +34,7 @@ interface AuthResult {
   userId?: string
   userRole?: string
   userIsAI?: boolean
-  permissions?: {
-    canBuy: boolean
-    canSell: boolean
-    canChat: boolean
-    canUpload: boolean
-  }
+  permissions?: { canBuy: boolean; canSell: boolean; canChat: boolean; canUpload: boolean }
   error?: string
   status?: number
 }
@@ -33,7 +42,6 @@ interface AuthResult {
 async function authenticate(request: NextRequest): Promise<AuthResult> {
   const header = request.headers.get('authorization') || ''
   const key = header.startsWith('Bearer ') ? header.slice(7) : header
-
   if (!key) return { success: false, error: 'Missing API key', status: 401 }
 
   try {
@@ -41,21 +49,14 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
       where: { key, isActive: true },
       include: { user: true },
     })
-
     if (record && record.user) {
-      const user = record.user
       const perms = record.permissions as any || {}
-
-      prisma.apiKey.update({
-        where: { id: record.id },
-        data: { lastUsedAt: new Date() },
-      }).catch(() => {})
-
+      prisma.apiKey.update({ where: { id: record.id }, data: { lastUsedAt: new Date() } }).catch(() => {})
       return {
         success: true,
-        userId: user.id,
-        userRole: user.role,
-        userIsAI: user.isAI,
+        userId: record.user.id,
+        userRole: record.user.role,
+        userIsAI: record.user.isAI,
         permissions: {
           canBuy: perms.canBuy ?? true,
           canSell: perms.canSell ?? true,
@@ -64,15 +65,10 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
         },
       }
     }
-
-    const inactive = await prisma.apiKey.findFirst({
-      where: { key, isActive: false },
-    })
-    if (inactive) return { success: false, error: 'API key is inactive', status: 403 }
-
     return { success: false, error: 'Invalid API key', status: 401 }
   } catch (e: any) {
     console.error('[AI API Auth Error]', e?.message)
+    console.error('[AI API Auth Stack]', e?.stack?.substring(0, 300))
     return { success: false, error: 'Auth service error', status: 500 }
   }
 }
