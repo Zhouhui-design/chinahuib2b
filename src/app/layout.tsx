@@ -3,9 +3,17 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import { languages } from "@/lib/languages";
 import { generateWebsiteSchema, generateOrganizationSchemaFull, generateWebApplicationSchema } from "@/lib/schema-org";
 import CookieConsent from "@/components/CookieConsent";
+
+// Load AdminDevTools only on the client (ssr: false) to avoid
+// webpack module resolution issues in the Server Component tree.
+const AdminDevToolsWrapper = dynamic(
+  () => import("@/components/AdminDevToolsWrapper"),
+  { ssr: false }
+);
 
 const inter = Inter({
   subsets: ["latin"],
@@ -164,6 +172,7 @@ export default function RootLayout({
         </LanguageProvider>
         
         <CookieConsent />
+        <AdminDevToolsWrapper />
         
         <Script
           id="register-sw"
