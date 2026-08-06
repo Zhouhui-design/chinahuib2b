@@ -180,6 +180,18 @@ export default function RootLayout({
                       console.log('[PWA] SW registration failed:', error);
                     });
                 });
+                // Auto-reload when a new Service Worker activates, so users
+                // immediately pick up fresh production assets (fixes stale
+                // dev-mode JS being served from the old SW cache).
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                  if (event.data && event.data.type === 'SW_UPDATED') {
+                    console.log('[PWA] SW updated to', event.data.version, '- reloading');
+                    window.location.reload();
+                  }
+                });
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  window.location.reload();
+                });
               }
             `,
           }}
