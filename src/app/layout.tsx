@@ -6,7 +6,6 @@ import Script from "next/script";
 import { languages } from "@/lib/languages";
 import { generateWebsiteSchema, generateOrganizationSchemaFull, generateWebApplicationSchema } from "@/lib/schema-org";
 import CookieConsent from "@/components/CookieConsent";
-import AdminDevToolsWrapper from "@/components/AdminDevToolsWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -165,7 +164,6 @@ export default function RootLayout({
         </LanguageProvider>
         
         <CookieConsent />
-        <AdminDevToolsWrapper buildId={process.env['npm_package_version'] ?? undefined} />
         
         <Script
           id="register-sw"
