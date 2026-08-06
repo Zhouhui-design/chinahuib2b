@@ -131,7 +131,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: "camera=(), microphone=(), geolocation=(), payment=(self)",
+            value: "camera=(), microphone=(), geolocation=(), payment=(self), interest-cohort=()",
           },
           {
             key: 'Content-Security-Policy',
@@ -146,7 +146,14 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
+              "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com",
+              "object-src 'none'",
+              "upgrade-insecure-requests",
             ].join('; '),
+          },
+          {
+            key: 'X-Next-Devtools-Disabled',
+            value: 'true',
           },
         ],
       },

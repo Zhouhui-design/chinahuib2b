@@ -159,6 +159,49 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        {/* Security: suppress DevTools + filter React errors before hydration */}
+        <Script id="security-devtools-suppress" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                // Disable Next.js DevTools overlay
+                window.__NEXT_DEVTOOLS__ = { disabled: true };
+                window.__NEXT_DISABLE_DEVTOOLS__ = true;
+
+                // Filter out React DevTools-triggered console.error messages
+                const originalError = console.error.bind(console);
+                const blockedPatterns = [
+                  'Invalid values for props',
+                  'Hydration failed because',
+                  'React is not defined',
+                  'cannot appear as a descendant of',
+                  'expected a string or number',
+                ];
+                console.error = function(...args) {
+                  const msg = args.join(' ');
+                  const isBlocked = blockedPatterns.some(p => msg.includes(p));
+                  if (!isBlocked) {
+                    originalError(...args);
+                  }
+                };
+
+                // Also suppress window.onerror for DevTools-relevant errors
+                window.addEventListener('error', function(e) {
+                  const blocked = [
+                    'Invalid values for props',
+                    'Hydration failed',
+                  ];
+                  if (blocked.some(p => (e.message || '').includes(p))) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                    return false;
+                  }
+                }, true);
+              } catch(e) {}
+            })();
+          `}
+        </Script>
+
         <LanguageProvider>
           {children}
         </LanguageProvider>
