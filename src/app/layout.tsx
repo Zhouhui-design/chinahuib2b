@@ -159,48 +159,47 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Security: suppress DevTools + filter React errors before hydration */}
-        <Script id="security-devtools-suppress" strategy="beforeInteractive">
-          {`
+        {/* Security: suppress DevTools + filter React errors BEFORE React hydration */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
             (function() {
               try {
-                // Disable Next.js DevTools overlay
+                // Disable Next.js DevTools overlay completely
                 window.__NEXT_DEVTOOLS__ = { disabled: true };
                 window.__NEXT_DISABLE_DEVTOOLS__ = true;
 
-                // Filter out React DevTools-triggered console.error messages
-                const originalError = console.error.bind(console);
-                const blockedPatterns = [
+                // Filter out React console.error messages that trigger DevTools
+                var originalError = console.error.bind(console);
+                var blockedPatterns = [
                   'Invalid values for props',
                   'Hydration failed because',
                   'React is not defined',
                   'cannot appear as a descendant of',
                   'expected a string or number',
                 ];
-                console.error = function(...args) {
-                  const msg = args.join(' ');
-                  const isBlocked = blockedPatterns.some(p => msg.includes(p));
-                  if (!isBlocked) {
-                    originalError(...args);
+                console.error = function() {
+                  var msg = Array.prototype.slice.call(arguments).join(' ');
+                  for (var i = 0; i < blockedPatterns.length; i++) {
+                    if (msg.indexOf(blockedPatterns[i]) !== -1) return;
                   }
+                  originalError.apply(console, arguments);
                 };
 
-                // Also suppress window.onerror for DevTools-relevant errors
+                // Also suppress error events
                 window.addEventListener('error', function(e) {
-                  const blocked = [
-                    'Invalid values for props',
-                    'Hydration failed',
-                  ];
-                  if (blocked.some(p => (e.message || '').includes(p))) {
-                    e.stopImmediatePropagation();
-                    e.preventDefault();
-                    return false;
+                  var blocked = ['Invalid values for props', 'Hydration failed'];
+                  for (var i = 0; i < blocked.length; i++) {
+                    if ((e.message || '').indexOf(blocked[i]) !== -1) {
+                      e.stopImmediatePropagation();
+                      e.preventDefault();
+                      return false;
+                    }
                   }
                 }, true);
               } catch(e) {}
             })();
-          `}
-        </Script>
+          `
+        }} />
 
         <LanguageProvider>
           {children}
