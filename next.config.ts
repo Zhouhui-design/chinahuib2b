@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   // Fix workspace root for monorepo
   outputFileTracingRoot: __dirname,
   
+  // Disable Next.js DevTools indicator for non-admin users
+  // Admin users get a custom dev panel instead
+  devIndicators: false,
+  
   // Allow cross-origin requests in development mode
   allowedDevOrigins: ['x2xhub.com', 'www.x2xhub.com', '139.59.108.156'],
   
