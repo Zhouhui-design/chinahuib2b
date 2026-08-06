@@ -160,46 +160,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         {/* Security: suppress DevTools + filter React errors BEFORE React hydration */}
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              try {
-                // Disable Next.js DevTools overlay completely
-                window.__NEXT_DEVTOOLS__ = { disabled: true };
-                window.__NEXT_DISABLE_DEVTOOLS__ = true;
-
-                // Filter out React console.error messages that trigger DevTools
-                var originalError = console.error.bind(console);
-                var blockedPatterns = [
-                  'Invalid values for props',
-                  'Hydration failed because',
-                  'React is not defined',
-                  'cannot appear as a descendant of',
-                  'expected a string or number',
-                ];
-                console.error = function() {
-                  var msg = Array.prototype.slice.call(arguments).join(' ');
-                  for (var i = 0; i < blockedPatterns.length; i++) {
-                    if (msg.indexOf(blockedPatterns[i]) !== -1) return;
-                  }
-                  originalError.apply(console, arguments);
-                };
-
-                // Also suppress error events
-                window.addEventListener('error', function(e) {
-                  var blocked = ['Invalid values for props', 'Hydration failed'];
-                  for (var i = 0; i < blocked.length; i++) {
-                    if ((e.message || '').indexOf(blocked[i]) !== -1) {
-                      e.stopImmediatePropagation();
-                      e.preventDefault();
-                      return false;
-                    }
-                  }
-                }, true);
-              } catch(e) {}
-            })();
-          `
-        }} />
+        <Script
+          src="/security-suppress.js"
+          strategy="beforeInteractive"
+          id="security-devtools-suppress"
+        />
 
         <LanguageProvider>
           {children}
