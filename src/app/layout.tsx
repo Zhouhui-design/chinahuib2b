@@ -159,13 +159,6 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Security: suppress DevTools + filter React errors BEFORE React hydration */}
-        <Script
-          src="/security-suppress.js"
-          strategy="beforeInteractive"
-          id="security-devtools-suppress"
-        />
-
         <LanguageProvider>
           {children}
         </LanguageProvider>
