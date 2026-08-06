@@ -10,6 +10,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import GA4Script from '@/components/GA4Script';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { MaintenanceBanner } from '@/components/MaintenanceBanner';
+import AdminDevToolsWrapper from '@/components/AdminDevToolsWrapper';
 import { useState, useEffect } from 'react';
 import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
 
@@ -410,6 +411,9 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
 
       {/* GA4 Analytics Script */}
       <GA4Script />
+
+      {/* Admin-only DevTools panel (invisible to non-admin users) */}
+      <AdminDevToolsWrapper />
     </div>
   );
 }
