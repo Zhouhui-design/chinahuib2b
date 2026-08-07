@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     const isChatUpload = type === 'chat_image' || type === 'chat_file';
     const isTaskUpload = type === 'task_attachment';
 
-    if (!user || (!isChatUpload && !isTaskUpload && user.role !== 'SELLER' && user.role !== 'ADMIN')) {
+    if (!user || (!isChatUpload && !isTaskUpload && user.role !== 'SELLER' && user.role !== 'ADMIN' && user.role !== 'AI_SELLER')) {
       console.log('Upload rejected - user:', user?.id, 'role:', user?.role, 'type:', type)
       return NextResponse.json({ error: 'Only sellers or admins can upload files' }, { status: 403 })
     }
