@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { handleSEOEvent } from "@/lib/seo-automation"
+import { resolveSellerFromRequest } from "@/lib/category-auth"
 
 async function generateBoothNumber(): Promise<string> {
   const lastBooth = await prisma.booth.findFirst({
@@ -139,10 +140,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    const { seller } = await resolveSellerFromRequest(request)
     
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!seller) {
+      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
     }
 
     const body = await request.json()
@@ -157,29 +158,10 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
-    let sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
-
-    if (!sellerProfile) {
-      const userEmail = session.user.email || ''
-      
-      sellerProfile = await prisma.sellerProfile.create({
-        data: {
-          userId: session.user.id,
-          companyName: userEmail.split('@')[0] || 'My Company',
-          companyType: 'SOLE_PROPRIETORSHIP',
-          country: 'CN',
-          city: 'Hangzhou',
-          description: '',
-        }
-      })
-    }
-
     // Check if booth name already exists for this seller
     const existingBooth = await prisma.booth.findFirst({
       where: { 
-        sellerId: sellerProfile.id,
+        sellerId: seller.id,
         name: data.name
       }
     })
@@ -196,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     const booth = await prisma.booth.create({
       data: {
-        sellerId: sellerProfile.id,
+        sellerId: seller.id,
         boothNumber,
         name: data.name,
         names: data.names,

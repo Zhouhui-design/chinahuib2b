@@ -7,6 +7,7 @@ import { translateText, autoTranslateToAllLanguages } from "@/lib/translation-se
 import { performProductMatching } from "@/lib/ai-matching-service"
 import { sendProductMatchNotifications, sendMatchNotificationsToBuyers } from "@/lib/system-notification-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
+import { resolveSellerFromRequest } from "@/lib/category-auth"
 
 
 const productSchema = z.object({
@@ -56,15 +57,7 @@ const productSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const seller = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    const { seller, submitterUserId, authMethod } = await resolveSellerFromRequest(request)
 
     if (!seller) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
@@ -205,15 +198,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const seller = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    const { seller } = await resolveSellerFromRequest(request)
 
     if (!seller) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
