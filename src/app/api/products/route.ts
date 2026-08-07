@@ -49,6 +49,8 @@ const productSchema = z.object({
   ),
   autoTranslate: z.boolean().optional().default(false),
   sourceLanguage: z.string().optional().default('en'),
+  // 新增：关键词，用于产品搜索曝光（与 Booth.keywords 模式一致）
+  keywords: z.array(z.string().min(1).max(100)).max(50).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
         documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
         isFeatured: data.isFeatured,
         isActive: true,
+        keywords: data.keywords && data.keywords.length > 0 ? data.keywords : undefined,
       },
       include: {
         category: true,

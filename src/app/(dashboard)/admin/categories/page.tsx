@@ -25,9 +25,18 @@ interface Category {
   children?: Category[]
   grandparent?: { id: string; name: string } | null
   greatGrandparent?: { id: string; name: string } | null
+  // 新增：来源与归属
+  source?: 'SYSTEM' | 'SELLER'
+  status?: 'APPROVED' | 'REJECTED'
+  ownerName?: string | null
+  submittedByUsername?: string | null
+  submittedByIsAI?: boolean
+  submittedAt?: string | null
+  rejectionReason?: string | null
 }
 
 type TabType = 'level1' | 'level2' | 'level3' | 'level4' | 'level5'
+type SourceFilter = 'all' | 'system' | 'seller' | 'rejected'
 
 const levelConfig = {
   level1: { label: '一级分类', level: 1, color: 'blue' },
@@ -45,6 +54,10 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('level1')
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all')
+  const [reviewingCategory, setReviewingCategory] = useState<Category | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [reviewLoading, setReviewLoading] = useState(false)
   
   // 级联选择状态
   const [selectedLevel1, setSelectedLevel1] = useState('')
@@ -347,17 +360,56 @@ export default function AdminCategoriesPage() {
 
   const getCategoriesByLevel = (level: number) => {
     let filtered = categories.filter(cat => cat.level === level)
-    
+
+    // 来源筛选
+    if (sourceFilter === 'system') {
+      filtered = filtered.filter(cat => (cat.source || 'SYSTEM') === 'SYSTEM')
+    } else if (sourceFilter === 'seller') {
+      filtered = filtered.filter(cat => cat.source === 'SELLER' && cat.status !== 'REJECTED')
+    } else if (sourceFilter === 'rejected') {
+      filtered = filtered.filter(cat => cat.status === 'REJECTED')
+    }
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(cat => 
-        cat.name.toLowerCase().includes(term) || 
+      filtered = filtered.filter(cat =>
+        cat.name.toLowerCase().includes(term) ||
         cat.nameEn?.toLowerCase().includes(term) ||
-        cat.hsCode?.toLowerCase().includes(term)
+        cat.hsCode?.toLowerCase().includes(term) ||
+        cat.ownerName?.toLowerCase().includes(term) ||
+        cat.submittedByUsername?.toLowerCase().includes(term)
       )
     }
-    
+
     return filtered
+  }
+
+  // 审核操作：approve / reject
+  const handleReview = async (action: 'approve' | 'reject') => {
+    if (!reviewingCategory) return
+    setReviewLoading(true)
+    try {
+      const response = await fetch(`/api/admin/categories/${reviewingCategory.id}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          reason: action === 'reject' ? rejectReason : undefined,
+        }),
+      })
+      if (!response.ok) {
+        const err = await response.json()
+        throw new Error(err.error || 'Failed')
+      }
+      // 刷新列表
+      await fetchCategories()
+      setReviewingCategory(null)
+      setRejectReason('')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '操作失败')
+    } finally {
+      setReviewLoading(false)
+    }
   }
 
   const getLevelLabel = (level: number) => {
@@ -452,8 +504,29 @@ export default function AdminCategoriesPage() {
           ))}
         </div>
 
-        {/* Search Bar */}
-        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+        {/* Search Bar + 来源筛选 */}
+        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium text-gray-600 mr-1">来源:</span>
+            {([
+              { key: 'all' as SourceFilter, label: '全部' },
+              { key: 'system' as SourceFilter, label: '系统' },
+              { key: 'seller' as SourceFilter, label: '卖家提交' },
+              { key: 'rejected' as SourceFilter, label: '已驳回' },
+            ]).map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setSourceFilter(tab.key)}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  sourceFilter === tab.key
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -461,7 +534,7 @@ export default function AdminCategoriesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={`搜索${levelConfig[activeTab].label}名称或HS编码...`}
+              placeholder={`搜索${levelConfig[activeTab].label}名称、HS编码或提交者...`}
             />
           </div>
         </div>
@@ -483,11 +556,28 @@ export default function AdminCategoriesPage() {
                         {index + 1}
                       </span>
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 flex-wrap">
                           <span className="font-medium text-gray-900">{cat.name}</span>
                           <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getLevelColor(cat.level)}`}>
                             {getLevelLabel(cat.level)}
                           </span>
+                          {/* 来源徽章 */}
+                          {cat.source === 'SELLER' && (
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                              卖家提交
+                            </span>
+                          )}
+                          {(!cat.source || cat.source === 'SYSTEM') && (
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                              系统
+                            </span>
+                          )}
+                          {/* 状态徽章 */}
+                          {cat.status === 'REJECTED' && (
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-200">
+                              已驳回
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-4 mt-1.5 text-sm text-gray-500">
                           {cat.hsCode && (
@@ -532,6 +622,18 @@ export default function AdminCategoriesPage() {
                               所属二级分类: {cat.greatGrandparent.name}
                             </span>
                           )}
+                          {/* 提交者信息（仅卖家提交分类显示） */}
+                          {cat.source === 'SELLER' && (
+                            <span className="flex items-center">
+                              <ChevronRight className="w-3.5 h-3.5 inline mr-1" />
+                              提交者: {cat.submittedByUsername || '未知'}
+                              {cat.submittedByIsAI && <span className="ml-1 text-xs">🤖</span>}
+                              {cat.ownerName && <span className="ml-1 text-gray-400">({cat.ownerName})</span>}
+                            </span>
+                          )}
+                          {cat.rejectionReason && (
+                            <span className="text-red-500">驳回理由: {cat.rejectionReason}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -543,6 +645,31 @@ export default function AdminCategoriesPage() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
+                      {/* 审核按钮：仅对卖家提交分类显示 */}
+                      {cat.source === 'SELLER' && cat.status !== 'REJECTED' && (
+                        <button
+                          onClick={() => {
+                            setReviewingCategory(cat)
+                            setRejectReason('')
+                          }}
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="驳回"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                      {cat.source === 'SELLER' && cat.status === 'REJECTED' && (
+                        <button
+                          onClick={() => {
+                            setReviewingCategory(cat)
+                            setRejectReason('')
+                          }}
+                          className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="恢复"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDelete(cat.id, cat.name)}
                         className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -906,6 +1033,69 @@ export default function AdminCategoriesPage() {
                   </button>
                 </div>
               </form>
+          </div>
+        </div>
+      )}
+
+      {/* 审核（驳回/恢复）弹窗 */}
+      {reviewingCategory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">
+                {reviewingCategory.status === 'REJECTED' ? '恢复分类' : '驳回分类'}
+              </h3>
+              <button
+                onClick={() => setReviewingCategory(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-gray-600">
+                分类: <span className="font-medium text-gray-900">{reviewingCategory.name}</span>
+                {reviewingCategory.ownerName && (
+                  <span className="ml-2 text-gray-400">（提交者: {reviewingCategory.ownerName}）</span>
+                )}
+              </p>
+              {reviewingCategory.status !== 'REJECTED' ? (
+                <>
+                  <label className="block text-sm font-medium text-gray-700">
+                    驳回理由（可选）
+                  </label>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                    placeholder="请输入驳回理由..."
+                  />
+                  <p className="text-xs text-gray-500">驳回后该分类将从公开分类树隐藏，但保留数据供审计</p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-600">恢复后该分类将重新出现在公开分类树中</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t">
+              <button
+                onClick={() => setReviewingCategory(null)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => handleReview(reviewingCategory.status === 'REJECTED' ? 'approve' : 'reject')}
+                disabled={reviewLoading}
+                className={`px-4 py-2 text-white rounded-lg disabled:opacity-50 ${
+                  reviewingCategory.status === 'REJECTED'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {reviewLoading ? '⏳ 处理中...' : reviewingCategory.status === 'REJECTED' ? '确认恢复' : '确认驳回'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -63,6 +63,15 @@ export default function AddProductPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [acceptsOEM, setAcceptsOEM] = useState(false)
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [keywords, setKeywords] = useState<string[]>([])
+  const [keywordInput, setKeywordInput] = useState('')
+  // 分类快捷创建弹窗状态
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryNameEn, setNewCategoryNameEn] = useState('')
+  const [newCategoryParentId, setNewCategoryParentId] = useState('')
+  const [myCategories, setMyCategories] = useState<Category[]>([])
+  const [creatingCategory, setCreatingCategory] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -599,6 +608,110 @@ export default function AddProductPage() {
                   language === 'th' ? 'สินค้า' :
                   language === 'vi' ? 'Sản phẩm' :
                   'Product',
+    keywords: language === 'zh' ? '关键词' :
+              language === 'ja' ? 'キーワード' :
+              language === 'ar' ? 'الكلمات الرئيسية' :
+              language === 'es' ? 'Palabras clave' :
+              language === 'fr' ? 'Mots-clés' :
+              language === 'de' ? 'Schlüsselwörter' :
+              language === 'ko' ? '키워드' :
+              language === 'ru' ? 'Ключевые слова' :
+              language === 'pt' ? 'Palavras-chave' :
+              language === 'hi' ? 'कीवर्ड' :
+              language === 'th' ? 'คีย์เวิร์ด' :
+              language === 'vi' ? 'Từ khóa' :
+              'Keywords',
+    addKeyword: language === 'zh' ? '添加' :
+                language === 'ja' ? '追加' :
+                language === 'ar' ? 'إضافة' :
+                language === 'es' ? 'Añadir' :
+                language === 'fr' ? 'Ajouter' :
+                language === 'de' ? 'Hinzufügen' :
+                language === 'ko' ? '추가' :
+                language === 'ru' ? 'Добавить' :
+                language === 'pt' ? 'Adicionar' :
+                language === 'hi' ? 'जोड़ें' :
+                language === 'th' ? 'เพิ่ม' :
+                language === 'vi' ? 'Thêm' :
+                'Add',
+    keywordsHint: language === 'zh' ? '输入关键词后按回车添加，最多 50 个，提升产品搜索曝光' :
+                  language === 'ja' ? 'キーワードを入力してEnterを押すと追加、最大50件、検索露出を向上' :
+                  language === 'ar' ? 'اكتب الكلمة واضغط Enter للإضافة، بحد أقصى 50، لتحسين البحث' :
+                  language === 'es' ? 'Escribe y presiona Enter para añadir, máx. 50, mejora la búsqueda' :
+                  language === 'fr' ? 'Saisir et appuyer sur Entrée, max. 50, améliore la recherche' :
+                  language === 'de' ? 'Eingeben und Enter drücken, max. 50, verbessert die Suche' :
+                  language === 'ko' ? '입력 후 Enter, 최대 50개, 검색 노출 향상' :
+                  language === 'ru' ? 'Введите и нажмите Enter, макс. 50, улучшает поиск' :
+                  language === 'pt' ? 'Digite e pressione Enter, máx. 50, melhora a busca' :
+                  language === 'hi' ? 'टाइप करें और Enter दबाएं, अधिकतम 50, खोज बेहतर करता है' :
+                  language === 'th' ? 'พิมพ์แล้วกด Enter, สูงสุด 50, ช่วยให้ค้นหาเจอง่ายขึ้น' :
+                  language === 'vi' ? 'Nhập và nhấn Enter, tối đa 50, cải thiện tìm kiếm' :
+                  'Type keyword and press Enter. Max 50. Improves search visibility.',
+    createCategory: language === 'zh' ? '新建分类' :
+                    language === 'ja' ? '新規カテゴリー' :
+                    language === 'ar' ? 'إنشاء فئة' :
+                    language === 'es' ? 'Crear categoría' :
+                    language === 'fr' ? 'Créer catégorie' :
+                    language === 'de' ? 'Kategorie erstellen' :
+                    language === 'ko' ? '카테고리 생성' :
+                    language === 'ru' ? 'Создать категорию' :
+                    language === 'pt' ? 'Criar categoria' :
+                    language === 'hi' ? 'श्रेणी बनाएं' :
+                    language === 'th' ? 'สร้างหมวดหมู่' :
+                    language === 'vi' ? 'Tạo danh mục' :
+                    'New Category',
+    categoryName: language === 'zh' ? '分类名称' :
+                  language === 'ja' ? 'カテゴリー名' :
+                  language === 'ar' ? 'اسم الفئة' :
+                  language === 'es' ? 'Nombre' :
+                  language === 'fr' ? 'Nom' :
+                  language === 'de' ? 'Name' :
+                  language === 'ko' ? '이름' :
+                  language === 'ru' ? 'Название' :
+                  language === 'pt' ? 'Nome' :
+                  language === 'hi' ? 'नाम' :
+                  language === 'th' ? 'ชื่อ' :
+                  language === 'vi' ? 'Tên' :
+                  'Category Name',
+    parentCategory: language === 'zh' ? '上级分类' :
+                    language === 'ja' ? '親カテゴリー' :
+                    language === 'ar' ? 'الفئة الأم' :
+                    language === 'es' ? 'Categoría padre' :
+                    language === 'fr' ? 'Catégorie parente' :
+                    language === 'de' ? 'Übergeordnete Kategorie' :
+                    language === 'ko' ? '상위 카테고리' :
+                    language === 'ru' ? 'Родительская категория' :
+                    language === 'pt' ? 'Categoria pai' :
+                    language === 'hi' ? 'मूल श्रेणी' :
+                    language === 'th' ? 'หมวดหมู่หลัก' :
+                    language === 'vi' ? 'Danh mục cha' :
+                    'Parent Category',
+    myCategories: language === 'zh' ? '我的分类' :
+                  language === 'ja' ? 'マイカテゴリー' :
+                  language === 'ar' ? 'فئاتي' :
+                  language === 'es' ? 'Mis categorías' :
+                  language === 'fr' ? 'Mes catégories' :
+                  language === 'de' ? 'Meine Kategorien' :
+                  language === 'ko' ? '내 카테고리' :
+                  language === 'ru' ? 'Мои категории' :
+                  language === 'pt' ? 'Minhas categorias' :
+                  language === 'hi' ? 'मेरी श्रेणियां' :
+                  language === 'th' ? 'หมวดหมู่ของฉัน' :
+                  language === 'vi' ? 'Danh mục của tôi' :
+                  'My Categories',
+    createSuccess: language === 'zh' ? '创建成功' :
+                   language === 'ja' ? '作成成功' :
+                   language === 'ar' ? 'تم الإنشاء' :
+                   language === 'es' ? 'Creado' :
+                   language === 'fr' ? 'Créé' :
+                   language === 'de' ? 'Erstellt' :
+                   language === 'ko' ? '생성됨' :
+                   language === 'ru' ? 'Создано' :
+                   language === 'pt' ? 'Criado' :
+                   language === 'hi' ? 'बनाया गया' :
+                   language === 'th' ? 'สร้างแล้ว' :
+                   language === 'vi' ? 'Đã tạo' :
+                   'Created',
   }
 
   const fetchCategories = async () => {
@@ -610,6 +723,102 @@ export default function AddProductPage() {
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err)
+    }
+  }
+
+  // 关键词输入：回车或点击添加，去重
+  const addKeyword = () => {
+    const trimmed = keywordInput.trim()
+    if (!trimmed) return
+    if (keywords.includes(trimmed)) {
+      setKeywordInput('')
+      return
+    }
+    if (keywords.length >= 50) return
+    setKeywords(prev => [...prev, trimmed])
+    setKeywordInput('')
+  }
+
+  const removeKeyword = (kw: string) => {
+    setKeywords(prev => prev.filter(k => k !== kw))
+  }
+
+  // 加载当前卖家已创建的分类（弹窗内"我的分类"列表）
+  const fetchMyCategories = async () => {
+    try {
+      const response = await fetch('/api/seller/categories')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) setMyCategories(data.categories)
+      }
+    } catch (err) {
+      console.error('Failed to fetch my categories:', err)
+    }
+  }
+
+  // 创建新分类（弹窗提交），成功后自动选中级联选择器
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return
+    setCreatingCategory(true)
+    try {
+      // 推断 level：有父级则 = 父级 level + 1，否则 = 1
+      let level = 1
+      if (newCategoryParentId) {
+        const findLevel = (nodes: Category[]): number => {
+          for (const n of nodes) {
+            if (n.id === newCategoryParentId) return n.level + 1
+            const found = findLevel(n.children || [])
+            if (found > 0) return found
+          }
+          return 0
+        }
+        level = findLevel(categories) || 1
+      }
+      if (level > 5) {
+        alert(language === 'zh' ? '最多支持 5 级分类' : 'Max 5 levels')
+        return
+      }
+
+      const response = await fetch('/api/seller/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCategoryName.trim(),
+          nameEn: newCategoryNameEn.trim() || undefined,
+          level,
+          parentId: newCategoryParentId || undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const err = await response.json()
+        throw new Error(err.error || 'Failed')
+      }
+
+      const data = await response.json()
+      const created = data.category
+
+      // 刷新分类树和"我的分类"
+      await fetchCategories()
+      await fetchMyCategories()
+
+      // 自动选中新创建的分类到对应层级
+      if (level === 1) setSelectedLevel1(created.id)
+      else if (level === 2) setSelectedLevel2(created.id)
+      else if (level === 3) setSelectedLevel3(created.id)
+      else if (level === 4) setSelectedLevel4(created.id)
+      else if (level === 5) setSelectedLevel5(created.id)
+
+      // 重置弹窗
+      setNewCategoryName('')
+      setNewCategoryNameEn('')
+      setNewCategoryParentId('')
+      setShowCategoryModal(false)
+      alert(t.createSuccess)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed')
+    } finally {
+      setCreatingCategory(false)
     }
   }
 
@@ -778,6 +987,7 @@ export default function AddProductPage() {
         specifications: Object.keys(specsObj).length > 0 ? specsObj : undefined,
         acceptsOEM,
         youtubeUrl: youtubeUrl || undefined,
+        keywords: keywords.length > 0 ? keywords : undefined,
       }
 
       const response = await fetch('/api/products', {
@@ -848,9 +1058,29 @@ export default function AddProductPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t.category}
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {t.category}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  fetchMyCategories()
+                  // 默认父级为当前已选最深层级
+                  if (selectedLevel5) setNewCategoryParentId(selectedLevel5)
+                  else if (selectedLevel4) setNewCategoryParentId(selectedLevel4)
+                  else if (selectedLevel3) setNewCategoryParentId(selectedLevel3)
+                  else if (selectedLevel2) setNewCategoryParentId(selectedLevel2)
+                  else if (selectedLevel1) setNewCategoryParentId(selectedLevel1)
+                  else setNewCategoryParentId('')
+                  setShowCategoryModal(true)
+                }}
+                className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                {t.createCategory}
+              </button>
+            </div>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-gray-500 font-medium w-12">L1</span>
@@ -967,6 +1197,51 @@ export default function AddProductPage() {
                 💡 Tip: Enable multi-language editing for global buyers
               </p>
             )}
+          </div>
+
+          {/* 关键词输入：复用 booths 页面的 tag 模式 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.keywords}
+            </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={keywordInput}
+                onChange={(e) => setKeywordInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+                placeholder={language === 'zh' ? '输入关键词后按回车添加' : 'Type keyword and press Enter'}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={addKeyword}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                {t.addKeyword}
+              </button>
+            </div>
+            {keywords.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {keywords.map((keyword, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                  >
+                    {keyword}
+                    <button
+                      type="button"
+                      onClick={() => removeKeyword(keyword)}
+                      className="hover:text-blue-900"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">{t.keywordsHint}</p>
           </div>
         </div>
 
@@ -1337,6 +1612,118 @@ export default function AddProductPage() {
           </button>
         </div>
       </form>
+
+      {/* 分类快捷创建弹窗 */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">{t.createCategory}</h3>
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.categoryName} *
+                </label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder={t.categoryName}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'zh' ? '英文名称' : 'English Name'}
+                </label>
+                <input
+                  type="text"
+                  value={newCategoryNameEn}
+                  onChange={(e) => setNewCategoryNameEn(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="English Name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.parentCategory}
+                </label>
+                <select
+                  value={newCategoryParentId}
+                  onChange={(e) => setNewCategoryParentId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{language === 'zh' ? '无（作为一级分类）' : 'None (as L1)'}</option>
+                  {categories.filter(c => c.level < 5).map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {'　'.repeat(cat.level - 1)}L{cat.level} {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'zh' ? '新分类将作为所选父级的下级（自动推断层级）' : 'New category will be a child of selected parent (level auto-inferred)'}
+                </p>
+              </div>
+
+              {/* 我的分类快捷列表 */}
+              {myCategories.length > 0 && (
+                <div className="border-t pt-3">
+                  <p className="text-xs font-medium text-gray-600 mb-2">{t.myCategories}</p>
+                  <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                    {myCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          if (cat.level === 1) setSelectedLevel1(cat.id)
+                          else if (cat.level === 2) setSelectedLevel2(cat.id)
+                          else if (cat.level === 3) setSelectedLevel3(cat.id)
+                          else if (cat.level === 4) setSelectedLevel4(cat.id)
+                          else if (cat.level === 5) setSelectedLevel5(cat.id)
+                          setShowCategoryModal(false)
+                        }}
+                        className="text-xs px-2 py-1 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded transition-colors"
+                      >
+                        L{cat.level} {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t">
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                {language === 'zh' ? '取消' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCategory}
+                disabled={creatingCategory || !newCategoryName.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+              >
+                {creatingCategory ? (
+                  <span className="animate-spin">⏳</span>
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {language === 'zh' ? '创建' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

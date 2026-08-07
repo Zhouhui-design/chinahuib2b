@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       `${CACHE_KEYS.categoryTree()}:${locale}`,
       async () => {
         const allCategories = await prisma.category.findMany({
+          where: { status: 'APPROVED' },
           orderBy: [
             { level: 'asc' },
             { name: 'asc' },

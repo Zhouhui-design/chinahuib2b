@@ -18,6 +18,8 @@ export async function GET(request: Request) {
       include: {
         children: true,
         parent: true,
+        owner: { select: { id: true, companyName: true } },
+        submitter: { select: { id: true, username: true, isAI: true } },
       },
       orderBy: { level: 'asc' },
     })
@@ -42,6 +44,17 @@ export async function GET(request: Request) {
       description: cat.description,
       descriptionEn: cat.descriptionEn,
       childrenCount: cat.children.length,
+      // 新增：来源与归属字段
+      source: cat.source,
+      status: cat.status,
+      ownerId: cat.ownerId,
+      ownerName: cat.owner?.companyName || null,
+      submittedById: cat.submittedById,
+      submittedByUsername: cat.submitter?.username || null,
+      submittedByIsAI: cat.submitter?.isAI || false,
+      submittedAt: cat.submittedAt,
+      reviewedAt: cat.reviewedAt,
+      rejectionReason: cat.rejectionReason,
     }))
 
     return NextResponse.json({
@@ -101,6 +114,9 @@ export async function POST(request: Request) {
         seriesEn,
         description,
         descriptionEn,
+        // 管理员创建的分类默认为系统预置
+        source: 'SYSTEM',
+        status: 'APPROVED',
       },
     })
 

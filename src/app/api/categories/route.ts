@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     const locale = searchParams.get('locale') || 'en'
 
     const categories = await prisma.category.findMany({
+      where: { status: 'APPROVED' },
       select: {
         id: true,
         name: true,

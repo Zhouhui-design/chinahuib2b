@@ -49,18 +49,22 @@ export async function GET(request: NextRequest) {
 
     // Build query
     const where: any = {}
-    
+
     if (keyword) {
+      // 关键词搜索：标题 + 英文标题 + 描述 + keywords 数组（JSONB array_contains 命中 GIN 索引）
       where.OR = [
-        { name: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } }
+        { title: { contains: keyword, mode: 'insensitive' } },
+        { titleEn: { contains: keyword, mode: 'insensitive' } },
+        { description: { contains: keyword, mode: 'insensitive' } },
+        { keywords: { path: [], array_contains: keyword } },
       ]
     }
-    
+
     if (category) {
       where.categoryId = category
     }
-    
+
+    // TODO: Product 模型没有 price 字段（价格在 AuctionListing），此条件不生效，待后续修复
     if (minPrice || maxPrice) {
       where.price = {}
       if (minPrice) where.price.gte = parseFloat(minPrice)

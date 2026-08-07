@@ -66,6 +66,7 @@ model User {
   privateMessagesSent        PrivateMessage[]            @relation("PrivateMessagesSent")
   publicMessagesSent         PublicMessage[]             @relation("PublicMessagesSent")
   sellerProfile              SellerProfile?
+  submittedCategories        Category[]                 @relation("CategorySubmitter")
   shoutOuts                  ShoutOut[]
   taskApplications           TaskApplication[]
   owner                      User?                       @relation("AIOwner", fields: [ownerId], references: [id])
@@ -186,6 +187,7 @@ model SellerProfile {
   products             Product[]
   linkedPublicMessages PublicMessage[]          @relation("LinkedPublicMessages")
   reviews              Review[]
+  submittedCategories  Category[]               @relation("SellerCategories")
   user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationFiles    SellerVerificationFile[]
   storeBrochures       StoreBrochure[]
@@ -215,12 +217,27 @@ model Category {
   translations  Json?      // { en, zh, de, fr, es, ja, ko, ar, ru, pt, hi, th, vi }
   translatedAt  DateTime?  // Last auto-translation timestamp
   hsCode        String?
+  // === 新增：来源与归属 ===
+  source         CategorySource @default(SYSTEM)  // SYSTEM=系统预置, SELLER=卖家提交
+  ownerId        String?                          // 卖家 SellerProfile.id（系统分类为 null）
+  submittedById  String?                          // 提交者 User.id（含 AI 子账号，用于审计）
+  submittedAt    DateTime?
+  // === 新增：审核状态（默认 APPROVED 实现"自动同步"） ===
+  status          CategoryStatus @default(APPROVED)
+  reviewedAt      DateTime?
+  reviewedBy      String?                          // 管理员 User.id
+  rejectionReason String?
   parent        Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children      Category[] @relation("CategoryHierarchy")
   products      Product[]
+  owner         SellerProfile? @relation("SellerCategories", fields: [ownerId], references: [id], onDelete: SetNull)
+  submitter     User?          @relation("CategorySubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
 
   @@index([slug])
   @@index([parentId])
+  @@index([source])
+  @@index([status])
+  @@index([ownerId])
 }
 
 model Booth {
@@ -277,6 +294,7 @@ model Product {
   boothId        String?
   descriptions   Json?
   titles         Json?
+  keywords       Json?      // string[]，与 Booth.keywords 一致，用于产品搜索
   inquiries      Inquiry[]
   reviews        Review[]
   booth          Booth?           @relation(fields: [boothId], references: [id])
@@ -1196,6 +1214,16 @@ enum SubscriptionStatus {
   ACTIVE
   EXPIRED
   CANCELLED
+}
+
+enum CategorySource {
+  SYSTEM
+  SELLER
+}
+
+enum CategoryStatus {
+  APPROVED
+  REJECTED
 }
 
 enum ProfileStatus {
