@@ -144,11 +144,12 @@ export async function PUT(
     // supplyCapacityUnitId) — they must be wrapped in { connect: { id } }.
     // Also strip fields that exist in Zod schema but NOT yet in the Prisma model
     // (acceptsOEM, youtubeUrl) — these require a DB migration to enable.
-    const { categoryId, minOrderUnitId, supplyCapacityUnitId, acceptsOEM, youtubeUrl, ...restData } = data as any
+    const { categoryId, minOrderUnitId, supplyCapacityUnitId, acceptsOEM, youtubeUrl, boothId, ...restData } = data as any
     const prismaData: any = { ...restData }
     if (categoryId) prismaData.category = { connect: { id: categoryId } }
     if (minOrderUnitId) prismaData.minOrderUnit = { connect: { id: minOrderUnitId } }
     if (supplyCapacityUnitId) prismaData.supplyCapacityUnit = { connect: { id: supplyCapacityUnitId } }
+    if (boothId) prismaData.booth = boothId ? { connect: { id: boothId } } : { disconnect: true }
 
     // Update product
     const product = await prisma.product.update({

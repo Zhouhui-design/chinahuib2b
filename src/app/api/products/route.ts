@@ -51,6 +51,7 @@ const productSchema = z.object({
   sourceLanguage: z.string().optional().default('en'),
   // 新增：关键词，用于产品搜索曝光（与 Booth.keywords 模式一致）
   keywords: z.array(z.string().min(1).max(100)).max(50).optional(),
+  boothId: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -102,27 +103,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const createData: any = {
+      sellerId: seller.id,
+      categoryId: data.categoryId,
+      title: data.title || titles['en'] || Object.values(titles)[0] || 'Untitled Product',
+      titles: Object.keys(titles).length > 0 ? titles : null,
+      description: data.description || descriptions['en'] || Object.values(descriptions)[0] || '',
+      descriptions: Object.keys(descriptions).length > 0 ? descriptions : null,
+      specifications: data.specifications || {},
+      minOrderQty: data.minOrderQty,
+      minOrderUnitId: data.minOrderUnitId || null,
+      supplyCapacity: data.supplyCapacity,
+      supplyCapacityUnitId: data.supplyCapacityUnitId || null,
+      images: data.images || [],
+      mainImageUrl: data.mainImageUrl || '',
+      videos: data.videos || [],
+      documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
+      isFeatured: data.isFeatured,
+      isActive: true,
+      keywords: data.keywords && data.keywords.length > 0 ? data.keywords : undefined,
+    }
+    if (data.boothId) {
+      createData.booth = { connect: { id: data.boothId } }
+    }
+
     const product = await prisma.product.create({
-      data: {
-        sellerId: seller.id,
-        categoryId: data.categoryId,
-        title: data.title || titles['en'] || Object.values(titles)[0] || 'Untitled Product',
-        titles: Object.keys(titles).length > 0 ? titles : null,
-        description: data.description || descriptions['en'] || Object.values(descriptions)[0] || '',
-        descriptions: Object.keys(descriptions).length > 0 ? descriptions : null,
-        specifications: data.specifications || {},
-        minOrderQty: data.minOrderQty,
-        minOrderUnitId: data.minOrderUnitId || null,
-        supplyCapacity: data.supplyCapacity,
-        supplyCapacityUnitId: data.supplyCapacityUnitId || null,
-        images: data.images || [],
-        mainImageUrl: data.mainImageUrl || '',
-        videos: data.videos || [],
-        documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
-        isFeatured: data.isFeatured,
-        isActive: true,
-        keywords: data.keywords && data.keywords.length > 0 ? data.keywords : undefined,
-      },
+      data: createData,
       include: {
         category: true,
         seller: true,
