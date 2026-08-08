@@ -67,26 +67,14 @@ const updateBoothSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const { seller } = await resolveSellerFromRequest(request)
+
+    if (!seller) {
+      return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
     }
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
-
-    // Get seller profile ID
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
-
-    if (!sellerProfile) {
-      if (id) {
-        return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
-      }
-      return NextResponse.json({ booths: [] })
-    }
 
     // If ID is provided, get single booth
     if (id) {
@@ -116,17 +104,17 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Booth not found' }, { status: 404 })
       }
 
-      // Verify ownership
-      if (booth.sellerId !== sellerProfile.id) {
+      // Verify ownership (both guardian and AI agent share the same seller profile)
+      if (booth.sellerId !== seller.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
 
       return NextResponse.json({ booth })
     }
 
-    // Otherwise, get all booths
+    // Otherwise, get all booths (shared between guardian and AI agent)
     const booths = await prisma.booth.findMany({
-      where: { sellerId: sellerProfile.id },
+      where: { sellerId: seller.id },
       orderBy: { createdAt: 'desc' }
     })
 

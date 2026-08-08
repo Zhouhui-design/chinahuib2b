@@ -3,11 +3,90 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { redis } from "@/lib/redis"
 import { z } from "zod"
+import fs from "fs"
+import path from "path"
 import { translateText, autoTranslateToAllLanguages } from "@/lib/translation-service"
 import { performProductMatching } from "@/lib/ai-matching-service"
 import { sendProductMatchNotifications, sendMatchNotificationsToBuyers } from "@/lib/system-notification-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
 import { resolveSellerFromRequest } from "@/lib/category-auth"
+
+// 检查并清理不存在的本地图片文件引用
+function validateAndCleanImages(
+  images: string[],
+  mainImageUrl: string
+): { validImages: string[]; validMainImage: string; warnings: string[] } {
+  const warnings: string[] = []
+  const publicDir = path.join(process.cwd(), 'public')
+
+  const validImages: string[] = []
+  const seen = new Set<string>()
+
+  for (const img of images) {
+    // 外部URL直接保留
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      if (!seen.has(img)) {
+        validImages.push(img)
+        seen.add(img)
+      }
+      continue
+    }
+
+    // 本地文件检查
+    if (img.startsWith('/uploads/')) {
+      const filePath = path.join(publicDir, img)
+      if (fs.existsSync(filePath)) {
+        if (!seen.has(img)) {
+          validImages.push(img)
+          seen.add(img)
+        }
+      } else {
+        warnings.push(`图片文件不存在: ${img}`)
+      }
+      continue
+    }
+
+    // 其他相对路径也检查
+    if (img.startsWith('/')) {
+      const filePath = path.join(publicDir, img)
+      if (fs.existsSync(filePath)) {
+        if (!seen.has(img)) {
+          validImages.push(img)
+          seen.add(img)
+        }
+      } else {
+        warnings.push(`图片文件不存在: ${img}`)
+      }
+      continue
+    }
+
+    // 相对路径，直接保留
+    if (!seen.has(img)) {
+      validImages.push(img)
+      seen.add(img)
+    }
+  }
+
+  // 检查主图
+  let validMainImage = mainImageUrl
+  if (mainImageUrl && mainImageUrl.startsWith('/')) {
+    if (mainImageUrl.startsWith('http://') || mainImageUrl.startsWith('https://')) {
+      validMainImage = mainImageUrl
+    } else {
+      const filePath = path.join(publicDir, mainImageUrl)
+      if (!fs.existsSync(filePath)) {
+        warnings.push(`主图文件不存在: ${mainImageUrl}`)
+        // 从有效图片中选第一个作为主图
+        validMainImage = validImages[0] || ''
+      }
+    }
+  } else if (mainImageUrl && !mainImageUrl.startsWith('/')) {
+    // 可能是完整URL
+    validMainImage = mainImageUrl
+  }
+
+  return { validImages, validMainImage, warnings }
+}
 
 
 const productSchema = z.object({
@@ -53,6 +132,10 @@ const productSchema = z.object({
   // 新增：关键词，用于产品搜索曝光（与 Booth.keywords 模式一致）
   keywords: z.array(z.string().min(1).max(100)).max(50).optional(),
   boothId: z.string().optional(),
+  // 新增：价格信息
+  price: z.number().positive().optional(),
+  currency: z.string().optional().default('USD'),
+  unit: z.string().optional().default('piece'),
 })
 
 export async function POST(request: NextRequest) {
@@ -100,6 +183,7 @@ export async function POST(request: NextRequest) {
       sellerId: seller.id,
       categoryId: data.categoryId,
       title: data.title || titles['en'] || Object.values(titles)[0] || 'Untitled Product',
+      titleEn: titles['en'] || null,
       titles: Object.keys(titles).length > 0 ? titles : null,
       description: data.description || descriptions['en'] || Object.values(descriptions)[0] || '',
       descriptions: Object.keys(descriptions).length > 0 ? descriptions : null,
@@ -113,12 +197,25 @@ export async function POST(request: NextRequest) {
       videos: data.videos || [],
       documents: data.documents ? JSON.parse(JSON.stringify(data.documents)) : null,
       isFeatured: data.isFeatured,
+      acceptsOEM: data.acceptsOEM ?? false,
+      youtubeUrl: data.youtubeUrl || null,
       isActive: true,
       keywords: data.keywords && data.keywords.length > 0 ? data.keywords : undefined,
+      price: data.price ?? null,
+      currency: data.currency || 'USD',
+      unit: data.unit || 'piece',
     }
     if (data.boothId) {
-      createData.booth = { connect: { id: data.boothId } }
+      createData.boothId = data.boothId
     }
+
+    // 校验并清理图片文件引用（防止AI Agent上传不存在的文件）
+    const { validImages, validMainImage, warnings } = validateAndCleanImages(
+      createData.images || [],
+      createData.mainImageUrl || ''
+    )
+    createData.images = validImages
+    createData.mainImageUrl = validMainImage
 
     const product = await prisma.product.create({
       data: createData,
@@ -133,14 +230,14 @@ export async function POST(request: NextRequest) {
     setTimeout(async () => {
       try {
         const matchingResult = await performProductMatching(product.id)
-        
+
         if (matchingResult.success && matchingResult.matches.length > 0) {
           const sellerUser = await prisma.user.findUnique({
-            where: { id: session.user.id }
+            where: { id: submitterUserId }
           })
-          
+
           await sendProductMatchNotifications(
-            session.user.id,
+            submitterUserId,
             product.title,
             matchingResult.matches
           )
@@ -180,11 +277,16 @@ export async function POST(request: NextRequest) {
       }
     }, 500)
 
-    return NextResponse.json({
+    const response: any = {
       success: true,
       product,
       message: 'Product created successfully'
-    }, { status: 201 })
+    }
+    if (warnings.length > 0) {
+      response.warnings = warnings
+    }
+
+    return NextResponse.json(response, { status: 201 })
 
   } catch (error) {
     console.error('Create product error:', error)

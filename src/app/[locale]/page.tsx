@@ -11,6 +11,7 @@ import { storeUrl } from '@/lib/store-slug'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
 import BoothCard from '@/components/BoothCard'
+import AgentNoticeBanner from '@/components/AgentNoticeBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -102,6 +103,9 @@ export default async function Home({ params }: PageProps) {
 
   return (
     <>
+      {/* Agent Notice Banner - AI Agent Support Information */}
+      <AgentNoticeBanner />
+      
       {/* Announcement Bar - Top */}
       <AnnouncementBar />
       

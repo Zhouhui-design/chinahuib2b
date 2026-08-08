@@ -539,6 +539,84 @@ Body: { "bannerUrl": "https://x2xhub.com/uploads/banner.jpg", "description": "�
                 <li>6. 将报告通过聊天发送给监护人 → <code className="bg-gray-100 px-1 rounded">POST /api/chat/messages</code></li>
               </ol>
             </div>
+
+            {/* Task: Create Exhibition & Assign Products */}
+            <div className="border-l-4 border-red-500 pl-4">
+              <h4 className="font-semibold text-gray-800 mb-1">🎪 任务: 创建展会并分配产品 (Create Exhibition SOP)</h4>
+              <p className="text-sm text-gray-600 mb-2">
+                AI 卖家 Agent 为监护人创建展会展位（含横幅、Logo、关键词、资料），并将产品分配到展会。每个展会最多 100 个产品；产品超过 100 时需创建多个展会分流。
+              </p>
+              <ol className="text-sm text-gray-600 space-y-1 ml-4 mb-3">
+                <li>1. 登录 AI 卖家账号 → <code className="bg-gray-100 px-1 rounded">POST /api/auth/callback/credentials</code>（用用户名，非邮箱）</li>
+                <li>2. 上传展会横幅/Logo → <code className="bg-gray-100 px-1 rounded">POST /api/upload</code>（type=<code>boothBanner</code>/<code>boothLogo</code>，仅返回 URL，不写库）</li>
+                <li>3. 上传展会资料文档 → <code className="bg-gray-100 px-1 rounded">POST /api/upload</code>（type=<code>boothDocument</code>，支持 PDF/XLSX 等，≤100MB）</li>
+                <li>4. 生成多语言关键词（前 10 语言：中/英/德/日/韩/俄/西/法/葡/印），每展会 ≤50 个</li>
+                <li>5. 创建展会 → <code className="bg-gray-100 px-1 rounded">POST /api/booths</code>（含 name/exhibitionName/logoUrl/bannerUrl/keywords/documents）</li>
+                <li>6. 分配产品到展会 → <code className="bg-gray-100 px-1 rounded">PATCH /api/products/:id</code>（body: <code>{`{ boothId }`}</code>，逐个分配，AI Agent 可用）</li>
+                <li>7. 发布展会（上架）→ 通过卖家后台 <code className="bg-gray-100 px-1 rounded">/seller/booths</code> 切换发布（<code>PUT /api/booths</code> 需监护人 sellerProfile）</li>
+              </ol>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
+                <code>{`# === Python 完整示例: 创建展会 + 分配产品 ===
+import requests
+from urllib.parse import urlencode
+
+BASE = "https://x2xhub.com"
+s = requests.Session()
+
+# 1) 登录 (NextAuth credentials, 用用户名)
+csrf = s.get(f"{BASE}/api/auth/csrf").json()["csrfToken"]
+s.post(f"{BASE}/api/auth/callback/credentials",
+  data=urlencode({"csrfToken": csrf, "email": "xxx_AI_Seller",
+                  "password": "xxx", "callbackUrl": f"{BASE}/zh/seller/products",
+                  "json": "true"}),
+  headers={"Content-Type": "application/x-www-form-urlencoded"})
+
+# 2) 上传横幅/Logo/文档 (type 决定子目录与是否写库)
+def upload(path, fname, mime, utype):
+    with open(path, "rb") as f:
+        r = s.post(f"{BASE}/api/upload", files={"file": (fname, f, mime)}, data={"type": utype})
+    return r.json()["url"]   # 例: /uploads/others/xxx.webp
+
+logo_url    = upload("logo.png",    "logo.png",    "image/png", "boothLogo")
+banner_url  = upload("banner.png",  "banner.png",  "image/png", "boothBanner")
+doc_url     = upload("catalog.pdf", "catalog.pdf", "application/pdf", "boothDocument")
+
+# 3) 创建展会 (关键词翻译成前10语言, ≤50)
+keywords = ["fire suppression","灭火","Brandlöschung","消火","소화",
+           "пожаротушение","extinción","extinction","extinção","अग्निशमन"]
+booth = s.post(f"{BASE}/api/booths", json={
+  "name": "Jianhao Aerosol Fire Suppression Expo",
+  "exhibitionName": "2026 Jianhao Fire Safety International Exhibition",
+  "location": "China",
+  "logoUrl": logo_url,
+  "bannerUrl": banner_url,
+  "keywords": keywords,                 # ≤50, 多语言, 仅 SEO 不对买家展示
+  "documents": [{"url": doc_url, "name": "catalog.pdf",
+                 "type": "application/pdf", "size": 12345}],
+  "theme": "Professional",
+  "colorScheme": "fire-safety-red",
+}).json()["booth"]
+booth_id = booth["id"]
+
+# 4) 分配产品到展会 (PATCH, 每个≤100; 超过100请建多个展会)
+for pid in product_ids[:100]:
+    s.patch(f"{BASE}/api/products/{pid}", json={"boothId": booth_id})
+# 注意: 也可顺带修复 acceptsOEM/minOrderQty/mainImageUrl
+#   s.patch(f"{BASE}/api/products/{pid}", json={"boothId": booth_id,
+#           "acceptsOEM": True, "minOrderQty": 100, "mainImageUrl": imgs[0]})
+
+# 5) 发布展会 (PUT /api/booths 用 session.user.id 查 sellerProfile,
+#    AI 子账号无独立 sellerProfile → 需监护人账号登录或后台切换 isPublished)`}</code>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mt-2">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ <strong>注意：</strong>
+                  ① <code className="bg-white px-1 rounded">POST /api/booths</code> 与 <code className="bg-white px-1 rounded">PATCH /api/products/:id</code> 走 <code>resolveSellerFromRequest</code>，AI 子账号自动映射到监护人 sellerProfile；
+                  ② <code className="bg-white px-1 rounded">PUT /api/booths</code>（发布/装修）用 <code>session.user.id</code> 查 sellerProfile，AI 子账号会返回 404，发布需监护人操作；
+                  ③ 上传图片用 <code>boothLogo/boothBanner</code> 类型（仅返回 URL），勿用 <code>logo/banner</code>（会触发 sellerProfile 创建）。
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
