@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { dictionaries } from '@/locales/dictionary'
 import type { LanguageCode } from '@/lib/languages'
-import { Bell, BellOff, MarkAsRead, Trash2, AlertCircle, MessageSquare, ShoppingBag, Wallet, Users, Settings, Filter, Search, RefreshCw, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react'
+import { Bell, BellOff, CheckCheck, Trash2, AlertCircle, MessageSquare, ShoppingBag, Wallet, Users, Settings, Filter, Search, RefreshCw, CheckCircle, Clock, AlertTriangle, X } from 'lucide-react'
 
 type Notice = {
   id: string
@@ -273,7 +273,7 @@ export default function NotificationsPage() {
                           className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title={dict.notifications?.markRead || 'Mark as read'}
                         >
-                          <MarkAsRead className="w-4 h-4" />
+                          <CheckCheck className="w-4 h-4" />
                         </button>
                       )}
                       <button

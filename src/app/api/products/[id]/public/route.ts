@@ -55,14 +55,9 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Track view in Redis (async, don't wait)
+    // Track view in Redis (async, don't wait) - for analytics only
+    // Note: actual viewCount is tracked via /api/visitors with dedup
     trackProductView(id).catch(console.error)
-
-    // Increment view count in database (async)
-    prisma.product.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } }
-    }).catch(console.error)
 
     return NextResponse.json({ 
       success: true,

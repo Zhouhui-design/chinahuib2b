@@ -244,6 +244,7 @@ model Booth {
   id              String        @id @default(cuid())
   sellerId        String
   boothNumber     String        @unique
+  boothCode       String?       @unique
   name            String
   names           Json?
   exhibitionName  String
@@ -258,6 +259,7 @@ model Booth {
   theme           String?
   colorScheme     String?
   layout          String?
+  viewCount       Int           @default(0)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   seller          SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
@@ -266,6 +268,7 @@ model Booth {
   @@index([sellerId])
   @@index([isActive])
   @@index([isPublished])
+  @@index([boothCode])
 }
 
 model Product {
@@ -1627,6 +1630,43 @@ enum DisputeType {
   QUALITY_ISSUE
   LATE_DELIVERY
   OTHER
+}
+
+enum UrlCrawlCategory {
+  PRODUCT
+  MARKETPLACE
+  STATIC
+  AUTH
+  FILTER
+}
+
+enum UrlCrawlStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+model UrlCrawlRecord {
+  id            String          @id @default(cuid())
+  url           String          @unique
+  category      UrlCrawlCategory
+  status        UrlCrawlStatus  @default(PENDING)
+  statusCode    Int?
+  errorMessage  String?
+  responseTime  Int?            // ms
+  redirectCount Int?
+  finalUrl      String?
+  lastCheckedAt DateTime?
+  nextCheckAt   DateTime?
+  retryCount    Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([lastCheckedAt])
+  @@index([nextCheckAt])
 }
 
 model Blog {

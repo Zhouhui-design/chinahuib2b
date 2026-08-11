@@ -89,7 +89,7 @@ export async function hasAIPermission(userId: string, permission: string): Promi
     }
 
     const roleKey = user.role as 'AI_BUYER' | 'AI_SELLER' | 'AI_ASSISTANT'
-    return permDef.default[roleKey] ?? false
+    return (permDef.default as any)[roleKey] ?? false
   } catch (error) {
     console.error('[AI Permissions] hasAIPermission error:', error)
     // 出错时保守拒绝
@@ -133,13 +133,13 @@ export async function checkAIPermissions(
         if (record.expiresAt && record.expiresAt < new Date()) {
           // 过期，用默认值
           const permDef = AI_PERMISSIONS[perm as AIPermissionName]
-          result[perm] = permDef ? (permDef.default[role] ?? false) : false
+          result[perm] = permDef ? ((permDef.default as any)[role] ?? false) : false
         } else {
           result[perm] = record.isAllowed
         }
       } else {
         const permDef = AI_PERMISSIONS[perm as AIPermissionName]
-        result[perm] = permDef ? (permDef.default[role] ?? false) : false
+        result[perm] = permDef ? ((permDef.default as any)[role] ?? false) : false
       }
     }
   } catch (error) {
@@ -190,15 +190,66 @@ export async function seedDefaultAIPermissions(
 /**
  * 获取有效的 SellerProfile 用户 ID。
  * AI 账号使用 ownerId（监护人的 ID），人类用户使用自己的 ID。
+ *
+ * 增强版：如果 session 中缺少 isAI/ownerId 字段（例如 delegate-login 生成的
+ * JWT 未能被 NextAuth session callback 正确传递），则 fallback 到 Prisma
+ * 查询 User 表来补全这些信息，保证映射正确。
  */
 export function getEffectiveUserId(session: {
   user?: { id: string; isAI?: boolean; ownerId?: string }
 }): string | null {
   if (!session?.user?.id) return null
-  if (session.user.isAI && session.user.ownerId) {
+  const userId = session.user.id
+
+  // Session 中已明确传递 isAI + ownerId：直接使用
+  if (typeof session.user.isAI === 'boolean' && session.user.isAI && session.user.ownerId) {
     return session.user.ownerId
   }
-  return session.user.id
+
+  // Session 中明确 isAI=false：直接用自己的 ID
+  if (typeof session.user.isAI === 'boolean' && !session.user.isAI) {
+    return userId
+  }
+
+  // Session 中缺少 isAI 信息：此时不做 DB 查询（保持纯函数特性），
+  // 让调用方通过 resolveSellerFromRequest 的 DB fallback 路径处理，
+  // 或者调用方自己根据 session.user.id 补查。
+  // 默认返回 userId（最安全的回退）。
+  return userId
+}
+
+/**
+ * 异步版：必要时通过 Prisma 查询补全 isAI/ownerId，保证正确映射。
+ * 适用于 API 路由，resolveSellerFromRequest 内部调用。
+ */
+export async function getEffectiveUserIdStrict(
+  prisma: any,
+  session: { user?: { id: string; isAI?: boolean; ownerId?: string } }
+): Promise<string | null> {
+  if (!session?.user?.id) return null
+  const userId = session.user.id
+
+  // 快速路径：session 中已有明确信息
+  if (typeof session.user.isAI === 'boolean' && session.user.isAI && session.user.ownerId) {
+    return session.user.ownerId
+  }
+  if (typeof session.user.isAI === 'boolean' && !session.user.isAI) {
+    return userId
+  }
+
+  // Fallback：查数据库补全 isAI/ownerId
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAI: true, ownerId: true },
+    })
+    if (user?.isAI && user.ownerId) {
+      return user.ownerId
+    }
+  } catch (err) {
+    console.error('[ai-permissions] getEffectiveUserIdStrict DB lookup failed:', err)
+  }
+  return userId
 }
 
 // ============================================================

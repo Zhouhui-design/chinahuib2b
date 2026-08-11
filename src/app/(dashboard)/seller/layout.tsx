@@ -22,7 +22,7 @@ export default async function SellerDashboardLayout({
   const currentLanguage = cookieStore.get('language')?.value || 'en'
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <SellerDashboardClientLayout currentLanguage={currentLanguage} onSignOut={signOutAction}>
         {children}
       </SellerDashboardClientLayout>

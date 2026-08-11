@@ -15,7 +15,10 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
   const switchLanguage = (locale: LanguageCode) => {
     // Always set the language cookie first
     document.cookie = `language=${locale}; path=/; max-age=31536000`
-    
+
+    // Dispatch custom event so useSellerLanguage hook can update without polling
+    window.dispatchEvent(new Event('languagechange'))
+
     // Check if current path is a dashboard route (no locale prefix)
     const isDashboardRoute = pathname.startsWith('/seller') || pathname.startsWith('/admin')
     

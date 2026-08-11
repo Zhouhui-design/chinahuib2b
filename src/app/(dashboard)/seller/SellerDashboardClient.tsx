@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Package, Eye, Download, TrendingUp, Plus, HelpCircle } from 'lucide-react'
-import OnboardingGuide from '@/components/seller/OnboardingGuide'
+import { Package, Eye, Download, TrendingUp, Plus } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 type SellerDashboardProps = {
@@ -35,15 +33,6 @@ type SellerDashboardProps = {
 
 export default function SellerDashboardPage({ initialData }: SellerDashboardProps) {
   const language = useSellerLanguage()
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  
-  // Check if user is new (first time visiting dashboard)
-  useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('seller_has_seen_onboarding')
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true)
-    }
-  }, [])
   
   const { seller, productCount, totalViews, totalDownloads, recentProducts } = initialData
   
@@ -528,24 +517,6 @@ export default function SellerDashboardPage({ initialData }: SellerDashboardProp
         </div>
       </div>
       
-      {/* Onboarding Guide */}
-      {showOnboarding && (
-        <OnboardingGuide onClose={() => {
-          setShowOnboarding(false)
-          localStorage.setItem('seller_has_seen_onboarding', 'true')
-        }} />
-      )}
-      
-      {/* Floating Help Button */}
-      {!showOnboarding && (
-        <button
-          onClick={() => setShowOnboarding(true)}
-          className="fixed left-4 bottom-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all flex items-center space-x-2"
-        >
-          <HelpCircle className="w-6 h-6" />
-          <span className="text-sm font-medium">Getting Started</span>
-        </button>
-      )}
     </div>
   )
 }

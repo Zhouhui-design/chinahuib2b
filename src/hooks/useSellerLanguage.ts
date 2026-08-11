@@ -15,24 +15,38 @@ function getLanguageFromCookie(): string {
 
 export function useSellerLanguage() {
   const [language, setLanguage] = useState<string>('en')
-  
+
   useEffect(() => {
-    // Initial load
+    // Initial load - read cookie once
     setLanguage(getLanguageFromCookie())
-    
-    // Poll for language changes every 100ms
-    const interval = setInterval(() => {
-      const currentLang = getLanguageFromCookie()
-      setLanguage(prev => {
-        if (prev !== currentLang) {
-          return currentLang
-        }
-        return prev
-      })
-    }, 100)
-    
-    return () => clearInterval(interval)
+
+    // Check cookie when tab regains focus (e.g., user switched back from another tab)
+    const handleFocus = () => {
+      setLanguage(getLanguageFromCookie())
+    }
+
+    // Check cookie when page becomes visible (e.g., user returned to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setLanguage(getLanguageFromCookie())
+      }
+    }
+
+    // Listen for custom language change event (dispatched by LanguageSwitcher)
+    const handleLanguageChange = () => {
+      setLanguage(getLanguageFromCookie())
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('languagechange', handleLanguageChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('languagechange', handleLanguageChange)
+    }
   }, [])
-  
+
   return language
 }

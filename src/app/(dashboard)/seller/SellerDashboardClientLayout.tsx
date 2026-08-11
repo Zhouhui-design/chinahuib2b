@@ -8,6 +8,7 @@ import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Buil
 import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
+import OnboardingGuide from '@/components/seller/OnboardingGuide'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 type SellerDashboardClientLayoutProps = {
@@ -28,6 +29,16 @@ export default function SellerDashboardClientLayout({
   const session = sessionResult?.data
   const [showQuickMenu, setShowQuickMenu] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  
+  const isSellerDashboard = pathname === '/seller' || pathname.endsWith('/seller')
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('seller_has_seen_onboarding')
+    if (!hasSeenOnboarding && isSellerDashboard) {
+      setShowOnboarding(true)
+    }
+  }, [pathname, isSellerDashboard])
 
   // Poll unread message count for inbox badge (near-real-time notification)
   useEffect(() => {
@@ -501,11 +512,36 @@ export default function SellerDashboardClientLayout({
                 <Settings className="w-5 h-5 mr-3" />
                 {t.settings}
               </Link>
+              
+              {/* Getting Started - re-open onboarding guide */}
+              {!showOnboarding && isSellerDashboard && (
+                <button
+                  onClick={() => {
+                    setShowOnboarding(true)
+                    localStorage.removeItem('seller_has_seen_onboarding')
+                  }}
+                  className="w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors text-blue-600 hover:bg-blue-50"
+                >
+                  <HelpCircle className="w-5 h-5 mr-3" />
+                  {t.helpGuide}
+                </button>
+              )}
             </nav>
           </aside>
 
+          {/* Onboarding Guide - inline in layout, main content auto-expands when closed */}
+          {showOnboarding && isSellerDashboard && (
+            <OnboardingGuide
+              inline={true}
+              onClose={() => {
+                setShowOnboarding(false)
+                localStorage.setItem('seller_has_seen_onboarding', 'true')
+              }}
+            />
+          )}
+
           {/* Main Content */}
-          <main className="flex-1">
+          <main className="flex-1 min-w-0">
             {children}
           </main>
         </div>

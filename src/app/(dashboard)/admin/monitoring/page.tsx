@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  AlertTriangle, 
-  Activity, 
-  TrendingUp, 
+import {
+  AlertTriangle,
+  Activity,
+  TrendingUp,
   Clock,
   RefreshCw,
   Database,
   Server,
   Zap
 } from 'lucide-react'
+import UrlCrawlCard from './UrlCrawlCard'
 
 interface ErrorStats {
   total: number
@@ -97,23 +98,23 @@ export default function MonitoringDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-4 sm:p-8">
+      <div className="mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Monitoring Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Monitoring Dashboard</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Last updated: {lastUpdate.toLocaleTimeString()}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <button
               onClick={fetchMonitoringData}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
             <label className="flex items-center gap-2">
               <input
@@ -122,79 +123,79 @@ export default function MonitoringDashboard() {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="rounded"
               />
-              <span className="text-sm text-gray-700">Auto-refresh (30s)</span>
+              <span className="text-xs sm:text-sm text-gray-700 whitespace-nowrap">Auto-refresh (30s)</span>
             </label>
           </div>
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Total Errors */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-red-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Errors</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{overview.errors.total}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Errors</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{overview.errors.total}</p>
               </div>
-              <AlertTriangle className="w-10 h-10 text-red-500" />
+              <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-red-500 flex-shrink-0" />
             </div>
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-3 sm:mt-4 flex items-center gap-2">
               <TrendingUp className={`w-4 h-4 ${overview.errors.recentTrend > 0 ? 'text-red-500' : 'text-green-500'}`} />
-              <span className={`text-sm ${overview.errors.recentTrend > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <span className={`text-xs sm:text-sm ${overview.errors.recentTrend > 0 ? 'text-red-600' : 'text-green-600'}`}>
                 {overview.errors.recentTrend > 0 ? '+' : ''}{overview.errors.recentTrend} in last hour
               </span>
             </div>
           </div>
 
           {/* API Latency P95 */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">API Latency (P95)</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{overview.performance.apiLatency.p95.toFixed(0)}ms</p>
+                <p className="text-xs sm:text-sm text-gray-600">API Latency (P95)</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{overview.performance.apiLatency.p95.toFixed(0)}ms</p>
               </div>
-              <Zap className="w-10 h-10 text-blue-500" />
+              <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500 flex-shrink-0" />
             </div>
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">Avg: {overview.performance.apiLatency.avg.toFixed(0)}ms</p>
+            <div className="mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm text-gray-500">Avg: {overview.performance.apiLatency.avg.toFixed(0)}ms</p>
             </div>
           </div>
 
           {/* DB Query Time P95 */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">DB Query (P95)</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{overview.performance.dbQueries.p95.toFixed(0)}ms</p>
+                <p className="text-xs sm:text-sm text-gray-600">DB Query (P95)</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{overview.performance.dbQueries.p95.toFixed(0)}ms</p>
               </div>
-              <Database className="w-10 h-10 text-green-500" />
+              <Database className="w-8 h-8 sm:w-10 sm:h-10 text-green-500 flex-shrink-0" />
             </div>
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">Avg: {overview.performance.dbQueries.avg.toFixed(0)}ms</p>
+            <div className="mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm text-gray-500">Avg: {overview.performance.dbQueries.avg.toFixed(0)}ms</p>
             </div>
           </div>
 
           {/* System Health */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border-l-4 border-purple-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">System Status</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">Healthy</p>
+                <p className="text-xs sm:text-sm text-gray-600">System Status</p>
+                <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-1 sm:mt-2">Healthy</p>
               </div>
-              <Activity className="w-10 h-10 text-purple-500" />
+              <Activity className="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 flex-shrink-0" />
             </div>
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">All services operational</p>
+            <div className="mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm text-gray-500">All services operational</p>
             </div>
           </div>
         </div>
 
         {/* Error Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Error Severity Distribution */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Error Severity Distribution</h2>
-            <div className="space-y-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Error Severity Distribution</h2>
+            <div className="space-y-3 sm:space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">Critical</span>
@@ -331,6 +332,11 @@ export default function MonitoringDashboard() {
               Based on last hour ({overview.performance.dbQueries.count} queries)
             </div>
           </div>
+        </div>
+
+        {/* URL Crawl Health Check Card */}
+        <div className="mt-8">
+          <UrlCrawlCard />
         </div>
       </div>
     </div>

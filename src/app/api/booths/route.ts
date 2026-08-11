@@ -10,14 +10,42 @@ async function generateBoothNumber(): Promise<string> {
     orderBy: { createdAt: 'desc' },
     select: { boothNumber: true }
   })
-  
+
   if (!lastBooth) {
     return 'BTH-000001'
   }
-  
+
   const lastNum = parseInt(lastBooth.boothNumber.replace('BTH-', ''), 10)
   const nextNum = lastNum + 1
   return `BTH-${nextNum.toString().padStart(6, '0')}`
+}
+
+/**
+ * 生成展会唯一编码: EXH-YYYY-NNN
+ * - EXH: Exhibition 前缀
+ * - YYYY: 当前年份
+ * - NNN: 当年序号（3位，从001开始）
+ */
+async function generateBoothCode(): Promise<string> {
+  const currentYear = new Date().getFullYear()
+  const yearPrefix = `EXH-${currentYear}-`
+
+  // 查找当前年份已有最大序号
+  const lastBoothThisYear = await prisma.booth.findFirst({
+    where: {
+      boothCode: { startsWith: yearPrefix }
+    },
+    orderBy: { boothCode: 'desc' },
+    select: { boothCode: true }
+  })
+
+  let nextNum = 1
+  if (lastBoothThisYear?.boothCode) {
+    const lastNum = parseInt(lastBoothThisYear.boothCode.split('-')[2], 10)
+    nextNum = lastNum + 1
+  }
+
+  return `${yearPrefix}${nextNum.toString().padStart(3, '0')}`
 }
 
 const documentSchema = z.object({
@@ -161,13 +189,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate booth number
+    // Generate booth number and exhibition code
     const boothNumber = await generateBoothNumber()
+    const boothCode = await generateBoothCode()
 
     const booth = await prisma.booth.create({
       data: {
         sellerId: seller.id,
         boothNumber,
+        boothCode,
         name: data.name,
         names: data.names,
         exhibitionName: data.exhibitionName,
@@ -242,9 +272,9 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get seller profile to verify ownership
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    // AI Agent aware: resolves to guardian's SellerProfile (same as GET/POST),
+    // so AI Agent sub-accounts can update booths owned by their guardian.
+    const { seller: sellerProfile } = await resolveSellerFromRequest(request)
 
     if (!sellerProfile) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
@@ -335,9 +365,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get seller profile to verify ownership
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    // AI Agent aware: resolves to guardian's SellerProfile (same as GET/POST),
+    // so AI Agent sub-accounts can delete booths owned by their guardian.
+    const { seller: sellerProfile } = await resolveSellerFromRequest(request)
 
     if (!sellerProfile) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })

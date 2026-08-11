@@ -617,6 +617,176 @@ for pid in product_ids[:100]:
                 </p>
               </div>
             </div>
+
+            {/* Task: Keywords SOP */}
+            <div className="border-l-4 border-green-500 pl-4 mt-4">
+              <h4 className="font-semibold text-gray-800 mb-1">🏷️ 任务: 产品关键词SOP (Product Keywords SOP)</h4>
+              <p className="text-sm text-gray-600 mb-2">
+                AI Agent 在创建或编辑产品时，<strong>必须</strong>填写多语言关键词。关键词直接影响全球买家的搜索命中率——
+                有些国家的用户不懂英语，会用德语、西班牙语、日语等搜索，因此关键词需覆盖前 10 大语言。
+              </p>
+              <div className="bg-red-50 border border-red-300 rounded p-3 mb-3">
+                <p className="text-sm text-red-800 font-semibold mb-1">⛔ 禁止遗漏关键词！</p>
+                <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
+                  <li>AI Agent 创建产品时如果 keywords 为空 → 视为<strong>任务失败</strong></li>
+                  <li>AI Agent 编辑产品时如果已有 keywords 为空 → 必须<strong>主动补充</strong></li>
+                  <li>关键词数量建议 ≥10 个（覆盖前 10 语言各 1 个）</li>
+                  <li>每个关键词 ≤50 字符，最多 50 个</li>
+                </ul>
+              </div>
+              <ol className="text-sm text-gray-600 space-y-1 ml-4 mb-3">
+                <li>1. 从产品名称/描述中提取核心关键词（英语）</li>
+                <li>2. 翻译成前 10 大语言（中/英/德/日/韩/俄/西/法/葡/阿拉伯语 或 印地语）</li>
+                <li>3. 创建产品时传入 <code className="bg-gray-100 px-1 rounded">keywords</code> 数组</li>
+                <li>4. 编辑产品时也可补充关键词 → <code className="bg-gray-100 px-1 rounded">PUT /api/products/:id</code></li>
+              </ol>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
+                <code>{`# === Python: 生成多语言关键词 ===
+# 前10语言: zh/en/de/ja/ko/ru/es/fr/pt/ar (或 hi 印地语)
+
+# 示例: "Fire Suppression System" 的多语言关键词
+keywords = [
+    "fire suppression",        # English
+    "灭火系统",                 # Chinese
+    "Brandlöschsystem",        # German
+    "消火システム",              # Japanese
+    "화재 억제 시스템",           # Korean
+    "система пожаротушения",   # Russian
+    "sistema de extinción",    # Spanish
+    "système d'extinction",    # French
+    "sistema de extinção",     # Portuguese
+    "نظام إخماد الحرائق",       # Arabic
+]
+
+# 创建产品时传入
+POST /api/products
+{
+    "title": "Aerosol Fire Suppression Device",
+    "keywords": keywords,          # ← 必填！不能遗漏
+    ...
+}
+
+# 编辑产品时补充关键词
+PUT /api/products/{product_id}
+{
+    "keywords": keywords           # ← 补充缺失的关键词
+}
+
+# 批量检查哪些产品缺少关键词 (监护人调用)
+# GET /api/products → 检查 products[].keywords 是否为空
+import requests
+r = requests.get(f"{BASE}/api/products?page=1&limit=100",
+    cookies=session_cookies)
+products = r.json()["products"]
+missing_kw = [p["id"] for p in products if not p.get("keywords")]
+print(f"缺少关键词的产品: {len(missing_kw)} 个")
+for pid in missing_kw:
+    # 生成关键词并更新
+    requests.put(f"{BASE}/api/products/{pid}",
+        json={"keywords": generated_keywords})`}</code>
+              </div>
+              <div className="bg-blue-50 border border-blue-300 rounded p-3 mt-2">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>关键词翻译参考表（以"轴承/Bearing"为例）：</strong>
+                  bearing / 轴承 / Lager / 軸受 / 베어링 / подшипник / rodamiento / roulement / rolamento / محمل
+                </p>
+              </div>
+            </div>
+
+            {/* Task: PDF Image Extraction SOP */}
+            <div className="border-l-4 border-purple-500 pl-4 mt-4">
+              <h4 className="font-semibold text-gray-800 mb-1">📄 任务: PDF产品图片提取SOP (PDF Image Extraction SOP)</h4>
+              <p className="text-sm text-gray-600 mb-2">
+                AI Agent 在上传产品时，经常需要从 PDF 画册（如 HRB Bearing Catalog.pdf）中提取产品图片并上传。
+                由于 AI Agent 运行环境限制，<strong>无法直接对 PDF 截图</strong>，需要用工具提取图片或请用户提前准备。
+              </p>
+              <div className="bg-amber-50 border border-amber-300 rounded p-3 mb-3">
+                <p className="text-sm text-amber-800 font-semibold mb-1">⚠️ AI Agent 能力限制</p>
+                <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
+                  <li>AI Agent <strong>不能</strong>在浏览器中对 PDF 截图</li>
+                  <li>AI Agent <strong>不能</strong>运行 GUI 截图工具（如 Greenshot、Snipaste）</li>
+                  <li>AI Agent <strong>可以</strong>用命令行工具从 PDF 提取嵌入的图片</li>
+                  <li>AI Agent <strong>可以</strong>用 Python 将 PDF 页面渲染为图片</li>
+                </ul>
+              </div>
+              <ol className="text-sm text-gray-600 space-y-1 ml-4 mb-3">
+                <li>1. <strong>方案A（推荐）</strong>：用 <code className="bg-gray-100 px-1 rounded">pdfimages</code> 提取 PDF 内嵌图片</li>
+                <li>2. <strong>方案B</strong>：用 <code className="bg-gray-100 px-1 rounded">pdftoppm</code> 将 PDF 每页转为 PNG</li>
+                <li>3. <strong>方案C</strong>：用 Python <code className="bg-gray-100 px-1 rounded">PyMuPDF (fitz)</code> 提取页面图片</li>
+                <li>4. <strong>方案D（告知用户）</strong>：如果以上工具不可用，告知用户提前准备图片</li>
+              </ol>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
+                <code>{`# === 方案A: pdfimages 提取内嵌图片 ===
+# 安装: apt install poppler-utils
+pdfimages -png /path/to/HRB_Bearing_Catalog.pdf /tmp/hrb_img
+# 输出: /tmp/hrb_img-000.png, /tmp/hrb_img-001.png, ...
+# 优点: 提取原始高清图片  缺点: 可能包含无关图片(logo/icon)
+
+# === 方案B: pdftoppm 将每页转为图片 ===
+pdftoppm -png -r 300 /path/to/HRB_Bearing_Catalog.pdf /tmp/hrb_page
+# 输出: /tmp/hrb_page-01.png (300 DPI 高清)
+# 优点: 保留页面排版  缺点: 整页截图，需裁剪
+
+# === 方案C: Python PyMuPDF ===
+# pip install PyMuPDF
+import fitz  # PyMuPDF
+doc = fitz.open("/path/to/HRB_Bearing_Catalog.pdf")
+for page_num in range(len(doc)):
+    page = doc[page_num]
+    # 方法1: 提取页面图片
+    pix = page.get_pixmap(dpi=300)
+    pix.save(f"/tmp/page_{page_num+1}.png")
+    # 方法2: 提取内嵌图片
+    images = page.get_images(full=True)
+    for img_idx, img in enumerate(images):
+        xref = img[0]
+        pix = fitz.Pixmap(doc, xref)
+        if pix.n > 4:  # CMYK → RGB
+            pix = fitz.Pixmap(fitz.csRGB, pix)
+        pix.save(f"/tmp/page{page_num+1}_img{img_idx+1}.png")
+
+# === 提取后上传到产品 ===
+import requests
+BASE = "https://x2xhub.com"
+s = requests.Session()
+# ... 登录 ...
+
+# 上传图片 (type=product_image)
+def upload_image(filepath):
+    with open(filepath, "rb") as f:
+        r = s.post(f"{BASE}/api/upload",
+            files={"file": (filepath.split("/")[-1], f, "image/png")},
+            data={"type": "product_image"})
+    return r.json()["url"]
+
+image_urls = []
+for img_path in sorted(glob.glob("/tmp/hrb_img-*.png")):
+    url = upload_image(img_path)
+    image_urls.append(url)
+
+# 更新产品图片
+s.put(f"{BASE}/api/products/{product_id}", json={
+    "images": image_urls,
+    "mainImageUrl": image_urls[0] if image_urls else None,
+    "keywords": multilingual_keywords,  # 顺便补充关键词
+})`}</code>
+              </div>
+              <div className="bg-purple-50 border border-purple-300 rounded p-3 mt-2">
+                <p className="text-sm text-purple-800 font-semibold mb-1">📋 方案D: 告知用户准备图片（当 AI 无法提取时）</p>
+                <p className="text-sm text-purple-700 mb-2">如果服务器没有 <code className="bg-white px-1 rounded">poppler-utils</code> 或 <code className="bg-white px-1 rounded">PyMuPDF</code>，AI Agent 应告知用户：</p>
+                <div className="bg-white border border-purple-200 rounded p-3 text-sm text-purple-900">
+                  <p className="font-semibold mb-1">📌 请用户按以下格式准备产品图片：</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li><strong>格式</strong>：PNG 或 JPG（不要 WebP，避免兼容性问题）</li>
+                    <li><strong>尺寸</strong>：≥800×800 像素，正方形比例最佳</li>
+                    <li><strong>大小</strong>：单个 ≤10MB</li>
+                    <li><strong>命名</strong>：产品名_序号.png（如 <code className="bg-gray-100 px-1 rounded">HRB_6204_01.png</code>）</li>
+                    <li><strong>方式</strong>：用 PDF 阅读器打开画册 → 截图（或导出图片）→ 保存到 <code className="bg-gray-100 px-1 rounded">/home/sardenesy/桌面/新建文件夹/轴承/images/</code></li>
+                    <li><strong>放置后</strong>：告知 AI Agent 图片路径，AI 会自动上传到产品</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

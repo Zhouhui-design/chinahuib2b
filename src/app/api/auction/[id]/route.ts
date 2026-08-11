@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { calculateServiceFee, getPaymentConfig } from '@/lib/payment-service';
 
+// In-memory dedup for auction views (1-hour window per listing+viewer)
+const auctionViewDedup = new Map<string, number>();
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -62,10 +65,26 @@ export async function GET(
       take: 20,
     });
 
-    await prisma.auctionListing.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    });
+    // Increment view count with dedup
+    // Skip if viewer is the owner (self-view)
+    const session = await getServerSession(authOptions);
+    const viewerId = session?.user?.id;
+    const isOwner = viewerId && (viewerId === listing.posterId || (listing.sellerId && viewerId === listing.sellerId));
+
+    if (!isOwner) {
+      // Dedup: use in-memory map to track recent views (1-hour window)
+      // Key: listingId:userId, Value: timestamp
+      const now = Date.now();
+      const dedupKey = `${id}:${viewerId || 'anon'}`;
+      const lastView = auctionViewDedup.get(dedupKey);
+      if (!lastView || now - lastView > 60 * 60 * 1000) {
+        await prisma.auctionListing.update({
+          where: { id },
+          data: { views: { increment: 1 } },
+        });
+        auctionViewDedup.set(dedupKey, now);
+      }
+    }
 
     const result = {
       ...listing,

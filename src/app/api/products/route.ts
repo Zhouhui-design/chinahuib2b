@@ -342,7 +342,7 @@ export async function GET(request: NextRequest) {
       const aiProductsKey = `ai:store:${storeId}:products`
 
       try {
-        const aiProductIds = await redis.lrange(aiProductsKey, 0, -1)
+        const aiProductIds = await redis.lRange(aiProductsKey, 0, -1)
 
         if (aiProductIds && aiProductIds.length > 0) {
           aiTotal = aiProductIds.length

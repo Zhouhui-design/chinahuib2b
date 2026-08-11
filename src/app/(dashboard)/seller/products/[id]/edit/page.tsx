@@ -53,6 +53,8 @@ export default function EditProductPage() {
   ])
   const [acceptsOEM, setAcceptsOEM] = useState(false)
   const [youtubeUrl, setYoutubeUrl] = useState('')
+  const [keywords, setKeywords] = useState<string[]>([])
+  const [keywordInput, setKeywordInput] = useState('')
 
   // Fetch categories and product data
   useEffect(() => {
@@ -114,6 +116,7 @@ export default function EditProductPage() {
       setDocuments(product.documents || [])
       setAcceptsOEM(product.acceptsOEM || false)
       setYoutubeUrl(product.youtubeUrl || '')
+      setKeywords(Array.isArray(product.keywords) ? product.keywords : [])
 
       // Convert specifications object to array
       if (product.specifications && Object.keys(product.specifications).length > 0) {
@@ -196,6 +199,18 @@ export default function EditProductPage() {
     setSpecifications(newSpecs)
   }
 
+  const addKeyword = () => {
+    const trimmed = keywordInput.trim()
+    if (trimmed && !keywords.includes(trimmed) && keywords.length < 50) {
+      setKeywords([...keywords, trimmed])
+      setKeywordInput('')
+    }
+  }
+
+  const removeKeyword = (keyword: string) => {
+    setKeywords(keywords.filter(k => k !== keyword))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -241,6 +256,7 @@ export default function EditProductPage() {
         specifications: Object.keys(specsObj).length > 0 ? specsObj : undefined,
         acceptsOEM,
         youtubeUrl: youtubeUrl || undefined,
+        keywords: keywords.length > 0 ? keywords : undefined,
       }
 
       const response = await fetch(`/api/products/${productId}`, {
@@ -572,6 +588,57 @@ export default function EditProductPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* SEO Keywords */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {language === 'zh' ? 'SEO 关键词' : 'SEO Keywords'}
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'zh'
+                ? '添加多语言关键词，帮助全球买家搜索到你的产品（每个关键词建议不超过50字符，最多50个）'
+                : 'Add multilingual keywords to help global buyers find your product (max 50 chars each, max 50 keywords)'}
+            </p>
+          </div>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+              placeholder={language === 'zh' ? '输入关键词后按回车添加（支持中/英/德/西/法/日/韩/俄/葡/阿拉伯语）' : 'Type keyword and press Enter (supports multi-language)'}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={addKeyword}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              {language === 'zh' ? '添加' : 'Add'}
+            </button>
+          </div>
+          {keywords.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((keyword, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                >
+                  {keyword}
+                  <button
+                    type="button"
+                    onClick={() => removeKeyword(keyword)}
+                    className="hover:text-blue-900"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Order & Supply Info */}

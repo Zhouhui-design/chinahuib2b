@@ -15,9 +15,10 @@ type Task = {
 
 type OnboardingGuideProps = {
   onClose: () => void
+  inline?: boolean
 }
 
-export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
+export default function OnboardingGuide({ onClose, inline = false }: OnboardingGuideProps) {
   const language = useSellerLanguage()
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0)
   const [isExpanded, setIsExpanded] = useState(true)
@@ -341,6 +342,19 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
   }
 
   if (!isExpanded) {
+    if (inline) {
+      return (
+        <div className="w-48 flex-shrink-0">
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 p-3 rounded-lg border border-blue-200 flex items-center justify-center space-x-2 transition-all"
+          >
+            <HelpCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{uiTranslations.gettingStartedGuide}</span>
+          </button>
+        </div>
+      )
+    }
     return (
       <div className="fixed left-4 bottom-4 z-50">
         <button
@@ -353,8 +367,12 @@ export default function OnboardingGuide({ onClose }: OnboardingGuideProps) {
     )
   }
 
+  const containerClasses = inline
+    ? 'w-72 flex-shrink-0 bg-white rounded-lg shadow-lg border border-gray-200 max-h-[calc(100vh-6rem)] overflow-y-auto'
+    : 'fixed left-4 top-20 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[calc(100vh-6rem)] overflow-y-auto'
+
   return (
-    <div className="fixed left-4 top-20 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[calc(100vh-6rem)] overflow-y-auto">
+    <div className={containerClasses}>
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-lg">
         <div className="flex items-center justify-between mb-2">

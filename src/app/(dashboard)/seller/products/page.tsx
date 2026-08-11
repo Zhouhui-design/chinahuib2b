@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Package, Plus, Edit, Trash2, Eye, AlertCircle, Bot, MoveHorizontal, X, Check } from 'lucide-react'
+import { Package, Plus, Edit, Trash2, Eye, AlertCircle, Bot, MoveHorizontal, X, Check, AlertTriangle } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface Booth {
@@ -48,6 +48,9 @@ export default function ProductsPage() {
   const [viewStatsProductId, setViewStatsProductId] = useState<string | null>(null)
   const [viewStats, setViewStats] = useState<any>(null)
   const [viewStatsLoading, setViewStatsLoading] = useState(false)
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set())
+  const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false)
+  const [batchDeleting, setBatchDeleting] = useState(false)
   const language = useSellerLanguage()
 
   const t = {
@@ -596,7 +599,137 @@ export default function ProductsPage() {
              language === 'hi' ? 'लोड हो रहा है...' :
              language === 'th' ? 'กำลังโหลด...' :
              language === 'vi' ? 'Đang tải...' :
-             'Loading...'
+             'Loading...',
+    batchDelete: language === 'zh' ? '批量删除' :
+                 language === 'ja' ? '一括削除' :
+                 language === 'ar' ? 'حذف جماعي' :
+                 language === 'es' ? 'Eliminar en lote' :
+                 language === 'fr' ? 'Supprimer en lot' :
+                 language === 'de' ? 'Stapellöschung' :
+                 language === 'ko' ? '일괄 삭제' :
+                 language === 'ru' ? 'Массовое удаление' :
+                 language === 'pt' ? 'Excluir em lote' :
+                 language === 'hi' ? 'बल्क हटाएं' :
+                 language === 'th' ? 'ลบเป็นชุด' :
+                 language === 'vi' ? 'Xóa hàng loạt' :
+                 'Batch Delete',
+    selected: language === 'zh' ? '已选择' :
+              language === 'ja' ? '選択中' :
+              language === 'ar' ? 'محدد' :
+              language === 'es' ? 'Seleccionados' :
+              language === 'fr' ? 'Sélectionnés' :
+              language === 'de' ? 'Ausgewählt' :
+              language === 'ko' ? '선택됨' :
+              language === 'ru' ? 'Выбрано' :
+              language === 'pt' ? 'Selecionados' :
+              language === 'hi' ? 'चयनित' :
+              language === 'th' ? 'เลือกแล้ว' :
+              language === 'vi' ? 'Đã chọn' :
+              'Selected',
+    items: language === 'zh' ? '项' :
+           language === 'ja' ? '件' :
+           language === 'ar' ? 'عنصر' :
+           language === 'es' ? 'elementos' :
+           language === 'fr' ? 'éléments' :
+           language === 'de' ? 'Einträge' :
+           language === 'ko' ? '개' :
+           language === 'ru' ? 'шт.' :
+           language === 'pt' ? 'itens' :
+           language === 'hi' ? 'आइटम' :
+           language === 'th' ? 'รายการ' :
+           language === 'vi' ? 'mục' :
+           'items',
+    confirmBatchDeleteTitle: language === 'zh' ? '确认批量删除' :
+                            language === 'ja' ? '一括削除の確認' :
+                            language === 'ar' ? 'تأكيد الحذف الجماعي' :
+                            language === 'es' ? 'Confirmar eliminación en lote' :
+                            language === 'fr' ? 'Confirmer la suppression en lot' :
+                            language === 'de' ? 'Stapellöschung bestätigen' :
+                            language === 'ko' ? '일괄 삭제 확인' :
+                            language === 'ru' ? 'Подтвердить массовое удаление' :
+                            language === 'pt' ? 'Confirmar exclusão em lote' :
+                            language === 'hi' ? 'बल्क हटाने की पुष्टि करें' :
+                            language === 'th' ? 'ยืนยันการลบเป็นชุด' :
+                            language === 'vi' ? 'Xác nhận xóa hàng loạt' :
+                            'Confirm Batch Delete',
+    confirmBatchDeleteMsg: language === 'zh' ? '确定要删除选中的 {count} 个产品吗？此操作不可撤销。' :
+                           language === 'ja' ? '選択した {count} 個の製品を削除しますか？この操作は元に戻せません。' :
+                           language === 'ar' ? 'هل أنت متأكد من حذف {count} منتجات محددة؟ لا يمكن التراجع عن هذا الإجراء.' :
+                           language === 'es' ? '¿Está seguro de eliminar {count} productos seleccionados? Esta acción no se puede deshacer.' :
+                           language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer les {count} produits sélectionnés ? Cette action est irréversible.' :
+                           language === 'de' ? 'Möchten Sie {count} ausgewählte Produkte löschen? Diese Aktion kann nicht rückgängig gemacht werden.' :
+                           language === 'ko' ? '선택한 {count}개 제품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.' :
+                           language === 'ru' ? 'Вы уверены, что хотите удалить выбранные {count} продуктов? Это действие нельзя отменить.' :
+                           language === 'pt' ? 'Tem certeza de que deseja excluir {count} produtos selecionados? Esta ação não pode ser desfeita.' :
+                           language === 'hi' ? 'क्या आप {count} चयनित उत्पादों को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।' :
+                           language === 'th' ? 'คุณแน่ใจหรือว่าต้องการลบสินค้า {count} รายการที่เลือก? การดำเนินการนี้ไม่สามารถยกเลิกได้' :
+                           language === 'vi' ? 'Bạn có chắc muốn xóa {count} sản phẩm đã chọn? Hành động này không thể hoàn tác.' :
+                           'Are you sure you want to delete the selected {count} products? This action cannot be undone.',
+    batchDeleteWarning: language === 'zh' ? '此操作将永久删除选中的产品，包括相关图片和数据，且无法恢复。' :
+                         language === 'ja' ? '選択した製品および関連する画像・データは完全に削除され、復元できません。' :
+                         language === 'ar' ? 'سيتم حذف المنتجات المحددة نهائيًا بما في ذلك الصور والبيانات ذات الصلة، ولا يمكن استعادتها.' :
+                         language === 'es' ? 'Esto eliminará permanentemente los productos seleccionados, incluidas las imágenes y datos relacionados, y no se puede deshacer.' :
+                         language === 'fr' ? 'Cela supprimera définitivement les produits sélectionnés, y compris les images et données associées, et est irréversible.' :
+                         language === 'de' ? 'Dadurch werden die ausgewählten Produkte einschließlich verwandter Bilder und Daten dauerhaft gelöscht und können nicht wiederhergestellt werden.' :
+                         language === 'ko' ? '선택한 제품과 관련 이미지 및 데이터가 영구적으로 삭제되며 복원할 수 없습니다.' :
+                         language === 'ru' ? 'Это навсегда удалит выбранные продукты, включая связанные изображения и данные, и не может быть отменено.' :
+                         language === 'pt' ? 'Isso excluirá permanentemente os produtos selecionados, incluindo imagens e dados relacionados, e não pode ser desfeito.' :
+                         language === 'hi' ? 'यह चयनित उत्पादों को स्थायी रूप से हटा देगा, जिसमें संबंधित चित्र और डेटा शामिल हैं, और इसे पूर्ववत नहीं किया जा सकता।' :
+                         language === 'th' ? 'การดำเนินการนี้จะลบสินค้าที่เลือกอย่างถาวร รวมถึงรูปภาพและข้อมูลที่เกี่ยวข้อง และไม่สามารถยกเลิกได้' :
+                         language === 'vi' ? 'Thao tác này sẽ xóa vĩnh viễn các sản phẩm đã chọn, bao gồm hình ảnh và dữ liệu liên quan, và không thể hoàn tác.' :
+                         'This will permanently delete the selected products, including related images and data, and cannot be undone.',
+    batchDeleteSuccess: language === 'zh' ? '成功删除 {count} 个产品' :
+                        language === 'ja' ? '{count} 個の製品を削除しました' :
+                        language === 'ar' ? 'تم حذف {count} منتجات بنجاح' :
+                        language === 'es' ? '{count} productos eliminados con éxito' :
+                        language === 'fr' ? '{count} produits supprimés avec succès' :
+                        language === 'de' ? '{count} Produkte erfolgreich gelöscht' :
+                        language === 'ko' ? '{count}개 제품 삭제 완료' :
+                        language === 'ru' ? 'Успешно удалено {count} продуктов' :
+                        language === 'pt' ? '{count} produtos excluídos com sucesso' :
+                        language === 'hi' ? '{count} उत्पाद सफलतापूर्वक हटाए गए' :
+                        language === 'th' ? 'ลบสินค้า {count} รายการสำเร็จ' :
+                        language === 'vi' ? 'Đã xóa thành công {count} sản phẩm' :
+                        'Successfully deleted {count} products',
+    batchDeletePartial: language === 'zh' ? '部分删除成功：{success} 个成功，{failed} 个失败' :
+                        language === 'ja' ? '部分的に削除：{success} 件成功、{failed} 件失敗' :
+                        language === 'ar' ? 'حذف جزئي: {success} نجح، {failed} فشل' :
+                        language === 'es' ? 'Eliminación parcial: {success} exitosos, {failed} fallidos' :
+                        language === 'fr' ? 'Suppression partielle : {success} réussis, {failed} échoués' :
+                        language === 'de' ? 'Teilweise gelöscht: {success} erfolgreich, {failed} fehlgeschlagen' :
+                        language === 'ko' ? '부분 삭제: {success} 성공, {failed} 실패' :
+                        language === 'ru' ? 'Частичное удаление: {success} успешно, {failed} с ошибкой' :
+                        language === 'pt' ? 'Exclusão parcial: {success} com sucesso, {failed} falhas' :
+                        language === 'hi' ? 'आंशिक हटाना: {success} सफल, {failed} विफल' :
+                        language === 'th' ? 'ลบบางส่วน: {success} สำเร็จ, {failed} ล้มเหลว' :
+                        language === 'vi' ? 'Xóa một phần: {success} thành công, {failed} thất bại' :
+                        'Partial deletion: {success} succeeded, {failed} failed',
+    batchDeleteFail: language === 'zh' ? '批量删除失败，请重试' :
+                     language === 'ja' ? '一括削除に失敗しました。再試行してください。' :
+                     language === 'ar' ? 'فشل الحذف الجماعي. يرجى المحاولة مرة أخرى.' :
+                     language === 'es' ? 'Error en la eliminación en lote. Inténtelo de nuevo.' :
+                     language === 'fr' ? 'Échec de la suppression en lot. Veuillez réessayer.' :
+                     language === 'de' ? 'Stapellöschung fehlgeschlagen. Bitte erneut versuchen.' :
+                     language === 'ko' ? '일괄 삭제 실패. 다시 시도해주세요.' :
+                     language === 'ru' ? 'Массовое удаление не удалось. Повторите попытку.' :
+                     language === 'pt' ? 'Falha na exclusão em lote. Tente novamente.' :
+                     language === 'hi' ? 'बल्क हटाना विफल. कृपया पुनः प्रयास करें.' :
+                     language === 'th' ? 'การลบเป็นชุดล้มเหลว โปรดลองอีกครั้ง' :
+                     language === 'vi' ? 'Xóa hàng loạt thất bại. Vui lòng thử lại.' :
+                     'Batch delete failed. Please try again.',
+    deleting: language === 'zh' ? '删除中...' :
+              language === 'ja' ? '削除中...' :
+              language === 'ar' ? 'جاري الحذف...' :
+              language === 'es' ? 'Eliminando...' :
+              language === 'fr' ? 'Suppression...' :
+              language === 'de' ? 'Wird gelöscht...' :
+              language === 'ko' ? '삭제 중...' :
+              language === 'ru' ? 'Удаление...' :
+              language === 'pt' ? 'Excluindo...' :
+              language === 'hi' ? 'हटा रहा है...' :
+              language === 'th' ? 'กำลังลบ...' :
+              language === 'vi' ? 'Đang xóa...' :
+              'Deleting...'
   }
 
   const fetchProducts = async (page: number = 1) => {
@@ -614,6 +747,7 @@ export default function ProductsPage() {
 
       const data = await response.json()
       setProducts(data.products)
+      setSelectedProductIds(new Set())
       setBooths(data.booths || [])
       setPagination(data.pagination)
       setCurrentPage(page)
@@ -650,6 +784,71 @@ export default function ProductsPage() {
     }
   }
 
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => {
+      const next = new Set(prev)
+      if (next.has(productId)) {
+        next.delete(productId)
+      } else {
+        next.add(productId)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (products.length > 0 && products.every(p => selectedProductIds.has(p.id))) {
+      setSelectedProductIds(new Set())
+    } else {
+      setSelectedProductIds(new Set(products.map(p => p.id)))
+    }
+  }
+
+  const handleBatchDelete = async () => {
+    const ids = Array.from(selectedProductIds)
+    if (ids.length === 0) return
+
+    setBatchDeleting(true)
+
+    try {
+      const results = await Promise.allSettled(
+        ids.map(id => fetch(`/api/products/${id}`, { method: 'DELETE' }))
+      )
+
+      const successIds = new Set<string>()
+      let failedCount = 0
+
+      results.forEach((result, index) => {
+        const id = ids[index]
+        if (result.status === 'fulfilled' && result.value.ok && id) {
+          successIds.add(id)
+        } else {
+          failedCount++
+        }
+      })
+
+      setProducts(prev => prev.filter(p => !successIds.has(p.id)))
+
+      const successCount = successIds.size
+      if (failedCount === 0) {
+        alert(t.batchDeleteSuccess.replace('{count}', String(successCount)))
+      } else if (successCount === 0) {
+        alert(t.batchDeleteFail)
+      } else {
+        alert(t.batchDeletePartial.replace('{success}', String(successCount)).replace('{failed}', String(failedCount)))
+      }
+
+      setSelectedProductIds(new Set())
+      setShowBatchDeleteModal(false)
+      fetchProducts(currentPage)
+    } catch (error) {
+      console.error('Error batch deleting products:', error)
+      alert(t.batchDeleteFail)
+    } finally {
+      setBatchDeleting(false)
+    }
+  }
+
   const handleMoveToBooth = async () => {
     if (!moveProductId || !moveToBoothId) return
 
@@ -662,9 +861,10 @@ export default function ProductsPage() {
 
       const data = await response.json()
       if (data.success) {
-        setProducts(products.map(p => 
-          p.id === moveProductId 
-            ? { ...p, booth: booths.find(b => b.id === moveToBoothId) }
+        const targetBooth = booths.find(b => b.id === moveToBoothId)
+        setProducts(products.map(p =>
+          p.id === moveProductId
+            ? { ...p, ...(targetBooth ? { booth: targetBooth } : {}) }
             : p
         ))
         alert(t.moveSuccess)
@@ -814,40 +1014,79 @@ export default function ProductsPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+            {selectedProductIds.size > 0 && (
+              <div className="flex items-center justify-between bg-red-50 border-b border-red-200 px-6 py-3">
+                <div className="flex items-center text-sm text-red-700 font-medium">
+                  <Check className="w-4 h-4 mr-2" />
+                  {t.selected} {selectedProductIds.size} {t.items}
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setSelectedProductIds(new Set())}
+                    className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    onClick={() => setShowBatchDeleteModal(true)}
+                    className="flex items-center text-sm bg-red-600 text-white px-4 py-1.5 rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1.5" />
+                    {t.batchDelete}
+                  </button>
+                </div>
+              </div>
+            )}
+            <table className="w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                    <input
+                      type="checkbox"
+                      checked={products.length > 0 && products.every(p => selectedProductIds.has(p.id))}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t.product}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.category}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.exhibition}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.price}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.views}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.status}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.created}
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     {t.actions}
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={product.id} className={`hover:bg-gray-50 ${selectedProductIds.has(product.id) ? 'bg-red-50' : ''}`}>
+                    <td className="px-3 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedProductIds.has(product.id)}
+                        onChange={() => toggleProductSelection(product.id)}
+                        className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-12 w-12">
                           {product.mainImageUrl ? (
@@ -875,10 +1114,10 @@ export default function ProductsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{getCategoryName(product.category)}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm">
                         {product.booth ? (
                           <div className="flex items-center">
@@ -890,12 +1129,12 @@ export default function ProductsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {product.price ? `${product.currency || 'USD'} ${product.price}` : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <button
                         onClick={() => fetchViewStats(product.id)}
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center cursor-pointer transition-colors"
@@ -905,7 +1144,7 @@ export default function ProductsPage() {
                         {product.viewCount}
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         product.isActive
                           ? 'bg-green-100 text-green-800'
@@ -914,10 +1153,10 @@ export default function ProductsPage() {
                         {product.isActive ? t.active : (language === 'zh' ? '未激活' : language === 'ja' ? '非アクティブ' : language === 'hi' ? 'असक्रिय' : 'Inactive')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(product.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <Link
                           href={`/products/${product.id}`}
@@ -1310,6 +1549,66 @@ export default function ProductsPage() {
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 {t.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Delete Confirmation Modal */}
+      {showBatchDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <AlertTriangle className="w-6 h-6 text-red-600 mr-2" />
+                {t.confirmBatchDeleteTitle}
+              </h2>
+              <button
+                onClick={() => !batchDeleting && setShowBatchDeleteModal(false)}
+                className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                disabled={batchDeleting}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600">
+                {t.confirmBatchDeleteMsg.replace('{count}', String(selectedProductIds.size))}
+              </p>
+              <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-700 flex items-start">
+                  <AlertTriangle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>{t.batchDeleteWarning}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowBatchDeleteModal(false)}
+                disabled={batchDeleting}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handleBatchDelete}
+                disabled={batchDeleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {batchDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    {t.deleting}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    {t.batchDelete} ({selectedProductIds.size})
+                  </>
+                )}
               </button>
             </div>
           </div>

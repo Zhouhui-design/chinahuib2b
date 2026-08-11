@@ -34,6 +34,7 @@ export default function AdminDashboardClientLayout({
 }) {
   const pathname = usePathname()
   const [showQuickMenu, setShowQuickMenu] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const [pendingCounts, setPendingCounts] = useState<PendingCounts>({
     freightInquiries: 0,
@@ -177,10 +178,18 @@ export default function AdminDashboardClientLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold text-blue-600">
+              {/* Mobile Sidebar Toggle (hidden on desktop) */}
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="lg:hidden mr-2 flex items-center justify-center w-9 h-9 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="打开导航菜单"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <Link href="/" className="text-lg sm:text-xl font-bold text-blue-600">
                 SeaHeart Global | 心海环球
               </Link>
-              <span className="ml-4 text-sm text-gray-500">
+              <span className="hidden sm:inline ml-4 text-sm text-gray-500">
                 {t.dashboard}
               </span>
             </div>
@@ -286,22 +295,25 @@ export default function AdminDashboardClientLayout({
               <Link
                 href="/admin/guide"
                 className="flex items-center text-sm text-gray-600 hover:text-blue-600"
+                title="帮助"
               >
-                <HelpCircle className="w-4 h-4 mr-1" />
-                帮助
+                <HelpCircle className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">帮助</span>
               </Link>
               <Link
                 href="/"
-                className="text-sm text-gray-600 hover:text-blue-600"
+                className="text-sm text-gray-600 hover:text-blue-600 hidden md:inline"
+                title="查看公开网站"
               >
                 查看公开网站
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="flex items-center text-sm text-gray-600 hover:text-red-600"
+                title="退出登录"
               >
-                <LogOut className="w-4 h-4 mr-1" />
-                {t.logout}
+                <LogOut className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">{t.logout}</span>
               </button>
             </div>
           </div>
@@ -381,13 +393,14 @@ export default function AdminDashboardClientLayout({
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar Navigation */}
-          <aside className="w-64 flex-shrink-0">
-            <nav className="space-y-1">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          {/* Sidebar Navigation — Desktop (≥1024px) */}
+          <aside className="w-full lg:w-64 flex-shrink-0 hidden lg:block">
+            <nav className="space-y-1 bg-white p-2 sm:p-3 lg:p-0 lg:bg-transparent rounded-xl border border-gray-200 lg:border-0">
               <Link
                 href="/admin"
+                onClick={() => setMobileSidebarOpen(false)}
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                   isActive('/admin')
                     ? 'bg-blue-50 text-blue-700'
@@ -575,8 +588,217 @@ export default function AdminDashboardClientLayout({
             </nav>
           </aside>
 
+          {/* Sidebar Navigation — Mobile Drawer (<1024px) */}
+          {mobileSidebarOpen && (
+            <div className="lg:hidden fixed inset-0 z-50">
+              <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={() => setMobileSidebarOpen(false)}
+              />
+              <div className="absolute left-0 top-0 bottom-0 w-4/5 max-w-[320px] bg-white shadow-2xl border-r border-gray-200 overflow-y-auto animate-slide-in">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-10">
+                  <span className="font-semibold text-gray-800">{t.dashboard}</span>
+                  <button
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="flex items-center justify-center w-9 h-9 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                    aria-label="关闭菜单"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <nav className="space-y-1 p-3">
+                  {/* Duplicate of sidebar menu (with auto-close on click) */}
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <BarChart3 className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.systemOverview}</span>
+                    <Badge count={totalPending} />
+                  </Link>
+                  <Link
+                    href="/admin/auction-listings"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/auction-listings')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Gavel className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.auctionListings}</span>
+                  </Link>
+                  <Link
+                    href="/admin/freight-inquiries"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/freight-inquiries')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Truck className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.freightInquiries}</span>
+                    <Badge count={pendingCounts.freightInquiries} />
+                  </Link>
+                  <Link
+                    href="/admin/payment-proofs"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/payment-proofs')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <CreditCard className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.paymentProofs}</span>
+                    <Badge count={pendingCounts.paymentProofs} />
+                  </Link>
+                  <Link
+                    href="/admin/seller-profiles"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/seller-profiles')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Building2 className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.sellerVerifications}</span>
+                    <Badge count={pendingCounts.sellerVerifications} />
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/users')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Users className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.users}</span>
+                  </Link>
+                  <Link
+                    href="/admin/seo"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/seo')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Globe className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.seo}</span>
+                  </Link>
+                  <Link
+                    href="/admin/monitoring"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/monitoring')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Settings className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.monitoring}</span>
+                  </Link>
+                  <Link
+                    href="/admin/ab-testing"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/ab-testing')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <BarChart3 className="w-5 h-5 mr-3" />
+                    <span className="flex-1">{t.abTesting}</span>
+                  </Link>
+                  <Link
+                    href="/admin/categories"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/categories')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Tag className="w-5 h-5 mr-3" />
+                    <span className="flex-1">分类管理</span>
+                  </Link>
+                  <Link
+                    href="/admin/units"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/units')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FileText className="w-5 h-5 mr-3" />
+                    <span className="flex-1">单位管理</span>
+                  </Link>
+                  <Link
+                    href="/admin/payment-config"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/payment-config')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <CreditCard className="w-5 h-5 mr-3" />
+                    <span className="flex-1">收款配置</span>
+                  </Link>
+                  <Link
+                    href="/admin/platform-review"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/platform-review')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Folder className="w-5 h-5 mr-3" />
+                    <span className="flex-1">平台审核管理</span>
+                  </Link>
+                  <Link
+                    href="/admin/maintenance"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/maintenance')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <AlertCircle className="w-5 h-5 mr-3" />
+                    <span className="flex-1">维护通知管理</span>
+                  </Link>
+                  <Link
+                    href="/admin/data-allocation"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/data-allocation')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Share2 className="w-5 h-5 mr-3" />
+                    <span className="flex-1">数据分配管理</span>
+                  </Link>
+                </nav>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
-          <main className="flex-1">
+          <main className="flex-1 min-w-0">
             {children}
           </main>
         </div>

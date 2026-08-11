@@ -56,6 +56,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Geolocation failed, skipped' })
     }
 
+    // Dedup check BEFORE creating visitor record
+    // Skip viewCount increment if same IP already viewed this product within last 1 hour
+    let shouldIncrementView = false
+    if (productId && !isSelfView) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      const recentView = await prisma.visitor.findFirst({
+        where: {
+          productId,
+          ipHash: hashIp(ip),
+          isSelfView: false,
+          createdAt: { gte: oneHourAgo }
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      shouldIncrementView = !recentView
+    }
+
     // Create visitor record
     // Use a transaction to handle potential foreign key issues gracefully
     try {
@@ -80,7 +97,7 @@ export async function POST(request: NextRequest) {
       // If foreign key constraint fails (e.g., sellerId or productId doesn't exist),
       // try creating without the problematic fields
       console.warn('Visitor create with relationships failed, trying without:', createError instanceof Error ? createError.message : String(createError))
-      
+
       // Create visitor without foreign key references if they don't exist
       await prisma.visitor.create({
         data: {
@@ -99,13 +116,20 @@ export async function POST(request: NextRequest) {
           isSelfView: false,
         }
       })
+      // If FK failed, product doesn't exist - skip viewCount increment
+      shouldIncrementView = false
     }
 
-    if (productId) {
-      await prisma.product.update({
-        where: { id: productId },
-        data: { viewCount: { increment: 1 } }
-      })
+    // Increment view count if not a self-view and not a duplicate
+    if (shouldIncrementView && productId) {
+      try {
+        await prisma.product.update({
+          where: { id: productId },
+          data: { viewCount: { increment: 1 } }
+        })
+      } catch (updateError) {
+        console.warn('Product viewCount increment failed:', updateError instanceof Error ? updateError.message : String(updateError))
+      }
     }
 
     return NextResponse.json({

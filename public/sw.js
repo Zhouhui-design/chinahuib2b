@@ -5,7 +5,7 @@
  *       via cache-first strategy, breaking production login flow.
  */
 
-const CACHE_NAME = 'x2xhub-v11';
+const CACHE_NAME = 'x2xhub-v13';
 const OFFLINE_PAGE = '/offline.html';
 const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 

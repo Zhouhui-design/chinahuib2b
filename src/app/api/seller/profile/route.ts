@@ -5,6 +5,8 @@ import { generateUniqueStoreSlug } from "@/services/sellerService"
 import { z } from "zod"
 import { autoTranslateToAllLanguages } from "@/lib/translation-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
+import { resolveSellerFromRequest } from "@/lib/category-auth"
+import { getEffectiveUserIdStrict } from "@/lib/ai-permissions"
 
 
 const profileUpdateSchema = z.object({
@@ -71,7 +73,7 @@ const profileUpdateSchema = z.object({
 })
 
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     
@@ -79,30 +81,67 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let seller = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    // AI Agent aware: resolve to guardian's SellerProfile.
+    // 强制使用严格路径：session 缺少 isAI/ownerId 时 fallback 到 DB 查询。
+    const resolved = await resolveSellerFromRequest(request)
+    let seller = resolved.seller
+    const effectiveUserId = resolved.effectiveUserId
+    // safety: 如果 resolveSellerFromRequest 的 effectiveUserId 为空，
+    // 再单独调用一次严格版兜底。
+    const finalEffectiveUserId = effectiveUserId
+      || (await getEffectiveUserIdStrict(prisma, session))
+      || session.user.id
 
     if (!seller) {
+      // If guardian doesn't have a SellerProfile yet, create one
+      // using the guardian's effectiveUserId (not the AI Agent userId).
       const userExists = await prisma.user.findUnique({
-        where: { id: session.user.id }
+        where: { id: finalEffectiveUserId }
       })
 
       if (!userExists) {
+        const userInfo = (session.user.isAI && session.user.ownerId)
+          ? await prisma.user.findUnique({ where: { id: session.user.ownerId } })
+          : null
+        // 严格版补查：如果 userInfo 仍然为空，直接查 DB 拿 owner
+        let guardianUserForName: any = userInfo
+        if (!guardianUserForName) {
+          try {
+            const u = await prisma.user.findUnique({
+              where: { id: session.user.id },
+              select: { isAI: true, ownerId: true }
+            })
+            if (u?.isAI && u.ownerId) {
+              guardianUserForName = await prisma.user.findUnique({
+                where: { id: u.ownerId },
+                select: { displayName: true, email: true, username: true }
+              })
+            }
+          } catch {}
+        }
         await prisma.user.create({
           data: {
-            id: session.user.id,
-            email: session.user.email || '',
-            username: session.user.name || 'user_' + session.user.id.slice(0, 8),
-            password: session.user.id,
+            id: finalEffectiveUserId,
+            email: guardianUserForName?.email || session.user.email || '',
+            username: guardianUserForName?.username || session.user.name || 'user_' + finalEffectiveUserId.slice(0, 8),
+            password: finalEffectiveUserId,
             role: 'SELLER',
           }
         })
       }
 
-      seller = await prisma.sellerProfile.create({
+      const fallbackUser = await prisma.user.findUnique({
+        where: { id: finalEffectiveUserId },
+        select: { displayName: true, username: true }
+      })
+      const fallbackName = fallbackUser?.displayName
+        || fallbackUser?.username
+        || session.user.name
+        || 'user_' + finalEffectiveUserId.slice(0, 8)
+
+      const createdSeller = await prisma.sellerProfile.create({
         data: {
-          userId: session.user.id,
+          userId: finalEffectiveUserId,
           companyName: 'My Company',
           companyType: 'MANUFACTURER',
           country: 'China',
@@ -110,28 +149,29 @@ export async function GET() {
           isActive: true,
           isVerified: false,
           subscriptionStatus: 'FREE_TRIAL',
-          storeSlug: await generateUniqueStoreSlug(session.user.name || session.user.id.slice(0, 8)),
+          storeSlug: await generateUniqueStoreSlug(fallbackName),
         }
       })
+      seller = createdSeller as any
 
-      setTimeout(async () => {
+      setTimeout(async (s: any) => {
         try {
           const seoResult = await handleSEOEvent({
             type: 'store_update',
             data: {
-              id: seller.id,
-              url: seller.storeSlug
-                ? `https://x2xhub.com/${seller.storeSlug}`
-                : `https://x2xhub.com/de/stores/${seller.id}`,
-              title: seller.companyName,
-              description: seller.description || '',
+              id: s.id,
+              url: s.storeSlug
+                ? `https://x2xhub.com/${s.storeSlug}`
+                : `https://x2xhub.com/de/stores/${s.id}`,
+              title: s.companyName,
+              description: s.description || '',
             }
           })
           console.log('SEO event handled for store creation:', seoResult)
         } catch (error) {
           console.error('Failed to handle SEO event for store creation:', error)
         }
-      }, 1000)
+      }, 1000, createdSeller)
     }
 
     return NextResponse.json({ profile: seller })
@@ -145,17 +185,11 @@ export async function GET() {
 }
 
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
-    const session = await auth()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const seller = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    // AI Agent aware: resolve to guardian's SellerProfile so AI Agent
+    // can also delete the shared profile (same rules as booths DELETE).
+    const { seller } = await resolveSellerFromRequest(request)
 
     if (!seller) {
       return NextResponse.json({ error: 'Seller profile not found' }, { status: 404 })
@@ -187,30 +221,63 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let seller = await prisma.sellerProfile.findUnique({
-      where: { userId: session.user.id }
-    })
+    // AI Agent aware: always operate on guardian's SellerProfile.
+    // 强制使用严格路径：session 缺少 isAI/ownerId 时 fallback 到 DB 查询。
+    const resolved = await resolveSellerFromRequest(request)
+    let localSeller = resolved.seller
+    const effectiveUserId = resolved.effectiveUserId
+    const finalEffectiveUserId = effectiveUserId
+      || (await getEffectiveUserIdStrict(prisma, session))
+      || session.user.id
 
-    if (!seller) {
+    if (!localSeller) {
+      // Guardian has no SellerProfile yet — create one under the guardian's userId.
       const userExists = await prisma.user.findUnique({
-        where: { id: session.user.id }
+        where: { id: finalEffectiveUserId }
       })
 
       if (!userExists) {
+        const userInfo = (session.user.isAI && session.user.ownerId)
+          ? await prisma.user.findUnique({ where: { id: session.user.ownerId } })
+          : null
+        let guardianUserForName: any = userInfo
+        if (!guardianUserForName) {
+          try {
+            const u = await prisma.user.findUnique({
+              where: { id: session.user.id },
+              select: { isAI: true, ownerId: true }
+            })
+            if (u?.isAI && u.ownerId) {
+              guardianUserForName = await prisma.user.findUnique({
+                where: { id: u.ownerId },
+                select: { displayName: true, email: true, username: true }
+              })
+            }
+          } catch {}
+        }
         await prisma.user.create({
           data: {
-            id: session.user.id,
-            email: session.user.email || '',
-            username: session.user.name || 'user_' + session.user.id.slice(0, 8),
-            password: session.user.id,
+            id: finalEffectiveUserId,
+            email: guardianUserForName?.email || session.user.email || '',
+            username: guardianUserForName?.username || session.user.name || 'user_' + finalEffectiveUserId.slice(0, 8),
+            password: finalEffectiveUserId,
             role: 'SELLER',
           }
         })
       }
 
-      seller = await prisma.sellerProfile.create({
+      const fallbackUser = await prisma.user.findUnique({
+        where: { id: finalEffectiveUserId },
+        select: { displayName: true, username: true }
+      })
+      const fallbackName = fallbackUser?.displayName
+        || fallbackUser?.username
+        || session.user.name
+        || 'user_' + finalEffectiveUserId.slice(0, 8)
+
+      localSeller = await prisma.sellerProfile.create({
         data: {
-          userId: session.user.id,
+          userId: finalEffectiveUserId,
           companyName: 'My Company',
           companyType: 'MANUFACTURER',
           country: 'China',
@@ -218,7 +285,7 @@ export async function PUT(request: NextRequest) {
           isActive: true,
           isVerified: false,
           subscriptionStatus: 'FREE_TRIAL',
-          storeSlug: await generateUniqueStoreSlug(session.user.name || session.user.id.slice(0, 8)),
+          storeSlug: await generateUniqueStoreSlug(fallbackName),
         }
       })
     }
@@ -235,12 +302,13 @@ export async function PUT(request: NextRequest) {
 
     const data = validation.data
 
-    // Check if company name already exists (excluding current user)
-    if (data.companyName && data.companyName !== seller.companyName) {
+    // Check if company name already exists (excluding current effective user,
+    // not the session user — an AI Agent should not collide with its guardian)
+    if (data.companyName && data.companyName !== localSeller.companyName) {
       const existingCompany = await prisma.sellerProfile.findFirst({
         where: {
           companyName: data.companyName,
-          userId: { not: session.user.id }
+          userId: { not: finalEffectiveUserId }
         }
       })
       if (existingCompany) {
@@ -339,9 +407,10 @@ export async function PUT(request: NextRequest) {
     console.log('Update data keys:', Object.keys(updateData))
     console.log('Descriptions:', JSON.stringify(descriptions))
     console.log('Contact name:', data.contactName)
+    console.log('[seller/profile PUT] finalEffectiveUserId=', finalEffectiveUserId, 'seller.id=', localSeller.id)
 
     const updatedProfile = await prisma.sellerProfile.update({
-      where: { id: seller.id },
+      where: { id: localSeller.id },
       data: updateData
     })
 
@@ -355,7 +424,7 @@ export async function PUT(request: NextRequest) {
               ? `https://x2xhub.com/${updatedProfile.storeSlug}`
               : `https://x2xhub.com/de/stores/${updatedProfile.id}`,
             title: updatedProfile.companyName,
-            description: updatedProfile.description || updatedProfile.descriptions?.en || '',
+            description: updatedProfile.description || (updatedProfile.descriptions && typeof updatedProfile.descriptions === 'object' ? (updatedProfile.descriptions as any).en : '') || '',
           }
         })
         console.log('SEO event handled for store:', seoResult)

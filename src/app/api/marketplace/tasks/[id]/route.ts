@@ -5,6 +5,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { handleSEOEvent } from '@/lib/seo-automation'
 
+// In-memory dedup for task views (1-hour window per task+viewer)
+const taskViewDedup = new Map<string, number>()
+
 /**
  * GET /api/marketplace/tasks/[id]
  * Get single task details
@@ -41,11 +44,23 @@ export async function GET(
       )
     }
     
-    // Increment view count
-    await prisma.marketplaceTask.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    })
+    // Increment view count with dedup
+    const session = await getServerSession(authOptions)
+    const viewerId = session?.user?.id
+    const isOwner = viewerId && viewerId === task.postedById
+
+    if (!isOwner) {
+      const now = Date.now()
+      const dedupKey = `${id}:${viewerId || 'anon'}`
+      const lastView = taskViewDedup.get(dedupKey)
+      if (!lastView || now - lastView > 60 * 60 * 1000) {
+        await prisma.marketplaceTask.update({
+          where: { id },
+          data: { views: { increment: 1 } },
+        })
+        taskViewDedup.set(dedupKey, now)
+      }
+    }
     
     // Transform data
     const transformedTask = {

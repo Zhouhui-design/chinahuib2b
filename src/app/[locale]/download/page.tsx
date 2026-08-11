@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import type { LanguageCode } from '@/lib/languages'
-import { Download, Smartphone, Monitor, Apple, SmartphoneIcon, Windows, Linux, Globe, ExternalLink, CheckCircle, Package } from 'lucide-react'
+import { Download, Smartphone, Monitor, Apple, SmartphoneIcon, AppWindow, Terminal, Globe, ExternalLink, CheckCircle, Package } from 'lucide-react'
 
 const platforms = [
   {
@@ -39,7 +39,7 @@ const platforms = [
   {
     id: 'windows',
     name: 'Windows',
-    icon: Windows,
+    icon: AppWindow,
     color: 'bg-blue-100 text-blue-800',
     badgeColor: 'bg-blue-600',
     description: 'Windows 10/11',
@@ -59,7 +59,7 @@ const platforms = [
   {
     id: 'linux',
     name: 'Linux',
-    icon: Linux,
+    icon: Terminal,
     color: 'bg-orange-100 text-orange-800',
     badgeColor: 'bg-orange-500',
     description: 'Ubuntu, Debian, Fedora, Arch',

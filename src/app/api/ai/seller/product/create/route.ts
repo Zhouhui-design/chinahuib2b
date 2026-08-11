@@ -295,7 +295,7 @@ export async function GET(req: Request) {
 
     // 获取店铺产品列表
     const storeProductsKey = `ai:store:${storeId}:products`
-    const rawProductIds = await redis.lrange(storeProductsKey, offset, offset + limit - 1)
+    const rawProductIds = await redis.lRange(storeProductsKey, offset, offset + limit - 1)
     
     const productIds: string[] = Array.isArray(rawProductIds) ? rawProductIds as string[] : []
 

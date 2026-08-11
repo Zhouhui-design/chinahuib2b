@@ -36,12 +36,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     notFound()
   }
 
-  // Increment view count
-  await prisma.product.update({
-    where: { id },
-    data: { viewCount: { increment: 1 } },
-  })
-
   // Fetch related products from same seller
   const relatedProducts = await prisma.product.findMany({
     where: {

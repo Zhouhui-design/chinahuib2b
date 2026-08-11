@@ -238,10 +238,20 @@ export async function getFeaturedProducts(limit: number = 10) {
 }
 
 /**
- * Increment product view count (optimized)
+ * Increment product view count (optimized with self-view check)
  */
-export async function incrementProductView(productId: string) {
+export async function incrementProductView(productId: string, viewerId?: string | null, sellerId?: string | null) {
   return monitoredQuery('incrementProductView', async () => {
+    // Skip if this is a self-view
+    if (viewerId && sellerId) {
+      const seller = await prisma.sellerProfile.findUnique({
+        where: { id: sellerId },
+        select: { userId: true }
+      })
+      if (seller && seller.userId === viewerId) {
+        return // self-view, don't count
+      }
+    }
     await prisma.product.update({
       where: { id: productId },
       data: { viewCount: { increment: 1 } }

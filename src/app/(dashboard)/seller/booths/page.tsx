@@ -8,6 +8,7 @@ import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 interface Booth {
   id: string
   boothNumber: string
+  boothCode?: string
   name: string
   names?: Record<string, string>
   exhibitionName: string
@@ -915,6 +916,11 @@ export default function BoothsPage() {
                 <div>
                   <h3 className="font-semibold text-lg text-gray-900">{booth.name}</h3>
                   <p className="text-sm text-gray-500">{booth.exhibitionName}</p>
+                  {booth.boothCode && (
+                    <span className="inline-block mt-1 px-2 py-0.5 text-xs font-mono bg-indigo-50 text-indigo-600 rounded border border-indigo-200">
+                      {booth.boothCode}
+                    </span>
+                  )}
                 </div>
                 <span
                   className={`px-2 py-1 text-xs rounded-full ${
