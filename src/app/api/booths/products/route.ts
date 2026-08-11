@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { invalidateBoothCaches, invalidateSellerCaches } from "@/lib/cache"
 
 export async function PUT(request: NextRequest) {
   try {
@@ -55,13 +56,18 @@ export async function PUT(request: NextRequest) {
     // Update products to belong to this booth
     if (productsToAdd.length > 0) {
       await prisma.product.updateMany({
-        where: { 
+        where: {
           id: { in: productsToAdd },
           sellerId: sellerProfile.id
         },
         data: { boothId }
       })
     }
+
+    // Invalidate booth + seller caches so exhibition and store pages
+    // reflect the updated product list immediately.
+    await invalidateBoothCaches(boothId, sellerProfile.id)
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,
@@ -100,13 +106,16 @@ export async function DELETE(request: NextRequest) {
 
     // Remove products from booth (set boothId to null)
     const result = await prisma.product.updateMany({
-      where: { 
+      where: {
         id: { in: productIds },
         sellerId: sellerProfile.id,
         boothId: { not: null }
       },
       data: { boothId: null }
     })
+
+    // Invalidate seller caches so store pages reflect the change immediately.
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,

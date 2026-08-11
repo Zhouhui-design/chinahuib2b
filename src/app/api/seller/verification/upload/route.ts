@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
+import { invalidateSellerCaches } from '@/lib/cache'
 
 export async function POST(request: NextRequest) {
   try {
@@ -125,6 +126,10 @@ export async function POST(request: NextRequest) {
         certificateName: certificateName || undefined,
       }
     })
+
+    // Invalidate seller caches so store page shows the new verification file
+    // (certificate images) immediately instead of after 24h cache TTL.
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,

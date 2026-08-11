@@ -6,6 +6,7 @@ import path from "path"
 import { resolveSellerFromRequest } from "@/lib/category-auth"
 import { performProductMatching } from "@/lib/ai-matching-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
+import { invalidateProductCaches, invalidateSellerCaches } from "@/lib/cache"
 
 // 检查并清理不存在的本地图片文件引用
 function validateAndCleanImages(
@@ -233,6 +234,11 @@ export async function PATCH(
       }
     })
 
+    // Invalidate product + seller caches so store page and product pages
+    // pick up the updated mainImageUrl/images immediately.
+    await invalidateProductCaches(product.id, seller.id)
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
+
     // 如果标题或描述更新了，重新进行SEO和AI匹配
     if (data.title || data.description) {
       setTimeout(async () => {
@@ -311,6 +317,11 @@ export async function DELETE(
     await prisma.product.delete({
       where: { id: params.id }
     })
+
+    // Invalidate product + seller caches so store page stops showing the
+    // deleted product immediately.
+    await invalidateProductCaches(params.id, seller.id)
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,

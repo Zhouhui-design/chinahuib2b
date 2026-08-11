@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { z } from "zod"
+import { invalidateSellerCaches } from "@/lib/cache"
 
 const boothCustomizationSchema = z.object({
   boothName: z.string().min(2).max(100).optional(),
@@ -170,6 +171,10 @@ export async function PUT(request: NextRequest) {
       }
     })
 
+    // Invalidate seller caches so store/exhibition pages pick up the new
+    // booth background/accent images immediately.
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
+
     const customization = {
       boothName: (updatedSeller as any).boothName,
       boothTheme: (updatedSeller as any).boothTheme,
@@ -238,6 +243,9 @@ export async function POST(request: NextRequest) {
         }
       })
 
+      // Invalidate seller caches so store/exhibition pages pick up the new theme.
+      await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
+
       return NextResponse.json({
         success: true,
         message: `Applied ${preset} preset successfully`,
@@ -263,6 +271,9 @@ export async function POST(request: NextRequest) {
           boothTags: []
         }
       })
+
+      // Invalidate seller caches so store/exhibition pages pick up the reset.
+      await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
 
       return NextResponse.json({
         success: true,

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import { z } from "zod"
 import { handleSEOEvent } from "@/lib/seo-automation"
 import { resolveSellerFromRequest } from "@/lib/category-auth"
+import { invalidateBoothCaches, invalidateSellerCaches } from "@/lib/cache"
 
 async function generateBoothNumber(): Promise<string> {
   const lastBooth = await prisma.booth.findFirst({
@@ -213,6 +214,11 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Invalidate booth + seller caches so store page lists the new booth
+    // and exhibition pages pick up the new logoUrl/bannerUrl immediately.
+    await invalidateBoothCaches(booth.id, seller.id)
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
+
     setTimeout(async () => {
       try {
         const seoResult = await handleSEOEvent({
@@ -315,6 +321,11 @@ export async function PUT(request: NextRequest) {
       data: updateData
     })
 
+    // Invalidate booth + seller caches so exhibition and store pages
+    // pick up the updated logoUrl/bannerUrl immediately.
+    await invalidateBoothCaches(updatedBooth.id, sellerProfile.id)
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
+
     setTimeout(async () => {
       try {
         const seoResult = await handleSEOEvent({
@@ -388,6 +399,11 @@ export async function DELETE(request: NextRequest) {
     await prisma.booth.delete({
       where: { id }
     })
+
+    // Invalidate booth + seller caches so store page stops listing the
+    // deleted booth and exhibition page returns 404 immediately.
+    await invalidateBoothCaches(id, sellerProfile.id)
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,

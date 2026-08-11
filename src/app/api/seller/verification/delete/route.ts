@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
+import { invalidateSellerCaches } from '@/lib/cache'
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -70,6 +71,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.sellerVerificationFile.delete({
       where: { id: fileId }
     })
+
+    // Invalidate seller caches so store page stops showing the deleted
+    // verification file (certificate image) immediately.
+    await invalidateSellerCaches(sellerProfile.id, sellerProfile.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,

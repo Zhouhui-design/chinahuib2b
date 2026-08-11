@@ -10,6 +10,7 @@ import { performProductMatching } from "@/lib/ai-matching-service"
 import { sendProductMatchNotifications, sendMatchNotificationsToBuyers } from "@/lib/system-notification-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
 import { resolveSellerFromRequest } from "@/lib/category-auth"
+import { invalidateProductCaches, invalidateSellerCaches } from "@/lib/cache"
 
 // 检查并清理不存在的本地图片文件引用
 function validateAndCleanImages(
@@ -226,6 +227,11 @@ export async function POST(request: NextRequest) {
         supplyCapacityUnit: true
       }
     })
+
+    // Invalidate product + seller caches so store page lists the new product
+    // (with its mainImageUrl/images) immediately instead of after 24h.
+    await invalidateProductCaches(product.id, seller.id)
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
 
     setTimeout(async () => {
       try {

@@ -50,6 +50,18 @@ if [ "$MISSING_COUNT" -gt 0 ]; then
   head -31 "$MISSING" | tail -30 | column -t -s'|'
   echo ""
   echo "完整报告: $MISSING"
+  echo ""
+  echo "=== 修复后清理缓存 ==="
+  echo "修复数据库后，请执行以下命令清理Redis缓存："
+  echo "  redis-cli --scan --pattern 'seller:*' | xargs -r redis-cli DEL"
+  echo "  redis-cli --scan --pattern 'booth:*' | xargs -r redis-cli DEL"
+  echo "  redis-cli --scan --pattern 'booths:*' | xargs -r redis-cli DEL"
+  echo "  redis-cli --scan --pattern 'exhibition:*' | xargs -r redis-cli DEL"
+  echo "  redis-cli --scan --pattern 'product:*' | xargs -r redis-cli DEL"
+  echo "  redis-cli --scan --pattern 'products:*' | xargs -r redis-cli DEL"
+  echo ""
+  echo "或者通过API清理（需要管理员登录）："
+  echo "  curl -X POST https://x2xhub.com/api/admin/clear-cache -H 'Content-Type: application/json' -d '{\"type\":\"images\"}' --cookie '<admin_cookie>'"
 else
   echo "✅ 所有图片引用都有效！"
 fi

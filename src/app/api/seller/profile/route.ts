@@ -7,6 +7,7 @@ import { autoTranslateToAllLanguages } from "@/lib/translation-service"
 import { handleSEOEvent } from "@/lib/seo-automation"
 import { resolveSellerFromRequest } from "@/lib/category-auth"
 import { getEffectiveUserIdStrict } from "@/lib/ai-permissions"
+import { invalidateSellerCaches } from "@/lib/cache"
 
 
 const profileUpdateSchema = z.object({
@@ -198,6 +199,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.sellerProfile.delete({
       where: { id: seller.id }
     })
+
+    // Invalidate all caches related to this seller so store pages don't
+    // serve stale data pointing to a deleted profile.
+    await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
 
     return NextResponse.json({
       success: true,
@@ -413,6 +418,11 @@ export async function PUT(request: NextRequest) {
       where: { id: localSeller.id },
       data: updateData
     })
+
+    // Invalidate all seller-related caches so store pages pick up the new
+    // logoUrl / bannerUrl / companyPhotos / teamPhotos immediately.
+    // Without this, store/[slug] would serve stale data for up to 24h (CACHE_TTL.LONG).
+    await invalidateSellerCaches(localSeller.id, updatedProfile.storeSlug || undefined)
 
     setTimeout(async () => {
       try {

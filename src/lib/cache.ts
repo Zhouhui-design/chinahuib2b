@@ -103,53 +103,111 @@ export async function cacheGetOrSet<T>(
 export const CACHE_KEYS = {
   // Product caches
   product: (id: string) => `product:${id}`,
-  productList: (page: number, limit: number, filters?: string) => 
+  productList: (page: number, limit: number, filters?: string) =>
     `products:list:${page}:${limit}${filters ? `:${filters}` : ''}`,
   popularProducts: (days: number = 7) => `products:popular:${days}`,
-  
+
   // Category caches
   categoryTree: () => 'categories:tree',
   category: (slug: string) => `category:${slug}`,
-  
+
   // Seller/Store caches
   seller: (id: string) => `seller:${id}`,
   sellerBySlug: (slug: string) => `seller:slug:${slug}`,
   sellerProducts: (sellerId: string) => `seller:${sellerId}:products`,
   storeBrochures: (sellerId: string) => `seller:${sellerId}:brochures`,
-  
+
+  // Booth / Exhibition caches
+  booth: (id: string) => `booth:${id}`,
+  boothList: (sellerId: string) => `booths:list:${sellerId}`,
+  exhibition: (id: string) => `exhibition:${id}`,
+
   // User session caches
   userSession: (userId: string) => `session:${userId}`,
   userCart: (userId: string) => `cart:${userId}`,
-  
+
   // Analytics caches
   productViews: (productId: string) => `analytics:views:${productId}`,
   dailyStats: (date: string) => `stats:daily:${date}`,
 } as const
 
 /**
- * Invalidate related caches when data changes
+ * Invalidate related caches when a product changes.
+ * Also clears seller caches because store pages embed product lists
+ * (store/[slug] page shows latest products from the seller).
  */
-export async function invalidateProductCaches(productId: string) {
-  await Promise.all([
+export async function invalidateProductCaches(productId: string, sellerId?: string) {
+  const tasks: Promise<boolean>[] = [
     cacheDelete(CACHE_KEYS.product(productId)),
     cacheDeletePattern('products:list:*'),
     cacheDeletePattern('products:popular:*'),
-  ])
+  ]
+  if (sellerId) {
+    // Product changes affect the seller's store page (it shows latest products)
+    tasks.push(cacheDelete(CACHE_KEYS.sellerProducts(sellerId)))
+    tasks.push(cacheDeletePattern('seller:slug:*'))
+  }
+  await Promise.all(tasks)
 }
 
+/**
+ * Invalidate all caches related to a seller / store.
+ * Call this whenever SellerProfile fields change (logoUrl, bannerUrl,
+ * companyPhotos, teamPhotos, verificationFiles, etc.) or when
+ * booth/product data owned by this seller changes.
+ */
 export async function invalidateSellerCaches(sellerId: string, storeSlug?: string) {
   const tasks: Promise<boolean>[] = [
     cacheDelete(CACHE_KEYS.seller(sellerId)),
     cacheDelete(CACHE_KEYS.sellerProducts(sellerId)),
     cacheDelete(CACHE_KEYS.storeBrochures(sellerId)),
+    // Booth list for this seller
+    cacheDelete(CACHE_KEYS.boothList(sellerId)),
   ]
   // Also invalidate the slug-keyed cache so a renamed slug stops serving stale data
   if (storeSlug) {
     tasks.push(cacheDelete(CACHE_KEYS.sellerBySlug(storeSlug)))
   }
-  // Slug renames can leave old-slug cache entries; clear them all defensively
+  // Slug renames can leave old-slug cache entries; clear them all defensively.
+  // This is the key fix: store/[slug] page uses seller:slug:* keys with 24h TTL,
+  // so without this, image fixes won't show up until the cache expires naturally.
   tasks.push(cacheDeletePattern('seller:slug:*'))
   await Promise.all(tasks)
+}
+
+/**
+ * Invalidate caches related to a booth / exhibition.
+ * Call this when a booth's logoUrl, bannerUrl, or product list changes.
+ */
+export async function invalidateBoothCaches(boothId: string, sellerId?: string) {
+  const tasks: Promise<boolean>[] = [
+    cacheDelete(CACHE_KEYS.booth(boothId)),
+    cacheDelete(CACHE_KEYS.exhibition(boothId)),
+    cacheDeletePattern('booths:list:*'),
+  ]
+  if (sellerId) {
+    // Booth changes affect the seller's store page (it lists booths)
+    tasks.push(cacheDelete(CACHE_KEYS.boothList(sellerId)))
+    tasks.push(cacheDeletePattern('seller:slug:*'))
+  }
+  await Promise.all(tasks)
+}
+
+/**
+ * Nuclear option: clear ALL image-related caches.
+ * Use this when running database-wide image reference fixes (e.g. the
+ * scan-missing-image-refs.sh script) to ensure every store page picks up
+ * the corrected data immediately.
+ */
+export async function invalidateAllImageCaches() {
+  await Promise.all([
+    cacheDeletePattern('seller:*'),
+    cacheDeletePattern('booth:*'),
+    cacheDeletePattern('booths:*'),
+    cacheDeletePattern('exhibition:*'),
+    cacheDeletePattern('product:*'),
+    cacheDeletePattern('products:*'),
+  ])
 }
 
 export async function invalidateCategoryCaches() {

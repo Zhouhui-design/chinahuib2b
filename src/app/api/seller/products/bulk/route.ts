@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { invalidateSellerCaches, invalidateProductCaches } from "@/lib/cache"
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,6 +77,13 @@ export async function POST(request: NextRequest) {
         })
         results.failedCount++
       }
+    }
+
+    // Invalidate seller caches so store page lists the newly created products
+    // (with their mainImageUrl/images) immediately instead of after 24h.
+    if (results.createdCount > 0) {
+      await invalidateSellerCaches(seller.id, seller.storeSlug || undefined)
+      await invalidateProductCaches('bulk', seller.id)
     }
 
     return NextResponse.json({
