@@ -105,6 +105,8 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
   const [boothId, setBoothId] = useState<string>('')
   const [copied, setCopied] = useState(false)
   const [chatOpenSignal, setChatOpenSignal] = useState(0)
+  const [bannerError, setBannerError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
 
   useEffect(() => {
     params.then(({ id }) => setBoothId(id))
@@ -234,11 +236,12 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
       {/* Booth Header Banner */}
       <div className="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 text-white">
         <div className="absolute inset-0 overflow-hidden">
-          {booth.bannerUrl ? (
+          {booth.bannerUrl && !bannerError ? (
             <img
               src={booth.bannerUrl}
               alt="Booth Banner"
               className="w-full h-full object-cover opacity-40"
+              onError={() => setBannerError(true)}
             />
           ) : null}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/80 via-indigo-700/80 to-purple-800/80" />
@@ -248,11 +251,12 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Logo */}
             <div className="flex-shrink-0">
-              {booth.logoUrl ? (
+              {booth.logoUrl && !logoError ? (
                 <img
                   src={booth.logoUrl}
                   alt={booth.name}
                   className="h-24 w-24 rounded-xl object-contain bg-white p-2 shadow-xl"
+                  onError={() => setLogoError(true)}
                 />
               ) : (
                 <div className="h-24 w-24 rounded-xl bg-white p-3 shadow-xl flex items-center justify-center">

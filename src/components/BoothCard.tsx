@@ -36,6 +36,8 @@ interface Booth {
 
 export default function BoothCard({ booth, locale }: { booth: Booth; locale: LanguageCode }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [bannerError, setBannerError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
   const productImages = booth.products.slice(0, 10).flatMap(p => [p.mainImageUrl, ...p.images]).slice(0, 10)
   const currentImage = productImages[currentImageIndex] || ''
 
@@ -50,11 +52,12 @@ export default function BoothCard({ booth, locale }: { booth: Booth; locale: Lan
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer">
       <div className="relative h-28 overflow-hidden">
-        {booth.bannerUrl ? (
+        {booth.bannerUrl && !bannerError ? (
           <img
             src={booth.bannerUrl}
             alt="Booth Banner"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={() => setBannerError(true)}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 flex items-center justify-center">
@@ -64,11 +67,12 @@ export default function BoothCard({ booth, locale }: { booth: Booth; locale: Lan
       </div>
 
       <div className="p-3 bg-gray-50 flex items-center gap-3">
-        {booth.logoUrl ? (
+        {booth.logoUrl && !logoError ? (
           <img
             src={booth.logoUrl}
             alt="Logo"
             className="h-10 w-10 rounded-lg object-contain bg-white p-1 shadow-md"
+            onError={() => setLogoError(true)}
           />
         ) : (
           <div className="h-10 w-10 rounded-lg bg-white p-2 shadow-md flex items-center justify-center">
