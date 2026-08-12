@@ -90,6 +90,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
+    // Set NEXT_LOCALE cookie so server-side locale detection
+    // (server-locale.ts) uses the correct language on next SSR.
+    // Fixes React #418 hydration mismatch when switching language
+    // on store slug pages (e.g. /ysc).
+    if (typeof document !== 'undefined') {
+      document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+    }
   }
 
   return (

@@ -1,11 +1,11 @@
 /**
  * Service Worker for PWA Offline Support
- * v11 - Aggressive cache wipe to clear stale dev-mode assets.
- *       Fixes: dev-mode JS (main-app.js?v=...) was cached by v10 and served
- *       via cache-first strategy, breaking production login flow.
+ * v14 - Fix hydration mismatch caused by SW returning non-Response objects.
+ *       - Make handleHTMLRequest always return a valid Response (never undefined).
+ *       - Don't cache 404/5xx error pages.
  */
 
-const CACHE_NAME = 'x2xhub-v13';
+const CACHE_NAME = 'x2xhub-v14';
 const OFFLINE_PAGE = '/offline.html';
 const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 
@@ -106,21 +106,41 @@ async function handleHTMLRequest(request) {
   try {
     const response = await fetch(request);
 
-    if (response && response.ok && response.status === 200) {
-      try {
-        const clonedResponse = response.clone();
-        const cache = await caches.open(CACHE_NAME);
-        await cache.put(request, clonedResponse);
-      } catch (e) {
-        console.warn('[SW] Failed to cache HTML:', e);
+    // Guard against non-ok / non-200 responses that might cause hydration issues
+    if (!response || !response.ok || response.status !== 200) {
+      // Don't cache error pages (404, 500, etc.)
+      if (response && (response.status === 404 || response.status >= 500)) {
+        return response;
       }
+      return response || new Response('Service Unavailable', { status: 503 });
+    }
+
+    // Cache successful HTML responses for offline fallback
+    try {
+      const clonedResponse = response.clone();
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, clonedResponse);
+    } catch (e) {
+      console.warn('[SW] Failed to cache HTML:', e);
     }
 
     return response;
   } catch (e) {
+    // Network failure: serve from cache, or offline page
+    console.warn('[SW] Network request failed, serving from cache:', request.url, e);
     const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
     const offline = await caches.match(OFFLINE_PAGE);
-    return cached || offline || new Response('Offline', { status: 503 });
+    if (offline) {
+      return offline;
+    }
+    // Ensure we always return a valid Response object (never undefined)
+    return new Response('You are offline and this page is not cached.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
   }
 }
 
@@ -162,7 +182,7 @@ async function handleStaticAsset(request, pathname) {
         console.warn('[SW] Failed to cache static asset:', e);
       }
     }
-    return networkResponse;
+    return networkResponse || new Response('Not found', { status: 404 });
   } catch (e) {
     const cached = await caches.match(request);
     return cached || new Response('Not found', { status: 404 });

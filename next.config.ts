@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   /* config options here */
   // Fix workspace root for monorepo
   outputFileTracingRoot: __dirname,
+
+  // Stable build ID based on git commit hash + timestamp
+  // Prevents Cloudflare from caching stale JS bundles across deployments.
+  // Without this, Cloudflare may serve old .js files to users who have
+  // the new HTML, causing React #418 hydration mismatches and 404s.
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  },
   
   // Disable Next.js DevTools indicator for non-admin users
   // Admin users get a custom dev panel instead
@@ -78,11 +86,6 @@ const nextConfig: NextConfig = {
     
     // Optimize CSS loading
     optimizeCss: true,
-  },
-  
-  // Generate unique build ID for cache busting
-  generateBuildId: async () => {
-    return `${process.env.npm_package_version}-${Date.now().toString(36)}`
   },
 
   // Rewrites for special files that need to bypass locale routing
