@@ -40,7 +40,14 @@ export const SafeImage = forwardRef<HTMLImageElement, SafeImageProps>(function S
   ref
 ) {
   const [hasError, setHasError] = useState(false)
-  const finalSrc = hasError ? (fallbackSrc || DEFAULT_PLACEHOLDER_SVG) : src
+
+  // If no valid src, show placeholder immediately — never render an empty/broken image
+  const hasValidSrc = !!src && src !== '' && src !== 'https://example.com/valid.jpg'
+  const finalSrc = !hasValidSrc
+    ? (fallbackSrc || DEFAULT_PLACEHOLDER_SVG)
+    : hasError
+      ? (fallbackSrc || DEFAULT_PLACEHOLDER_SVG)
+      : src
 
   return (
     <div className={`relative ${className || ''}`}>
@@ -48,7 +55,7 @@ export const SafeImage = forwardRef<HTMLImageElement, SafeImageProps>(function S
         ref={ref}
         src={finalSrc}
         alt={alt || ''}
-        className={`${rest.fill ? '' : ''} ${hasError ? 'object-contain bg-gray-100' : ''} ${fallbackClassName || ''}`}
+        className={`${rest.fill ? '' : ''} ${hasError || !hasValidSrc ? 'object-contain bg-gray-100' : ''} ${fallbackClassName || ''}`}
         onError={(e) => {
           if (!hasError) {
             setHasError(true)

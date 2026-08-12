@@ -276,7 +276,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
               </div>
-              <p className="text-xl text-blue-100 mb-3">{booth.exhibitionName}</p>
+              <p className="text-xl text-blue-100 mb-3">{booth.seller.companyName}</p>
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-blue-100">
                 {booth.location && (

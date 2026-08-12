@@ -35,15 +35,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   const isEnglish = locale === 'en'
   const boothName = booth.names?.[locale] || booth.names?.en || booth.name
-  const exhibitionName = booth.exhibitionName
-  
-  const title = `${boothName} at ${exhibitionName} | SeaHeart Global`
-  const description = `${boothName} is exhibiting at ${exhibitionName}. ${booth.seller?.companyName || ''} from ${booth.seller?.city || ''}, ${booth.seller?.country || ''}. Discover products and connect with suppliers.`
-  
+  const companyName = booth.seller?.companyName || booth.exhibitionName
+
+  const title = `${boothName} | ${companyName} | SeaHeart Global`
+  const description = `${boothName} by ${companyName} from ${booth.seller?.city || ''}, ${booth.seller?.country || ''}. Discover products and connect with suppliers.`
+
   const allKeywords = [
     ...(booth.keywords || []),
     boothName,
-    exhibitionName,
+    companyName,
     booth.seller?.companyName || '',
     booth.seller?.country || '',
     booth.seller?.city || '',
