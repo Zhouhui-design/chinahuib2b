@@ -5,6 +5,7 @@ import { languages } from '@/lib/languages'
 export const dynamic = 'force-dynamic'
 
 const BASE_URL = 'https://x2xhub.com'
+const DEFAULT_LANG = 'en'  // sitemap uses explicit locale-prefixed URLs (no 302 redirect)
 
 interface SitemapEntry {
   loc: string
@@ -38,17 +39,23 @@ function generateSitemapXml(entries: SitemapEntry[]): string {
 
 function createAlternates(path: string, isDefault = false): { lang: string; href: string }[] {
   const links: { lang: string; href: string }[] = []
-  
+
+  const normalizedPath = path === '/' ? '' : path
+
   languages.forEach(lang => {
-    const href = lang.code === 'en' 
-      ? `${BASE_URL}${path}` 
-      : `${BASE_URL}/${lang.code}${path}`
-    links.push({ lang: lang.code, href })
+    links.push({ lang: lang.code, href: `${BASE_URL}/${lang.code}${normalizedPath}` })
   })
-  
-  links.push({ lang: 'x-default', href: `${BASE_URL}${path}` })
-  
+
+  // x-default points to the default-language (en) version
+  links.push({ lang: 'x-default', href: `${BASE_URL}/${DEFAULT_LANG}${normalizedPath}` })
+
   return links
+}
+
+// helper: strip trailing slash so homepage URL = /en (not /en/ -> 308)
+function withLocale(path: string): string {
+  const normalized = path === '/' ? '' : path
+  return `${BASE_URL}/${DEFAULT_LANG}${normalized}`
 }
 
 export async function GET(request: NextRequest) {
@@ -57,7 +64,7 @@ export async function GET(request: NextRequest) {
     const now = new Date().toISOString().split('T')[0]
 
     entries.push({
-      loc: `${BASE_URL}/`,
+      loc: withLocale('/'),
       lastmod: now,
       changefreq: 'daily',
       priority: 1.0,
@@ -65,7 +72,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/marketplace`,
+      loc: withLocale('/marketplace'),
       lastmod: now,
       changefreq: 'hourly',
       priority: 0.9,
@@ -73,7 +80,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/products`,
+      loc: withLocale('/products'),
       lastmod: now,
       changefreq: 'hourly',
       priority: 0.9,
@@ -81,7 +88,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/stores`,
+      loc: withLocale('/stores'),
       lastmod: now,
       changefreq: 'daily',
       priority: 0.85,
@@ -89,7 +96,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/exhibitions`,
+      loc: withLocale('/exhibitions'),
       lastmod: now,
       changefreq: 'daily',
       priority: 0.85,
@@ -97,7 +104,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/auction-screen`,
+      loc: withLocale('/auction-screen'),
       lastmod: now,
       changefreq: 'hourly',
       priority: 0.95,
@@ -105,7 +112,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/chat-hall`,
+      loc: withLocale('/chat-hall'),
       lastmod: now,
       changefreq: 'hourly',
       priority: 0.9,
@@ -113,7 +120,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/api-docs`,
+      loc: withLocale('/api-docs'),
       lastmod: now,
       changefreq: 'weekly',
       priority: 0.8,
@@ -121,7 +128,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/ai-register`,
+      loc: withLocale('/ai-register'),
       lastmod: now,
       changefreq: 'weekly',
       priority: 0.8,
@@ -129,7 +136,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/partner-recruitment`,
+      loc: withLocale('/partner-recruitment'),
       lastmod: now,
       changefreq: 'weekly',
       priority: 0.75,
@@ -137,7 +144,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/blog`,
+      loc: withLocale('/blog'),
       lastmod: now,
       changefreq: 'daily',
       priority: 0.85,
@@ -145,7 +152,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/about`,
+      loc: withLocale('/about'),
       lastmod: now,
       changefreq: 'monthly',
       priority: 0.8,
@@ -153,7 +160,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/contact`,
+      loc: withLocale('/contact'),
       lastmod: now,
       changefreq: 'monthly',
       priority: 0.8,
@@ -161,7 +168,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/investment`,
+      loc: withLocale('/investment'),
       lastmod: now,
       changefreq: 'weekly',
       priority: 0.75,
@@ -169,23 +176,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/about`,
-      lastmod: now,
-      changefreq: 'monthly',
-      priority: 0.8,
-      alternates: createAlternates('/about')
-    })
-
-    entries.push({
-      loc: `${BASE_URL}/contact`,
-      lastmod: now,
-      changefreq: 'monthly',
-      priority: 0.8,
-      alternates: createAlternates('/contact')
-    })
-
-    entries.push({
-      loc: `${BASE_URL}/legal/privacy-policy`,
+      loc: withLocale('/legal/privacy-policy'),
       lastmod: now,
       changefreq: 'yearly',
       priority: 0.6,
@@ -193,7 +184,7 @@ export async function GET(request: NextRequest) {
     })
     
     entries.push({
-      loc: `${BASE_URL}/legal/terms-of-service`,
+      loc: withLocale('/legal/terms-of-service'),
       lastmod: now,
       changefreq: 'yearly',
       priority: 0.6,
@@ -201,7 +192,7 @@ export async function GET(request: NextRequest) {
     })
 
     entries.push({
-      loc: `${BASE_URL}/legal/cookie-settings`,
+      loc: withLocale('/legal/cookie-settings'),
       lastmod: now,
       changefreq: 'yearly',
       priority: 0.6,
@@ -210,14 +201,14 @@ export async function GET(request: NextRequest) {
 
     try {
       const products = await prisma.product.findMany({
-        where: { isActive: true, isPublished: true },
-        select: { id: true, slug: true, updatedAt: true },
+        where: { isActive: true },
+        select: { id: true, updatedAt: true },
         take: 1000
       })
 
       products.forEach(product => {
         entries.push({
-          loc: `${BASE_URL}/products/${product.id}`,
+          loc: withLocale(`/products/${product.id}`),
           lastmod: new Date(product.updatedAt).toISOString().split('T')[0],
           changefreq: 'weekly',
           priority: 0.85,
@@ -239,7 +230,7 @@ export async function GET(request: NextRequest) {
         // Prefer the clean GitHub-style slug URL; fall back to legacy URL
         const storePath = store.storeSlug ? `/${store.storeSlug}` : `/stores/${store.id}`
         entries.push({
-          loc: `${BASE_URL}${storePath}`,
+          loc: withLocale(storePath),
           lastmod: new Date(store.updatedAt).toISOString().split('T')[0],
           changefreq: 'weekly',
           priority: 0.8,
@@ -259,7 +250,7 @@ export async function GET(request: NextRequest) {
 
       booths.forEach(booth => {
         entries.push({
-          loc: `${BASE_URL}/exhibitions/${booth.id}`,
+          loc: withLocale(`/exhibitions/${booth.id}`),
           lastmod: new Date(booth.updatedAt).toISOString().split('T')[0],
           changefreq: 'weekly',
           priority: 0.85,
@@ -279,7 +270,7 @@ export async function GET(request: NextRequest) {
 
       topics.forEach(topic => {
         entries.push({
-          loc: `${BASE_URL}/marketplace/topic/${topic.id}`,
+          loc: withLocale(`/marketplace/topic/${topic.id}`),
           lastmod: new Date(topic.updatedAt).toISOString().split('T')[0],
           changefreq: 'hourly',
           priority: 0.75,
@@ -299,7 +290,7 @@ export async function GET(request: NextRequest) {
 
       tasks.forEach(task => {
         entries.push({
-          loc: `${BASE_URL}/marketplace/${task.id}`,
+          loc: withLocale(`/marketplace/${task.id}`),
           lastmod: new Date(task.updatedAt).toISOString().split('T')[0],
           changefreq: 'hourly',
           priority: 0.8,
@@ -321,7 +312,7 @@ export async function GET(request: NextRequest) {
         .filter(l => l.status === 'ACTIVE' || l.status === 'PENDING')
         .forEach(listing => {
           entries.push({
-            loc: `${BASE_URL}/auction/${listing.id}`,
+            loc: withLocale(`/auction/${listing.id}`),
             lastmod: new Date(listing.updatedAt).toISOString().split('T')[0],
             changefreq: 'hourly',
             priority: 0.9,
@@ -346,7 +337,7 @@ export async function GET(request: NextRequest) {
 
     regionalPages.forEach(page => {
       entries.push({
-        loc: `${BASE_URL}${page.path}`,
+        loc: withLocale(page.path),
         lastmod: now,
         changefreq: 'daily',
         priority: page.priority,
