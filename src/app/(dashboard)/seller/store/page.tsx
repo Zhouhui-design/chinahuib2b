@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import MultilingualInput from '@/components/ui/MultilingualInput'
 import CountrySelect from '@/components/seller/CountrySelect'
-import { Save, Building2, MapPin, Phone, Mail, MessageCircle, CheckCircle, Loader2, Upload, X, Image, AlertCircle, Award, Trash2, FileText } from 'lucide-react'
+import MultiValueInput from '@/components/seller/MultiValueInput'
+import LanguageSelect from '@/components/seller/LanguageSelect'
+import { Save, Building2, MapPin, Phone, Mail, MessageCircle, CheckCircle, Loader2, Upload, X, Image, AlertCircle, Award, Trash2, FileText, Languages } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
 
 interface UploadedFile {
@@ -33,6 +35,13 @@ export default function StoreProfilePage() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [website, setWebsite] = useState('')
+  // 多值联系方式（可"+"添加多个）
+  const [phones, setPhones] = useState<string[]>([])
+  const [emails, setEmails] = useState<string[]>([])
+  const [websites, setWebsites] = useState<string[]>([])
+  // 沟通语言设置
+  const [voiceLanguages, setVoiceLanguages] = useState<string[]>([])
+  const [textLanguages, setTextLanguages] = useState<string[]>([])
   const [whatsapp, setWhatsapp] = useState('')
   const [wechat, setWechat] = useState('')
   const [telegram, setTelegram] = useState('')
@@ -1210,6 +1219,23 @@ export default function StoreProfilePage() {
       setPhone(profile.phone || '')
       setEmail(profile.email || '')
       setWebsite(profile.website || '')
+
+      // 多值字段：合并单值主字段 + JSONB 数组字段并去重
+      const mergeValues = (single: string | null | undefined, arr: unknown): string[] => {
+        const list: string[] = []
+        if (single && single.trim()) list.push(single.trim())
+        if (Array.isArray(arr)) {
+          arr.forEach((v) => {
+            if (typeof v === 'string' && v.trim() && !list.includes(v.trim())) list.push(v.trim())
+          })
+        }
+        return list
+      }
+      setPhones(mergeValues(profile.phone, profile.phones))
+      setEmails(mergeValues(profile.email, profile.emails))
+      setWebsites(mergeValues(profile.website, profile.websites))
+      setVoiceLanguages(Array.isArray(profile.voiceLanguages) ? profile.voiceLanguages.filter((v: unknown) => typeof v === 'string') : [])
+      setTextLanguages(Array.isArray(profile.textLanguages) ? profile.textLanguages.filter((v: unknown) => typeof v === 'string') : [])
       setCertifications(profile.certifications?.join(', ') || '')
       setBoothName(profile.boothName || '')
       setBoothCategories(profile.boothCategories?.join(', ') || '')
@@ -1597,6 +1623,11 @@ export default function StoreProfilePage() {
         phone: phone.trim(),
         email: email.trim(),
         website: website.trim(),
+        phones: phones.filter((v) => v.trim()),
+        emails: emails.filter((v) => v.trim()),
+        websites: websites.filter((v) => v.trim()),
+        voiceLanguages: voiceLanguages,
+        textLanguages: textLanguages,
         certifications: certsArray.length > 0 ? certsArray : null,
         boothName: boothName.trim() || null,
         boothCategories: boothCategories.split(',').map(c => c.trim()).filter(c => c),
@@ -1701,6 +1732,11 @@ export default function StoreProfilePage() {
         phone: phone.trim(),
         email: email.trim(),
         website: website.trim(),
+        phones: phones.filter((v) => v.trim()),
+        emails: emails.filter((v) => v.trim()),
+        websites: websites.filter((v) => v.trim()),
+        voiceLanguages: voiceLanguages,
+        textLanguages: textLanguages,
         certifications: certsArray.length > 0 ? certsArray : null,
         boothName: boothName.trim() || null,
         boothCategories: boothCategories.split(',').map(c => c.trim()).filter(c => c),
@@ -2170,12 +2206,14 @@ export default function StoreProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.phoneNumber}
               </label>
-              <input
+              <MultiValueInput
+                values={phones}
+                onChange={(vals) => {
+                  setPhones(vals)
+                  setPhone(vals[0] || '')
+                }}
                 type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={t.phonePlaceholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                singlePlaceholder={t.phonePlaceholder}
               />
             </div>
 
@@ -2183,12 +2221,14 @@ export default function StoreProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.emailAddress}
               </label>
-              <input
+              <MultiValueInput
+                values={emails}
+                onChange={(vals) => {
+                  setEmails(vals)
+                  setEmail(vals[0] || '')
+                }}
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.emailPlaceholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                singlePlaceholder={t.emailPlaceholder}
               />
             </div>
 
@@ -2196,12 +2236,55 @@ export default function StoreProfilePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t.website}
               </label>
-              <input
+              <MultiValueInput
+                values={websites}
+                onChange={(vals) => {
+                  setWebsites(vals)
+                  setWebsite(vals[0] || '')
+                }}
                 type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder={t.websitePlaceholder}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                singlePlaceholder={t.websitePlaceholder}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Communication Languages Section */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Languages className="w-5 h-5 text-gray-500" />
+            {language === 'zh' ? '沟通语言设置' :
+             language === 'de' ? 'Kommunikationssprachen' :
+             language === 'fr' ? 'Langues de communication' :
+             language === 'es' ? 'Idiomas de comunicación' :
+             'Communication Languages'}
+          </h2>
+          <p className="text-sm text-gray-500 -mt-2">
+            {language === 'zh'
+              ? '设置您擅长的沟通语言，让买家了解如何与您无障碍交流。'
+              : 'Let buyers know which languages you can communicate in.'}
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🎤 {language === 'zh' ? '语音沟通（视频聊天、电话）' : 'Voice (video chat, phone)'}
+              </label>
+              <LanguageSelect
+                value={voiceLanguages}
+                onChange={setVoiceLanguages}
+                language={language}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ✏️ {language === 'zh' ? '文字沟通（邮件、文字）' : 'Text (email, messaging)'}
+              </label>
+              <LanguageSelect
+                value={textLanguages}
+                onChange={setTextLanguages}
+                language={language}
               />
             </div>
           </div>

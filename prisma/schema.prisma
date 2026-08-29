@@ -104,6 +104,11 @@ model SellerProfile {
   phone                String?
   email                String?
   website              String?
+  emails               Json?
+  phones               Json?
+  websites             Json?
+  voiceLanguages       Json?
+  textLanguages        Json?
   description          String?
   logoUrl              String?
   bannerUrl            String?

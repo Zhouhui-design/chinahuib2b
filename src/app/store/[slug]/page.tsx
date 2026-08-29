@@ -17,8 +17,10 @@ import {
   ArrowLeft, Globe, MapPin, Phone, Mail, Package, Download, MessageCircle,
   Eye, Building2, Calendar, Users, Banknote, Briefcase, UserCheck,
   Award, FileCheck, ExternalLink, Image as ImageIcon, Tag, Gavel,
+  Languages, Mic, MessagesSquare,
 } from 'lucide-react'
 import { prisma } from '@/lib/db'
+import { getWorldLanguageName } from '@/lib/world-languages'
 import { cacheGetOrSet, CACHE_KEYS, CACHE_TTL } from '@/lib/cache'
 import { languages } from '@/lib/languages'
 import { detectLocale, getLocalizedDescription } from '@/lib/server-locale'
@@ -191,6 +193,28 @@ function getLocalizedBoothName(booth: any, locale: string): string {
   return booth.name
 }
 
+// 合并单值主字段 + JSONB 数组字段（去重），用于前台渲染邮箱/电话/网址。
+function mergeMultiValues(single: string | null | undefined, arr: unknown): string[] {
+  const list: string[] = []
+  if (single && single.trim()) list.push(single.trim())
+  if (Array.isArray(arr)) {
+    for (const v of arr) {
+      if (typeof v === 'string' && v.trim() && !list.includes(v.trim())) list.push(v.trim())
+    }
+  }
+  return list
+}
+
+// 沟通语言：JSONB 数组 → 去重字符串数组（兼容内置 code 与自定义语言）。
+function normalizeLanguages(arr: unknown): string[] {
+  if (!Array.isArray(arr)) return []
+  const list: string[] = []
+  for (const v of arr) {
+    if (typeof v === 'string' && v.trim() && !list.includes(v.trim())) list.push(v.trim())
+  }
+  return list
+}
+
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export default async function StorePage({ params }: Props) {
@@ -294,33 +318,46 @@ export default async function StorePage({ params }: Props) {
                     <span className="text-sm">{seller.address}</span>
                   </div>
                 )}
-                {seller.phone && (
-                  <div className="flex items-center">
-                    <Phone className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                    <a href={`tel:${seller.phone}`} className="text-sm text-blue-600 hover:text-blue-700">
-                      {seller.phone}
-                    </a>
+                {(mergeMultiValues(seller.phone, seller.phones).length > 0) && (
+                  <div className="flex items-start">
+                    <Phone className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col gap-1">
+                      {mergeMultiValues(seller.phone, seller.phones).map((v, i) => (
+                        <a key={`phone-${i}`} href={`tel:${v}`} className="text-sm text-blue-600 hover:text-blue-700">
+                          {v}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
-                {seller.email && (
-                  <div className="flex items-center">
-                    <Mail className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                    <a href={`mailto:${seller.email}`} className="text-sm text-blue-600 hover:text-blue-700">
-                      {seller.email}
-                    </a>
+                {(mergeMultiValues(seller.email, seller.emails).length > 0) && (
+                  <div className="flex items-start">
+                    <Mail className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col gap-1">
+                      {mergeMultiValues(seller.email, seller.emails).map((v, i) => (
+                        <a key={`email-${i}`} href={`mailto:${v}`} className="text-sm text-blue-600 hover:text-blue-700 break-all">
+                          {v}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
-                {seller.website && (
-                  <div className="flex items-center">
-                    <Globe className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                    <a
-                      href={seller.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-700 truncate"
-                    >
-                      {seller.website}
-                    </a>
+                {(mergeMultiValues(seller.website, seller.websites).length > 0) && (
+                  <div className="flex items-start">
+                    <Globe className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col gap-1">
+                      {mergeMultiValues(seller.website, seller.websites).map((v, i) => (
+                        <a
+                          key={`website-${i}`}
+                          href={v}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-700 truncate"
+                        >
+                          {v}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {seller.contactName && (
@@ -330,6 +367,61 @@ export default async function StorePage({ params }: Props) {
                   </div>
                 )}
               </div>
+
+              {/* Communication Languages */}
+              {(normalizeLanguages(seller.voiceLanguages).length > 0 ||
+                normalizeLanguages(seller.textLanguages).length > 0) && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Languages className="w-5 h-5 text-gray-400" />
+                    {t('沟通语言', 'Communication Languages')}
+                  </h2>
+                  <div className="space-y-3">
+                    {normalizeLanguages(seller.voiceLanguages).length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                          <Mic className="w-4 h-4 text-gray-400" />
+                          {t('语音沟通', 'Voice')}
+                          <span className="text-xs font-normal text-gray-400">
+                            {t('（视频、电话）', '(video, phone)')}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {normalizeLanguages(seller.voiceLanguages).map((code, i) => (
+                            <span
+                              key={`voice-${i}`}
+                              className="px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-700 text-xs rounded-md"
+                            >
+                              {getWorldLanguageName(code, locale)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {normalizeLanguages(seller.textLanguages).length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                          <MessagesSquare className="w-4 h-4 text-gray-400" />
+                          {t('文字沟通', 'Text')}
+                          <span className="text-xs font-normal text-gray-400">
+                            {t('（邮件、聊天）', '(email, chat)')}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {normalizeLanguages(seller.textLanguages).map((code, i) => (
+                            <span
+                              key={`text-${i}`}
+                              className="px-2.5 py-1 bg-green-50 border border-green-100 text-green-700 text-xs rounded-md"
+                            >
+                              {getWorldLanguageName(code, locale)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Company description */}
               {description && (
@@ -656,24 +748,24 @@ export default async function StorePage({ params }: Props) {
 
               {/* Primary contact actions */}
               <div className="space-y-2 mb-4">
-                {seller.phone && (
-                  <a href={`tel:${seller.phone}`} className="flex items-center text-sm text-gray-700 hover:text-blue-600">
+                {mergeMultiValues(seller.phone, seller.phones).map((v, i) => (
+                  <a key={`phone-${i}`} href={`tel:${v}`} className="flex items-center text-sm text-gray-700 hover:text-blue-600">
                     <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                    {seller.phone}
+                    {v}
                   </a>
-                )}
-                {seller.email && (
-                  <a href={`mailto:${seller.email}`} className="flex items-center text-sm text-gray-700 hover:text-blue-600">
+                ))}
+                {mergeMultiValues(seller.email, seller.emails).map((v, i) => (
+                  <a key={`email-${i}`} href={`mailto:${v}`} className="flex items-center text-sm text-gray-700 hover:text-blue-600">
                     <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="truncate">{seller.email}</span>
+                    <span className="truncate">{v}</span>
                   </a>
-                )}
-                {seller.website && (
-                  <a href={seller.website} target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-gray-700 hover:text-blue-600">
+                ))}
+                {mergeMultiValues(seller.website, seller.websites).map((v, i) => (
+                  <a key={`website-${i}`} href={v} target="_blank" rel="noopener noreferrer" className="flex items-center text-sm text-gray-700 hover:text-blue-600">
                     <Globe className="w-4 h-4 mr-2 text-gray-400" />
-                    <span className="truncate">{seller.website}</span>
+                    <span className="truncate">{v}</span>
                   </a>
-                )}
+                ))}
               </div>
 
               {/* Instant messaging contacts */}
