@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   
   // Allow cross-origin requests in development mode
-  allowedDevOrigins: ['x2xhub.com', 'www.x2xhub.com', '139.59.108.156'],
+  allowedDevOrigins: ['x2xhub.com', 'www.x2xhub.com', '167.99.134.217'],
   
   // Output standalone for Docker deployment
   // output: 'standalone',
@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
-        hostname: '139.59.108.156',
+        hostname: '167.99.134.217',
       },
       {
         protocol: 'https',

@@ -40,8 +40,12 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
   const currentLanguage = languages.find(lang => lang.code === currentLocale);
 
   const switchLanguage = (locale: LanguageCode) => {
-    // Always set the language cookie first
+    // Always set the language cookie first (client-side consumers)
     document.cookie = `language=${locale}; path=/; max-age=31536000`
+    // Also set NEXT_LOCALE, which server-side detectLocale() reads for routes
+    // without a locale segment (e.g. the slug store page /<slug>).
+    // Without this, switching language on /jhbz changed nothing.
+    document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`
 
     // Dispatch custom event so useSellerLanguage hook can update without polling
     window.dispatchEvent(new Event('languagechange'))
