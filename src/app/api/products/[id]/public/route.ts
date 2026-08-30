@@ -25,11 +25,16 @@ export async function GET(
               select: {
                 id: true,
                 companyName: true,
+                storeSlug: true,
                 country: true,
                 city: true,
                 phone: true,
                 email: true,
                 website: true,
+                // Multi-value contacts (JSONB arrays)
+                emails: true,
+                phones: true,
+                websites: true,
                 logoUrl: true
               }
             },

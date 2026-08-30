@@ -27,6 +27,13 @@ export async function GET(request: NextRequest) {
               phone: true,
               email: true,
               website: true,
+              // Multi-value contacts (JSONB arrays added 2026-08-29)
+              emails: true,
+              phones: true,
+              websites: true,
+              // Communication languages
+              voiceLanguages: true,
+              textLanguages: true,
               // Social media accounts
               whatsapp: true,
               wechat: true,

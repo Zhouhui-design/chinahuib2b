@@ -5,6 +5,33 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Globe, ChevronDown } from 'lucide-react';
 import { languages, type LanguageCode } from '@/lib/languages';
 
+const SUPPORTED_CODES = languages.map((l) => l.code) as readonly string[];
+
+/**
+ * Replace the locale segment of a pathname WITHOUT eating the first 2 chars of
+ * a non-locale first segment.
+ *
+ * Bug this fixes: `pathname.replace(/^\/[a-z]{2}/, '/es')` turned the store slug
+ * URL `/jhbz` into `/esbz` (it chopped `jh`), producing a 404. Store slugs live
+ * at the top level (`x2xhub.com/<slug>`), so the first segment is only a locale
+ * when it is exactly 2 chars AND in the supported list.
+ */
+function buildLocalePath(pathname: string, locale: LanguageCode): string {
+  const segments = pathname.split('/').filter(Boolean);
+  const first = segments[0];
+
+  // Case A: first segment IS a real locale -> swap it.
+  if (first && SUPPORTED_CODES.includes(first)) {
+    segments[0] = locale;
+    return '/' + segments.join('/');
+  }
+
+  // Case B: no locale prefix (e.g. a top-level store slug like /jhbz).
+  // Prefixing would 404 on rewrite rules, so keep the path and let the
+  // language cookie drive translation via a reload.
+  return pathname;
+}
+
 export default function LanguageSwitcher({ currentLocale }: { currentLocale: LanguageCode }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -29,9 +56,14 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
       // For dashboard routes and static routes, reload the page to apply the new language
       window.location.reload()
     } else {
-      // For public routes, replace locale in pathname
-      const newPathname = pathname.replace(/^\/[a-z]{2}/, `/${locale}`)
-      router.push(newPathname)
+      // For public routes, swap the locale segment safely.
+      const newPathname = buildLocalePath(pathname, locale)
+      if (newPathname === pathname) {
+        // No locale segment to swap (top-level store slug etc.) -> cookie + reload.
+        window.location.reload()
+      } else {
+        router.push(newPathname)
+      }
     }
       
     setIsOpen(false)

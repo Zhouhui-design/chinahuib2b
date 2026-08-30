@@ -5,6 +5,16 @@ import { getSeoMeta } from './seo-meta'
 
 export const BASE_URL = 'https://x2xhub.com'
 
+// Strip a leading locale segment ONLY when it is a real supported locale.
+// Naive /^\/[a-z]{2}/ chopped 2 chars off top-level store slugs (/jhbz -> /bz).
+function stripLocalePrefixInternal(path: string): string {
+  const match = path.match(/^\/([a-z]{2})(\/.*)?$/)
+  if (match && languages.some(lang => lang.code === match[1])) {
+    return match[2] || '/'
+  }
+  return path || '/'
+}
+
 const REGION_CONFIG: Record<string, { country: string; currency: string; timezone: string }> = {
   us: { country: 'United States', currency: 'USD', timezone: 'America/New_York' },
   eu: { country: 'European Union', currency: 'EUR', timezone: 'Europe/Brussels' },
@@ -70,11 +80,11 @@ export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
     keywords = keywords || defaultMeta.keywords
 
     const alternates: Record<string, string> = {}
+    const cleanPath = stripLocalePrefixInternal(pagePath)
     languages.forEach(lang => {
-      const cleanPath = pagePath.replace(/^\/[a-z]{2}/, '') || '/'
       const langPath = lang.code === 'en' 
         ? cleanPath
-        : `/${lang.code}${cleanPath}`
+        : `/${lang.code}${cleanPath === '/' ? '' : cleanPath}`
       alternates[lang.code] = `${BASE_URL}${langPath}`
     })
 
@@ -105,19 +115,28 @@ export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
 }
 
 export function extractLanguageFromPath(path: string): string {
-  const match = path.match(/^\/([a-z]{2})/)
+  const match = path.match(/^\/([a-z]{2})(?:\/|$)/)
   if (match && languages.some(lang => lang.code === match[1])) {
     return match[1]
   }
   return 'en'
 }
 
+/**
+ * Strip a leading locale segment only when it is a REAL supported locale.
+ * Naive /^\/[a-z]{2}/ chopped the first 2 chars off top-level store slugs
+ * (e.g. /jhbz -> /bz), corrupting canonical + hreflang URLs.
+ */
+export function stripLocalePrefix(path: string): string {
+  return stripLocalePrefixInternal(path)
+}
+
 export function buildLocalizedPath(path: string, languageCode: string): string {
+  const cleanPath = stripLocalePrefix(path)
   if (languageCode === 'en') {
-    return path.replace(/^\/[a-z]{2}/, '') || '/'
+    return cleanPath
   }
-  const cleanPath = path.replace(/^\/[a-z]{2}/, '') || '/'
-  return `/${languageCode}${cleanPath}`
+  return `/${languageCode}${cleanPath === '/' ? '' : cleanPath}`
 }
 
 export function generateGeoTags(regionCode?: string): Record<string, string> {
