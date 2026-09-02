@@ -360,6 +360,28 @@ export default async function StorePage({ params }: Props) {
                     </div>
                   </div>
                 )}
+                {(Array.isArray(seller.offlineStores) && seller.offlineStores.length > 0) && (
+                  <div className="flex items-start">
+                    <MapPin className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col gap-2">
+                      {seller.offlineStores.slice(0, 10).map((st: Record<string, unknown>, i: number) => {
+                        const pick = (k: string) => (typeof st[k] === 'string' ? (st[k] as string).trim() : '')
+                        const nm = pick('name'), loc = pick('location'), addr = pick('address'), ph = pick('phone'), hrs = pick('hours')
+                        return (
+                          <div key={`offline-store-${i}`} className="text-sm">
+                            {nm && <span className="font-medium text-gray-800">{nm}</span>}
+                            {loc && <span className="text-gray-500"> · {loc}</span>}
+                            {addr && <div className="text-gray-600">{addr}</div>}
+                            <div className="text-gray-500 text-xs">
+                              {ph && <span>📞 {ph}</span>}
+                              {hrs && <span className="ml-2">🕒 {hrs}</span>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
                 {seller.contactName && (
                   <div className="flex items-center">
                     <UserCheck className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />

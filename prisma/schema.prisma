@@ -107,6 +107,7 @@ model SellerProfile {
   emails               Json?
   phones               Json?
   websites             Json?
+  offlineStores        Json?
   voiceLanguages       Json?
   textLanguages        Json?
   description          String?
@@ -200,6 +201,7 @@ model SellerProfile {
   storeSlug            String?   @unique
   storeSlugLocked      Boolean   @default(false)
   storeSlugChangedAt   DateTime?
+  brochureDownloads    BrochureDownload[]
 
   @@index([companyName])
   @@index([country])
@@ -356,13 +358,16 @@ model StoreBrochure {
 model BrochureDownload {
   id           String       @id @default(cuid())
   userId       String?
+  sellerId     String?
   brochureType BrochureType
   brochureId   String
   downloadedAt DateTime     @default(now())
   ipAddress    String?
-  user         User?        @relation(fields: [userId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  seller       SellerProfile? @relation(fields: [sellerId], references: [id])
 
   @@index([userId])
+  @@index([sellerId])
   @@index([downloadedAt])
 }
 
@@ -1008,6 +1013,7 @@ model Visitor {
   url           String?
   isSelfView    Boolean  @default(false)
   createdAt     DateTime @default(now())
+  viewType      ViewType @default(STORE)
 
   product       Product?       @relation(fields: [productId], references: [id])
   seller        SellerProfile? @relation(fields: [sellerId], references: [id])
@@ -1018,6 +1024,12 @@ model Visitor {
   @@index([countryCode])
   @@index([isSelfView])
   @@index([createdAt])
+}
+
+enum ViewType {
+  PRODUCT
+  BOOTH
+  STORE
 }
 
 model AIPermission {

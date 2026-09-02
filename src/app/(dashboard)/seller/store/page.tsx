@@ -2,12 +2,30 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import nextDynamic from 'next/dynamic'
 import MultilingualInput from '@/components/ui/MultilingualInput'
 import CountrySelect from '@/components/seller/CountrySelect'
 import MultiValueInput from '@/components/seller/MultiValueInput'
+import OfflineStoresInput, {
+  MAX_OFFLINE_STORES,
+  isOfflineStoreFilled,
+  normalizeOfflineStores,
+  type OfflineStore,
+} from '@/components/seller/OfflineStoresInput'
 import LanguageSelect from '@/components/seller/LanguageSelect'
 import { Save, Building2, MapPin, Phone, Mail, MessageCircle, CheckCircle, Loader2, Upload, X, Image, AlertCircle, Award, Trash2, FileText, Languages } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
+
+// Leaflet + OpenStreetMap 地图（仅客户端渲染，避开 SSR）
+// 替代原 Google Maps iframe：OSM 全球可访问（含中国大陆）、免费、无需 API Key
+const StoreMap = nextDynamic(() => import('@/components/seller/StoreMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
+      Loading map…
+    </div>
+  ),
+})
 
 interface UploadedFile {
   url: string
@@ -39,6 +57,8 @@ export default function StoreProfilePage() {
   const [phones, setPhones] = useState<string[]>([])
   const [emails, setEmails] = useState<string[]>([])
   const [websites, setWebsites] = useState<string[]>([])
+  // 线下门店 / 自提点（最多 10 条，结构化多值）
+  const [offlineStores, setOfflineStores] = useState<OfflineStore[]>([])
   // 沟通语言设置
   const [voiceLanguages, setVoiceLanguages] = useState<string[]>([])
   const [textLanguages, setTextLanguages] = useState<string[]>([])
@@ -444,6 +464,49 @@ export default function StoreProfilePage() {
                          language === 'th' ? 'https://www.company.com' :
                          language === 'vi' ? 'https://www.company.com' :
                          'https://www.company.com',
+    offlineStoresTitle: language === 'zh' ? '线下门店 / 自提点' :
+             language === 'ja' ? '実店舗 / 受取場所' :
+             language === 'ar' ? 'المتاجر الفعلية / نقاط الاستلام' :
+             language === 'es' ? 'Tiendas físicas / Puntos de recogida' :
+             language === 'fr' ? 'Magasins physiques / Points de retrait' :
+             language === 'de' ? 'Filialen / Abholstellen' :
+             language === 'ko' ? '오프라인 매장 / 픽업 장소' :
+             language === 'ru' ? 'Физические магазины / Пункты самовывоза' :
+             language === 'pt' ? 'Lojas físicas / Pontos de retirada' :
+             language === 'hi' ? 'ऑफ़लाइन स्टोर / पिकअप स्थान' :
+             language === 'th' ? 'หน้าร้าน / จุดรับสินค้า' :
+             language === 'vi' ? 'Cửa hàng trực tiếp / Điểm nhận hàng' :
+             'Offline Stores / Pickup Points',
+    offlineStoresDesc: language === 'zh' ? '添加您的全球实体门店地址，方便买家到店看货或自提（最多 10 家）。' :
+             language === 'ja' ? '世界の実店舗の住所を追加すると、購入者が来店・受取できます（最大10件）。' :
+             language === 'ar' ? 'أضف عناوين متاجرك حول العالم ليتمكن المشترون من الزيارة أو الاستلام (حتى 10).' :
+             language === 'es' ? 'Añada las direcciones de sus tiendas físicas para visitas o recogida (máx. 10).' :
+             language === 'fr' ? "Ajoutez les adresses de vos magasins pour visites ou retraits (max. 10)." :
+             language === 'de' ? 'Fügen Sie Ihre Filialadressen für Besuche oder Abholung hinzu (max. 10).' :
+             language === 'ko' ? '전 세계 매장 주소를 추가하세요 (최대 10개).' :
+             language === 'ru' ? 'Добавьте адреса магазинов для визитов или самовывоза (макс. 10).' :
+             language === 'pt' ? 'Adicione os endereços das suas lojas para visitas ou retirada (máx. 10).' :
+             language === 'hi' ? 'अपने स्टोर पते जोड़ें — विज़िट या पिकअप के लिए (अधिकतम 10)।' :
+             language === 'th' ? 'เพิ่มที่อยู่หน้าร้านเพื่อเข้าชมหรือรับสินค้า (สูงสุด 10 แห่ง)' :
+             language === 'vi' ? 'Thêm địa chỉ cửa hàng để khách ghé xem hoặc nhận hàng (tối đa 10).' :
+             "Add your physical store addresses worldwide for visits or self-pickup (max 10).",
+    offlineLabels: {
+      storeName: language === 'zh' ? '门店名称' : language === 'de' ? 'Filialname' : 'Store Name',
+      storeNamePlaceholder: language === 'zh' ? '例如：义乌国际商贸城一区门市部' : 'e.g. Flagship Store Yiwu',
+      location: language === 'zh' ? '国家 / 城市' : language === 'de' ? 'Land / Stadt' : 'Country / City',
+      locationPlaceholder: language === 'zh' ? '例如：中国 · 义乌' : 'e.g. Yiwu, China',
+      address: language === 'zh' ? '详细地址' : language === 'de' ? 'Adresse' : 'Detailed Address',
+      addressPlaceholder: language === 'zh' ? '街道、门牌号、楼层、档口号' : 'Street, number, floor, booth no.',
+      phone: language === 'zh' ? '门店电话' : language === 'de' ? 'Telefon' : 'Store Phone',
+      phonePlaceholder: language === 'zh' ? '+86 579 xxxx xxxx' : '+86 xxx xxxx xxxx',
+      hours: language === 'zh' ? '营业时间' : language === 'de' ? 'Öffnungszeiten' : 'Business Hours',
+      hoursPlaceholder: language === 'zh' ? '周一至周六 08:30-18:00' : 'Mon-Sat 08:30-18:00',
+      addStore: language === 'zh' ? '添加门店' : language === 'de' ? 'Filiale hinzufügen' : 'Add Store',
+      storeIndex: language === 'zh' ? '门店 {n}' : language === 'de' ? 'Filiale {n}' : 'Store {n}',
+      remove: language === 'zh' ? '删除此门店' : language === 'de' ? 'Entfernen' : 'Remove this store',
+      maxReached: language === 'zh' ? '已达上限（10 家）。如需更多请联系平台客服。' : 'Limit reached (10 stores).',
+      empty: language === 'zh' ? '尚未添加线下门店。点击"添加门店"创建第一条。' : 'No offline stores yet. Click "Add Store" to create one.',
+    },
     socialMedia: language === 'zh' ? '社交媒体账号' :
                  language === 'ja' ? 'ソーシャルメディアアカウント' :
                  language === 'ar' ? 'حسابات التواصل الاجتماعي' :
@@ -1234,6 +1297,7 @@ export default function StoreProfilePage() {
       setPhones(mergeValues(profile.phone, profile.phones))
       setEmails(mergeValues(profile.email, profile.emails))
       setWebsites(mergeValues(profile.website, profile.websites))
+      setOfflineStores(normalizeOfflineStores(profile.offlineStores))
       setVoiceLanguages(Array.isArray(profile.voiceLanguages) ? profile.voiceLanguages.filter((v: unknown) => typeof v === 'string') : [])
       setTextLanguages(Array.isArray(profile.textLanguages) ? profile.textLanguages.filter((v: unknown) => typeof v === 'string') : [])
       setCertifications(profile.certifications?.join(', ') || '')
@@ -1626,6 +1690,7 @@ export default function StoreProfilePage() {
         phones: phones.filter((v) => v.trim()),
         emails: emails.filter((v) => v.trim()),
         websites: websites.filter((v) => v.trim()),
+        offlineStores: offlineStores.filter(isOfflineStoreFilled).slice(0, MAX_OFFLINE_STORES),
         voiceLanguages: voiceLanguages,
         textLanguages: textLanguages,
         certifications: certsArray.length > 0 ? certsArray : null,
@@ -1735,6 +1800,7 @@ export default function StoreProfilePage() {
         phones: phones.filter((v) => v.trim()),
         emails: emails.filter((v) => v.trim()),
         websites: websites.filter((v) => v.trim()),
+        offlineStores: offlineStores.filter(isOfflineStoreFilled).slice(0, MAX_OFFLINE_STORES),
         voiceLanguages: voiceLanguages,
         textLanguages: textLanguages,
         certifications: certsArray.length > 0 ? certsArray : null,
@@ -2244,6 +2310,19 @@ export default function StoreProfilePage() {
                 }}
                 type="url"
                 singlePlaceholder={t.websitePlaceholder}
+              />
+            </div>
+
+            {/* Offline Stores / Pickup Points — max 10 */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🏬 {t.offlineStoresTitle}
+              </label>
+              <p className="text-sm text-gray-500 mb-2">{t.offlineStoresDesc}</p>
+              <OfflineStoresInput
+                values={offlineStores}
+                onChange={setOfflineStores}
+                labels={t.offlineLabels}
               />
             </div>
           </div>
@@ -3134,13 +3213,7 @@ export default function StoreProfilePage() {
 
           {mapLatitude && mapLongitude && (
             <div className="relative w-full h-64 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-              <iframe
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                src={`https://www.google.com/maps?q=${mapLatitude},${mapLongitude}&z=15&output=embed`}
-              />
+              <StoreMap latitude={mapLatitude} longitude={mapLongitude} />
             </div>
           )}
         </div>

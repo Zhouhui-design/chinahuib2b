@@ -24,6 +24,19 @@ const profileUpdateSchema = z.object({
   emails: z.array(z.string()).nullable().optional(),
   phones: z.array(z.string()).nullable().optional(),
   websites: z.array(z.string()).nullable().optional(),
+  offlineStores: z
+    .array(
+      z.object({
+        name: z.string().optional().default(''),
+        location: z.string().optional().default(''),
+        address: z.string().optional().default(''),
+        phone: z.string().optional().default(''),
+        hours: z.string().optional().default(''),
+      })
+    )
+    .max(10)
+    .nullable()
+    .optional(),
   voiceLanguages: z.array(z.string()).nullable().optional(),
   textLanguages: z.array(z.string()).nullable().optional(),
   whatsapp: z.string().nullable().optional(),
@@ -368,6 +381,7 @@ export async function PUT(request: NextRequest) {
       ...(isValidArray(data.emails) && { emails: data.emails }),
       ...(isValidArray(data.phones) && { phones: data.phones }),
       ...(isValidArray(data.websites) && { websites: data.websites }),
+      ...(Array.isArray(data.offlineStores) && { offlineStores: data.offlineStores.slice(0, 10) }),
       ...(isValidArray(data.voiceLanguages) && { voiceLanguages: data.voiceLanguages }),
       ...(isValidArray(data.textLanguages) && { textLanguages: data.textLanguages }),
       ...(isNotNullUndefined(data.whatsapp) && { whatsapp: data.whatsapp }),
