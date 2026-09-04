@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { randomBytes } from 'crypto'
+
+// Shared system guest account: carries senderId FK for anonymous messages.
+// Real display name lives in PublicMessage.guestName.
+const GUEST_USERNAME = '__guest__'
+
+async function getGuestUserId(): Promise<string> {
+  const existing = await db.user.findUnique({
+    where: { username: GUEST_USERNAME },
+    select: { id: true },
+  })
+  if (existing) return existing.id
+
+  const created = await db.user.create({
+    data: {
+      email: 'guest@system.local',
+      username: GUEST_USERNAME,
+      // Random unusable password: this account is never meant to log in.
+      password: `!guest-no-login-${randomBytes(24).toString('hex')}`,
+      displayName: 'Guest',
+      role: 'BUYER',
+      isActive: false,
+    },
+    select: { id: true },
+  })
+  return created.id
+}
+
+function sanitizeGuestName(raw: unknown): string {
+  if (typeof raw !== 'string') return ''
+  // Only allow the shape we generate ourselves, e.g. "Guest#4821".
+  const m = raw.trim().match(/^Guest#(\d{4})$/)
+  return m ? `Guest#${m[1]}` : ''
+}
 
 // Get public messages - GET /api/chat/public
 export async function GET(request: NextRequest) {
@@ -74,14 +108,34 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
-    const { content, linkedSellerId, messageType, fileUrl, fileName, fileSize, mimeType } = await request.json()
+    const body = await request.json()
+    const { content, linkedSellerId, messageType, fileUrl, fileName, fileSize, mimeType } = body
+
+    // Guests may post plain text only. Uploads/seller-linking stay logged-in only.
+    const isGuest = !session?.user
+    let guestName = ''
+    if (isGuest) {
+      if (messageType && messageType !== 'TEXT') {
+        return NextResponse.json(
+          { success: false, error: 'Please sign in to share files or images' },
+          { status: 401 }
+        )
+      }
+      guestName = sanitizeGuestName(body.guestName)
+      if (!guestName) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid guest identity' },
+          { status: 400 }
+        )
+      }
+      if (typeof content === 'string' && content.trim().length > 500) {
+        return NextResponse.json(
+          { success: false, error: 'Guest messages are limited to 500 characters' },
+          { status: 400 }
+        )
+      }
+    }
 
     if (!messageType || messageType === 'TEXT') {
       if (!content || content.trim().length === 0) {
@@ -99,17 +153,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const senderId = isGuest ? await getGuestUserId() : session!.user.id
+
     // Create message
     const message = await db.publicMessage.create({
       data: {
         content: content?.trim() || '',
         messageType: messageType || 'TEXT',
-        senderId: session.user.id,
-        linkedSellerId: linkedSellerId || null,
-        fileUrl: fileUrl || null,
-        fileName: fileName || null,
-        fileSize: fileSize || null,
-        mimeType: mimeType || null,
+        senderId,
+        guestName: isGuest ? guestName : null,
+        linkedSellerId: isGuest ? null : (linkedSellerId || null),
+        fileUrl: isGuest ? null : (fileUrl || null),
+        fileName: isGuest ? null : (fileName || null),
+        fileSize: isGuest ? null : (fileSize || null),
+        mimeType: isGuest ? null : (mimeType || null),
       },
       include: {
         sender: {

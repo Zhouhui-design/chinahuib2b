@@ -205,6 +205,11 @@ export type Dictionary = {
     products: string;
     noExhibitors: string;
     noExhibitorsDesc: string;
+    searchPlaceholder?: string;
+    searchButton?: string;
+    foundCount?: string;
+    noSearchResults?: string;
+    noSearchResultsDesc?: string;
   };
   chatHall: {
     title: string;
@@ -223,6 +228,8 @@ export type Dictionary = {
     noMessages: string;
     firstHello: string;
     signInToChat: string;
+    guestBadge: string;
+    guestNotice: string;
     typeMessage: string;
     broadcast: string;
     broadcastToWorld: string;
@@ -277,6 +284,9 @@ export type Dictionary = {
   pagination: {
     previous: string;
     next: string;
+    page?: string;
+    of?: string;
+    total?: string;
   };
   aiRegister: {
     loggedInAs: string;
@@ -686,6 +696,11 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       products: "Products",
       noExhibitors: "No Exhibitors Found",
       noExhibitorsDesc: "There are no active exhibitors at the moment.",
+      searchPlaceholder: "Search companies, products, exhibitions, keywords…",
+      searchButton: "Search",
+      foundCount: "{total} companies found",
+      noSearchResults: "No matching results",
+      noSearchResultsDesc: "Please try different keywords.",
     },
     chatHall: {
       title: "Global Chat Hall",
@@ -703,6 +718,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "No messages yet",
       firstHello: "Be the first to say hello!",
       signInToChat: "Sign in to chat",
+      guestBadge: "Guest",
+      guestNotice: "Friendly reminder: messages sent without signing in are not saved for your next visit, and adding friends is not supported.",
       typeMessage: "Type a message...",
       broadcast: "Broadcast",
       broadcastToWorld: "Broadcast to the WORLD!",
@@ -758,6 +775,9 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     pagination: {
       previous: "Previous",
       next: "Next",
+      page: "Page",
+      of: "of",
+      total: "Total",
     },
     aiRegister: {
       loggedInAs: "Logged in as",
@@ -1246,6 +1266,11 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       products: "产品",
       noExhibitors: "未找到参展商",
       noExhibitorsDesc: "目前没有活跃的参展商。",
+      searchPlaceholder: "搜索公司、产品、展会、关键词…",
+      searchButton: "搜索",
+      foundCount: "共找到 {total} 家公司",
+      noSearchResults: "未找到相关结果",
+      noSearchResultsDesc: "请尝试其他关键词。",
     },
     chatHall: {
       title: "全球聊天室",
@@ -1263,6 +1288,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "暂无消息",
       firstHello: "成为第一个打招呼的人！",
       signInToChat: "登录聊天",
+      guestBadge: "游客",
+      guestNotice: "温馨提示：没有登录的用户发言，聊天下次登录无法保存，不支持加好友。",
       typeMessage: "输入消息...",
       broadcast: "广播",
       broadcastToWorld: "向世界广播！",
@@ -1318,6 +1345,9 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
     pagination: {
       previous: "上一页",
       next: "下一页",
+      page: "第",
+      of: "页",
+      total: "共",
     },
     aiRegister: {
       loggedInAs: "已登录为",
@@ -1774,6 +1804,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Todavía no hay mensajes",
       firstHello: "¡Sea el primero en saludar!",
       signInToChat: "Inicia sesión para chatear",
+      guestBadge: "Invitado",
+      guestNotice: "Aviso: los mensajes enviados sin iniciar sesión no se guardan para su próxima visita y no se admite agregar amigos.",
       typeMessage: "Escribe un mensaje...",
       broadcast: "Transmitir",
       broadcastToWorld: "¡Transmitir al MUNDO!",
@@ -2260,6 +2292,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Pas de messages pour l'instant",
       firstHello: "Soyez le premier à saluer !",
       signInToChat: "Connectez-vous pour chatter",
+      guestBadge: "Invité",
+      guestNotice: "Rappel : les messages envoyés sans connexion ne sont pas conservés lors de votre prochaine visite et l'ajout d'amis n'est pas pris en charge.",
       typeMessage: "Tapez un message...",
       broadcast: "Diffuser",
       broadcastToWorld: "Diffuser dans le MONDE !",
@@ -2695,6 +2729,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Noch keine Nachrichten",
       firstHello: "Seien Sie der Erste, der hallo sagt!",
       signInToChat: "Anmelden zum Chatten",
+      guestBadge: "Gast",
+      guestNotice: "Hinweis: Ohne Anmeldung gesendete Nachrichten werden für Ihren nächsten Besuch nicht gespeichert, und das Hinzufügen von Freunden ist nicht möglich.",
       typeMessage: "Nachricht eingeben...",
       broadcast: "Senden",
       broadcastToWorld: "An die WELT senden!",
@@ -3125,6 +3161,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "まだメッセージがありません",
       firstHello: "最初に挨拶しましょう！",
       signInToChat: "チャットにログイン",
+      guestBadge: "ゲスト",
+      guestNotice: "ご注意：ログインせずに送信したメッセージは次回のログイン時に保存されません。友だち追加もできません。",
       typeMessage: "メッセージを入力...",
       broadcast: "ブロードキャスト",
       broadcastToWorld: "世界に向けてブロードキャスト！",
@@ -3543,6 +3581,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "아직 메시지가 없습니다",
       firstHello: "첫 인사를 건네보세요!",
       signInToChat: "채팅에 로그인",
+      guestBadge: "게스트",
+      guestNotice: "안내: 로그인하지 않고 보낸 메시지는 다음 접속 시 저장되지 않으며 친구 추가도 지원되지 않습니다.",
       typeMessage: "메시지를 입력하세요...",
       broadcast: "방송",
       broadcastToWorld: "세계에 방송!",
@@ -3967,6 +4007,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "لا توجد رسائل بعد",
       firstHello: "كن أول من يقول مرحبا!",
       signInToChat: "سجل الدخول للدردشة",
+      guestBadge: "زائر",
+      guestNotice: "تنبيه: الرسائل المُرسَلة دون تسجيل الدخول لا يتم حفظها في زيارتك القادمة، وإضافة الأصدقاء غير مدعومة.",
       typeMessage: "اكتب رسالة...",
       broadcast: "بث",
       broadcastToWorld: "بث إلى العالم!",
@@ -4423,6 +4465,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Сообщений еще нет",
       firstHello: "Будьте первым, кто скажет привет!",
       signInToChat: "Войдите, чтобы чатать",
+      guestBadge: "Гость",
+      guestNotice: "Внимание: сообщения, отправленные без входа в систему, не сохраняются до следующего посещения, а добавление друзей не поддерживается.",
       typeMessage: "Введите сообщение...",
       broadcast: "Трансляция",
       broadcastToWorld: "Трансляция в МИР!",
@@ -4845,6 +4889,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Ainda não há mensagens",
       firstHello: "Seja o primeiro a dizer olá!",
       signInToChat: "Entre para conversar",
+      guestBadge: "Visitante",
+      guestNotice: "Aviso: as mensagens enviadas sem login não são salvas na próxima visita e não é possível adicionar amigos.",
       typeMessage: "Digite uma mensagem...",
       broadcast: "Transmitir",
       broadcastToWorld: "Transmitir para o MUNDO!",
@@ -5269,6 +5315,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "अभी तक कोई संदेश नहीं",
       firstHello: "पहला हैलो कहने वाला बनें!",
       signInToChat: "चैट करने के लिए लॉगिन करें",
+      guestBadge: "अतिथि",
+      guestNotice: "सूचना: लॉगिन किए बिना भेजे गए संदेश आपकी अगली विज़िट पर सहेजे नहीं जाते, और मित्र जोड़ना समर्थित नहीं है।",
       typeMessage: "संदेश टाइप करें...",
       broadcast: "प्रसारण",
       broadcastToWorld: "दुनिया को प्रसारण करें!",
@@ -5693,6 +5741,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "ยังไม่มีข้อความ",
       firstHello: "เป็นคนแรกที่ทักทาย!",
       signInToChat: "เข้าสู่ระบบเพื่อแชท",
+      guestBadge: "ผู้เยี่ยมชม",
+      guestNotice: "หมายเหตุ: ข้อความที่ส่งโดยไม่เข้าสู่ระบบจะไม่ถูกบันทึกไว้สำหรับการเข้าใช้ครั้งถัดไป และไม่รองรับการเพิ่มเพื่อน",
       typeMessage: "พิมพ์ข้อความ...",
       broadcast: "กระจาย",
       broadcastToWorld: "กระจายไปทั่วโลก!",
@@ -6117,6 +6167,8 @@ export const dictionaries: Record<LanguageCode, Dictionary> = {
       noMessages: "Chưa có tin nhắn",
       firstHello: "Hãy là người đầu tiên chào hỏi!",
       signInToChat: "Đăng nhập để chat",
+      guestBadge: "Khách",
+      guestNotice: "Lưu ý: tin nhắn gửi khi chưa đăng nhập sẽ không được lưu cho lần truy cập sau và không hỗ trợ thêm bạn bè.",
       typeMessage: "Nhập tin nhắn...",
       broadcast: "Phát Sóng",
       broadcastToWorld: "Phát Sóng Đến Toàn Cầu!",

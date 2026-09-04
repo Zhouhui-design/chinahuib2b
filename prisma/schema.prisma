@@ -661,6 +661,7 @@ model PublicMessage {
   fileSize        Int?
   fileUrl         String?
   isWorldChat     Boolean        @default(false)
+  guestName       String?
   messageType     MessageType    @default(TEXT)
   mimeType        String?
   linkedSeller    SellerProfile? @relation("LinkedPublicMessages", fields: [linkedSellerId], references: [id], onDelete: Cascade)

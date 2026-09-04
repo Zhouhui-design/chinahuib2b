@@ -39,6 +39,7 @@ type PublicMessage = {
   isSystemMessage: boolean
   isAnnouncement: boolean
   isWorldChat: boolean
+  guestName?: string | null
   priority: number
   reactions: any
   createdAt: string
@@ -114,6 +115,7 @@ function ChatHallContent() {
     }
   }
   const [session, setSession] = useState<ChatSession | null>(null)
+  const [guestName, setGuestName] = useState('')
   const [status, setStatus] = useState<string>('loading')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
@@ -171,6 +173,21 @@ function ChatHallContent() {
 
   useEffect(() => {
     setMounted(true)
+
+    // Stable guest identity for this browser, so a guest keeps the same
+    // "Guest#NNNN" label across messages and reloads within the session.
+    try {
+      const KEY = 'x2xhub_guest_name'
+      let g = localStorage.getItem(KEY) || ''
+      if (!/^Guest#\d{4}$/.test(g)) {
+        g = `Guest#${Math.floor(1000 + Math.random() * 9000)}`
+        localStorage.setItem(KEY, g)
+      }
+      setGuestName(g)
+    } catch {
+      setGuestName(`Guest#${Math.floor(1000 + Math.random() * 9000)}`)
+    }
+
     fetch('/api/auth/session')
       .then(res => res.json())
       .then(data => {
@@ -519,7 +536,7 @@ function ChatHallContent() {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!session?.user || !newMessage.trim()) return
+    if (!newMessage.trim()) return
     if (!canSendMessage) return
 
     setSendingMessage(true)
@@ -531,7 +548,8 @@ function ChatHallContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: newMessage.trim(),
-          language: selectedLanguage
+          language: selectedLanguage,
+          ...(session?.user ? {} : { guestName: guestName })
         }),
       })
 
@@ -725,6 +743,25 @@ function ChatHallContent() {
           </div>
         </div>
       </div>
+
+      {/* Guest notice: shown only to visitors who are not signed in */}
+      {!session?.user && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-200 leading-relaxed">
+                {dict.chatHall.guestNotice}
+                {guestName && (
+                  <span className="ml-2 text-amber-300/80">
+                    ({dict.chatHall.guestBadge}: {guestName})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -977,16 +1014,24 @@ function ChatHallContent() {
                         >
                           {hasSender && (
                             <div className="flex-shrink-0">
-                              <Link href={`/users/${message.sender?.id || ''}`}>
+                              {message.guestName ? (
                                 <div className="relative">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                    {message.sender?.displayName?.charAt(0) || message.sender?.username?.charAt(0) || '?'}
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold">
+                                    G
                                   </div>
-                                  {message.sender.isOnline && (
-                                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
-                                  )}
                                 </div>
-                              </Link>
+                              ) : (
+                                <Link href={`/users/${message.sender?.id || ''}`}>
+                                  <div className="relative">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                                      {message.sender?.displayName?.charAt(0) || message.sender?.username?.charAt(0) || '?'}
+                                    </div>
+                                    {message.sender.isOnline && (
+                                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800"></div>
+                                    )}
+                                  </div>
+                                </Link>
+                              )}
                             </div>
                           )}
 
@@ -1000,12 +1045,21 @@ function ChatHallContent() {
                             ) : (
                               <div>
                                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                  <Link
-                                    href={`/users/${message.sender.id}`}
-                                    className="text-blue-400 hover:text-blue-300 font-medium"
-                                  >
-                                    {message.sender.displayName || message.sender.username}
-                                  </Link>
+                                  {message.guestName ? (
+                                    <span className="text-slate-400 font-medium">
+                                      {message.guestName}
+                                      <span className="ml-1.5 text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded-full align-middle">
+                                        {dict.chatHall.guestBadge}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    <Link
+                                      href={`/users/${message.sender.id}`}
+                                      className="text-blue-400 hover:text-blue-300 font-medium"
+                                    >
+                                      {message.sender.displayName || message.sender.username}
+                                    </Link>
+                                  )}
                                   {message.sender.sellerProfile && (
                                     <Link
                                       href={(message.sender.sellerProfile as any).storeSlug ? `/${(message.sender.sellerProfile as any).storeSlug}` : `/stores/${message.sender.sellerProfile.id}`}
@@ -1100,15 +1154,14 @@ function ChatHallContent() {
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder={session?.user ? (uploadingFile ? 'Uploading...' : dict.chatHall.typeMessage) : dict.chatHall.signInToChat}
+                      placeholder={uploadingFile ? 'Uploading...' : (session?.user ? dict.chatHall.typeMessage : `${dict.chatHall.typeMessage} (${guestName})`)}
                       className="flex-1 px-4 py-3 bg-slate-700/80 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={!session?.user || sendingMessage || !canSendMessage || uploadingFile}
+                      disabled={sendingMessage || !canSendMessage || uploadingFile}
                     />
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        disabled={!session?.user}
                         className="p-3 text-slate-400 hover:text-white hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Emoji"
                       >
@@ -1137,7 +1190,7 @@ function ChatHallContent() {
                     </div>
                     <button
                       type="submit"
-                      disabled={!session?.user || sendingMessage || !newMessage.trim() || !canSendMessage || uploadingFile}
+                      disabled={sendingMessage || !newMessage.trim() || !canSendMessage || uploadingFile}
                       className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all hover:shadow-lg"
                     >
                       <Send className="w-5 h-5" />
