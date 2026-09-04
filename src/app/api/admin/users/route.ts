@@ -20,12 +20,24 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || ''
     const role = searchParams.get('role')
     const isActive = searchParams.get('isActive')
+    const includeAI = searchParams.get('includeAI') === 'true'
+    const isAIParam = searchParams.get('isAI')
 
     const skip = (page - 1) * limit
 
     // Build where clause
     const where: any = {}
     
+    // Default: exclude AI accounts (they are sub-accounts of guardians, not independent entities)
+    // Only include AI if explicitly requested via includeAI=true or isAI=true
+    if (isAIParam !== null && isAIParam !== '') {
+      where.isAI = isAIParam === 'true'
+    } else if (!includeAI) {
+      // isAI is a non-nullable Boolean @default(false); `isAI: null` is invalid
+      // for Prisma and used to throw PrismaClientValidationError.
+      where.isAI = false
+    }
+
     if (search) {
       where.OR = [
         { email: { contains: search, mode: 'insensitive' } },
@@ -43,6 +55,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get users with pagination
+    // Include AI sub-accounts (accounts where ownerId = this user's id AND isAI = true)
+    // so admins can see guardian + AI agents merged in one row.
+    // SECURITY: Never select password / resetToken / apiKey etc. Only safe display fields.
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -52,10 +67,29 @@ export async function GET(request: NextRequest) {
           username: true,
           role: true,
           isActive: true,
+          isOnline: true,
           displayName: true,
           company: true,
           createdAt: true,
           lastLoginAt: true,
+          lastSeenAt: true,
+          // Guardian's AI sub-accounts (merged into the same row on the frontend)
+          aiAccounts: {
+            where: { isAI: true },
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              role: true,
+              isActive: true,
+              isOnline: true,
+              displayName: true,
+              lastLoginAt: true,
+              lastSeenAt: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+          },
           _count: {
             select: {
               inquiries: true,
