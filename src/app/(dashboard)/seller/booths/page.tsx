@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Plus, Edit2, Trash2, Eye, EyeOff, ChevronRight } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
+import MultilingualInput from '@/components/ui/MultilingualInput'
 
 interface Booth {
   id: string
@@ -11,6 +12,7 @@ interface Booth {
   boothCode?: string
   name: string
   names?: Record<string, string>
+  descriptions?: Record<string, string>
   exhibitionName: string
   exhibitionDates?: { start: string; end: string }
   location?: string
@@ -306,6 +308,25 @@ export default function BoothsPage() {
            language === 'hi' ? 'विषय' :
            'Theme',
     
+    boothDescription: language === 'zh' ? '展会介绍' :
+           language === 'ja' ? '展示会紹介' :
+           language === 'ko' ? '전시회 소개' :
+           language === 'ar' ? 'نبذة عن المعرض' :
+           language === 'es' ? 'Descripción de la feria' :
+           language === 'fr' ? "Présentation du salon" :
+           language === 'de' ? 'Messebeschreibung' :
+           language === 'it' ? 'Descrizione della fiera' :
+           language === 'pt' ? 'Descrição da feira' :
+           language === 'ru' ? 'Описание выставки' :
+           language === 'hi' ? 'प्रदर्शनी परिचय' :
+           'Exhibition Description',
+    
+    boothDescriptionHint: language === 'zh' ? '介绍展会亮点、参展产品范围、可提供的服务等，支持多语言填写（每种语言最多 2000 字）。' :
+           language === 'de' ? 'Beschreiben Sie Highlights, Produktpalette und Services. Mehrsprachig, max. 2000 Zeichen pro Sprache.' :
+           language === 'es' ? 'Describa los aspectos destacados, la gama de productos y los servicios. Multilingüe, máx. 2000 caracteres por idioma.' :
+           language === 'fr' ? 'Décrivez les points forts, la gamme de produits et les services. Multilingue, max. 2000 caractères par langue.' :
+           'Describe highlights, product range and services. Multilingual, max 2000 characters per language.',
+    
     layout: language === 'zh' ? '布局' :
             language === 'ja' ? 'レイアウト' :
             language === 'ko' ? '레이아웃' :
@@ -567,6 +588,7 @@ export default function BoothsPage() {
     bannerUrl: '',
     keywords: [] as string[],
     documents: [] as Array<{ url: string; name: string; type: string; size: number }>,
+    descriptions: {} as Record<string, string>,
     theme: '',
     colorScheme: '',
     layout: ''
@@ -574,6 +596,9 @@ export default function BoothsPage() {
 
   const [logoPreview, setLogoPreview] = useState<string>('')
   const [bannerPreview, setBannerPreview] = useState<string>('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [uploadError, setUploadError] = useState('')
   const [newKeyword, setNewKeyword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [nameError, setNameError] = useState('')
@@ -632,47 +657,71 @@ export default function BoothsPage() {
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
+    // 立即清空 input value，确保选择同一文件时也能再次触发 onChange
+    event.target.value = ''
     if (!file) return
 
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', 'boothLogo')
 
+    setUploadingLogo(true)
+    setUploadError('')
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       })
+      if (!res.ok) {
+        throw new Error(`Upload failed (${res.status})`)
+      }
       const data = await res.json()
       if (data.url) {
         setFormData(prev => ({ ...prev, logoUrl: data.url }))
         setLogoPreview(data.url)
+      } else {
+        throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
       console.error('Logo upload failed:', error)
+      setUploadError(language === 'zh' ? '上传失败，请检查网络后重试' : 'Upload failed, please check your network and try again')
+    } finally {
+      setUploadingLogo(false)
     }
   }
 
   const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
+    // 立即清空 input value，确保选择同一文件时也能再次触发 onChange
+    event.target.value = ''
     if (!file) return
 
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', 'boothBanner')
 
+    setUploadingBanner(true)
+    setUploadError('')
     try {
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       })
+      if (!res.ok) {
+        throw new Error(`Upload failed (${res.status})`)
+      }
       const data = await res.json()
       if (data.url) {
         setFormData(prev => ({ ...prev, bannerUrl: data.url }))
         setBannerPreview(data.url)
+      } else {
+        throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
       console.error('Banner upload failed:', error)
+      setUploadError(language === 'zh' ? '上传失败，请检查网络后重试' : 'Upload failed, please check your network and try again')
+    } finally {
+      setUploadingBanner(false)
     }
   }
 
@@ -793,6 +842,7 @@ export default function BoothsPage() {
           bannerUrl: '',
           keywords: [],
           documents: [],
+          descriptions: {},
           theme: '',
           colorScheme: '',
           layout: ''
@@ -859,6 +909,7 @@ export default function BoothsPage() {
       bannerUrl: booth.bannerUrl || '',
       keywords: booth.keywords || [],
       documents: (booth.documents as Array<{ url: string; name: string; type: string; size: number }>) || [],
+      descriptions: (booth.descriptions as Record<string, string>) || {},
       theme: booth.theme || '',
       colorScheme: booth.colorScheme || '',
       layout: booth.layout || ''
@@ -1102,6 +1153,19 @@ export default function BoothsPage() {
                 </select>
               </div>
 
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  📝 {t.boothDescription}
+                </label>
+                <p className="text-xs text-gray-500 mb-2">{t.boothDescriptionHint}</p>
+                <MultilingualInput
+                  value={formData.descriptions}
+                  onChange={(val) => setFormData({ ...formData, descriptions: val })}
+                  label=""
+                  rows={5}
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t.layout}
@@ -1118,12 +1182,24 @@ export default function BoothsPage() {
                 </select>
               </div>
 
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-center justify-between">
+                  <span>{uploadError}</span>
+                  <button onClick={() => setUploadError('')} className="ml-3 text-red-400 hover:text-red-600">✕</button>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t.logo}
                 </label>
                 <label htmlFor="booth-logo-upload" className="block border border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  {logoPreview || formData.logoUrl ? (
+                  {uploadingLogo ? (
+                    <div className="text-gray-500">
+                      <div className="text-3xl mb-1 animate-pulse">⏳</div>
+                      <div>{language === 'zh' ? '上传中...' : 'Uploading...'}</div>
+                    </div>
+                  ) : logoPreview || formData.logoUrl ? (
                     <img
                       src={logoPreview || formData.logoUrl}
                       alt="Logo preview"
@@ -1142,6 +1218,7 @@ export default function BoothsPage() {
                     onChange={handleLogoUpload}
                     className="hidden"
                     id="booth-logo-upload"
+                    disabled={uploadingLogo}
                   />
                   {logoPreview || formData.logoUrl ? (
                     <div className="text-blue-600 text-sm mt-2 hover:text-blue-700">
@@ -1156,7 +1233,12 @@ export default function BoothsPage() {
                   {t.banner}
                 </label>
                 <label htmlFor="booth-banner-upload" className="block border border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  {bannerPreview || formData.bannerUrl ? (
+                  {uploadingBanner ? (
+                    <div className="text-gray-500">
+                      <div className="text-3xl mb-1 animate-pulse">⏳</div>
+                      <div>{language === 'zh' ? '上传中...' : 'Uploading...'}</div>
+                    </div>
+                  ) : bannerPreview || formData.bannerUrl ? (
                     <img
                       src={bannerPreview || formData.bannerUrl}
                       alt="Banner preview"
@@ -1175,6 +1257,7 @@ export default function BoothsPage() {
                     onChange={handleBannerUpload}
                     className="hidden"
                     id="booth-banner-upload"
+                    disabled={uploadingBanner}
                   />
                   {bannerPreview || formData.bannerUrl ? (
                     <div className="text-blue-600 text-sm mt-2 hover:text-blue-700">
@@ -1325,6 +1408,7 @@ export default function BoothsPage() {
                       bannerUrl: '',
                       keywords: [],
                       documents: [],
+                      descriptions: {},
                       theme: '',
                       colorScheme: '',
                       layout: ''

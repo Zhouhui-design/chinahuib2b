@@ -59,6 +59,7 @@ const documentSchema = z.object({
 const createBoothSchema = z.object({
   name: z.string().min(2).max(200),
   names: z.record(z.string(), z.string()).optional(),
+  descriptions: z.record(z.string(), z.string().max(2000)).optional(),
   exhibitionName: z.string().min(2).max(200),
   exhibitionDates: z.object({
     start: z.string().optional(),
@@ -77,6 +78,7 @@ const createBoothSchema = z.object({
 const updateBoothSchema = z.object({
   name: z.string().min(2).max(200).optional(),
   names: z.record(z.string(), z.string()).optional(),
+  descriptions: z.record(z.string(), z.string().max(2000)).optional(),
   exhibitionName: z.string().min(2).max(200).optional(),
   exhibitionDates: z.object({
     start: z.string().optional(),
@@ -201,6 +203,7 @@ export async function POST(request: NextRequest) {
         boothCode,
         name: data.name,
         names: data.names,
+        descriptions: data.descriptions,
         exhibitionName: data.exhibitionName,
         exhibitionDates: data.exhibitionDates,
         location: data.location,

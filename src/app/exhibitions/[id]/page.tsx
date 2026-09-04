@@ -12,6 +12,7 @@ import {
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import ChatWidget from '@/components/chat/ChatWidget'
+import VisitorTracker from '@/components/VisitorTracker'
 
 interface Product {
   id: string
@@ -55,6 +56,7 @@ interface Booth {
   id: string
   name: string
   names?: { [key: string]: string }
+  descriptions?: { [key: string]: string } | null
   exhibitionName: string
   exhibitionDates?: { start: string; end: string }
   location?: string
@@ -276,7 +278,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
               </div>
-              <p className="text-xl text-blue-100 mb-3">{booth.seller.companyName}</p>
+              <p className="text-xl text-blue-100 mb-3">{booth.exhibitionName}</p>
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-blue-100">
                 {booth.location && (
@@ -612,6 +614,27 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                     <p className="text-gray-500 italic">No company description available</p>
                   )}
 
+                  {/* Exhibition Description (multilingual) */}
+                  {(() => {
+                    const descs = booth.descriptions as Record<string, string> | null | undefined
+                    if (!descs || typeof descs !== 'object') return null
+                    const nav = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'en'
+                    const short = nav.split('-')[0]
+                    const text =
+                      (descs[nav] && descs[nav].trim()) ||
+                      (descs[short] && descs[short].trim()) ||
+                      (descs.en && descs.en.trim()) ||
+                      Object.values(descs).find((v) => typeof v === 'string' && v.trim()) ||
+                      ''
+                    if (!text) return null
+                    return (
+                      <div className="pt-4 border-t border-gray-100">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">Exhibition Description</h3>
+                        <p className="text-gray-700 whitespace-pre-line leading-relaxed">{text}</p>
+                      </div>
+                    )
+                  })()}
+
                   {/* Booth Theme/Layout Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                     {booth.theme && (
@@ -651,6 +674,9 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
         sellerUserId={booth.seller.userId}
         openSignal={chatOpenSignal}
       />
+
+      {/* Visitor tracking for exhibition/booth page */}
+      <VisitorTracker sellerId={booth.seller.id} viewType="BOOTH" />
     </div>
   )
 }
