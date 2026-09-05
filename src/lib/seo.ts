@@ -79,27 +79,33 @@ export async function getSEOConfig(pagePath: string): Promise<Metadata | null> {
     description = description || defaultMeta.description
     keywords = keywords || defaultMeta.keywords
 
+    // Every locale keeps its prefix, including 'en'. The old code mapped 'en'
+    // to the bare cleanPath, so /en emitted hreflang="en" -> https://x2xhub.com/
+    // while canonical said /en, splitting one page into two competing URLs.
     const alternates: Record<string, string> = {}
     const cleanPath = stripLocalePrefixInternal(pagePath)
+    const rest = cleanPath === '/' ? '' : cleanPath
     languages.forEach(lang => {
-      const langPath = lang.code === 'en' 
-        ? cleanPath
-        : `/${lang.code}${cleanPath === '/' ? '' : cleanPath}`
-      alternates[lang.code] = `${BASE_URL}${langPath}`
+      alternates[lang.code] = `${BASE_URL}/${lang.code}${rest}`
     })
+    alternates['x-default'] = `${BASE_URL}/en${rest}`
+
+    // pagePath already carries the locale prefix (e.g. /de/about); normalise the
+    // bare-root case so canonical never points at an unprefixed URL.
+    const canonicalPath = pagePath === '/' ? '/en' : pagePath
 
     const metadata: Metadata = {
       title,
       description,
       keywords,
       alternates: {
-        canonical: `${BASE_URL}${pagePath}`,
+        canonical: `${BASE_URL}${canonicalPath}`,
         languages: alternates,
       },
       openGraph: {
         title,
         description,
-        url: `${BASE_URL}${pagePath}`,
+        url: `${BASE_URL}${canonicalPath}`,
       },
       twitter: {
         title,

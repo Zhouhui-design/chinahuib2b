@@ -81,28 +81,27 @@ const getLocaleContent = (locale: LanguageCode) => {
 export function generateMetadata({ params }: Props): Metadata {
   const locale = params.locale
   const content = getLocaleContent(locale)
-  const localePath = locale === 'en' ? '/auction-screen' : `/${locale}/auction-screen`
 
+  // Keep every locale prefixed (including 'en'); mirrors stores/page.tsx fix.
+  // /auction-screen without locale 301s to /en/auction-screen via middleware.
   const alternates: Record<string, string> = {}
   languages.forEach(l => {
-    alternates[l.code] = l.code === 'en'
-      ? `${BASE_URL}/auction-screen`
-      : `${BASE_URL}/${l.code}/auction-screen`
+    alternates[l.code] = `${BASE_URL}/${l.code}/auction-screen`
   })
-  alternates['x-default'] = `${BASE_URL}/auction-screen`
+  alternates['x-default'] = `${BASE_URL}/en/auction-screen`
 
   return {
     title: content.title,
     description: content.desc,
     keywords: content.keywords,
     alternates: {
-      canonical: `${BASE_URL}${localePath}`,
+      canonical: `${BASE_URL}/${locale}/auction-screen`,
       languages: alternates,
     },
     openGraph: {
       title: content.title,
       description: content.desc,
-      url: `${BASE_URL}${localePath}`,
+      url: `${BASE_URL}/${locale}/auction-screen`,
       type: 'website',
       images: [
         {

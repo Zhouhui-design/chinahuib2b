@@ -162,8 +162,14 @@ export function middleware(request: any) {
     return addSecurityHeaders(response)
   }
 
-  const response = NextResponse.next()
-  
+  // Expose the resolved pathname to Server Components so the root layout can
+  // render the correct <html lang> and per-page hreflang alternates.
+  // Without this, layout.tsx has no way to know which locale is being served.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+
   // Set CSRF token cookie if not present
   if (!request.cookies.get('csrf-token')) {
     const csrfToken = generateCSRFToken()

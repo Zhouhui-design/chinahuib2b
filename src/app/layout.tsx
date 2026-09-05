@@ -1,19 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Script from "next/script";
 import { languages } from "@/lib/languages";
+import { buildAlternates, detectLocale, localeDir } from "@/lib/hreflang";
 import { generateWebsiteSchema, generateOrganizationSchemaFull, generateWebApplicationSchema } from "@/lib/schema-org";
 import CookieConsent from "@/components/CookieConsent";
 
-const inter = Inter({
-  subsets: ["latin"],
-});
-
 const BASE_URL = "https://x2xhub.com";
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const pathname = h.get("x-pathname") || "/";
+  const alternates = buildAlternates(pathname);
+
+  return {
   title: {
     default: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition & Auction Platform',
     template: '%s | SeaHeart Global | 心海环球',
@@ -43,13 +45,8 @@ export const metadata: Metadata = {
     title: "SeaHeart Global",
   },
   alternates: {
-    canonical: `${BASE_URL}/en`,
-    languages: Object.fromEntries(
-      languages.map((lang) => [
-        lang.code,
-        `${BASE_URL}/${lang.code}`,
-      ])
-    ),
+    canonical: alternates.canonical,
+    languages: alternates.languages,
   },
   openGraph: {
     title: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition & Auction Platform',
@@ -89,7 +86,8 @@ export const metadata: Metadata = {
     "geo.region": "Global",
     "geo.placename": "International",
   },
-};
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#2563eb",
@@ -97,7 +95,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -106,8 +104,16 @@ export default function RootLayout({
   const organizationSchema = JSON.stringify(generateOrganizationSchemaFull());
   const webApplicationSchema = JSON.stringify(generateWebApplicationSchema());
 
+  // Serve the correct language attribute per request instead of a hard-coded "en".
+  const h = await headers();
+  const pathname = h.get("x-pathname") || "/";
+  const locale = detectLocale(pathname);
+  // Next.js drops non-standard keys from alternates.languages, so x-default is
+  // rendered here by hand. It must track the CURRENT page, not the homepage.
+  const xDefaultHref = buildAlternates(pathname).languages['x-default'] ?? `${BASE_URL}/en`;
+
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang={locale} dir={localeDir(locale)} className="h-full antialiased">
       <head>
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
@@ -133,16 +139,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="SeaHeart Global" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         
-        {languages.map((lang) => (
-          <link
-            key={lang.code}
-            rel="alternate"
-            hrefLang={lang.code}
-            href={`${BASE_URL}/${lang.code}`}
-          />
-        ))}
-        
-        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en`} />
+        {/* Per-language hreflang alternates come from generateMetadata() above.
+            Only x-default is emitted here, because Next.js strips it from
+            metadata.alternates.languages. */}
+        <link rel="alternate" hrefLang="x-default" href={xDefaultHref} />
         
         {/* Structured Data for SEO and AI */}
         <script

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
-import { Calendar, MapPin, Building2, ArrowRight, Package } from 'lucide-react'
+import { Calendar, MapPin, Building2, ArrowRight, Package, Search } from 'lucide-react'
+import BoothFilterBar from '@/components/exhibition/BoothFilterBar'
+import Pagination from '@/components/exhibition/Pagination'
 
 export const revalidate = 3600 // 1 hour ISR
 
@@ -9,7 +11,9 @@ export const metadata = {
   description: 'Browse all exhibitions and virtual booths on x2xhub. Connect with global manufacturers, suppliers, and buyers through our digital trade show platform.',
   keywords: ['exhibitions', 'trade shows', 'virtual booths', 'B2B marketplace', 'global trade', 'suppliers', 'manufacturers'],
   alternates: {
-    canonical: 'https://x2xhub.com/exhibitions',
+    // /exhibitions 301-redirects to /en/exhibitions (middleware locale redirect),
+    // so the canonical must match the redirect target, not the pre-redirect URL.
+    canonical: 'https://x2xhub.com/en/exhibitions',
   },
   openGraph: {
     title: 'Exhibitions | x2xhub Global Trade Platform',
@@ -19,48 +23,117 @@ export const metadata = {
   },
 }
 
-async function getBooths() {
-  return prisma.booth.findMany({
-    where: {
-      isActive: true,
-      isPublished: true,
-    },
+const PAGE_SIZE = 12
+
+async function getBooths(searchParams: Record<string, string | string[] | undefined>) {
+  const exhibition = (searchParams.exhibition as string)?.trim()
+  const company = (searchParams.company as string)?.trim()
+  const product = (searchParams.product as string)?.trim()
+  const keyword = (searchParams.keyword as string)?.trim()
+  const page = Math.max(1, parseInt((searchParams.page as string) || '1', 10) || 1)
+
+  const where: any = {
+    isActive: true,
+    isPublished: true,
+  }
+
+  if (exhibition) {
+    where.OR = [
+      ...(where.OR || []),
+      { exhibitionName: { contains: exhibition, mode: 'insensitive' } },
+      { name: { contains: exhibition, mode: 'insensitive' } },
+      { location: { contains: exhibition, mode: 'insensitive' } },
+    ]
+  }
+
+  if (company) {
+    where.seller = {
+      ...(where.seller || {}),
+      companyName: { contains: company, mode: 'insensitive' },
+    }
+  }
+
+  if (product) {
+    where.products = {
+      ...(where.products || {}),
+      some: {
+        isActive: true,
+        OR: [
+          { title: { contains: product, mode: 'insensitive' } },
+          { titleEn: { contains: product, mode: 'insensitive' } },
+        ],
+      },
+    }
+  }
+
+  if (keyword) {
+    const kw = keyword as string;
+    const kwBoothRows = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT b.id FROM "Booth" b
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(COALESCE(b."keywords", '[]'::jsonb)) AS k
+        WHERE k ILIKE ${'%' + kw + '%'}
+      ) OR EXISTS (
+        SELECT 1 FROM "Product" p
+        WHERE p."boothId" = b.id AND p."isActive" = true AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(COALESCE(p."keywords", '[]'::jsonb)) AS pk
+          WHERE pk ILIKE ${'%' + kw + '%'}
+        )
+      )
+    `;
+    const kwBoothIds = kwBoothRows.map((r) => r.id);
+
+    where.OR = [
+      ...(where.OR || []),
+      ...(kwBoothIds.length > 0 ? [{ id: { in: kwBoothIds } }] : []),
+      { exhibitionName: { contains: kw, mode: 'insensitive' } },
+      { name: { contains: kw, mode: 'insensitive' } },
+      {
+        products: {
+          some: {
+            isActive: true,
+            OR: [
+              { title: { contains: kw, mode: 'insensitive' } },
+              { titleEn: { contains: kw, mode: 'insensitive' } },
+            ],
+          },
+        },
+      },
+    ]
+  }
+
+  const total = await prisma.booth.count({ where })
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+
+  const booths = await prisma.booth.findMany({
+    where,
     select: {
       id: true,
       name: true,
       exhibitionName: true,
       location: true,
       createdAt: true,
-      _count: {
-        select: {
-          products: { where: { isActive: true } },
-        },
-      },
-      seller: {
-        select: {
-          companyName: true,
-          companyType: true,
-          country: true,
-          city: true,
-        },
-      },
+      _count: { select: { products: { where: { isActive: true } } } },
+      seller: { select: { companyName: true, companyType: true, country: true, city: true } },
     },
-    orderBy: [
-      { createdAt: 'desc' },
-    ],
-    take: 100,
+    orderBy: [{ createdAt: 'desc' }],
+    skip: (safePage - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   })
+
+  return { booths, total, totalPages, currentPage: safePage, pageSize: PAGE_SIZE }
 }
 
-function formatDate(d: Date | string | null) {
-  if (!d) return null
-  const date = typeof d === 'string' ? new Date(d) : d
-  if (isNaN(date.getTime())) return null
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
+export default async function ExhibitionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const sp = await searchParams
+  const { booths, total, totalPages, currentPage, pageSize } = await getBooths(sp)
 
-export default async function ExhibitionsPage() {
-  const booths = await getBooths()
+  const totalListedProducts = booths.reduce((a, b) => a + (b._count.products || 0), 0)
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -79,13 +152,11 @@ export default async function ExhibitionsPage() {
           <div className="flex flex-wrap items-center gap-6 text-sm">
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/15">
               <Building2 className="w-4 h-4" />
-              <span>{booths.length} active booths</span>
+              <span>{total} Total Shows</span>
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/15">
               <Package className="w-4 h-4" />
-              <span>
-                {booths.reduce((a, b) => a + (b._count.products || 0), 0)} listed products
-              </span>
+              <span>{totalListedProducts} listed products</span>
             </div>
           </div>
         </div>
@@ -110,20 +181,22 @@ export default async function ExhibitionsPage() {
           </Link>
         </div>
 
+        <BoothFilterBar locale="en" />
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 text-sm text-gray-600">
+          <span>
+            Found <span className="font-semibold text-gray-900">{total}</span> shows
+          </span>
+          <span className="text-gray-500">
+            {pageSize} per page · Page {currentPage}/{totalPages}
+          </span>
+        </div>
+
         {booths.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-            <Building2 className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No exhibitions yet</h3>
-            <p className="text-gray-500">
-              Check back soon — new trade shows and company booths are added regularly.
-            </p>
-            <Link
-              href="/marketplace"
-              className="mt-6 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
-            >
-              Explore Marketplace
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No matching exhibitions found</h3>
+            <p className="text-gray-500">Try different keywords or reset the filters.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -175,6 +248,13 @@ export default async function ExhibitionsPage() {
             })}
           </div>
         )}
+
+        <Pagination
+          locale="en"
+          basePath="/exhibitions"
+          currentPage={currentPage}
+          totalPages={totalPages}
+        />
       </section>
     </main>
   )

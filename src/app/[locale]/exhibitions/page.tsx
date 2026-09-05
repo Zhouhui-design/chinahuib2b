@@ -1,11 +1,16 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
-import { Calendar, MapPin, Building2, ArrowRight, Package } from 'lucide-react'
+import { Calendar, MapPin, Building2, ArrowRight, Package, Search } from 'lucide-react'
 import { notFound } from 'next/navigation'
+import BoothFilterBar from '@/components/exhibition/BoothFilterBar'
+import Pagination from '@/components/exhibition/Pagination'
+import { buildAlternates } from '@/lib/hreflang'
 
-type Props = { params: Promise<{ locale: string }> }
+type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }
 
 const SUPPORTED_LOCALES = new Set(['en', 'zh', 'es', 'fr', 'de', 'jp', 'kr', 'ru', 'pt', 'it', 'ar', 'hi', 'nl', 'tr', 'pl', 'sv', 'th', 'vi', 'id', 'ms', 'uk'])
+
+const PAGE_SIZE = 12
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params
@@ -32,32 +37,135 @@ export async function generateMetadata({ params }: Props) {
   const title = titleMap[locale] || titleMap.en
   const description = descMap[locale] || descMap.en
 
+  // Supplying alternates.canonical alone would override the root layout's
+  // hreflang set and leave this page with zero alternates.
+  const alt = buildAlternates(`/${locale}/exhibitions`)
+
   return {
     title,
     description,
-    alternates: { canonical: `https://x2xhub.com/${locale}/exhibitions` },
-    openGraph: { title, description, url: `https://x2xhub.com/${locale}/exhibitions`, type: 'website' as const },
+    alternates: { canonical: alt.canonical, languages: alt.languages },
+    openGraph: { title, description, url: alt.canonical, type: 'website' as const },
   }
 }
 
-async function getBooths() {
-  return prisma.booth.findMany({
-    where: { isActive: true, isPublished: true },
+type BoothWhere = {
+  isActive: boolean
+  isPublished: boolean
+  OR?: any[]
+  seller?: any
+  products?: any
+}
+
+async function getBooths(searchParams: Record<string, string | string[] | undefined>) {
+  const exhibition = (searchParams.exhibition as string)?.trim()
+  const company = (searchParams.company as string)?.trim()
+  const product = (searchParams.product as string)?.trim()
+  const keyword = (searchParams.keyword as string)?.trim()
+  const page = Math.max(1, parseInt((searchParams.page as string) || '1', 10) || 1)
+
+  const where: BoothWhere = {
+    isActive: true,
+    isPublished: true,
+  }
+
+  // 1) 展会信息：exhibitionName / name / location 模糊
+  if (exhibition) {
+    where.OR = [
+      ...(where.OR || []),
+      { exhibitionName: { contains: exhibition, mode: 'insensitive' } },
+      { name: { contains: exhibition, mode: 'insensitive' } },
+      { location: { contains: exhibition, mode: 'insensitive' } },
+    ]
+  }
+
+  // 2) 公司名称：seller.companyName 模糊（JOIN SellerProfile）
+  if (company) {
+    where.seller = {
+      ...(where.seller || {}),
+      companyName: { contains: company, mode: 'insensitive' },
+    }
+  }
+
+  // 3) 产品：products（活跃）title / titleEn 模糊
+  if (product) {
+    where.products = {
+      ...(where.products || {}),
+      some: {
+        isActive: true,
+        OR: [
+          { title: { contains: product, mode: 'insensitive' } },
+          { titleEn: { contains: product, mode: 'insensitive' } },
+        ],
+      },
+    }
+  }
+
+  // 4) 关键词：booth.keywords / products.keywords 数组子串模糊 + 展会/展台名兜底 + 产品标题兜底
+  if (keyword) {
+    const kw = keyword as string;
+    // keywords JSONB 数组子串匹配（array_contains 只能精确匹配，需原生 SQL 子串匹配）
+    const kwBoothRows = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT b.id FROM "Booth" b
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(COALESCE(b."keywords", '[]'::jsonb)) AS k
+        WHERE k ILIKE ${'%' + kw + '%'}
+      ) OR EXISTS (
+        SELECT 1 FROM "Product" p
+        WHERE p."boothId" = b.id AND p."isActive" = true AND EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(COALESCE(p."keywords", '[]'::jsonb)) AS pk
+          WHERE pk ILIKE ${'%' + kw + '%'}
+        )
+      )
+    `;
+    const kwBoothIds = kwBoothRows.map((r) => r.id);
+
+    where.OR = [
+      ...(where.OR || []),
+      ...(kwBoothIds.length > 0 ? [{ id: { in: kwBoothIds } }] : []),
+      { exhibitionName: { contains: kw, mode: 'insensitive' } },
+      { name: { contains: kw, mode: 'insensitive' } },
+      {
+        products: {
+          some: {
+            isActive: true,
+            OR: [
+              { title: { contains: kw, mode: 'insensitive' } },
+              { titleEn: { contains: kw, mode: 'insensitive' } },
+            ],
+          },
+        },
+      },
+    ]
+  }
+
+  // 总数（用于统计 + 分页）
+  const total = await prisma.booth.count({ where })
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+
+  const booths = await prisma.booth.findMany({
+    where,
     select: {
       id: true, name: true, exhibitionName: true, location: true, createdAt: true,
       _count: { select: { products: { where: { isActive: true } } } },
       seller: { select: { companyName: true, companyType: true, country: true, city: true } },
     },
     orderBy: [{ createdAt: 'desc' }],
-    take: 100,
+    skip: (safePage - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
   })
+
+  return { booths, total, totalPages, currentPage: safePage, pageSize: PAGE_SIZE }
 }
 
-export default async function ExhibitionsPage({ params }: Props) {
+export default async function ExhibitionsPage({ params, searchParams }: Props) {
   const { locale } = await params
   if (!SUPPORTED_LOCALES.has(locale)) notFound()
 
-  const booths = await getBooths()
+  const sp = await searchParams
+  const { booths, total, totalPages, currentPage, pageSize } = await getBooths(sp)
   const hrefPrefix = `/${locale}`
 
   // Minimal i18n strings for layout chrome
@@ -65,6 +173,7 @@ export default async function ExhibitionsPage({ params }: Props) {
     heroEyebrow: locale === 'zh' ? '全球贸易展会' : locale === 'es' ? 'Ferias Comerciales Globales' : locale === 'fr' ? 'Salons Commerciaux Mondiaux' : locale === 'de' ? 'Globale Messen' : locale === 'jp' ? '国際見本市' : locale === 'kr' ? '글로벌 무역 전시회' : 'Global Trade Shows',
     heroTitle: locale === 'zh' ? '探索展会与虚拟展台' : locale === 'es' ? 'Descubre Exposiciones y Stands Virtuales' : locale === 'fr' ? 'Découvrez Expositions & Stands Virtuels' : locale === 'de' ? 'Entdecken Sie Ausstellungen & Virtuelle Stände' : locale === 'jp' ? '展示会とバーチャルブースを探す' : locale === 'kr' ? '전시회 및 가상 부스 탐색' : 'Discover Exhibitions & Virtual Booths',
     heroDesc: locale === 'zh' ? '在精心策划的数字展会平台上，与经过认证的全球制造商和供应商建立联系。' : locale === 'es' ? 'Conecte con fabricantes y proveedores mundiales verificados en nuestros stands digitales.' : locale === 'fr' ? 'Connectez-vous avec des fabricants et fournisseurs vérifiés dans nos stands numériques.' : locale === 'de' ? 'Vernetzen Sie sich mit verifizierten globalen Herstellern über unsere digitalen Messestände.' : locale === 'jp' ? '認定された世界のメーカー・サプライヤーとデジタル展示を通じて繋がりましょう。' : locale === 'kr' ? '검증된 글로벌 제조업체 및 공급업체와 디지털 부스를 통해 연결하세요.' : 'Connect with verified global manufacturers and suppliers through curated digital exhibition booths.',
+    totalShows: locale === 'zh' ? '展会总数' : locale === 'de' ? 'Ausstellungen gesamt' : locale === 'es' ? 'Exposiciones totales' : locale === 'fr' ? 'Expositions totales' : locale === 'jp' ? '展示会総数' : locale === 'kr' ? '총 전시회' : 'Total Shows',
     activeBooths: locale === 'zh' ? '活跃展台' : locale === 'es' ? 'Stands activos' : locale === 'fr' ? 'Stands actifs' : locale === 'de' ? 'Aktive Stände' : locale === 'jp' ? 'アクティブなブース' : locale === 'kr' ? '활성 부스' : 'active booths',
     listedProducts: locale === 'zh' ? '上架产品' : locale === 'es' ? 'Productos publicados' : locale === 'fr' ? 'Produits référencés' : locale === 'de' ? 'Gelistete Produkte' : locale === 'jp' ? '掲載製品' : locale === 'kr' ? '등록된 제품' : 'listed products',
     allTitle: locale === 'zh' ? '全部展会与展台' : locale === 'es' ? 'Todas las Exposiciones y Stands' : locale === 'fr' ? 'Toutes les Expositions et Stands' : locale === 'de' ? 'Alle Ausstellungen und Stände' : locale === 'jp' ? 'すべての展示会とブース' : locale === 'kr' ? '모든 전시회 및 부스' : 'All Exhibitions & Booths',
@@ -72,10 +181,17 @@ export default async function ExhibitionsPage({ params }: Props) {
     browseMp: locale === 'zh' ? '浏览市场' : locale === 'es' ? 'Explorar mercado' : locale === 'fr' ? 'Explorer le marché' : locale === 'de' ? 'Marktplatz durchsuchen' : locale === 'jp' ? 'マーケットプレイスへ' : locale === 'kr' ? '마켓플레이스 둘러보기' : 'Browse Marketplace',
     noExh: locale === 'zh' ? '暂无展会' : locale === 'es' ? 'Aún no hay exposiciones' : locale === 'fr' ? 'Aucune exposition pour le moment' : locale === 'de' ? 'Noch keine Ausstellungen' : locale === 'jp' ? 'まだ展示会はありません' : locale === 'kr' ? '아직 전시회가 없습니다' : 'No exhibitions yet',
     noExhDesc: locale === 'zh' ? '敬请期待，新展会和公司展台将持续更新。' : locale === 'es' ? 'Vuelva pronto: se añaden nuevas exposiciones regularmente.' : locale === 'fr' ? 'Revenez bientôt — de nouvelles expositions sont ajoutées régulièrement.' : locale === 'de' ? 'Schauen Sie bald wieder vorbei — neue Ausstellungen werden regelmäßig hinzugefügt.' : locale === 'jp' ? 'まもなく新しい展示会が追加されます。' : locale === 'kr' ? '곧 새로운 전시회와 부스가 추가됩니다.' : 'Check back soon — new trade shows and booths are added regularly.',
+    noResult: locale === 'zh' ? '未找到匹配的展会' : locale === 'de' ? 'Keine passenden Ausstellungen gefunden' : locale === 'es' ? 'No se encontraron exposiciones' : locale === 'fr' ? 'Aucune exposition trouvée' : locale === 'jp' ? '該当する展示会が見つかりません' : locale === 'kr' ? '일치하는 전시회를 찾을 수 없습니다' : 'No matching exhibitions found',
+    noResultDesc: locale === 'zh' ? '请尝试其他关键词或清除筛选条件。' : locale === 'de' ? 'Versuchen Sie andere Suchbegriffe oder setzen Sie die Filter zurück.' : locale === 'es' ? 'Pruebe otros términos o restablezca los filtros.' : locale === 'fr' ? 'Essayez d\'autres termes ou réinitialisez les filtres.' : locale === 'jp' ? '別のキーワードを試すか、フィルターをリセットしてください。' : locale === 'kr' ? '다른 검색어를 시도하거나 필터를 초기화하세요.' : 'Try different keywords or reset the filters.',
     exploreMp: locale === 'zh' ? '前往市场' : locale === 'es' ? 'Explorar mercado' : locale === 'fr' ? 'Explorer le marché' : locale === 'de' ? 'Marktplatz erkunden' : locale === 'jp' ? 'マーケットプレイスへ' : locale === 'kr' ? '마켓플레이스 탐색' : 'Explore Marketplace',
     visit: locale === 'zh' ? '访问' : locale === 'es' ? 'Visitar' : locale === 'fr' ? 'Visiter' : locale === 'de' ? 'Besuchen' : locale === 'jp' ? '訪問' : locale === 'kr' ? '방문' : 'Visit',
     products: locale === 'zh' ? '产品' : locale === 'es' ? 'productos' : locale === 'fr' ? 'produits' : locale === 'de' ? 'Produkte' : locale === 'jp' ? '製品' : locale === 'kr' ? '제품' : 'products',
+    found: locale === 'zh' ? '找到' : locale === 'de' ? 'Gefunden' : locale === 'es' ? 'Encontradas' : locale === 'fr' ? 'Trouvées' : locale === 'jp' ? '件' : locale === 'kr' ? '찾음' : 'Found',
+    showsWord: locale === 'zh' ? '个展会' : locale === 'de' ? 'Ausstellungen' : locale === 'es' ? 'exposiciones' : locale === 'fr' ? 'expositions' : locale === 'jp' ? '展示会' : locale === 'kr' ? '전시회' : 'shows',
+    perPage: locale === 'zh' ? '每页' : locale === 'de' ? 'pro Seite' : locale === 'es' ? 'por página' : locale === 'fr' ? 'par page' : locale === 'jp' ? '1ページあたり' : locale === 'kr' ? '페이지당' : 'per page',
   }
+
+  const totalListedProducts = booths.reduce((a, b) => a + (b._count.products || 0), 0)
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -87,11 +203,11 @@ export default async function ExhibitionsPage({ params }: Props) {
           <div className="flex flex-wrap items-center gap-6 text-sm">
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/15">
               <Building2 className="w-4 h-4" />
-              <span>{booths.length} {t.activeBooths}</span>
+              <span>{total} {t.totalShows}</span>
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/15">
               <Package className="w-4 h-4" />
-              <span>{booths.reduce((a, b) => a + (b._count.products || 0), 0)} {t.listedProducts}</span>
+              <span>{totalListedProducts} {t.listedProducts}</span>
             </div>
           </div>
         </div>
@@ -108,14 +224,24 @@ export default async function ExhibitionsPage({ params }: Props) {
           </Link>
         </div>
 
+        {/* 搜索栏（客户端交互，URL searchParams 驱动 SSR 查询） */}
+        <BoothFilterBar locale={locale} />
+
+        {/* 统计 + 分页信息 */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 text-sm text-gray-600">
+          <span>
+            {t.found} <span className="font-semibold text-gray-900">{total}</span> {t.showsWord}
+          </span>
+          <span className="text-gray-500">
+            {t.perPage} {pageSize} · {t.page} {currentPage}/{totalPages}
+          </span>
+        </div>
+
         {booths.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center">
-            <Building2 className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.noExh}</h3>
-            <p className="text-gray-500">{t.noExhDesc}</p>
-            <Link href={`${hrefPrefix}/marketplace`} className="mt-6 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors">
-              {t.exploreMp} <ArrowRight className="w-4 h-4" />
-            </Link>
+            <Search className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t.noResult}</h3>
+            <p className="text-gray-500">{t.noResultDesc}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -156,6 +282,14 @@ export default async function ExhibitionsPage({ params }: Props) {
             })}
           </div>
         )}
+
+        {/* 分页跳转 */}
+        <Pagination
+          locale={locale}
+          basePath={`${hrefPrefix}/exhibitions`}
+          currentPage={currentPage}
+          totalPages={totalPages}
+        />
       </section>
     </main>
   )
