@@ -9,6 +9,7 @@ import { existsSync } from 'fs'
 import path from 'path'
 import TaskActions from './TaskActions'
 import ApplyTaskButton from './ApplyTaskButton'
+import { buildAlternates } from '@/lib/hreflang'
 
 export async function generateMetadata({ params }: { params: { id: string; locale: string } }) {
   const dict = dictionaries[params.locale] || dictionaries.en
@@ -29,12 +30,21 @@ export async function generateMetadata({ params }: { params: { id: string; local
       ? task.keywords.join(', ') 
       : 'B2B, trade, marketplace, business'
     
+    // canonical 与 hreflang 必须指向本任务详情页（带 id），
+    // 否则全部详情页都被合并成列表页 /xx/marketplace 的重复内容，
+    // 搜索引擎只索引列表页、丢弃详情页。
+    const alternates = buildAlternates(`/${params.locale}/marketplace/${task.id}`)
+    
     return {
       title: `${task.title} | SeaHeart Global`,
       description: task.description.length > 160 
         ? task.description.substring(0, 160) + '...' 
         : task.description,
       keywords: keywords,
+      alternates: {
+        canonical: alternates.canonical,
+        languages: alternates.languages,
+      },
       openGraph: {
         title: task.title,
         description: task.description.length > 160 
