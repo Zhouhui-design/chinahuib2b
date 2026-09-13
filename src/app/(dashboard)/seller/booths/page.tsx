@@ -796,15 +796,23 @@ export default function BoothsPage() {
     }))
   }
 
+  // 支持批量粘贴：把输入按 逗号/分号/换行 拆分成多个独立关键词
   const addKeyword = (keyword: string) => {
     if (!keyword.trim()) return
-    if (formData.keywords.length >= 50) return
-    if (formData.keywords.includes(keyword.trim())) return
-    
-    setFormData(prev => ({
-      ...prev,
-      keywords: [...prev.keywords, keyword.trim()]
-    }))
+    const parts = keyword
+      .split(/[,\uFF0C;\uFF1B\r\n]+/)
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0)
+    if (parts.length === 0) return
+
+    setFormData((prev) => {
+      const merged = [...prev.keywords]
+      for (const part of parts) {
+        if (merged.length >= 50) break
+        if (!merged.includes(part)) merged.push(part)
+      }
+      return { ...prev, keywords: merged }
+    })
   }
 
   const removeKeyword = (keyword: string) => {
@@ -1272,19 +1280,19 @@ export default function BoothsPage() {
                   {t.keywords}
                 </label>
                 <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
+                  <textarea
                     value={newKeyword}
                     onChange={(e) => setNewKeyword(e.target.value)}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter' && newKeyword.trim()) {
                         e.preventDefault()
                         addKeyword(newKeyword)
                         setNewKeyword('')
                       }
                     }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="输入关键词后按回车"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                    placeholder={language === 'zh' ? '输入关键词后按回车或点 + 添加\n可一次性粘贴多个：用逗号、分号或换行分隔' : 'Type a keyword and press Enter or +\nTip: paste multiple separated by comma / semicolon / newline'}
+                    rows={2}
                     disabled={formData.keywords.length >= 50}
                   />
                   <button
@@ -1293,7 +1301,7 @@ export default function BoothsPage() {
                       setNewKeyword('')
                     }}
                     disabled={!newKeyword.trim() || formData.keywords.length >= 50}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
                   >
                     +
                   </button>
