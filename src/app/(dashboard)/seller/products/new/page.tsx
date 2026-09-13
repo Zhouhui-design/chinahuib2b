@@ -726,16 +726,23 @@ export default function AddProductPage() {
     }
   }
 
-  // 关键词输入：回车或点击添加，去重
+  // 关键词输入：支持批量粘贴（逗号/分号/换行分隔），自动 trim 去重，上限 50
   const addKeyword = () => {
-    const trimmed = keywordInput.trim()
-    if (!trimmed) return
-    if (keywords.includes(trimmed)) {
-      setKeywordInput('')
-      return
-    }
-    if (keywords.length >= 50) return
-    setKeywords(prev => [...prev, trimmed])
+    if (!keywordInput.trim()) return
+    const parts = keywordInput
+      .split(/[,\uFF0C;\uFF1B\r\n]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+    if (parts.length === 0) return
+    setKeywords(prev => {
+      const next = [...prev]
+      for (const part of parts) {
+        if (next.includes(part)) continue
+        if (next.length >= 50) break
+        next.push(part)
+      }
+      return next
+    })
     setKeywordInput('')
   }
 
@@ -877,6 +884,25 @@ export default function AddProductPage() {
   }
 
   const getLevel1Categories = () => categories.filter(c => c.level === 1)
+
+  // 递归展开分类树为扁平列表（带层级缩进标识），用于弹窗父级选择器，
+  // 让卖家能选择任意层级（L1~L4）作为上级，从而建 L2/L3/L4/L5 多级分类
+  const flattenCategoryTree = (): Category[] => {
+    const result: Category[] = []
+    const walk = (nodes: Category[]) => {
+      for (const node of nodes) {
+        result.push(node)
+        if (node.children && node.children.length > 0) {
+          walk(node.children)
+        }
+      }
+    }
+    walk(categories)
+    return result
+  }
+
+  // 供父级下拉框使用：展开全部分类（含所有层级），且过滤掉 level>=5（不能再作为父级）
+  const allParentCandidates = flattenCategoryTree().filter(c => c.level < 5)
 
   const handleImageUpload = (data: UploadedFile | UploadedFile[]) => {
     const newImages = Array.isArray(data) ? data.map((d) => d.url) : [data.url]
@@ -1205,13 +1231,18 @@ export default function AddProductPage() {
               {t.keywords}
             </label>
             <div className="flex gap-2 mb-2">
-              <input
-                type="text"
+              <textarea
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                placeholder={language === 'zh' ? '输入关键词后按回车添加' : 'Type keyword and press Enter'}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    addKeyword()
+                  }
+                }}
+                placeholder={language === 'zh' ? '输入关键词后按回车添加\n可一次性粘贴多个：用逗号、分号或换行分隔' : 'Type keyword and press Enter\nTip: paste multiple separated by comma / semicolon / newline'}
+                rows={2}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               />
               <button
                 type="button"
@@ -1662,7 +1693,7 @@ export default function AddProductPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">{language === 'zh' ? '无（作为一级分类）' : 'None (as L1)'}</option>
-                  {categories.filter(c => c.level < 5).map((cat) => (
+                  {allParentCandidates.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {'　'.repeat(cat.level - 1)}L{cat.level} {cat.name}
                     </option>

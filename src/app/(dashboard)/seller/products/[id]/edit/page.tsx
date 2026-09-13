@@ -199,12 +199,24 @@ export default function EditProductPage() {
     setSpecifications(newSpecs)
   }
 
+  // 支持批量粘贴（逗号/分号/换行分隔），自动 trim 去重，上限 50
   const addKeyword = () => {
-    const trimmed = keywordInput.trim()
-    if (trimmed && !keywords.includes(trimmed) && keywords.length < 50) {
-      setKeywords([...keywords, trimmed])
-      setKeywordInput('')
-    }
+    if (!keywordInput.trim()) return
+    const parts = keywordInput
+      .split(/[,\uFF0C;\uFF1B\r\n]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+    if (parts.length === 0) return
+    setKeywords(prev => {
+      const next = [...prev]
+      for (const part of parts) {
+        if (next.includes(part)) continue
+        if (next.length >= 50) break
+        next.push(part)
+      }
+      return next
+    })
+    setKeywordInput('')
   }
 
   const removeKeyword = (keyword: string) => {
@@ -603,13 +615,18 @@ export default function EditProductPage() {
             </p>
           </div>
           <div className="flex gap-2 mb-2">
-            <input
-              type="text"
+            <textarea
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-              placeholder={language === 'zh' ? '输入关键词后按回车添加（支持中/英/德/西/法/日/韩/俄/葡/阿拉伯语）' : 'Type keyword and press Enter (supports multi-language)'}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  addKeyword()
+                }
+              }}
+              placeholder={language === 'zh' ? '输入关键词后按回车添加（支持中/英/德/西/法/日/韩/俄/葡/阿拉伯语）\n可一次性粘贴多个：用逗号、分号或换行分隔' : 'Type keyword and press Enter (supports multi-language)\nTip: paste multiple separated by comma / semicolon / newline'}
+              rows={2}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
             <button
               type="button"

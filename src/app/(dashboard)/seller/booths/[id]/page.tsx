@@ -388,14 +388,23 @@ export default function BoothDetailPage() {
     }))
   }
 
+  // 支持批量粘贴（逗号/分号/换行分隔），自动 trim 去重，上限 50
   const addKeyword = () => {
-    const trimmed = keywordInput.trim()
-    if (!trimmed) return
-    if (formData.keywords.includes(trimmed)) {
-      setKeywordInput('')
-      return
-    }
-    setFormData(prev => ({ ...prev, keywords: [...prev.keywords, trimmed] }))
+    if (!keywordInput.trim()) return
+    const parts = keywordInput
+      .split(/[,\uFF0C;\uFF1B\r\n]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+    if (parts.length === 0) return
+    setFormData(prev => {
+      const next = [...prev.keywords]
+      for (const part of parts) {
+        if (next.includes(part)) continue
+        if (next.length >= 50) break
+        next.push(part)
+      }
+      return { ...prev, keywords: next }
+    })
     setKeywordInput('')
   }
 
@@ -712,13 +721,18 @@ export default function BoothDetailPage() {
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">{t.keywords}</label>
             <div className="flex gap-2 mb-3">
-              <input
-                type="text"
+              <textarea
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                placeholder={language === 'zh' ? '输入关键词后按回车添加' : 'Type keyword and press Enter'}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    addKeyword()
+                  }
+                }}
+                placeholder={language === 'zh' ? '输入关键词后按回车添加\n可一次性粘贴多个：用逗号、分号或换行分隔' : 'Type keyword and press Enter\nTip: paste multiple separated by comma / semicolon / newline'}
+                rows={2}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               />
               <button
                 onClick={addKeyword}
