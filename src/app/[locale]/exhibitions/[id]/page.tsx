@@ -11,9 +11,39 @@ import {
   Video, Book, Download, FileText, Link as LinkIcon, Send
 } from 'lucide-react'
 import { SocialShare } from '@/components/seo/SocialShare'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
 import { useSession } from 'next-auth/react'
 import { useRouter, useParams } from 'next/navigation'
 import ChatWidget from '@/components/chat/ChatWidget'
+import VisitorTracker from '@/components/VisitorTracker'
+import nextDynamic from 'next/dynamic'
+
+/**
+ * 合并单值主字段 + JSONB 多值数组（去重）。
+ * 卖家在 store 设置里用 MultiValueInput 填写的多个邮箱/电话/网址存在
+ * emails/phones/websites 里；老数据只有单值字段。两边都要显示。
+ */
+function mergeContactValues(single: string | null | undefined, arr: unknown): string[] {
+  const out: string[] = []
+  if (typeof single === 'string' && single.trim()) out.push(single.trim())
+  if (Array.isArray(arr)) {
+    for (const v of arr) {
+      if (typeof v === 'string' && v.trim() && !out.includes(v.trim())) out.push(v.trim())
+    }
+  }
+  return out
+}
+
+// Leaflet + OpenStreetMap 地图（仅客户端）
+// 替代原 Google Maps embed：不依赖第三方 API Key，且中国大陆买家也能正常查看
+const StoreMap = nextDynamic(() => import('@/components/seller/StoreMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
+      Loading map…
+    </div>
+  ),
+})
 
 interface Product {
   id: string
@@ -92,10 +122,17 @@ interface Booth {
     phone?: string
     email?: string
     website?: string
+    // Multi-value contacts (JSONB arrays)
+    emails?: string[]
+    phones?: string[]
+    websites?: string[]
+    voiceLanguages?: string[]
+    textLanguages?: string[]
     // Social media
     whatsapp?: string
     wechat?: string
     telegram?: string
+    zangi?: string
     linkedin?: string
     facebook?: string
     instagram?: string
@@ -217,7 +254,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
     if (typeof document === 'undefined') return
 
     const pageTitle = `${boothData.name} at ${boothData.exhibitionName} | SeaHeart Global`
-    const pageDescription = `${boothData.name} is exhibiting at ${boothData.exhibitionName}. ${boothData.seller?.companyName || ''} from ${boothData.seller?.city || ''}, ${boothData.seller?.country || ''}. ${boothData.keywords?.join(', ') || ''}. View products and connect with suppliers.`
+    const pageDescription = `${boothData.name} is exhibiting at ${boothData.exhibitionName}. ${boothData.seller?.companyName || ''} from ${localizeCity(boothData.seller?.city || '', 'en')}, ${localizeCountry(boothData.seller?.country || '', 'en')}. ${boothData.keywords?.join(', ') || ''}. View products and connect with suppliers.`
     
     document.title = pageTitle
 
@@ -248,8 +285,8 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
       boothData.name,
       boothData.exhibitionName,
       boothData.seller?.companyName || '',
-      boothData.seller?.country || '',
-      boothData.seller?.city || '',
+      localizeCountry(boothData.seller?.country || '', 'en'),
+      localizeCity(boothData.seller?.city || '', 'en'),
       'exhibition',
       'trade show',
       'b2b',
@@ -295,24 +332,24 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
         name: boothData.seller?.companyName || '',
         address: {
           '@type': 'PostalAddress',
-          addressLocality: boothData.seller?.city || '',
-          addressCountry: boothData.seller?.country || '',
+          addressLocality: localizeCity(boothData.seller?.city || '', 'en'),
+          addressCountry: localizeCountry(boothData.seller?.country || '', 'en'),
           streetAddress: boothData.seller?.address || '',
         },
         contactPoint: {
           '@type': 'ContactPoint',
-          email: boothData.seller?.email || '',
-          telephone: boothData.seller?.phone || '',
+          email: mergeContactValues(boothData.seller?.email, boothData.seller?.emails)[0] || '',
+          telephone: mergeContactValues(boothData.seller?.phone, boothData.seller?.phones)[0] || '',
           contactType: 'sales',
         },
       },
       location: {
         '@type': 'Place',
-        name: boothData.location || `${boothData.seller?.city || ''}, ${boothData.seller?.country || ''}`,
+        name: boothData.location || `${localizeCity(boothData.seller?.city || '', 'en')}, ${localizeCountry(boothData.seller?.country || '', 'en')}`,
         address: {
           '@type': 'PostalAddress',
-          addressLocality: boothData.seller?.city || '',
-          addressCountry: boothData.seller?.country || '',
+          addressLocality: localizeCity(boothData.seller?.city || '', 'en'),
+          addressCountry: localizeCountry(boothData.seller?.country || '', 'en'),
           streetAddress: boothData.seller?.address || '',
         },
         geo: boothData.seller?.mapLatitude && boothData.seller?.mapLongitude ? {
@@ -479,7 +516,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                   </span>
                 )}
               </div>
-              <p className="text-xl text-blue-100 mb-3">{booth.seller.companyName}</p>
+              <p className="text-xl text-blue-100 mb-3">{booth.exhibitionName}</p>
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-blue-100">
                 {booth.location && (
@@ -503,7 +540,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 mr-1" />
-                  {booth.seller.city}, {booth.seller.country}
+                  {localizeCity(booth.seller.city, 'en')}, {localizeCountry(booth.seller.country, 'en')}
                 </div>
               </div>
             </div>
@@ -608,7 +645,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="space-y-2 text-sm">
                   <p className="flex items-center text-gray-700">
                     <MapPin className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0" />
-                    <span className="truncate">{booth.seller.city}, {booth.seller.country}</span>
+                    <span className="truncate">{localizeCity(booth.seller.city, 'en')}, {localizeCountry(booth.seller.country, 'en')}</span>
                   </p>
                   {booth.seller.address && (
                     <p className="text-gray-600 pl-6 text-xs">{booth.seller.address}</p>
@@ -696,37 +733,49 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 Contact Information
               </h3>
 
-              {session ? (
+              {(() => {
+                const sbPhones = mergeContactValues(booth.seller.phone, booth.seller.phones)
+                const sbEmails = mergeContactValues(booth.seller.email, booth.seller.emails)
+                const sbSites = mergeContactValues(booth.seller.website, booth.seller.websites)
+                const hasAnyContact =
+                  sbPhones.length > 0 || sbEmails.length > 0 || sbSites.length > 0 ||
+                  !!booth.seller.whatsapp || !!booth.seller.wechat || !!booth.seller.zangi || !!booth.seller.linkedin
+                return (
+                <>
+              {hasAnyContact ? (
                 <div className="space-y-3 text-sm">
-                  {booth.seller.phone && (
+                  {sbPhones.map((v, i) => (
                     <a
-                      href={`tel:${booth.seller.phone}`}
+                      key={`sb-phone-${i}`}
+                      href={`tel:${v}`}
                       className="flex items-center text-gray-700 hover:text-blue-600 group"
                     >
                       <Phone className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
-                      <span className="truncate">{booth.seller.phone}</span>
+                      <span className="truncate">{v}</span>
                     </a>
-                  )}
-                  {booth.seller.email && (
+                  ))}
+                  {sbEmails.map((v, i) => (
                     <a
-                      href={`mailto:${booth.seller.email}`}
+                      key={`sb-email-${i}`}
+                      href={`mailto:${v}`}
                       className="flex items-center text-gray-700 hover:text-blue-600 group"
                     >
                       <Mail className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
-                      <span className="truncate">{booth.seller.email}</span>
+                      <span className="truncate">{v}</span>
                     </a>
-                  )}
-                  {booth.seller.website && (
+                  ))}
+                  {sbSites.map((v, i) => (
                     <a
-                      href={booth.seller.website}
+                      key={`sb-web-${i}`}
+                      href={v.startsWith('http') ? v : `https://${v}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center text-gray-700 hover:text-blue-600 group"
                     >
                       <Globe className="w-4 h-4 mr-3 text-gray-400 group-hover:text-blue-600" />
-                      <span className="truncate">{booth.seller.website}</span>
+                      <span className="truncate">{v}</span>
                     </a>
-                  )}
+                  ))}
                   {booth.seller.whatsapp && (
                     <div className="flex items-center text-gray-700">
                       <MessageSquare className="w-4 h-4 mr-3 text-gray-400" />
@@ -737,6 +786,12 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                     <div className="flex items-center text-gray-700">
                       <MessageSquare className="w-4 h-4 mr-3 text-gray-400" />
                       <span className="truncate">WeChat: {booth.seller.wechat}</span>
+                    </div>
+                  )}
+                  {booth.seller.zangi && (
+                    <div className="flex items-center text-gray-700">
+                      <MessageSquare className="w-4 h-4 mr-3 text-gray-400" />
+                      <span className="truncate">Zangi: {booth.seller.zangi}</span>
                     </div>
                   )}
                   {booth.seller.linkedin && (
@@ -753,16 +808,18 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <div className="text-3xl mb-2">🔒</div>
-                  <p className="text-sm text-gray-500 mb-3">Login to view full contact details</p>
-                  <Link
-                    href={`/auth/login?callbackUrl=/exhibitions/${booth.id}`}
-                    className="inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
-                  >
-                    Login Now
-                  </Link>
+                  <div className="text-3xl mb-2">📇</div>
+                  <p className="text-sm text-gray-500">
+                    This seller has not published contact details yet.
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Use the chat button to reach them directly.
+                  </p>
                 </div>
               )}
+                </>
+                )
+              })()}
             </div>
 
             {/* Quick Stats */}
@@ -900,29 +957,29 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
 
                   {/* Basic Contact Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {booth.seller.phone && (
-                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    {mergeContactValues(booth.seller.phone, booth.seller.phones).map((v, i) => (
+                      <div key={`co-phone-${i}`} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <Phone className="w-4 h-4 text-gray-400 mb-2" />
                         <p className="text-xs text-gray-500">Phone</p>
-                        <p className="text-sm font-semibold text-gray-900">{booth.seller.phone}</p>
+                        <a href={`tel:${v}`} className="text-sm font-semibold text-gray-900 hover:text-blue-600 break-all">{v}</a>
                       </div>
-                    )}
-                    {booth.seller.email && (
-                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    ))}
+                    {mergeContactValues(booth.seller.email, booth.seller.emails).map((v, i) => (
+                      <div key={`co-email-${i}`} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <Mail className="w-4 h-4 text-gray-400 mb-2" />
                         <p className="text-xs text-gray-500">Email</p>
-                        <p className="text-sm font-semibold text-gray-900">{booth.seller.email}</p>
+                        <a href={`mailto:${v}`} className="text-sm font-semibold text-gray-900 hover:text-blue-600 break-all">{v}</a>
                       </div>
-                    )}
-                    {booth.seller.website && (
-                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    ))}
+                    {mergeContactValues(booth.seller.website, booth.seller.websites).map((v, i) => (
+                      <div key={`co-web-${i}`} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <Globe className="w-4 h-4 text-gray-400 mb-2" />
                         <p className="text-xs text-gray-500">Website</p>
-                        <a href={booth.seller.website} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 truncate hover:underline">
-                          {booth.seller.website}
+                        <a href={v.startsWith('http') ? v : `https://${v}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 break-all hover:underline">
+                          {v}
                         </a>
                       </div>
-                    )}
+                    ))}
                     {booth.seller.address && (
                       <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <MapPin className="w-4 h-4 text-gray-400 mb-2" />
@@ -1253,7 +1310,7 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                                 Verified
                               </span>
                               {cert.fileUrl && (
-                                <a href={cert.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center">
+                                <a href={`/api/seller/verification-files/${cert.id}/download`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center">
                                   <ExternalLink className="w-3 h-3 mr-1" />
                                   View Full
                                 </a>
@@ -1375,16 +1432,10 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
                       <div className="p-4">
                         <p className="text-sm text-gray-700 mb-3">{booth.seller.mapAddress}</p>
                         {booth.seller.mapLatitude && booth.seller.mapLongitude && (
-                          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-                            <iframe
-                              src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(booth.seller.mapAddress)}&center=${booth.seller.mapLatitude},${booth.seller.mapLongitude}&zoom=15`}
-                              width="100%"
-                              height="100%"
-                              style={{ border: 0 }}
-                              allowFullScreen
-                              loading="lazy"
-                              referrerPolicy="no-referrer-when-downgrade"
-                              className="rounded-lg"
+                          <div className="bg-gray-100 rounded-lg h-64 overflow-hidden">
+                            <StoreMap
+                              latitude={booth.seller.mapLatitude}
+                              longitude={booth.seller.mapLongitude}
                             />
                           </div>
                         )}
@@ -1415,6 +1466,8 @@ export default function BoothDetailPage({ params }: { params: Promise<{ id: stri
         sellerUserId={booth.seller.userId}
         openSignal={chatOpenSignal}
       />
+
+      <VisitorTracker sellerId={booth.seller.id} viewType="BOOTH" />
     </div>
   )
 }

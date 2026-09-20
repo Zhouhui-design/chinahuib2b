@@ -12,8 +12,12 @@ import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
 import BoothCard from '@/components/BoothCard'
 import AgentNoticeBanner from '@/components/AgentNoticeBanner'
+import { getHomePageData } from '@/lib/home-data'
+import { localizeCountry } from '@/lib/seo-title'
 
-export const dynamic = 'force-dynamic'
+// ISR: the homepage is public marketing content, not per-user content. Rendering
+// it on every request was pure cost. getHomePageData() caches on the same window.
+export const revalidate = 300
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>;
@@ -60,46 +64,9 @@ export default async function Home({ params }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
 
-  let featuredProducts: any[] = [];
-  let exhibitors: any[] = [];
-  let booths: Booth[] = [];
-
-  try {
-    const productsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/products?limit=4`, {
-      cache: 'no-store'
-    });
-    if (productsResponse.ok) {
-      const productsData = await productsResponse.json();
-      featuredProducts = productsData.products || [];
-    }
-  } catch (e) {
-    console.error('Failed to fetch products:', e);
-  }
-
-  try {
-    const sellersResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/sellers?limit=4`, {
-      cache: 'no-store'
-    });
-    if (sellersResponse.ok) {
-      const sellersData = await sellersResponse.json();
-      exhibitors = sellersData.sellers || [];
-    }
-  } catch (e) {
-    console.error('Failed to fetch sellers:', e);
-  }
-
-  // Booths - fetch from public API
-  try {
-    const boothsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/public/booths`, {
-      cache: 'no-store'
-    });
-    if (boothsResponse.ok) {
-      const boothsData = await boothsResponse.json();
-      booths = boothsData.booths || [];
-    }
-  } catch (e) {
-    console.error('Failed to fetch booths:', e);
-  }
+  // Data comes straight from Prisma, in parallel and cached. See src/lib/home-data.ts
+  // for why the previous self-fetch against NEXTAUTH_URL cost ~10.8s per render.
+  const { featuredProducts, exhibitors, booths } = await getHomePageData();
 
   return (
     <>
@@ -125,18 +92,26 @@ export default async function Home({ params }: PageProps) {
             {dict.home.hero.subtitle}
           </p>
           
-          {/* Search Box */}
+          {/* Search Box — 跳转到产品列表页 keyword 搜索 */}
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-2 flex gap-2">
+            <form
+              action={`/${locale}/products`}
+              method="get"
+              className="bg-white rounded-lg shadow-lg p-2 flex gap-2"
+            >
               <input
                 type="text"
+                name="keyword"
                 placeholder={dict.home.hero.searchPlaceholder}
                 className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
               />
-              <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-md font-semibold transition-colors">
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-md font-semibold transition-colors"
+              >
                 {dict.home.hero.searchButton}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </section>
@@ -195,7 +170,7 @@ export default async function Home({ params }: PageProps) {
                       <span className="font-medium">{dict.home.featured.productCategory}:</span> {product.category?.name || 'N/A'}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">{dict.home.featured.customization}:</span> {product.customizable ? dict.home.featured.yes : dict.home.featured.no}
+                      <span className="font-medium">{dict.home.featured.customization}:</span> {product.acceptsOEM ? dict.home.featured.yes : dict.home.featured.no}
                     </p>
                   </div>
                   <Link
@@ -262,14 +237,14 @@ export default async function Home({ params }: PageProps) {
               <Link key={seller.id} href={storeUrl(seller)} className="group">
                 <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow text-center">
                   <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    {seller.logo ? (
-                      <img src={seller.logo} alt={seller.companyName} className="w-full h-full object-cover rounded-full" />
+                    {seller.logoUrl ? (
+                      <img src={seller.logoUrl} alt={seller.companyName} className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <span className="text-gray-400 text-sm">Logo</span>
                     )}
                   </div>
                   <h3 className="font-semibold group-hover:text-blue-600 transition-colors">{seller.companyName}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{seller.country}</p>
+                  <p className="text-gray-600 text-sm mt-1">{localizeCountry(seller.country, locale)}</p>
                 </div>
               </Link>
             ))}

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
     
     if (!task) {
       return {
-        title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | SeaHeart Global`,
+        title: `${dict.marketplace.taskNotFound || 'Task Not Found'}`,
         description: dict.marketplace.description || 'Global B2B Trade Platform',
       }
     }
@@ -36,9 +36,9 @@ export async function generateMetadata({ params }: { params: { id: string; local
     const alternates = buildAlternates(`/${params.locale}/marketplace/${task.id}`)
     
     return {
-      title: `${task.title} | SeaHeart Global`,
-      description: task.description.length > 160 
-        ? task.description.substring(0, 160) + '...' 
+      title: `${task.title}`,
+      description: task.description.length > 160
+        ? task.description.substring(0, 160) + '...'
         : task.description,
       keywords: keywords,
       alternates: {
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: { params: { id: string; local
     }
   } catch {
     return {
-      title: `${dict.marketplace.taskNotFound || 'Task Not Found'} | SeaHeart Global`,
+      title: `${dict.marketplace.taskNotFound || 'Task Not Found'}`,
       description: dict.marketplace.description || 'Global B2B Trade Platform',
     }
   }

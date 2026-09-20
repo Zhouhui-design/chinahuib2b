@@ -10,6 +10,7 @@ import { dictionaries } from '@/locales/dictionary'
 import { Clock, Zap, Trophy, Users, TrendingUp, AlertCircle, Upload, X, Image as ImageIcon, FileText, File, Check } from 'lucide-react'
 import { useCallback } from 'react'
 import PurchaseFlow from '@/components/PurchaseFlow'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
 
 type Category = {
   id: string
@@ -1544,8 +1545,8 @@ export default function AuctionScreenPage() {
                         <div>
                           <p className="text-white font-bold">{selectedListing.seller.companyName}</p>
                           <p className="text-gray-400 text-sm">
-                            {selectedListing.seller.country && `${selectedListing.seller.country}`}
-                            {selectedListing.seller.city && `, ${selectedListing.seller.city}`}
+                            {selectedListing.seller.country && `${localizeCountry(selectedListing.seller.country, locale)}`}
+                            {selectedListing.seller.city && `, ${localizeCity(selectedListing.seller.city, locale)}`}
                           </p>
                           {selectedListing.seller.isVerified && (
                             <span className="text-yellow-400 text-xs">✓ Verified Seller</span>

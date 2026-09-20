@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     if (!listing) {
       return {
-        title: 'Auction Not Found | SeaHeart Global',
+        title: 'Auction Not Found',
       }
     }
 
@@ -56,17 +56,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ].filter(Boolean).join(', ')
 
     return {
-      title: `${title} - B2B Auction | SeaHeart Global`,
+      title: `${title} - B2B Auction`,
       description,
       keywords,
       alternates: {
         canonical: `${BASE_URL}/auction/${listing.id}`,
       },
       openGraph: {
-        title: `${title} - B2B Auction | SeaHeart Global`,
+        title: `${title} - B2B Auction`,
         description,
+        type: 'website',
         url: `${BASE_URL}/auction/${listing.id}`,
-        type: 'product',
         images: [{ url: image, width: 1200, height: 630, alt: title }],
       },
       twitter: {
@@ -79,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch (error) {
     console.error('Error generating auction metadata:', error)
     return {
-      title: 'Auction Listing | SeaHeart Global',
+      title: 'Auction Listing',
     }
   }
 }

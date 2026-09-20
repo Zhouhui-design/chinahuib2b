@@ -58,6 +58,19 @@ function withLocale(path: string): string {
   return `${BASE_URL}/${DEFAULT_LANG}${normalized}`
 }
 
+// Emit one <url> per supported locale for a given path. Google stopped
+// crawling non-English versions because the sitemap only listed /en/...
+// URLs; the hreflang alternates were technically there but the sitemap
+// itself signalled "English-only". For a 13-locale B2B site that meant
+// 12/13 of the addressable search market never got a sitemap entry.
+function withAllLocales(path: string): { loc: string; lang: string }[] {
+  const normalized = path === '/' ? '' : path
+  return languages.map(lang => ({
+    loc: `${BASE_URL}/${lang.code}${normalized}`,
+    lang: lang.code,
+  }))
+}
+
 export async function GET(request: NextRequest) {
   try {
     const entries: SitemapEntry[] = []

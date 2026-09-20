@@ -3,6 +3,13 @@
  */
 
 import type { Product, Organization, BreadcrumbList, FAQPage } from 'schema-dts'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
+
+// JSON-LD is locale-agnostic. Sellers type addresses in Chinese; rendering
+// them raw produced addressCountry:"中国" on English pages, which Google
+// reads as mixed-language spam. Force English country + pinyin city here.
+const enCountry = (c?: string) => (c ? localizeCountry(c, 'en') : c)
+const enCity = (c?: string) => (c ? localizeCity(c, 'en') : c)
 
 // Product Schema
 export function ProductSchema({ product }: { product: any }) {
@@ -22,8 +29,8 @@ export function ProductSchema({ product }: { product: any }) {
       name: product.seller.companyName,
       address: {
         '@type': 'PostalAddress',
-        addressCountry: product.seller.country,
-        addressLocality: product.seller.city,
+        addressCountry: enCountry(product.seller.country),
+        addressLocality: enCity(product.seller.city),
       },
       geo: product.seller.mapLatitude && product.seller.mapLongitude ? {
         '@type': 'GeoCoordinates',
@@ -77,10 +84,10 @@ export function OrganizationSchema({ organization }: { organization: any }) {
     address: organization.address ? {
       '@type': 'PostalAddress',
       streetAddress: organization.address.street,
-      addressLocality: organization.address.city,
+      addressLocality: enCity(organization.address.city),
       addressRegion: organization.address.state,
       postalCode: organization.address.zipCode,
-      addressCountry: organization.address.country,
+      addressCountry: enCountry(organization.address.country),
     } : undefined,
     contactPoint: organization.contactPoints?.map((point: any) => ({
       '@type': 'ContactPoint',
@@ -166,8 +173,8 @@ export function StoreSchema({ store }: { store: any }) {
     address: hasAddress ? {
       '@type': 'PostalAddress',
       streetAddress: store.address || undefined,
-      addressLocality: store.city || undefined,
-      addressCountry: store.country || undefined,
+      addressLocality: enCity(store.city) || undefined,
+      addressCountry: enCountry(store.country) || undefined,
     } : undefined,
     geo: hasGeo ? {
       '@type': 'GeoCoordinates',
@@ -204,8 +211,8 @@ export function ExhibitionSchema({ exhibition }: { exhibition: any }) {
       name: exhibition.location,
       address: {
         '@type': 'PostalAddress',
-        addressLocality: exhibition.city,
-        addressCountry: exhibition.country,
+        addressLocality: enCity(exhibition.city),
+        addressCountry: enCountry(exhibition.country),
       },
     },
     organizer: {

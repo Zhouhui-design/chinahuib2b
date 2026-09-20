@@ -1,6 +1,7 @@
 'use client'
 
 import Script from 'next/script'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
 
 interface ProductSchemaProps {
   product: {
@@ -46,8 +47,10 @@ export default function ProductSchema({ product, baseUrl = 'https://x2xhub.com' 
       "name": product.seller.companyName,
       "address": {
         "@type": "PostalAddress",
-        "addressCountry": product.seller.country,
-        "addressLocality": product.seller.city
+        // JSON-LD is locale-agnostic; use English/pinyin so Google does not
+        // see Chinese characters on an English product page.
+        "addressCountry": localizeCountry(product.seller.country, 'en'),
+        "addressLocality": localizeCity(product.seller.city, 'en')
       },
       "geo": product.seller.mapLatitude && product.seller.mapLongitude ? {
         "@type": "GeoCoordinates",
@@ -63,7 +66,7 @@ export default function ProductSchema({ product, baseUrl = 'https://x2xhub.com' 
       "priceCurrency": "USD",
       "minOrderQuantity": product.minOrderQty || 1
     },
-    "keywords": `${product.title}, ${product.seller.city}, ${product.seller.country}, ${product.category?.name || ''}`
+    "keywords": `${product.title}, ${localizeCity(product.seller.city, 'en')}, ${localizeCountry(product.seller.country, 'en')}, ${product.category?.nameEn || product.category?.name || ''}`
   }
 
   return (

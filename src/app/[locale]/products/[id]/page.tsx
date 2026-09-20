@@ -15,8 +15,10 @@ import Link from 'next/link'
 import { ArrowLeft, Download, MessageCircle, Eye, Calendar, Package, Globe, Building2 } from 'lucide-react'
 import { getProductById } from '@/lib/api/products'
 import ChatWidget from '@/components/chat/ChatWidget'
+import InquiryModal from '@/components/InquiryModal'
 import VisitorTracker from '@/components/VisitorTracker'
 import { ProductSchema, BreadcrumbSchema } from '@/components/seo/StructuredData'
+import { buildProductTitle, localizeCountry, localizeCity } from '@/lib/seo-title'
 import type { Metadata } from 'next'
 import { languages } from '@/lib/languages'
 
@@ -24,13 +26,22 @@ interface Props {
   params: Promise<{ id: string; locale: string }>
 }
 
-// ISR Configuration
-export const revalidate = 3600 // Revalidate every hour
-
-// Generate static params for SSG
-export async function generateStaticParams() {
-  return []
-}
+// Rendering mode: dynamic (server-rendered per request).
+//
+// This page must NOT be SSG. The root layout (src/app/layout.tsx) calls
+// headers() to derive the locale and hreflang alternates from x-pathname.
+// headers() is a dynamic API, so any attempt to prerender this route as static
+// HTML throws DYNAMIC_SERVER_USAGE and the page 500s.
+//
+// A previous `generateStaticParams()` returning [] made this the only SSG (●)
+// route in the build, which is exactly what broke every /<locale>/products/<id>
+// page. It also prerendered nothing, so it bought no performance either.
+// Sibling routes (/[locale], /[locale]/products) are dynamic and work fine.
+//
+// Caching still happens at the data layer: getProductById() fetches with
+// next: { revalidate: 3600, tags: ['product-<id>'] }, so responses stay cheap
+// and remain tag-invalidatable.
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const { id, locale } = await params
@@ -45,43 +56,73 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const sellerCity = product.seller.city
   const sellerCountry = product.seller.country
   const categoryName = locale === 'zh' ? product.category.name : (product.category.nameEn || product.category.name)
+  // og:image 主图 fallback
+  const ogImage = product.mainImageUrl || (product.images && product.images.length > 0 ? product.images[0] : '')
 
-  const geoKeywords = [sellerCity, sellerCountry, `${sellerCity} manufacturer`, `${sellerCountry} supplier`, `${categoryName} ${sellerCountry}`]
+  // seller.city / seller.country store whatever the seller typed, which is
+  // normally Chinese. Rendering "Xiamen, 中国" inside an English or German
+  // title mixes scripts and weakens that locale's language signal.
+  const localizedCountry = localizeCountry(sellerCountry, locale)
+  const localizedCity = localizeCity(sellerCity, locale)
+
+  // Buyers search the native spelling only in that locale. An English page
+  // whose keywords include "中国" / "佛山" reads as mixed-language spam to
+  // Google, so keep geo keywords in the current locale only.
+  const geoKeywords = [
+    localizedCity,
+    localizedCountry,
+    `${localizedCity} manufacturer`,
+    `${localizedCountry} supplier`,
+    `${categoryName} ${localizedCountry}`,
+  ]
   const baseKeywords = [product.title, categoryName, 'wholesale', 'B2B', 'supplier', 'manufacturer']
   const keywords = [...baseKeywords, ...geoKeywords]
 
   const alternates: Record<string, string> = {}
   const baseUrl = 'https://x2xhub.com'
-  
+
   languages.forEach(lang => {
-    const langPath = lang.code === 'en' 
-      ? `/products/${id}`
-      : `/${lang.code}/products/${id}`
-    alternates[lang.code] = `${baseUrl}${langPath}`
+    // Every locale, including 'en', must carry its prefix. Pointing 'en' at
+    // the unprefixed /products/<id> made the English and German versions
+    // declare the same canonical, so Search Console reported "Duplicate
+    // without user-selected canonical" and left the page unindexed.
+    alternates[lang.code] = `${baseUrl}/${lang.code}/products/${id}`
+  })
+
+  // Root layout appends '| SeaHeart Global | 心海环球' via title.template,
+  // so the brand must not be repeated here.
+  const pageTitle = buildProductTitle({
+    title,
+    city: localizedCity,
+    country: localizedCountry,
+    category: categoryName,
   })
 
   return {
-    title: `${title} - ${sellerCity}, ${sellerCountry} ${categoryName} Supplier | SeaHeart Global`,
-    description: `${description.substring(0, 150)}... - ${title} from ${sellerCity}, ${sellerCountry} manufacturer. Wholesale B2B platform.`,
+    title: pageTitle,
+    description: `${description.substring(0, 150)}... - ${title} from ${localizedCity}, ${localizedCountry} manufacturer. Wholesale B2B platform.`,
     keywords,
     alternates: {
-      canonical: `${baseUrl}/products/${id}`,
+      canonical: `${baseUrl}/${locale}/products/${id}`,
       languages: alternates,
     },
     openGraph: {
-      title: `${title} - ${sellerCity}, ${sellerCountry}`,
+      title: `${title} - ${localizedCity}, ${localizedCountry}`,
       description: `${description.substring(0, 150)}...`,
-      url: `${baseUrl}/products/${id}`,
-      images: [product.mainImageUrl],
+      url: `${baseUrl}/${locale}/products/${id}`,
+      ...(ogImage ? { images: [ogImage] } : {}),
       locale: locale === 'zh' ? 'zh_CN' : `${locale}_${locale.toUpperCase()}`,
     },
     twitter: {
-      title: `${title} - ${sellerCity}, ${sellerCountry}`,
+      title: `${title} - ${localizedCity}, ${localizedCountry}`,
       description: `${description.substring(0, 150)}...`,
     },
     other: {
-      'geo.region': sellerCountry.toUpperCase(),
-      'geo.placename': sellerCity,
+      // Use the localized values so an English page does not ship
+      // geo.region="中国" — that mixed-language signal is exactly what the
+      // SEO audit flagged.
+      'geo.region': localizedCountry.toUpperCase(),
+      'geo.placename': localizedCity,
     },
   }
 }
@@ -105,7 +146,12 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const title = locale === 'zh' ? product.title : (product.titleEn || product.title)
   const categoryName = locale === 'zh' ? product.category.name : (product.category.nameEn || product.category.name)
-  const imageAltText = `${title}, ${categoryName} from ${product.seller.city}, ${product.seller.country} - ${product.seller.companyName}`
+  // Localize city/country so the alt text matches the page language — raw
+  // seller input ("中国", "佛山") on an English page read as mixed-language
+  // spam to Google and confused AI crawlers.
+  const imageAltText = `${title}, ${categoryName} from ${localizeCity(product.seller.city, locale)}, ${localizeCountry(product.seller.country, locale)} - ${product.seller.companyName}`
+  // 主图 fallback：mainImageUrl 为空时，取 images 数组第一张作为主图
+  const mainImage = product.mainImageUrl || (product.images && product.images.length > 0 ? product.images[0] : '')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,18 +181,18 @@ export default async function ProductDetailPage({ params }: Props) {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-lg">
-              {product.mainImageUrl && !product.mainImageUrl.includes('placeholder') ? (
-                product.mainImageUrl.startsWith('/uploads/') ? (
+              {mainImage && !mainImage.includes('placeholder') ? (
+                mainImage.startsWith('/uploads/') ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.mainImageUrl}
+                    src={mainImage}
                     alt={imageAltText}
                     className="w-full h-full object-cover"
                     loading="eager"
                   />
                 ) : (
                 <Image
-                  src={product.mainImageUrl}
+                  src={mainImage}
                   alt={imageAltText}
                   width={800}
                   height={800}
@@ -324,6 +370,51 @@ export default async function ProductDetailPage({ params }: Props) {
               </div>
             )}
 
+            {/* Content Differentiation — buyer decision info (only render fields that have values) */}
+            {product.applications && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{locale === 'zh' ? '应用场景' : 'Applications'}</h2>
+                <p className="text-gray-700 whitespace-pre-line">{product.applications}</p>
+              </div>
+            )}
+            {product.advantages && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{locale === 'zh' ? '产品优势' : 'Product Advantages'}</h2>
+                <p className="text-gray-700 whitespace-pre-line">{product.advantages}</p>
+              </div>
+            )}
+            {product.caseStudy && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{locale === 'zh' ? '客户案例' : 'Case Study'}</h2>
+                <p className="text-gray-700 whitespace-pre-line">{product.caseStudy}</p>
+              </div>
+            )}
+            {product.customServices && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{locale === 'zh' ? '定制服务' : 'Custom Services'}</h2>
+                <p className="text-gray-700 whitespace-pre-line">{product.customServices}</p>
+              </div>
+            )}
+            {(product.targetMarket || product.certifications || product.deliveryTime || product.packaging) && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{locale === 'zh' ? '贸易信息' : 'Trade Information'}</h2>
+                <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
+                  {product.targetMarket && (
+                    <div className="px-4 py-3 flex justify-between"><span className="text-gray-600">{locale === 'zh' ? '目标市场' : 'Target Market'}</span><span className="font-medium text-gray-900">{product.targetMarket}</span></div>
+                  )}
+                  {product.certifications && (
+                    <div className="px-4 py-3 flex justify-between"><span className="text-gray-600">{locale === 'zh' ? '认证' : 'Certifications'}</span><span className="font-medium text-gray-900">{product.certifications}</span></div>
+                  )}
+                  {product.deliveryTime && (
+                    <div className="px-4 py-3 flex justify-between"><span className="text-gray-600">{locale === 'zh' ? '交期' : 'Delivery Time'}</span><span className="font-medium text-gray-900">{product.deliveryTime}</span></div>
+                  )}
+                  {product.packaging && (
+                    <div className="px-4 py-3 flex justify-between"><span className="text-gray-600">{locale === 'zh' ? '包装' : 'Packaging'}</span><span className="font-medium text-gray-900">{product.packaging}</span></div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Order Info */}
             <div className="bg-blue-50 rounded-lg p-4 space-y-2">
               {product.minOrderQty && (
@@ -353,33 +444,94 @@ export default async function ProductDetailPage({ params }: Props) {
                 {locale === 'zh' ? '供应商信息' : 'Seller Information'}
               </h3>
               <div className="space-y-2">
-                <p className="text-lg font-medium text-gray-900">
-                  {product.seller.companyName}
-                </p>
-                <p className="text-gray-600">
-                  {product.seller.city}, {product.seller.country}
-                </p>
-                {product.seller.email && (
-                  <a 
-                    href={`mailto:${product.seller.email}`}
-                    className="text-blue-600 hover:text-blue-700"
+                {product.seller.storeSlug ? (
+                  <Link
+                    href={`/${product.seller.storeSlug}`}
+                    className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors underline-offset-2 hover:underline"
                   >
-                    {product.seller.email}
-                  </a>
+                    {product.seller.companyName}
+                  </Link>
+                ) : (
+                  <p className="text-lg font-medium text-gray-900">
+                    {product.seller.companyName}
+                  </p>
+                )}
+                <p className="text-gray-600">
+                  {localizeCity(product.seller.city, locale)}, {localizeCountry(product.seller.country, locale)}
+                </p>
+                {(() => {
+                  const emails: string[] = []
+                  if (product.seller.email?.trim()) emails.push(product.seller.email.trim())
+                  if (Array.isArray((product.seller as any).emails)) {
+                    for (const v of (product.seller as any).emails as string[]) {
+                      if (typeof v === 'string' && v.trim() && !emails.includes(v.trim())) emails.push(v.trim())
+                    }
+                  }
+                  return emails.map((v, i) => (
+                    <a
+                      key={`p-email-${i}`}
+                      href={`mailto:${v}`}
+                      className="block text-blue-600 hover:text-blue-700 break-all"
+                    >
+                      {v}
+                    </a>
+                  ))
+                })()}
+
+                {/* Instant Messaging contacts (only render if any has a value) */}
+                {(product.seller.whatsapp || product.seller.wechat || product.seller.telegram || product.seller.qq || product.seller.zangi) && (
+                  <div className="pt-2 mt-1 border-t border-gray-100">
+                    <div className="text-xs text-gray-500 mb-1.5">
+                      {locale === 'zh' ? '即时通讯' : 'Instant Messaging'}
+                    </div>
+                    <div className="space-y-1">
+                      {product.seller.whatsapp && (
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span className="w-20 text-gray-400">WhatsApp</span>
+                          <span className="font-medium break-all">{product.seller.whatsapp}</span>
+                        </div>
+                      )}
+                      {product.seller.wechat && (
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span className="w-20 text-gray-400">{locale === 'zh' ? '微信' : 'WeChat'}</span>
+                          <span className="font-medium break-all">{product.seller.wechat}</span>
+                        </div>
+                      )}
+                      {product.seller.telegram && (
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span className="w-20 text-gray-400">Telegram</span>
+                          <span className="font-medium break-all">{product.seller.telegram}</span>
+                        </div>
+                      )}
+                      {product.seller.qq && (
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span className="w-20 text-gray-400">QQ</span>
+                          <span className="font-medium break-all">{product.seller.qq}</span>
+                        </div>
+                      )}
+                      {product.seller.zangi && (
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span className="w-20 text-gray-400">Zangi</span>
+                          <span className="font-medium break-all">{product.seller.zangi}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 mr-2" />
-                {locale === 'zh' ? '立即询盘' : 'Send Inquiry'}
-              </button>
+              <InquiryModal
+                productId={product.id}
+                sellerId={product.seller.id}
+                productTitle={product.title}
+                locale={locale}
+              />
               {product.brochure && (
                 <a
-                  href={product.brochure.fileName}
-                  download
+                  href={`/api/brochures/${product.brochure.id}/download`}
                   className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center"
                 >
                   <Download className="w-5 h-5 mr-2" />

@@ -72,14 +72,19 @@ const nextConfig: NextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    // Disable ISR stale cache - must serve fresh pages always
+    // staleTimes:0 forced Next to emit `vary: rsc, next-router-state-tree, ...`
+    // on every response, which Cloudflare treats as "different for every
+    // visitor" and refuses to edge-cache (cf-cache-status: DYNAMIC on all
+    // HTML). Allowing Next.js's router cache again means public pages can
+    // be cached at the edge without breaking client-side navigation.
+    // The per-route `revalidate` exports still control actual freshness.
     staleTimes: {
-      dynamic: 0,
-      static: 0,
+      dynamic: 30,
+      static: 180,
     },
     
     // Optimize package imports
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     
     // Enable scroll behavior for navigation
     scrollRestoration: true,
@@ -205,8 +210,13 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Locale-prefixed public SEO pages. The bare-path rules below were a
+      // no-op because every public URL starts with /{locale}/ — Next.js header
+      // sources are literal, not locale-aware. Use a regex path to cover all
+      // supported locales in one rule. 1h edge + 24h SWR is the right cadence
+      // for product/exhibition/store listings; detail pages rarely change.
       {
-        source: '/products',
+        source: '/:locale(en|zh|de|fr|es|pt|ru|ja|ko|ar|hi|th|vi)/products/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -215,7 +225,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/products/:path*',
+        source: '/:locale(en|zh|de|fr|es|pt|ru|ja|ko|ar|hi|th|vi)/exhibitions/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -224,7 +234,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/exhibitions',
+        source: '/:locale(en|zh|de|fr|es|pt|ru|ja|ko|ar|hi|th|vi)/stores/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -233,23 +243,25 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/exhibitions/:path*',
+        source: '/:locale(en|zh|de|fr|es|pt|ru|ja|ko|ar|hi|th|vi)/auction-screen/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+            value: 'public, s-maxage=600, stale-while-revalidate=3600',
           },
         ],
       },
+      // Locale homepages — shorter edge TTL so announcements land within 10 min.
       {
-        source: '/stores/:path*',
+        source: '/:locale(en|zh|de|fr|es|pt|ru|ja|ko|ar|hi|th|vi)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+            value: 'public, s-maxage=600, stale-while-revalidate=86400',
           },
         ],
       },
+
       {
         source: '/uploads/:path*',
         headers: [

@@ -8,6 +8,7 @@ import { storeUrl } from '@/lib/store-slug'
 import StoresSearchBar from '@/components/stores/StoresSearchBar'
 import { languages } from '@/lib/languages'
 import type { LanguageCode } from '@/lib/languages'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>
@@ -20,7 +21,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params
   const isEn = locale === 'en'
 
-  const title = 'Verified Suppliers & Manufacturers | SeaHeart Global'
+  // Brand suffix comes from the root layout title.template — adding it here
+  // produced the doubled-brand title GSC flagged.
+  const title = 'Verified Suppliers & Manufacturers'
   const description = isEn
     ? 'Browse verified global suppliers, manufacturers and exporters. Connect with trusted B2B partners across 13+ languages and 100+ product categories.'
     : '浏览全球认证供应商、制造商和出口商。连接可信赖的 B2B 合作伙伴，覆盖 13+ 语言与 100+ 产品品类。'
@@ -173,7 +176,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
                     {/* Location */}
                     <div className="flex items-center text-sm text-gray-600 mb-3">
                       <MapPin className="w-4 h-4 mr-1" />
-                      {seller.city}, {seller.country}
+                      {localizeCity(seller.city, locale)}, {localizeCountry(seller.country, locale)}
                     </div>
 
                     {/* Description Preview */}

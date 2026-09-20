@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import BoothFilterBar from '@/components/exhibition/BoothFilterBar'
 import Pagination from '@/components/exhibition/Pagination'
 import { buildAlternates } from '@/lib/hreflang'
+import { localizeCountry, localizeCity } from '@/lib/seo-title'
 
 type Props = { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }
 
@@ -246,8 +247,8 @@ export default async function ExhibitionsPage({ params, searchParams }: Props) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {booths.map(b => {
-              const city = (b.seller?.city as string | undefined) || ''
-              const country = (b.seller?.country as string | undefined) || ''
+              const city = localizeCity((b.seller?.city as string | undefined) || '', locale)
+              const country = localizeCountry((b.seller?.country as string | undefined) || '', locale)
               const location = [b.location, city, country].filter(Boolean)[0] || '—'
               const company = b.seller?.companyName || ''
               const exhibitionName = b.exhibitionName || b.name || 'Company Virtual Booth'
