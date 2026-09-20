@@ -22,14 +22,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
+  const baseUrl = 'https://x2xhub.com'
+  const languages = ['en','zh','es','fr','de','ja','ko','ar','ru','pt','hi','th','vi']
+  const alternates: Record<string, string> = {}
+  languages.forEach(l => { alternates[l] = `${baseUrl}/${l}/blog/${blog.slug}` })
+
   return {
     title: locale === 'zh' ? blog.seoTitle || blog.title : (blog.seoTitleEn || blog.titleEn || blog.title),
     description: locale === 'zh' ? blog.seoDescription || blog.excerpt : (blog.seoDescriptionEn || blog.excerptEn || blog.excerpt),
     keywords: blog.seoKeywords.length > 0 ? blog.seoKeywords : ['blog', 'news'],
+    alternates: {
+      canonical: `${baseUrl}/${locale}/blog/${blog.slug}`,
+      languages: alternates,
+    },
     openGraph: {
       title: locale === 'zh' ? blog.title : (blog.titleEn || blog.title),
       description: locale === 'zh' ? blog.excerpt : (blog.excerptEn || blog.excerpt),
       images: blog.featuredImage ? [blog.featuredImage] : [],
+      type: 'article',
+      publishedTime: blog.createdAt.toISOString(),
+      modifiedTime: blog.updatedAt.toISOString(),
+      url: `${baseUrl}/${locale}/blog/${blog.slug}`,
     },
   }
 }
@@ -69,8 +82,48 @@ export default async function BlogDetailPage({ params }: Props) {
     OTHER: locale === 'zh' ? '其他' : 'Other',
   }
 
+  // Article structured data. Blog posts are the platform's main organic
+  // landing content, and Google / AI answer engines need schema.org/Article
+  // (with author, dates, and image) to surface them as rich results.
+  const baseUrl = 'https://x2xhub.com'
+  const articleTitle = locale === 'zh' ? blog.title : (blog.titleEn || blog.title)
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: articleTitle,
+    description: (locale === 'zh' ? blog.excerpt : (blog.excerptEn || blog.excerpt)) || articleTitle,
+    image: blog.featuredImage ? [blog.featuredImage] : undefined,
+    datePublished: blog.createdAt.toISOString(),
+    dateModified: blog.updatedAt.toISOString(),
+    inLanguage: locale,
+    author: {
+      '@type': 'Organization',
+      name: blog.author.displayName || 'SeaHeart Global',
+      url: `${baseUrl}/${locale}/blog`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'SeaHeart Global',
+      url: baseUrl,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${baseUrl}/${locale}/blog/${blog.slug}`,
+    },
+    keywords: blog.tags.join(', '),
+    articleSection: categoryNames[blog.category] || blog.category,
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       {/* Featured Image */}
       {blog.featuredImage && (
         <div className="relative h-72 md:h-96 overflow-hidden">
