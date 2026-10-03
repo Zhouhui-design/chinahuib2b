@@ -169,6 +169,9 @@ export function generateOrganizationSchemaFull(): Record<string, unknown> {
     },
     description: 'Multi-language online B2B trade exhibition platform connecting verified suppliers with global buyers.',
     email: 'contact@x2xhub.com',
+    // Only real, owned official profiles. Add X/YouTube/LinkedIn/etc. here
+    // once the exact URLs are confirmed — never guess slugs.
+    sameAs: ['https://whatsapp.com/channel/0029Vb8ooT3CnA7n2NYU5v3F'],
     areaServed: {
       '@type': 'GeoArea',
       name: 'Global',
