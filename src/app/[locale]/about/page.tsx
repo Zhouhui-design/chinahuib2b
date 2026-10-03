@@ -1,44 +1,80 @@
-'use client';
-
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { LanguageCode } from '@/lib/languages';
-import { getDictionary } from '@/locales/dictionary';
+import { prisma } from '@/lib/db';
 import { Building2, Users, Globe, Award, Target, Rocket, TrendingUp, Shield } from 'lucide-react';
 
-export default function AboutPage() {
-  const params = useParams();
-  const locale = (params['locale'] as LanguageCode) || 'en';
-  const [dict, setDict] = useState<Record<string, any> | null>(null);
+// Counts are cheap and change as exhibitors join; revalidate hourly so the
+// page stays statically served while numbers never drift far from reality.
+export const revalidate = 3600;
 
-  useEffect(() => {
-    const fetchDict = async () => {
-      const dictionary = await getDictionary(locale);
-      setDict(dictionary);
-    };
-    fetchDict();
-  }, [locale]);
+interface LiveStats {
+  exhibitors: number;
+  products: number;
+  countries: number;
+}
 
-  if (!dict) return null;
+// Real, auditable figures only. Never invent marketing numbers here —
+// AI engines quote these verbatim and users can check them against the
+// public exhibition listing.
+async function getLiveStats(): Promise<LiveStats> {
+  try {
+    const [exhibitors, products, sellers] = await Promise.all([
+      prisma.booth.count({ where: { isActive: true, isPublished: true } }),
+      prisma.product.count({ where: { isActive: true } }),
+      prisma.sellerProfile.findMany({
+        where: { booths: { some: { isActive: true, isPublished: true } } },
+        select: { country: true },
+        distinct: ['country'],
+      }),
+    ]);
+    const countries = new Set(
+      sellers.map((s) => s.country?.trim()).filter((c): c is string => !!c)
+    ).size;
+    return { exhibitors, products, countries };
+  } catch {
+    // DB must not take the About page down; language stat is static.
+    return { exhibitors: 0, products: 0, countries: 0 };
+  }
+}
 
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale as LanguageCode;
   const isZh = locale === 'zh';
 
+  const live = await getLiveStats();
+
   const features = [
-    { icon: Globe, title: isZh ? '全球覆盖' : 'Global Reach', desc: isZh ? '覆盖全球100+国家和地区的买家和卖家' : 'Connecting buyers and sellers across 100+ countries' },
+    { icon: Globe, title: isZh ? '全球在线展馆' : 'Global Online Exhibition', desc: isZh ? '一个全天候开放的在线展馆，连接全球买家与供应商，无需出差即可看展选品' : 'One always-online exhibition hall connecting buyers and suppliers worldwide — visit and source without travel' },
     { icon: Shield, title: isZh ? '安全交易' : 'Secure Transactions', desc: isZh ? '完善的贸易保障机制，确保每笔交易安全' : 'Comprehensive trade protection for every transaction' },
     { icon: Users, title: isZh ? '认证会员' : 'Verified Members', desc: isZh ? '所有卖家经过严格认证，确保真实可靠' : 'All sellers are rigorously verified for authenticity' },
-    { icon: Award, title: isZh ? '专业服务' : 'Professional Service', desc: isZh ? '24/7多语言客户支持，专业团队护航' : '24/7 multilingual customer support' },
+    { icon: Award, title: isZh ? '专业服务' : 'Professional Service', desc: isZh ? '多语言客户支持，专业团队护航' : 'Multilingual customer support from a professional team' },
     { icon: Target, title: isZh ? '精准匹配' : 'Precise Matching', desc: isZh ? '智能算法帮助买家快速找到合适的供应商' : 'Smart algorithms match buyers with the right suppliers' },
     { icon: Rocket, title: isZh ? '创新技术' : 'Innovative Technology', desc: isZh ? 'AI驱动的贸易解决方案，引领行业未来' : 'AI-powered trade solutions for the future' },
   ];
 
   const stats = [
-    { value: '50K+', label: isZh ? '全球企业' : 'Global Companies' },
-    { value: '100+', label: isZh ? '覆盖国家' : 'Countries Covered' },
-    { value: '1M+', label: isZh ? '贸易询盘' : 'Trade Inquiries' },
-    { value: '98%', label: isZh ? '客户满意度' : 'Client Satisfaction' },
+    ...(live.exhibitors > 0
+      ? [{ value: String(live.exhibitors), label: isZh ? '已验证参展商' : 'Verified Exhibitors' }]
+      : []),
+    ...(live.products > 0
+      ? [{ value: String(live.products), label: isZh ? '在展产品' : 'Products Online' }]
+      : []),
+    ...(live.countries > 0
+      ? [{ value: String(live.countries), label: isZh ? '供应商所在国家/地区' : 'Supplier Countries' }]
+      : []),
+    { value: '13', label: isZh ? '界面语言' : 'Interface Languages' },
   ];
+
+  const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+  const storyToday = isZh
+    ? `今天，SeaHeart Global（心海环球，x2xhub.com）运营着一个全天候开放的 B2B 在线展馆：来自 ${live.countries} 个国家/地区的 ${live.exhibitors} 家已验证参展商在此展出 ${live.products} 款产品，平台界面支持 13 种语言，买家可随时看展、选品、联系供应商。`
+    : `Today, SeaHeart Global (x2xhub.com) runs an always-online B2B exhibition hall: ${pl(live.exhibitors, 'verified exhibitor')} from ${pl(live.countries, 'country')} present ${pl(live.products, 'product')}, the interface works in 13 languages, and buyers can visit, source and contact suppliers at any time.`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,17 +82,17 @@ export default function AboutPage() {
       <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            {isZh ? '关于 SeaHeart Global（心海环球）' : 'About SeaHeart Global（心海环球）'}
+            {isZh ? '关于 SeaHeart Global（心海环球）' : 'About SeaHeart Global (x2xhub.com)'}
           </h1>
           <p className="text-xl md:text-2xl mb-4 opacity-90 max-w-3xl mx-auto">
             {isZh
               ? '我们致力于打造全球领先的B2B跨境贸易展览平台，连接世界，促进贸易。'
-              : 'We are committed to building the world\'s leading B2B cross-border trade exhibition platform, connecting the world and facilitating trade.'}
+              : 'We are building a B2B cross-border trade exhibition platform that connects buyers with verified suppliers — online, in 13 languages, around the clock.'}
           </p>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section — live figures from the platform database */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -80,18 +116,16 @@ export default function AboutPage() {
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {isZh
-                  ? 'SeaHeart Global 诞生于一个简单的想法：世界应该更小，贸易应该更简单。我们的创始人看到了传统贸易展会的局限性——成本高、效率低、覆盖面有限。'
-                  : 'SeaHeart Global was born from a simple idea: the world should be smaller, and trade should be simpler. Our founders saw the limitations of traditional trade shows — high costs, low efficiency, limited reach.'}
+                  ? 'SeaHeart Global 诞生于一个简单的想法：世界应该更小，贸易应该更简单。传统贸易展会成本高、效率低、覆盖面有限，大量优质供应商负担不起参展费用。'
+                  : 'SeaHeart Global was born from a simple idea: the world should be smaller, and trade should be simpler. Traditional trade shows are expensive, inefficient and limited in reach — many quality suppliers cannot afford to exhibit at all.'}
               </p>
               <p className="text-gray-600 leading-relaxed mb-4">
                 {isZh
-                  ? '我们利用互联网技术和AI创新，创建了一个全新的B2B跨境贸易平台。现在，来自全球的买家和卖家可以随时随地进行贸易，不再受限于地理位置和时间。'
-                  : 'Leveraging internet technology and AI innovation, we created a new B2B cross-border trade platform. Now, buyers and sellers from around the world can trade anytime, anywhere, without being limited by geography or time.'}
+                  ? '我们利用互联网技术和AI创新，创建了一个全新的B2B跨境贸易平台。来自全球的买家和卖家可以随时随地进行贸易，不再受限于地理位置和时间。'
+                  : 'Using internet technology and AI, we built a B2B cross-border trade platform where buyers and sellers can trade anytime, anywhere, without being limited by geography or time.'}
               </p>
               <p className="text-gray-600 leading-relaxed">
-                {isZh
-                  ? '从2024年成立至今，我们已经成长为全球领先的B2B贸易平台，服务来自100多个国家的50,000多家企业。'
-                  : 'Since our founding in 2024, we have grown into a leading global B2B trade platform, serving over 50,000 companies from more than 100 countries.'}
+                {storyToday}
               </p>
             </div>
             <div className="flex justify-center">
