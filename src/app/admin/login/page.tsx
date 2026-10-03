@@ -56,13 +56,13 @@ function AdminLoginForm() {
     }
   }
 
-  // 步骤2：验证40位验证码
+  // 步骤2：验证6位验证码
   const handleStep2 = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (formData.verificationCode.trim().length !== 40) {
-      setError('验证码必须是40位字符')
+    if (formData.verificationCode.trim().length !== 6) {
+      setError('验证码必须是6位数字')
       return
     }
 
@@ -187,7 +187,7 @@ function AdminLoginForm() {
           </form>
         )}
 
-        {/* 步骤2：输入40位验证码 */}
+        {/* 步骤2：输入6位验证码 */}
         {step === 2 && (
           <form className="mt-8 space-y-6" onSubmit={handleStep2}>
             {error && (
@@ -201,7 +201,7 @@ function AdminLoginForm() {
                 <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-blue-800 font-medium">
-                    请输入邮箱收到的40位验证码
+                    请输入邮箱收到的6位数字验证码
                   </p>
                   <p className="text-xs text-blue-600 mt-1">
                     验证码有效期为10分钟，请从邮箱复制后粘贴到下方
@@ -211,20 +211,22 @@ function AdminLoginForm() {
             </div>
 
             <div>
-              <label htmlFor="verificationCode" className="sr-only">40位验证码</label>
+              <label htmlFor="verificationCode" className="sr-only">6位数字验证码</label>
               <textarea
                 id="verificationCode"
                 name="verificationCode"
                 required
-                rows={3}
+                rows={1}
+                inputMode="numeric"
+                maxLength={6}
                 className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-mono"
-                placeholder="在此粘贴40位验证码..."
+                placeholder="在此粘贴6位数字验证码..."
                 value={formData.verificationCode}
-                onChange={(e) => setFormData({ ...formData, verificationCode: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, verificationCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                 style={{ fontFamily: 'monospace', fontSize: '14px', letterSpacing: '0.5px' }}
               />
               <p className="mt-1 text-xs text-gray-500 text-right">
-                {formData.verificationCode.trim().length} / 40 字符
+                {formData.verificationCode.trim().length} / 6 数字
               </p>
             </div>
 
@@ -240,7 +242,7 @@ function AdminLoginForm() {
               </button>
               <button
                 type="submit"
-                disabled={loading || formData.verificationCode.trim().length !== 40}
+                disabled={loading || formData.verificationCode.trim().length !== 6}
                 className="flex-1 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {loading ? '验证中...' : '验证并登录'}

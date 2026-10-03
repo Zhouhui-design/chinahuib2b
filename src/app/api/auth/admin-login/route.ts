@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import crypto from "crypto"
 import { prisma } from "@/lib/db"
 import { redis } from "@/lib/redis"
 import { sendEmail } from "@/lib/email-service"
@@ -11,20 +12,20 @@ const DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 const now = () => (Date.now() / 1000) | 0
 
 // === 配置 ===
-const CODE_LENGTH = 40                // 验证码长度
+const CODE_LENGTH = 6                 // 验证码长度（纯数字）
 const CODE_EXPIRY = 600               // 验证码有效期：10分钟
 const MAX_VERIFY_ATTEMPTS = 5         // 最大验证尝试次数
 const RATE_LIMIT_WINDOW = 60          // 速率限制窗口：60秒
 const RATE_LIMIT_MAX = 3              // 每窗口最大请求次数
 
 /**
- * 生成40位随机验证码（字母+数字）
+ * 生成6位随机数字验证码（加密安全随机数）
+ * 纯数字，与手机验证码一致，无易混淆字符、无单位缩写干扰
  */
 function generateVerificationCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let code = ''
   for (let i = 0; i < CODE_LENGTH; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
+    code += crypto.randomInt(0, 10).toString()
   }
   return code
 }
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // 生成40位验证码
+      // 生成6位数字验证码
       const code = generateVerificationCode()
 
       // 存储到Redis，10分钟过期
@@ -165,12 +166,12 @@ export async function POST(request: NextRequest) {
       const emailResult = await sendEmail(
         user.email,
         '管理员登录验证码 - 心海环球 SeaHeart Global',
-        `您正在登录管理员后台。\n\n您的验证码（40位）：\n${code}\n\n验证码有效期为10分钟，请尽快使用。\n\n如果不是您本人操作，请忽略此邮件。\n\n心海环球 SeaHeart Global`,
+        `您正在登录管理员后台。\n\n您的验证码（6位数字）：\n${code}\n\n验证码有效期为10分钟，请尽快使用。\n\n如果不是您本人操作，请忽略此邮件。\n\n心海环球 SeaHeart Global`,
         `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #2563eb;">管理员登录验证码</h2>
           <p>您正在登录心海环球管理员后台。</p>
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">您的验证码（40位）：</p>
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">您的验证码（6位数字）：</p>
             <p style="margin: 8px 0; font-size: 18px; font-family: monospace; word-break: break-all; color: #1f2937; font-weight: bold;">${code}</p>
           </div>
           <p style="color: #ef4444; font-size: 14px;">⚠️ 验证码有效期为10分钟，请尽快使用。</p>
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
     }
 
     // =========================================================
-    // 步骤2：验证40位验证码，创建会话
+    // 步骤2：验证6位验证码，创建会话
     // =========================================================
     if (step === 2) {
       if (!challengeId || !verificationCode) {

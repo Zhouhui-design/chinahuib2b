@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { resolveUserId } from '@/lib/chat-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { notifySellerNewMessage } from '@/lib/email-service'
 
 // Get private messages with a user - GET /api/chat/private/[userId]
 export async function GET(
@@ -196,6 +197,26 @@ export async function POST(
         },
       },
     })
+
+    // 需求1：异步同步邮件通知卖家（仅当卖家邮箱格式正确；不阻塞响应）
+    // 拉取接收者邮箱 + 双方显示名
+    ;(async () => {
+      try {
+        const [receiverUser, senderUser] = await Promise.all([
+          db.user.findUnique({ where: { id: receiverId }, select: { email: true, displayName: true, username: true } }),
+          db.user.findUnique({ where: { id: userId }, select: { displayName: true, username: true } }),
+        ])
+        await notifySellerNewMessage({
+          sellerUserId: receiverId,
+          sellerEmail: receiverUser?.email,
+          sellerName: receiverUser?.displayName || receiverUser?.username,
+          buyerName: senderUser?.displayName || senderUser?.username,
+          content: content.trim(),
+        })
+      } catch (e) {
+        console.warn('[private-chat] email notify error:', e instanceof Error ? e.message : String(e))
+      }
+    })()
 
     return NextResponse.json({
       success: true,

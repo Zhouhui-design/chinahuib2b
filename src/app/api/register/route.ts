@@ -3,14 +3,21 @@ import { prisma } from "@/lib/db"
 import { generateUniqueStoreSlug } from "@/services/sellerService"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
-import { checkPasswordBreach, getPasswordStrength } from "@/lib/password-security"
+import { checkPasswordBreach } from "@/lib/password-security"
 
 
+// Email is optional: users can register with username only.
+// When email is missing we store a unique placeholder so the NOT NULL
+// constraint is satisfied and the user can add a real email later.
 const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  username: z.string(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().optional(),
+  username: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["BUYER", "SELLER", "BOTH"]).optional().default("BUYER"),
+})
+.refine((d) => (d.email && d.email.trim().length > 0) || (d.username && d.username.trim().length > 0), {
+  message: "Username and email cannot both be empty. Please fill in at least one.",
+  path: ["email"],
 })
 
 function validateUsername(username: string): { valid: boolean; error?: string } {
@@ -22,9 +29,9 @@ function validateUsername(username: string): { valid: boolean; error?: string } 
     return { valid: false, error: "Username cannot be empty" }
   }
   
-  // Check length (1-20 characters)
-  if (trimmed.length < 1 || trimmed.length > 20) {
-    return { valid: false, error: "Username must be 1-20 characters long" }
+  // Check length (1-50 characters)
+  if (trimmed.length < 1 || trimmed.length > 50) {
+    return { valid: false, error: "Username must be 1-50 characters long" }
   }
   
   // Single character cannot be a space
@@ -65,29 +72,83 @@ export async function POST(request: NextRequest) {
     // Database UserRole enum doesn't include BOTH
     const dbRole = role === 'BOTH' ? 'SELLER' : role
 
+    // ----- Username: derive from email when missing -----
+    let cleanedUsername = (username || '').trimEnd()
+    if (!cleanedUsername && email && email.trim()) {
+      // Use email local-part as the initial username
+      cleanedUsername = email.split('@')[0].slice(0, 50)
+    }
+
     // Validate username with custom rules
-    const usernameValidation = validateUsername(username)
+    const usernameValidation = validateUsername(cleanedUsername)
     if (!usernameValidation.valid) {
       return NextResponse.json(
         { error: usernameValidation.error },
         { status: 400 }
       )
     }
-    
-    // Clean username: trim trailing spaces only
-    const cleanedUsername = username.trimEnd()
-    
-    const normalizedEmail = email.toLowerCase().trim()
 
-    // Check existing username with cleaned version
-    const existingEmail = await prisma.user.findFirst({
-      where: { email: normalizedEmail }
-    })
+    // ----- Email: use placeholder when missing -----
+    // normalizedEmail is either the real email, or a unique placeholder built
+    // from the username so the NOT NULL constraint holds. Placeholders use a
+    // reserved .local domain so they are never deliverable.
+    let normalizedEmail = (email || '').toLowerCase().trim()
+    let usedPlaceholderEmail = false
+    if (normalizedEmail) {
+      // Validate real email format
+      const emailCheck = z.string().email().safeParse(normalizedEmail)
+      if (!emailCheck.success) {
+        return NextResponse.json(
+          { error: "Invalid email address", details: [{ message: "Please enter a valid email address." }] },
+          { status: 400 }
+        )
+      }
+    } else {
+      // Sanitize username into an email-safe local part
+      const local = cleanedUsername.toLowerCase().replace(/[^a-z0-9._-]/g, '_') || 'user'
+      normalizedEmail = `${local}@no-email.x2xhub.local`
+      usedPlaceholderEmail = true
+    }
+
+    // Ensure the placeholder email is unique (append counter if needed)
+    if (usedPlaceholderEmail) {
+      let candidate = normalizedEmail
+      let n = 1
+      // eslint-disable-next-line no-await-in-loop
+      while (await prisma.user.findFirst({ where: { email: candidate } })) {
+        const local = cleanedUsername.toLowerCase().replace(/[^a-z0-9._-]/g, '_') || 'user'
+        candidate = `${local}${n}@no-email.x2xhub.local`
+        n += 1
+      }
+      normalizedEmail = candidate
+    }
+
+    // Check existing email only when a real email was provided
+    const existingEmail = usedPlaceholderEmail
+      ? null
+      : await prisma.user.findFirst({
+          where: { email: normalizedEmail }
+        })
     
-    const existingUsername = await prisma.user.findFirst({
+    let existingUsername = await prisma.user.findFirst({
       where: { username: cleanedUsername }
     })
-    
+
+    // If the username was auto-derived from the email (user left it blank),
+    // make it unique by appending a counter instead of erroring out.
+    const usernameWasDerived = !(username && username.trim())
+    if (existingUsername && usernameWasDerived) {
+      let candidate = cleanedUsername
+      let n = 1
+      // eslint-disable-next-line no-await-in-loop
+      while (await prisma.user.findFirst({ where: { username: candidate } })) {
+        candidate = `${cleanedUsername}${n}`.slice(0, 50)
+        n += 1
+      }
+      cleanedUsername = candidate
+      existingUsername = null
+    }
+
     if (existingEmail && existingUsername) {
       return NextResponse.json(
         { 
@@ -114,31 +175,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check password breach (warn only, don't block)
+    // Password policy: keep it user-friendly. We do NOT block on strength or
+    // breach status — only surface a non-blocking warning. Minimum length (>=6)
+    // is enforced by the schema. Let users choose simple passwords if they want.
     const breachCheck = await checkPasswordBreach(password)
-    const passwordWarning = breachCheck.isBreached 
-      ? `Warning: This password has been exposed in ${breachCheck.count.toLocaleString()} data breaches. Consider choosing a more secure password.`
+    const passwordWarning = breachCheck.isBreached
+      ? `Note: This password has appeared in data breaches. You may keep it, but a stronger password is safer.`
       : null
-
-    // Check password strength
-    const strength = getPasswordStrength(password)
-    if (strength.score < 40) {
-      const feedbackMessages = []
-      if (strength.feedback?.suggestions) {
-        feedbackMessages.push(...strength.feedback.suggestions)
-      }
-      if (strength.feedback?.warning) {
-        feedbackMessages.push(strength.feedback.warning)
-      }
-      return NextResponse.json(
-        {
-          error: "Password is too weak",
-          details: feedbackMessages.map(msg => ({ message: msg })),
-          strength: strength.level
-        },
-        { status: 400 }
-      )
-    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)

@@ -44,7 +44,7 @@ function ResetPasswordForm() {
     resetting: locale === 'zh' ? '重置中...' : 'Resetting...',
     backToLogin: locale === 'zh' ? '返回登录' : 'Back to Login',
     passwordMismatch: locale === 'zh' ? '两次输入的密码不一致' : 'Passwords do not match',
-    passwordTooShort: locale === 'zh' ? '密码至少需要8个字符' : 'Password must be at least 8 characters',
+    passwordTooShort: locale === 'zh' ? '密码至少需要6个字符' : 'Password must be at least 6 characters',
     invalidToken: locale === 'zh' ? '无效或已过期的重置链接' : 'Invalid or expired reset link',
     successMessage: locale === 'zh' ? '密码重置成功！正在跳转到登录页面...' : 'Password reset successfully! Redirecting to login...'
   }
@@ -67,7 +67,7 @@ function ResetPasswordForm() {
       return
     }
 
-    if (formData.password.length < 8) {
+    if (formData.password.length < 6) {
       setError(t.passwordTooShort)
       return
     }

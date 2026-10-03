@@ -7,6 +7,17 @@ import type { Session } from 'next-auth'
 
 type SessionStatus = 'authenticated' | 'loading' | 'unauthenticated'
 
+// 游客身份：localStorage 持久 guestKey
+function getOrCreateGuestKey(): string {
+  if (typeof window === 'undefined') return ''
+  let key = window.localStorage.getItem('x2x_guest_key')
+  if (!key) {
+    key = 'g_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+    window.localStorage.setItem('x2x_guest_key', key)
+  }
+  return key
+}
+
 interface ChatWidgetProps {
   sellerId: string
   sellerUserId?: string
@@ -237,15 +248,7 @@ export default function ChatWidget({
   }
 
   if (sessionStatus === 'unauthenticated') {
-    return (
-      <button
-        onClick={() => window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
-        title="Login to chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
-    )
+    return <GuestChatWidget sellerId={sellerId} openSignal={openSignal} />
   }
 
   // Self-chat mode: seller viewing own store
@@ -405,6 +408,198 @@ export default function ChatWidget({
                     ) : (
                       <Send className="w-5 h-5" />
                     )}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+// ---- 需求2：游客（未登录）免登录聊天气泡 ----
+interface GuestChatWidgetProps {
+  sellerId: string
+  openSignal?: number
+}
+
+interface GuestMessageItem {
+  id: string
+  content: string
+  createdAt: string
+}
+
+function GuestChatWidget({ sellerId, openSignal }: GuestChatWidgetProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [messages, setMessages] = useState<GuestMessageItem[]>([])
+  const [newMessage, setNewMessage] = useState('')
+  const [guestKey, setGuestKey] = useState('')
+  const [senderName, setSenderName] = useState('')
+  const [senderContact, setSenderContact] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setGuestKey(getOrCreateGuestKey())
+    setSenderName(window.localStorage.getItem('x2x_guest_name') || '')
+    setSenderContact(window.localStorage.getItem('x2x_guest_contact') || '')
+  }, [])
+
+  useEffect(() => {
+    if (openSignal !== undefined && openSignal > 0) {
+      setIsOpen(true)
+      setIsMinimized(false)
+    }
+  }, [openSignal])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const fetchMessages = useCallback(async () => {
+    if (!guestKey || !isOpen) return
+    try {
+      const res = await fetch(`/api/chat/guest/${sellerId}?guestKey=${encodeURIComponent(guestKey)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data?.success && data?.data?.messages) {
+        setMessages(data.data.messages)
+      }
+    } catch {}
+  }, [guestKey, isOpen, sellerId])
+
+  useEffect(() => {
+    if (!isOpen || !guestKey) return
+    setIsLoading(true)
+    fetchMessages().finally(() => setIsLoading(false))
+    const t = setInterval(fetchMessages, 4000)
+    return () => clearInterval(t)
+  }, [isOpen, guestKey, fetchMessages])
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || isSending || !guestKey) return
+    const content = newMessage.trim()
+    setIsSending(true)
+    setNewMessage('')
+    // 记住游客信息（可选）
+    if (senderName) window.localStorage.setItem('x2x_guest_name', senderName)
+    if (senderContact) window.localStorage.setItem('x2x_guest_contact', senderContact)
+    try {
+      const res = await fetch(`/api/chat/guest/${sellerId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, guestKey, senderName, senderContact }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await fetchMessages()
+    } catch (err) {
+      alert(`发送失败：${err instanceof Error ? err.message : '未知错误'}`)
+      setNewMessage(content)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  return (
+    <>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
+          title="Chat with seller"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      )}
+      {isOpen && (
+        <div className={`fixed right-6 bg-white rounded-lg shadow-2xl z-50 transition-all ${
+          isMinimized ? 'bottom-6 w-80 h-16' : 'bottom-6 w-96 h-[560px]'
+        }`}>
+          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-green-400"></div>
+              <span className="font-semibold">Chat with Seller</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button onClick={() => setIsMinimized(!isMinimized)} className="hover:bg-blue-700 p-1 rounded">
+                <Minimize2 className="w-4 h-4" />
+              </button>
+              <button onClick={() => setIsOpen(false)} className="hover:bg-blue-700 p-1 rounded">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {!isMinimized && (
+            <>
+              {/* 可选联系方式区（非强制） */}
+              <div className="bg-blue-50 border-b border-blue-100 p-3 text-xs text-gray-600">
+                <p className="mb-2">由于您未登录，可以留下您的称呼和联系方式，方便我们后续联系您（非必填）。</p>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={senderName}
+                    onChange={e => setSenderName(e.target.value)}
+                    placeholder="称呼（可选）"
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                  <input
+                    type="text"
+                    value={senderContact}
+                    onChange={e => setSenderContact(e.target.value)}
+                    placeholder="邮箱/WhatsApp（可选）"
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="h-[330px] overflow-y-auto p-4 space-y-3 bg-gray-50">
+                {isLoading ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <Loader2 className="w-6 h-6 mx-auto animate-spin" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>还没有消息</p>
+                    <p className="text-sm">直接输入开始咨询吧！</p>
+                  </div>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} className="flex justify-end">
+                      <div className="max-w-[70%] px-4 py-2 rounded-lg bg-blue-600 text-white">
+                        <p className="text-sm">{msg.content}</p>
+                        <p className="text-xs mt-1 text-blue-100">
+                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="border-t border-gray-200 p-4">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
+                    placeholder="输入消息..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isSending}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!newMessage.trim() || isSending}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded-lg transition-colors"
+                  >
+                    {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   </button>
                 </div>
               </div>

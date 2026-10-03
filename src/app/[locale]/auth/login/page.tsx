@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
@@ -8,7 +8,7 @@ import type { LanguageCode } from '@/lib/languages'
 
 function LoginForm() {
   const params = useParams()
-  const locale = params.locale as LanguageCode
+  const locale = params['locale'] as LanguageCode
   const router = useRouter()
   const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
@@ -18,6 +18,12 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  // SSR 阶段无 window，挂载后再取 origin，避免 ReferenceError
+  const [origin, setOrigin] = useState('')
+
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
 
   const registered = searchParams.get('registered')
   const urlError = searchParams.get('error')
@@ -228,7 +234,7 @@ function LoginForm() {
 
           <div>
             <a
-              href={`${process.env.NEXT_PUBLIC_CHAT_API_URL || 'https://chat.fixturerb2b.top'}?tenant=chinahuib2b&action=login&redirect=${encodeURIComponent(window.location.origin + `/${locale}`)}`}
+              href={`${process.env['NEXT_PUBLIC_CHAT_API_URL'] || 'https://chat.fixturerb2b.top'}?tenant=chinahuib2b&action=login&redirect=${encodeURIComponent(origin + `/${locale}`)}`}
               className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               {t.loginWithChatSystem}
