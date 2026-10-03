@@ -10,7 +10,17 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { loadTranslations } from '@/i18n/lazyTranslations'
 import type { Language } from '@/i18n/translations'
-import { X, Image, FileText, FileCode, FileArchive, Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { X, Image, FileText, FileCode, FileArchive, Upload, CheckCircle, AlertCircle, Loader2, Video, Link2 } from 'lucide-react'
+import { isValidVideoLink, getVideoInfo } from '@/lib/video'
+
+// 币种符号映射（跟随 Currency 选择）
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  CNY: '¥',
+  JPY: '¥',
+}
 
 interface FormDataType {
   title: string
@@ -30,7 +40,7 @@ interface Attachment {
   id: string
   url: string
   fileName: string
-  type: 'image' | 'file' | 'drawing' | 'compressed'
+  type: 'image' | 'file' | 'drawing' | 'compressed' | 'video'
 }
 
 export default function PostTaskPage() {
@@ -64,17 +74,25 @@ export default function PostTaskPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const drawingInputRef = useRef<HTMLInputElement>(null)
   const compressedInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+  
+  // 视频链接（外链：YouTube/Facebook/抖音/小红书）
+  const [videoLinks, setVideoLinks] = useState<string[]>([])
+  const [videoLinkInput, setVideoLinkInput] = useState('')
+  const [videoLinkError, setVideoLinkError] = useState('')
   
   const [uploadingState, setUploadingState] = useState<{
     image: boolean
     file: boolean
     drawing: boolean
     compressed: boolean
+    video: boolean
   }>({
     image: false,
     file: false,
     drawing: false,
     compressed: false,
+    video: false,
   })
 
   useEffect(() => {
@@ -257,22 +275,27 @@ Contact us today to discuss your requirements and get a custom quote.`
 
   const handleFileUpload = async (
     files: FileList | null, 
-    attachmentType: 'image' | 'file' | 'drawing' | 'compressed'
+    attachmentType: 'image' | 'file' | 'drawing' | 'compressed' | 'video'
   ) => {
     if (!files || files.length === 0) return
 
     const typeKey = attachmentType === 'image' ? 'image' : 
                     attachmentType === 'file' ? 'file' : 
-                    attachmentType === 'drawing' ? 'drawing' : 'compressed'
+                    attachmentType === 'drawing' ? 'drawing' :
+                    attachmentType === 'video' ? 'video' : 'compressed'
     
     setUploadingState(prev => ({ ...prev, [typeKey]: true }))
+
+    // 视频 100MB，其余 20MB
+    const maxSize = attachmentType === 'video' ? 100 * 1024 * 1024 : 20 * 1024 * 1024
+    const maxSizeLabel = attachmentType === 'video' ? t.maxVideoSize : t.maxFileSize
 
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
         
-        if (file.size > 20 * 1024 * 1024) {
-          alert(`${t.maxFileSize}: ${file.name}`)
+        if (file.size > maxSize) {
+          alert(`${maxSizeLabel}: ${file.name}`)
           continue
         }
 
@@ -313,6 +336,28 @@ Contact us today to discuss your requirements and get a custom quote.`
     setAttachments(prev => prev.filter(att => att.id !== id))
   }
 
+  // 添加视频链接（校验 YouTube/Facebook/抖音/小红书）
+  const addVideoLink = () => {
+    const url = videoLinkInput.trim()
+    if (!url) return
+    if (!isValidVideoLink(url)) {
+      setVideoLinkError(t.videoLinkInvalid)
+      return
+    }
+    if (videoLinks.includes(url)) {
+      setVideoLinkError('')
+      setVideoLinkInput('')
+      return
+    }
+    setVideoLinks(prev => [...prev, url])
+    setVideoLinkInput('')
+    setVideoLinkError('')
+  }
+
+  const removeVideoLink = (url: string) => {
+    setVideoLinks(prev => prev.filter(l => l !== url))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -324,6 +369,8 @@ Contact us today to discuss your requirements and get a custom quote.`
       setLoading(true)
       
       const attachmentUrls = attachments.map(att => att.url)
+      // 合并外链视频链接（YouTube/Facebook/抖音/小红书）进附件数组
+      const allAttachments = [...attachmentUrls, ...videoLinks]
       
       const keywordsArray = formData.keywords
         .split(/[,，]/)
@@ -338,7 +385,7 @@ Contact us today to discuss your requirements and get a custom quote.`
         },
         body: JSON.stringify({
           ...formData,
-          attachments: attachmentUrls,
+          attachments: allAttachments,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           price: formData.price ? parseFloat(formData.price) : null,
           minOrderQty: formData.minOrderQty ? parseInt(formData.minOrderQty) : null,
@@ -471,7 +518,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                 {t.budget}
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[formData.currency] || '$'}</span>
                 <input
                   type="number"
                   name="budget"
@@ -495,7 +542,7 @@ Contact us today to discuss your requirements and get a custom quote.`
                 {t.unitPrice}
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[formData.currency] || '$'}</span>
                 <input
                   type="number"
                   name="price"
@@ -739,6 +786,96 @@ Contact us today to discuss your requirements and get a custom quote.`
                   </div>
                 </div>
               </div>
+
+              <div
+                onClick={() => !uploadingState.video && videoInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all
+                  ${uploadingState.video ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+                `}
+              >
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm"
+                  multiple
+                  onChange={(e) => handleFileUpload(e.target.files, 'video')}
+                  disabled={uploadingState.video}
+                  className="hidden"
+                />
+                <div className="flex flex-col items-center space-y-2">
+                  {uploadingState.video ? (
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                  ) : (
+                    <Video className="w-8 h-8 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t.uploadVideos}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t.supportedVideoTypes} • {t.maxVideoSize}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 视频链接（外链：YouTube/Facebook/抖音/小红书） */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t.videoLinkLabel}
+              </label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="url"
+                    value={videoLinkInput}
+                    onChange={(e) => { setVideoLinkInput(e.target.value); setVideoLinkError('') }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addVideoLink() } }}
+                    placeholder={t.videoLinkPlaceholder}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addVideoLink}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {t.videoLinkAdd}
+                </button>
+              </div>
+              {videoLinkError && (
+                <p className="text-xs text-red-600 mt-1">{videoLinkError}</p>
+              )}
+              {videoLinks.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {videoLinks.map((link) => {
+                    const info = getVideoInfo(link)
+                    return (
+                      <div
+                        key={link}
+                        className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <Video className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <span className="text-xs font-medium text-gray-500 bg-blue-100 text-blue-700 px-2 py-0.5 rounded flex-shrink-0">
+                          {info.label}
+                        </span>
+                        <span className="flex-1 text-sm text-gray-700 truncate">{link}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeVideoLink(link)}
+                          className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                          aria-label={t.removeAttachment}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {attachments.length > 0 && (

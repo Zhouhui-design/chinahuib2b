@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import * as auctionService from '@/services/auctionService';
+import { submitUrls } from '@/lib/indexnow';
 
 const cleanArray = (arr: any): string[] => {
   if (!Array.isArray(arr)) return [];
@@ -114,6 +115,10 @@ export async function POST(request: NextRequest) {
     }
 
     const auction = await auctionService.createAuctionListing(session.user.id, auctionData);
+
+    // Notify search engines about the new auction page. Fire-and-forget: SEO
+    // submission must never delay or fail the seller's listing creation.
+    void submitUrls([`https://x2xhub.com/en/auction/${auction.id}`]).catch(() => {});
 
     return NextResponse.json({ success: true, data: { listing: auction } }, { status: 201 });
   } catch (error: any) {

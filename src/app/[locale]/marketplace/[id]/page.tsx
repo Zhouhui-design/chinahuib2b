@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { Calendar, DollarSign, Eye, MessageCircle, Tag, User, FileText, MapPin, AlertCircle } from 'lucide-react'
+import { Calendar, DollarSign, Eye, MessageCircle, Tag, User, FileText, MapPin, AlertCircle, Video } from 'lucide-react'
+import { getVideoInfo } from '@/lib/video'
 import { dictionaries } from '@/locales/dictionary'
 import { existsSync } from 'fs'
 import path from 'path'
@@ -204,6 +205,63 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
                 </h2>
                 <div className="space-y-3">
                   {task.attachments.map((url: string, index: number) => {
+                    const videoInfo = getVideoInfo(url)
+
+                    // 本地上传视频 → <video> 内嵌播放
+                    if (videoInfo.platform === 'upload') {
+                      return (
+                        <div key={index} className="rounded-lg overflow-hidden bg-black">
+                          <video
+                            src={url}
+                            controls
+                            preload="metadata"
+                            className="w-full max-h-[480px]"
+                          />
+                        </div>
+                      )
+                    }
+
+                    // 可嵌入的外链视频（YouTube/Facebook）→ iframe 播放
+                    if (videoInfo.platform && videoInfo.embedUrl) {
+                      return (
+                        <div key={index} className="rounded-lg overflow-hidden bg-black">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-gray-900">
+                            <Video className="w-4 h-4 text-gray-300" />
+                            <span className="text-xs font-medium text-gray-200">{videoInfo.label}</span>
+                          </div>
+                          <div className="aspect-video">
+                            <iframe
+                              src={videoInfo.embedUrl}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title={`${videoInfo.label} video ${index + 1}`}
+                            />
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    // 不可嵌入的外链视频（抖音/小红书）→ 卡片跳转
+                    if (videoInfo.platform) {
+                      return (
+                        <a
+                          key={index}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <Video className="w-5 h-5 text-blue-500" />
+                          <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded flex-shrink-0">
+                            {videoInfo.label}
+                          </span>
+                          <span className="flex-1 text-gray-700 truncate">{url}</span>
+                        </a>
+                      )
+                    }
+
+                    // 普通文件 → 原有下载/不可用逻辑
                     const filePath = path.join(process.cwd(), 'public', url)
                     const fileExists = existsSync(filePath)
                     if (fileExists) {

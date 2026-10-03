@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
+import { submitUrls } from '@/lib/indexnow'
 
 const topicSchema = z.object({
   title: z.string().min(1).max(200),
@@ -148,6 +149,10 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Notify search engines about the new topic page. Fire-and-forget so a
+    // search-engine outage can never fail the user's post.
+    void submitUrls([`https://x2xhub.com/en/chat-hall/${topic.id}`]).catch(() => {})
 
     return NextResponse.json({
       success: true,

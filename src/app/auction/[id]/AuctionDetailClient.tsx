@@ -8,9 +8,9 @@ import type { AuctionListing, AuctionBid, User } from '@prisma/client'
 type ListingWithRelations = AuctionListing & {
   seller?: {
     id: string
-    displayName?: string | null
-    company?: string | null
-    avatarUrl?: string | null
+    companyName?: string | null
+    contactName?: string | null
+    logoUrl?: string | null
     isVerified: boolean
   } | null
   bids: (AuctionBid & {
@@ -207,10 +207,10 @@ export default function AuctionDetailClient({ listing }: { listing: ListingWithR
                 <h3 className="font-semibold text-gray-900 mb-2">Contact Seller</h3>
                 {listing.seller ? (
                   <div className="flex items-center gap-3 mb-4">
-                    {listing.seller.avatarUrl ? (
+                    {listing.seller.logoUrl ? (
                       <img
-                        src={listing.seller.avatarUrl}
-                        alt={listing.seller.displayName || 'Seller'}
+                        src={listing.seller.logoUrl}
+                        alt={listing.seller.companyName || 'Seller'}
                         className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
@@ -220,10 +220,10 @@ export default function AuctionDetailClient({ listing }: { listing: ListingWithR
                     )}
                     <div>
                       <p className="font-medium text-gray-900">
-                        {listing.seller.displayName || listing.seller.company || 'Verified Supplier'}
+                        {listing.seller.companyName || listing.seller.contactName || 'Verified Supplier'}
                       </p>
-                      {listing.seller.company && (
-                        <p className="text-sm text-gray-500">{listing.seller.company}</p>
+                      {listing.seller.contactName && (
+                        <p className="text-sm text-gray-500">{listing.seller.contactName}</p>
                       )}
                       {listing.seller.isVerified && (
                         <span className="text-xs text-green-600 flex items-center gap-1 mt-1">
