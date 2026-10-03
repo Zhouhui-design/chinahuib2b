@@ -170,12 +170,15 @@ export default function MarketplacePage() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'topics' | 'financing' | 'investment'>('tasks')
   const [selectedTopicCategory, setSelectedTopicCategory] = useState('all')
   const [selectedCountry, setSelectedCountry] = useState('all')
-  const [stats, setStats] = useState({
-    activeTasks: 0,
-    completedTasks: 0,
-    participants: 0,
-    totalValue: '$0'
-  })
+  // null until /api/marketplace/stats resolves, so no-JS crawlers never
+  // receive hard-coded 0 / 0 / 0 / $0 counters.
+  const [stats, setStats] = useState<{
+    activeTasks: number
+    completedTasks: number
+    participants: number
+    totalValue: string
+    rawTotalValue: number
+  } | null>(null)
 
   // 当前登录用户会话
   const { data: session } = useSession()
@@ -235,7 +238,8 @@ export default function MarketplacePage() {
             activeTasks: data.data.activeTasks || 0,
             completedTasks: data.data.completedTasks || 0,
             participants: data.data.participants || 0,
-            totalValue: data.data.totalValue || '$0'
+            totalValue: data.data.totalValue || '$0',
+            rawTotalValue: data.data.rawTotalValue || 0
           })
         }
       } catch (error) {
@@ -343,29 +347,46 @@ export default function MarketplacePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-blue-600">{stats.activeTasks.toLocaleString()}</div>
-              <div className="text-gray-600 mt-1">{dict.marketplace.stats.activeTasks}</div>
+      {/*
+        Stats Section: render only counters backed by non-zero, real data.
+        An empty task hall must not display "0 / 0 / 0 / $0" — to human
+        visitors or to AI crawlers, which quote such figures verbatim.
+        Before the client fetch resolves, stats is null and the section is
+        absent from the (no-JS) HTML entirely.
+      */}
+      {stats && (() => {
+        type StatCard = { value: string; label: string; color: string }
+        const cards: (StatCard | null)[] = [
+          stats.activeTasks > 0
+            ? { value: stats.activeTasks.toLocaleString(), label: dict.marketplace.stats.activeTasks, color: 'text-blue-600' }
+            : null,
+          stats.completedTasks > 0
+            ? { value: stats.completedTasks.toLocaleString(), label: dict.marketplace.stats.completed, color: 'text-green-600' }
+            : null,
+          stats.participants > 0
+            ? { value: stats.participants.toLocaleString(), label: dict.marketplace.stats.participants, color: 'text-purple-600' }
+            : null,
+          stats.rawTotalValue > 0
+            ? { value: stats.totalValue, label: dict.marketplace.stats.totalValue, color: 'text-orange-600' }
+            : null,
+        ]
+        const visible = cards.filter((c): c is StatCard => c !== null)
+        if (visible.length === 0) return null
+        return (
+          <section className="py-12 bg-white border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                {visible.map((card) => (
+                  <div key={card.label}>
+                    <div className={`text-3xl font-bold ${card.color}`}>{card.value}</div>
+                    <div className="text-gray-600 mt-1">{card.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-green-600">{stats.completedTasks.toLocaleString()}</div>
-              <div className="text-gray-600 mt-1">{dict.marketplace.stats.completed}</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-purple-600">{stats.participants.toLocaleString()}</div>
-              <div className="text-gray-600 mt-1">{dict.marketplace.stats.participants}</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-600">{stats.totalValue}</div>
-              <div className="text-gray-600 mt-1">{dict.marketplace.stats.totalValue}</div>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        )
+      })()}
 
       {/* Tab Switcher */}
       <section className="py-6 bg-white border-b">
