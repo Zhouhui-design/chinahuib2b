@@ -131,6 +131,7 @@ model SellerProfile {
   telegram             String?
   wechat               String?
   whatsapp             String?
+  zangi                String?
   booth3DPreview       Boolean                  @default(false)
   boothAccentImage     String?
   boothAnimations      Boolean                  @default(false)
@@ -311,6 +312,20 @@ model Product {
   price          Decimal?         @db.Decimal(10, 2)
   currency       String?          @default("USD")
   unit           String?          @default("piece")
+
+  // ---- 内容差异化字段（需求2）----
+  // 这些字段让产品页摆脱"我们提供全面系列"的模板化描述，
+  // 给买家具体的应用场景、竞争优势和信任背书，也是 Google 判定的
+  // "有深度的原创内容"而非 thin content。
+  applications     String?  // 应用场景：产品用在哪、解决什么问题
+  advantages       String?  // 产品优势：与竞品相比的差异化卖点
+  targetMarket     String?  // 目标市场：主要出口国家/行业/客户类型
+  certifications   String?  // 认证资质：CE / ISO / FDA / RoHS 等
+  customServices   String?  // 定制服务：OEM/ODM 能力、起订量、打样周期
+  deliveryTime     String?  // 交货周期：如 "7-15 days" / "按订单量"
+  packaging        String?  // 包装方式：出口包装、运输方式说明
+  caseStudy        String?  // 客户案例：真实成交案例（脱敏），最强信任信号
+
   inquiries      Inquiry[]
   reviews        Review[]
   booth          Booth?           @relation(fields: [boothId], references: [id])
@@ -687,6 +702,23 @@ model PrivateMessage {
   @@index([senderId, receiverId])
   @@index([receiverId, senderId])
   @@index([createdAt])
+}
+
+// 需求2：游客（未登录）与卖家的私聊消息
+// 游客没有 User 记录，故独立于 PrivateMessage，不关联 User 表。
+// senderContact / senderName 可选（非强制），便于卖家后续联系游客。
+model GuestMessage {
+  id            String    @id @default(cuid())
+  sellerId      String    // 卖家 SellerProfile.id 或 User.id（与聊天气泡传入一致）
+  guestKey      String    // 游客浏览器持久标识（localStorage 生成）
+  senderName    String?   // 游客称呼（可选）
+  senderContact String?   // 游客联系方式（可选）
+  content       String
+  isRead        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  @@index([sellerId, guestKey])
+  @@index([sellerId, createdAt])
 }
 
 model ShoutOut {
