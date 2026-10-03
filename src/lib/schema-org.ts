@@ -126,24 +126,25 @@ export function generateBreadcrumbSchema(items: BreadcrumbItem[]): Record<string
   }
 }
 
+// Canonical brand entity: legal/brand name is "SeaHeart Global"; the domain
+// x2xhub.com and the former product name "X2XHub" are aliases of the SAME
+// entity, so they live in alternateName rather than competing as the name.
+// Never add unverified addresses, social links or ratings here — AI engines
+// treat structured data as factual claims.
+export const ORGANIZATION_ID = 'https://x2xhub.com/#organization'
+const SUPPORTED_LANGUAGES = ['en', 'zh', 'de', 'es', 'fr', 'ja', 'ko', 'ar', 'ru', 'pt', 'hi', 'th', 'vi']
+
 export function generateWebsiteSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'SeaHeart Global | 心海环球 - Global B2B Trade Exhibition Platform',
-    alternateName: 'SeaHeart Global',
+    name: 'SeaHeart Global',
+    alternateName: ['SeaHeart Global | 心海环球', 'X2XHub', 'x2xhub.com'],
     url: 'https://x2xhub.com',
-    description: 'The world\'s leading online B2B exhibition platform connecting global buyers with verified suppliers and manufacturers for international trade.',
-    publisher: {
-      '@type': 'Organization',
-      name: 'SeaHeart Global | 心海环球',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://x2xhub.com/logo.png',
-      },
-    },
+    description: 'Online B2B trade exhibition platform connecting global buyers with verified suppliers and manufacturers, available in 13 languages.',
+    publisher: { '@id': ORGANIZATION_ID },
     inLanguage: 'en',
-    languages: ['en', 'zh', 'ar', 'es', 'fr', 'de', 'ru', 'ja', 'ko', 'pt', 'hi', 'tr', 'th', 'id', 'vi'],
+    languages: SUPPORTED_LANGUAGES,
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://x2xhub.com/products?q={search_term_string}',
@@ -156,9 +157,9 @@ export function generateOrganizationSchemaFull(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    '@id': 'https://x2xhub.com/#organization',
-    name: 'SeaHeart Global Trade Network',
-    alternateName: 'SeaHeart Global | 心海环球',
+    '@id': ORGANIZATION_ID,
+    name: 'SeaHeart Global',
+    alternateName: ['SeaHeart Global | 心海环球', 'X2XHub'],
     url: 'https://x2xhub.com',
     logo: {
       '@type': 'ImageObject',
@@ -166,29 +167,12 @@ export function generateOrganizationSchemaFull(): Record<string, unknown> {
       width: 300,
       height: 60,
     },
-    description: 'Global B2B online exhibition and trade platform connecting buyers with verified suppliers across 50+ countries.',
+    description: 'Multi-language online B2B trade exhibition platform connecting verified suppliers with global buyers.',
     email: 'contact@x2xhub.com',
-    sameAs: [
-      'https://twitter.com/x2xhub',
-      'https://www.facebook.com/x2xhub',
-      'https://www.linkedin.com/company/x2xhub',
-      'https://www.youtube.com/@x2xhub',
-      'https://www.instagram.com/x2xhub',
-    ],
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: 'DE',
-      addressLocality: 'Frankfurt',
-    },
     areaServed: {
       '@type': 'GeoArea',
       name: 'Global',
     },
-    numberOfEmployees: {
-      '@type': 'QuantitativeValue',
-      value: '50',
-    },
-    foundingDate: '2024',
     industry: [
       'B2B E-Commerce',
       'Online Exhibitions',
@@ -202,25 +186,16 @@ export function generateWebApplicationSchema(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'SeaHeart Global - B2B Trade Platform',
+    name: 'SeaHeart Global',
     url: 'https://x2xhub.com',
-    applicationSuite: {
-      '@type': 'SoftwareApplication',
-      name: 'SeaHeart Global',
-    },
     applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web, iOS, Android',
+    operatingSystem: 'Web',
     offers: {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
     },
     description: 'B2B online exhibition platform for global trade',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      ratingCount: '1000',
-    },
   }
 }
 
@@ -230,20 +205,9 @@ export function generateLocalBusinessSchema(): Record<string, unknown> {
     '@type': 'LocalBusiness',
     name: 'SeaHeart Global',
     url: 'https://x2xhub.com',
-    description: 'Global B2B trade exhibition platform connecting buyers and sellers worldwide',
+    description: 'Online B2B trade exhibition platform connecting buyers and sellers worldwide',
     image: 'https://x2xhub.com/logo.png',
-    telephone: '+49-69-12345678',
     email: 'contact@x2xhub.com',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Frankfurt',
-      addressCountry: 'DE',
-    },
     openingHours: 'Mo-Su 00:00-24:00',
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: 50.1109,
-      longitude: 8.6821,
-    },
   }
 }
