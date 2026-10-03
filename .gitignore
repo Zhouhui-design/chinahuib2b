@@ -15,7 +15,13 @@
 
 # next.js
 /.next/
+/.next.bak_*/
 /out/
+
+# local backup files
+*.bak
+*.bak.*
+*.bak_*
 
 # production
 /build
