@@ -791,7 +791,7 @@ export default async function StorePage({ params }: Props) {
               </div>
 
               {/* Instant messaging contacts */}
-              {(seller.whatsapp || seller.wechat || seller.telegram || seller.qq) && (
+              {(seller.whatsapp || seller.wechat || seller.telegram || seller.qq || seller.zangi) && (
                 <div className="border-t border-gray-200 pt-3 mb-4">
                   <div className="text-xs text-gray-500 mb-2">{t('即时通讯', 'Instant Messaging')}</div>
                   <div className="space-y-1.5">
@@ -817,6 +817,12 @@ export default async function StorePage({ params }: Props) {
                       <div className="flex items-center text-sm text-gray-700">
                         <span className="w-16 text-gray-400">QQ</span>
                         <span className="font-medium">{seller.qq}</span>
+                      </div>
+                    )}
+                    {seller.zangi && (
+                      <div className="flex items-center text-sm text-gray-700">
+                        <span className="w-16 text-gray-400">Zangi</span>
+                        <span className="font-medium">{seller.zangi}</span>
                       </div>
                     )}
                   </div>

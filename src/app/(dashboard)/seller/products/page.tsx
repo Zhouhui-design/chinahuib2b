@@ -11,6 +11,7 @@ interface Booth {
   exhibitionName: string
   theme?: string
   colorScheme?: string
+  isPublished?: boolean
 }
 
 interface Product {
@@ -997,16 +998,27 @@ export default function ProductsPage() {
                         <h3 className="font-semibold">{booth.name}</h3>
                         <p className="text-blue-100 text-sm">{booth.exhibitionName}</p>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          booth.theme === 'Dark' ? 'bg-gray-800' :
-                          booth.theme === 'Vibrant' ? 'bg-purple-500' :
-                          booth.theme === 'Professional' ? 'bg-blue-700' :
-                          'bg-gray-600'
-                        }`}
-                      >
-                        {booth.theme || 'Light'}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            booth.theme === 'Dark' ? 'bg-gray-800' :
+                            booth.theme === 'Vibrant' ? 'bg-purple-500' :
+                            booth.theme === 'Professional' ? 'bg-blue-700' :
+                            'bg-gray-600'
+                          }`}
+                        >
+                          {booth.theme || 'Light'}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 text-[10px] rounded-full font-medium ${
+                            booth.isPublished ? 'bg-green-500/80 text-white' : 'bg-amber-400/80 text-amber-900'
+                          }`}
+                        >
+                          {booth.isPublished
+                            ? (language === 'zh' ? '已发布' : language === 'de' ? 'Veröffentlicht' : language === 'ja' ? '公開済' : 'Published')
+                            : (language === 'zh' ? '草稿' : language === 'de' ? 'Entwurf' : language === 'ja' ? '下書き' : 'Draft')}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1175,15 +1187,19 @@ export default function ProductsPage() {
                             <Edit className="w-4 h-4" />
                           </Link>
                         )}
-                        {booths.length > 0 && (
-                          <button
-                            onClick={() => setMoveProductId(product.id)}
-                            className="text-green-600 hover:text-green-900"
-                            title={t.moveToBooth}
-                          >
-                            <MoveHorizontal className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            if (booths.length > 0) {
+                              setMoveProductId(product.id)
+                            } else {
+                              window.location.href = '/seller/booths'
+                            }
+                          }}
+                          className="text-green-600 hover:text-green-900"
+                          title={booths.length > 0 ? t.moveToBooth : (language === 'zh' ? '请先创建展会' : 'Create a booth first')}
+                        >
+                          <MoveHorizontal className={`w-4 h-4 ${booths.length === 0 ? 'opacity-40' : ''}`} />
+                        </button>
                         <button
                           onClick={() => handleDelete(product.id, product.title)}
                           className="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
@@ -1315,7 +1331,7 @@ export default function ProductsPage() {
                 <option value="">{t.selectBooth}</option>
                 {booths.map((booth) => (
                   <option key={booth.id} value={booth.id}>
-                    {booth.name}
+                    {booth.name}{booth.exhibitionName ? ` · ${booth.exhibitionName}` : ''}{booth.isPublished ? '' : (language === 'zh' ? '（草稿）' : ' (Draft)')}
                   </option>
                 ))}
               </select>

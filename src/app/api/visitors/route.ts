@@ -17,7 +17,7 @@ interface GeoData {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { productId, sellerId } = body
+    const { productId, sellerId, viewType } = body
 
     if (!productId && !sellerId) {
       return NextResponse.json(
@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // 访问类型：PRODUCT（产品）/ BOOTH（展会）/ STORE（公司信息）
+    const vt = viewType === 'BOOTH' ? 'BOOTH' : viewType === 'STORE' ? 'STORE' : 'PRODUCT'
 
     const session = await auth()
     const viewerId = session?.user?.id || null
@@ -82,6 +85,7 @@ export async function POST(request: NextRequest) {
           productId: productId || null,
           sellerId: sellerId || null,
           viewerId,
+          viewType: vt,
           country: geoData.country,
           countryCode: geoData.countryCode,
           city: geoData.city,
@@ -105,6 +109,7 @@ export async function POST(request: NextRequest) {
           productId: null,
           sellerId: null,
           viewerId,
+          viewType: vt,
           country: geoData.country,
           countryCode: geoData.countryCode,
           city: geoData.city,

@@ -394,26 +394,72 @@ export async function getFeaturedSellers(limit: number = 10): Promise<SellerProf
 // Get all approved sellers for public display
 export async function getApprovedSellers(
   page: number = 1,
-  limit: number = 12
+  limit: number = 12,
+  search?: string
 ): Promise<{ sellers: SellerProfile[]; total: number; totalPages: number }> {
   const skip = (page - 1) * limit;
+  const keyword = search?.trim();
+
+  // 模糊筛选：作用到公司信息、产品、展会、关键词
+  // - 公司信息：companyName / description / businessScope / registeredAddress / certifications / boothCategories / boothTags
+  // - 产品：products.some(title / titleEn)
+  // - 展会：booths.some(name / exhibitionName)
+  const baseWhere = {
+    isActive: true,
+    profileStatus: ProfileStatus.APPROVED,
+  };
+
+  const where = keyword
+    ? {
+        ...baseWhere,
+        OR: [
+          { companyName: { contains: keyword, mode: 'insensitive' as const } },
+          { description: { contains: keyword, mode: 'insensitive' as const } },
+          { businessScope: { contains: keyword, mode: 'insensitive' as const } },
+          { registeredAddress: { contains: keyword, mode: 'insensitive' as const } },
+          { boothCategories: { has: keyword } },
+          { boothTags: { has: keyword } },
+          { certifications: { has: keyword } },
+          {
+            products: {
+              some: {
+                OR: [
+                  { title: { contains: keyword, mode: 'insensitive' as const } },
+                  { titleEn: { contains: keyword, mode: 'insensitive' as const } },
+                ],
+              },
+            },
+          },
+          {
+            booths: {
+              some: {
+                OR: [
+                  { name: { contains: keyword, mode: 'insensitive' as const } },
+                  { exhibitionName: { contains: keyword, mode: 'insensitive' as const } },
+                ],
+              },
+            },
+          },
+        ],
+      }
+    : baseWhere;
 
   const [sellers, total] = await Promise.all([
     prisma.sellerProfile.findMany({
-      where: {
-        isActive: true,
-        profileStatus: ProfileStatus.APPROVED,
-      },
+      where,
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
-    }),
-    prisma.sellerProfile.count({
-      where: {
-        isActive: true,
-        profileStatus: ProfileStatus.APPROVED,
+      include: {
+        products: {
+          where: { isActive: true },
+          take: 3,
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, title: true, mainImageUrl: true },
+        },
       },
     }),
+    prisma.sellerProfile.count({ where }),
   ]);
 
   return {
@@ -444,6 +490,7 @@ export async function approveSellerProfile(
     where: { id: sellerId },
     data: {
       profileStatus: ProfileStatus.APPROVED,
+      isVerified: true, // Also flip the boolean flag so homepage/unified queries match
       profileReviewedAt: new Date(),
       profileReviewedBy: adminId,
       profileReviewNotes: notes,
@@ -461,6 +508,7 @@ export async function rejectSellerProfile(
     where: { id: sellerId },
     data: {
       profileStatus: ProfileStatus.REJECTED,
+      isVerified: false, // Revoke verification so a previously-approved seller stops showing publicly
       profileReviewedAt: new Date(),
       profileReviewedBy: adminId,
       profileReviewNotes: notes,

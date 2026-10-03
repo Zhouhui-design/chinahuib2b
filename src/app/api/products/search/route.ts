@@ -51,12 +51,22 @@ export async function GET(request: NextRequest) {
     const where: any = {}
 
     if (keyword) {
-      // 关键词搜索：标题 + 英文标题 + 描述 + keywords 数组（JSONB array_contains 命中 GIN 索引）
+      // 关键词搜索：标题 + 英文标题 + 描述 + keywords 数组（模糊子串匹配）
+      const kw = keyword as string;
+      const kwRows = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Product"
+        WHERE EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(COALESCE("keywords", '[]'::jsonb)) AS k
+          WHERE k ILIKE ${'%' + kw + '%'}
+        )
+      `;
+      const kwIds = kwRows.map((r) => r.id);
+
       where.OR = [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { titleEn: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } },
-        { keywords: { path: [], array_contains: keyword } },
+        { title: { contains: kw, mode: 'insensitive' } },
+        { titleEn: { contains: kw, mode: 'insensitive' } },
+        { description: { contains: kw, mode: 'insensitive' } },
+        ...(kwIds.length > 0 ? [{ id: { in: kwIds } }] : []),
       ]
     }
 

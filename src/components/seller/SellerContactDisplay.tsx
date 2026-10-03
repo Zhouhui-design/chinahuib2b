@@ -8,6 +8,9 @@ interface SellerContactInfo {
   phone?: string
   email?: string
   website?: string
+  emails?: string[]
+  phones?: string[]
+  websites?: string[]
   whatsapp?: string
   wechat?: string
   telegram?: string
@@ -17,6 +20,18 @@ interface SellerContactInfo {
   address?: string
   city?: string
   country?: string
+}
+
+// 合并单值主字段 + JSONB 数组字段（去重）。
+function mergeMultiValues(single: string | null | undefined, arr: string[] | undefined): string[] {
+  const list: string[] = []
+  if (single && single.trim()) list.push(single.trim())
+  if (Array.isArray(arr)) {
+    for (const v of arr) {
+      if (typeof v === 'string' && v.trim() && !list.includes(v.trim())) list.push(v.trim())
+    }
+  }
+  return list
 }
 
 export default function SellerContactDisplay({ 
@@ -55,40 +70,43 @@ export default function SellerContactDisplay({
 
       {/* Primary Contact Methods */}
       <div className="space-y-3">
-        {contactInfo.phone && (
+        {mergeMultiValues(contactInfo.phone, contactInfo.phones).map((v, i) => (
           <a
-            href={`tel:${contactInfo.phone}`}
+            key={`phone-${i}`}
+            href={`tel:${v}`}
             className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
           >
             <Phone className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
-            <span className="text-gray-900 font-medium">{contactInfo.phone}</span>
+            <span className="text-gray-900 font-medium">{v}</span>
           </a>
-        )}
+        ))}
 
-        {contactInfo.email && (
+        {mergeMultiValues(contactInfo.email, contactInfo.emails).map((v, i) => (
           <a
-            href={`mailto:${contactInfo.email}`}
+            key={`email-${i}`}
+            href={`mailto:${v}`}
             className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
           >
             <Mail className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
-            <span className="text-gray-900 font-medium">{contactInfo.email}</span>
+            <span className="text-gray-900 font-medium">{v}</span>
           </a>
-        )}
+        ))}
 
-        {contactInfo.website && (
+        {mergeMultiValues(contactInfo.website, contactInfo.websites).map((v, i) => (
           <a
-            href={contactInfo.website}
+            key={`website-${i}`}
+            href={v}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
           >
             <Globe className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
             <span className="text-gray-900 font-medium truncate">
-              {new URL(contactInfo.website).hostname}
+              {(() => { try { return new URL(v).hostname } catch { return v } })()}
             </span>
             <ExternalLink className="w-4 h-4 text-gray-400 ml-auto" />
           </a>
-        )}
+        ))}
       </div>
 
       {/* Social Media & Messaging - Collapsible */}

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 
-
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,9 +12,9 @@ export async function GET(
     const session = await auth()
 
     // 游客与登录用户均可下载，无任何限制
-    const brochure = await prisma.productBrochure.findUnique({
+    const brochure = await prisma.storeBrochure.findUnique({
       where: { id },
-      include: { product: true }
+      include: { seller: true }
     })
 
     if (!brochure) {
@@ -24,37 +22,34 @@ export async function GET(
     }
 
     // 记录下载：登录用户记账号；游客 userId 为 null（按 IP + 时间统计）
-    // sellerId 两类都记录，供卖家后台统计
     await prisma.brochureDownload.create({
       data: {
         userId: session?.user?.id || null,
-        sellerId: brochure.product.sellerId || null,
-        brochureType: 'PRODUCT',
-        brochureId: brochure.productId,
+        sellerId: brochure.sellerId,
+        brochureType: 'STORE',
+        brochureId: brochure.id,
         ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
       }
     })
 
     // Increment download count
-    await prisma.productBrochure.update({
+    await prisma.storeBrochure.update({
       where: { id },
       data: { downloadCount: { increment: 1 } }
     })
 
-    // Redirect to file URL (for now, will be DigitalOcean Spaces URL)
-    // For demo purposes, if it's a placeholder, return a message
-    if (brochure.fileUrl.startsWith('/')) {
-      return NextResponse.json({ 
-        message: 'This is a demo brochure. In production, this would redirect to the actual PDF file on DigitalOcean Spaces.',
+    // Redirect to actual file URL
+    if (!brochure.fileUrl || brochure.fileUrl.startsWith('/')) {
+      return NextResponse.json({
+        message: 'Demo brochure — in production this redirects to the actual file.',
         fileName: brochure.fileName,
         downloadCount: brochure.downloadCount + 1
       })
     }
 
-    // Redirect to actual file
     return NextResponse.redirect(brochure.fileUrl)
   } catch (error) {
-    console.error('Brochure download error:', error)
+    console.error('Store brochure download error:', error)
     return NextResponse.json({ error: 'Failed to process download' }, { status: 500 })
   }
 }

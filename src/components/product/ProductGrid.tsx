@@ -7,10 +7,12 @@ type Product = {
   id: string;
   title: string;
   mainImageUrl: string;
+  images?: string[];
   description?: string | null;
   seller: {
     id: string;
     companyName: string;
+    companyType?: string | null;
     country: string;
     city: string;
   };
@@ -47,19 +49,28 @@ export default function ProductGrid({ products, locale = 'en' }: ProductGridProp
           className="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300"
         >
           {/* Product Image */}
+          {/* 主图兜底：mainImageUrl 缺失时回退到 images 数组首张，避免"有图但不显示" */}
+          {(() => {
+            const rawMain = product.mainImageUrl
+            const fallback = Array.isArray(product.images)
+              ? product.images.find((v) => typeof v === 'string' && v.trim() && !v.includes('placeholder'))
+              : undefined
+            const displayImage =
+              rawMain && rawMain.trim() && !rawMain.includes('placeholder') ? rawMain : fallback
+            return (
           <div className="relative h-56 bg-gray-100 overflow-hidden">
-            {product.mainImageUrl && !product.mainImageUrl.includes('placeholder') ? (
-              product.mainImageUrl.startsWith('/uploads/') ? (
+            {displayImage ? (
+              displayImage.startsWith('/uploads/') ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={product.mainImageUrl}
+                  src={displayImage}
                   alt={product.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
               ) : (
                 <Image
-                  src={product.mainImageUrl}
+                  src={displayImage}
                   alt={product.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -82,6 +93,8 @@ export default function ProductGrid({ products, locale = 'en' }: ProductGridProp
               </span>
             </div>
           </div>
+            )
+          })()}
 
           {/* Product Info */}
           <div className="p-4">

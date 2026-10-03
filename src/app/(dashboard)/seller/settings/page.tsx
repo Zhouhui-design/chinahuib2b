@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { User, Mail, Phone, Building, Globe, Bell, Shield, Save, Upload, FileText, Image as ImageIcon, CreditCard, Video, CheckCircle, ShieldCheck, MessageCircle, Link as LinkIcon } from 'lucide-react'
 import VerificationFileUpload from '@/components/seller/VerificationFileUpload'
 import CountrySelect from '@/components/seller/CountrySelect'
+import MultiValueInput from '@/components/seller/MultiValueInput'
 
 export default function SellerSettingsPage() {
   const [language, setLanguage] = useState('en')
@@ -22,6 +23,7 @@ export default function SellerSettingsPage() {
     whatsapp: '',
     wechat: '',
     telegram: '',
+    zangi: '',
     linkedin: '',
     facebook: '',
     instagram: '',
@@ -30,6 +32,11 @@ export default function SellerSettingsPage() {
     country: '',
     description: ''
   })
+
+  // 多值字段（邮箱/电话/网址）
+  const [emails, setEmails] = useState<string[]>([])
+  const [phones, setPhones] = useState<string[]>([])
+  const [websites, setWebsites] = useState<string[]>([])
   
   // Multi-language descriptions
   const [descriptions, setDescriptions] = useState<Record<string, string>>({})
@@ -115,6 +122,7 @@ export default function SellerSettingsPage() {
           whatsapp: profile.whatsapp || '',
           wechat: profile.wechat || '',
           telegram: profile.telegram || '',
+          zangi: profile.zangi || '',
           linkedin: profile.linkedin || '',
           facebook: profile.facebook || '',
           instagram: profile.instagram || '',
@@ -123,6 +131,20 @@ export default function SellerSettingsPage() {
           country: profile.country || '',
           description: defaultLangDescription
         })
+        // 多值字段：合并单值主字段 + 数组字段（去重）
+        const mergeValues = (single: string | null | undefined, arr: unknown): string[] => {
+          const list: string[] = []
+          if (single && single.trim()) list.push(single.trim())
+          if (Array.isArray(arr)) {
+            arr.forEach((v) => {
+              if (typeof v === 'string' && v.trim() && !list.includes(v.trim())) list.push(v.trim())
+            })
+          }
+          return list
+        }
+        setEmails(mergeValues(profile.email, profile.emails))
+        setPhones(mergeValues(profile.phone, profile.phones))
+        setWebsites(mergeValues(profile.website, profile.websites))
         // Load multi-language descriptions
         if (profile.descriptions) {
           setDescriptions(typeof profile.descriptions === 'object' ? profile.descriptions : {})
@@ -654,9 +676,13 @@ export default function SellerSettingsPage() {
           phone: profileData.phone,
           email: profileData.email,
           website: profileData.website,
+          emails: emails,
+          phones: phones,
+          websites: websites,
           whatsapp: profileData.whatsapp,
           wechat: profileData.wechat,
           telegram: profileData.telegram,
+          zangi: profileData.zangi,
           linkedin: profileData.linkedin,
           facebook: profileData.facebook,
           instagram: profileData.instagram
@@ -689,21 +715,30 @@ export default function SellerSettingsPage() {
       return
     }
     
-    if (passwordData.newPassword.length < 8) {
+    if (passwordData.newPassword.length < 6) {
       setMessage(t.messages.weakPassword)
       setLoading(false)
       return
     }
     
     try {
-      // TODO: Implement API call to update password
-      // await fetch('/api/seller/password', { method: 'PUT', body: JSON.stringify(passwordData) })
-      
-      setTimeout(() => {
-        setMessage(t.messages.passwordUpdated)
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setMessage(data.error || t.messages.error)
         setLoading(false)
-      }, 1000)
+        return
+      }
+      setMessage(t.messages.passwordUpdated)
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setLoading(false)
     } catch (error) {
       setMessage(t.messages.error)
       setLoading(false)
@@ -1008,11 +1043,10 @@ export default function SellerSettingsPage() {
                         <Mail className="w-4 h-4 inline mr-1" />
                         {t.profile.email}
                       </label>
-                      <input
+                      <MultiValueInput
+                        values={emails}
+                        onChange={setEmails}
                         type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder={t.profile.emailPlaceholder}
                       />
                     </div>
@@ -1022,11 +1056,10 @@ export default function SellerSettingsPage() {
                         <Phone className="w-4 h-4 inline mr-1" />
                         {t.profile.phone}
                       </label>
-                      <input
+                      <MultiValueInput
+                        values={phones}
+                        onChange={setPhones}
                         type="tel"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder={t.profile.phonePlaceholder}
                       />
                     </div>
@@ -1036,11 +1069,10 @@ export default function SellerSettingsPage() {
                         <Globe className="w-4 h-4 inline mr-1" />
                         {t.profile.website}
                       </label>
-                      <input
+                      <MultiValueInput
+                        values={websites}
+                        onChange={setWebsites}
                         type="url"
-                        value={profileData.website}
-                        onChange={(e) => setProfileData({...profileData, website: e.target.value})}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder={t.profile.websitePlaceholder}
                       />
                     </div>
@@ -1089,6 +1121,19 @@ export default function SellerSettingsPage() {
                         onChange={(e) => setProfileData({...profileData, telegram: e.target.value})}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="@username"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Zangi
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.zangi}
+                        onChange={(e) => setProfileData({...profileData, zangi: e.target.value})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Zangi number or ID"
                       />
                     </div>
                     

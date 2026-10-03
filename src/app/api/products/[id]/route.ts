@@ -80,6 +80,15 @@ const updateSchema = z.object({
   youtubeUrl: z.string().nullable().optional(),
   boothId: z.string().nullable().optional(),
   keywords: z.array(z.string().min(1).max(100)).max(50).optional(),
+  // Content-differentiation fields
+  applications: z.string().optional(),
+  advantages: z.string().optional(),
+  targetMarket: z.string().optional(),
+  certifications: z.string().optional(),
+  customServices: z.string().optional(),
+  deliveryTime: z.string().optional(),
+  packaging: z.string().optional(),
+  caseStudy: z.string().optional(),
   price: z.number().positive().nullable().optional(),
   currency: z.string().optional(),
   unit: z.string().optional(),
@@ -198,6 +207,15 @@ export async function PATCH(
     if (data.acceptsOEM !== undefined) updateData.acceptsOEM = data.acceptsOEM
     if (data.youtubeUrl !== undefined) updateData.youtubeUrl = data.youtubeUrl
     if (data.keywords !== undefined) updateData.keywords = data.keywords
+    // Content-differentiation fields
+    if (data.applications !== undefined) updateData.applications = data.applications
+    if (data.advantages !== undefined) updateData.advantages = data.advantages
+    if (data.targetMarket !== undefined) updateData.targetMarket = data.targetMarket
+    if (data.certifications !== undefined) updateData.certifications = data.certifications
+    if (data.customServices !== undefined) updateData.customServices = data.customServices
+    if (data.deliveryTime !== undefined) updateData.deliveryTime = data.deliveryTime
+    if (data.packaging !== undefined) updateData.packaging = data.packaging
+    if (data.caseStudy !== undefined) updateData.caseStudy = data.caseStudy
     if (data.price !== undefined) updateData.price = data.price
     if (data.currency !== undefined) updateData.currency = data.currency
     if (data.unit !== undefined) updateData.unit = data.unit

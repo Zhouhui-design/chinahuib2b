@@ -7,8 +7,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
+    const search = searchParams.get('search') || undefined;
 
-    const result = await sellerService.getApprovedSellers(page, limit);
+    const result = await sellerService.getApprovedSellers(page, limit, search);
 
     return NextResponse.json({
       sellers: result.sellers,

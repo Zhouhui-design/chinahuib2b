@@ -9,6 +9,14 @@ export interface Product {
   title: string;
   titleEn?: string;
   description?: string;
+  applications?: string;
+  advantages?: string;
+  targetMarket?: string;
+  certifications?: string;
+  customServices?: string;
+  deliveryTime?: string;
+  packaging?: string;
+  caseStudy?: string;
   specifications?: any;
   minOrderQty?: number;
   supplyCapacity?: string;
@@ -22,11 +30,17 @@ export interface Product {
   seller: {
     id: string;
     companyName: string;
+    storeSlug?: string;
     country: string;
     city: string;
     phone?: string;
     email?: string;
     website?: string;
+    whatsapp?: string;
+    wechat?: string;
+    telegram?: string;
+    qq?: string;
+    zangi?: string;
   };
   category: {
     id: string;

@@ -4,12 +4,20 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot, MessageCircle } from 'lucide-react'
+import { Package, Store, FileText, Settings, BarChart3, LogOut, HelpCircle, Building2, Home, ChevronRight, Menu, Bot, MessageCircle, Eye } from 'lucide-react'
 import { languages, type LanguageCode } from '@/lib/languages'
 import LanguageSwitcher from '@/components/language/LanguageSwitcher'
 import UpdateNotification from '@/components/UpdateNotification'
 import OnboardingGuide from '@/components/seller/OnboardingGuide'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
+
+function StepBadge({ number }: { number: number }) {
+  return (
+    <span className="w-5 h-5 mr-2 flex-shrink-0 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold flex items-center justify-center">
+      {number}
+    </span>
+  )
+}
 
 type SellerDashboardClientLayoutProps = {
   children: React.ReactNode
@@ -430,17 +438,56 @@ export default function SellerDashboardClientLayout({
               </Link>
 
               <Link
-                href="/seller/products"
+                href="/seller/visitors"
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive('/seller/products') || pathname.startsWith('/seller/products/')
+                  isActive('/seller/visitors')
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <Package className="w-5 h-5 mr-3" />
-                {t.products}
+                <Eye className="w-5 h-5 mr-3" />
+                {language === 'zh' ? '访客统计' :
+                 language === 'de' ? 'Besucherstatistik' :
+                 language === 'ja' ? '訪問者統計' :
+                 language === 'ko' ? '방문자 통계' :
+                 language === 'es' ? 'Estadísticas de visitantes' :
+                 language === 'fr' ? 'Statistiques des visiteurs' :
+                 language === 'ru' ? 'Статистика посетителей' :
+                 language === 'pt' ? 'Estatísticas de visitantes' :
+                 'Visitor Stats'}
               </Link>
-              
+
+              {/* 展会创建步骤（按顺序 1→2→3→4） */}
+              <div className="pt-3 pb-1 px-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    {language === 'zh' ? '展会创建步骤' :
+                     language === 'de' ? 'Messe-Erstellung' :
+                     language === 'ja' ? '展示会の作成' :
+                     language === 'ko' ? '박람회 생성' :
+                     language === 'es' ? 'Creación de feria' :
+                     language === 'fr' ? 'Création de salon' :
+                     language === 'ru' ? 'Создание выставки' :
+                     language === 'pt' ? 'Criação de feira' :
+                     'Booth Creation'}
+                  </span>
+                  <span className="text-[10px] text-blue-400">{language === 'zh' ? '按顺序完成' : 'In order'}</span>
+                </div>
+              </div>
+
+              <Link
+                href="/seller/settings"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/settings')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <StepBadge number={1} />
+                <Settings className="w-5 h-5 mr-3" />
+                {t.settings}
+              </Link>
+
               <Link
                 href="/seller/store"
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
@@ -449,10 +496,41 @@ export default function SellerDashboardClientLayout({
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
+                <StepBadge number={2} />
                 <Store className="w-5 h-5 mr-3" />
                 {t.storeProfile}
               </Link>
-              
+
+              <Link
+                href="/seller/booths"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/booths')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <StepBadge number={3} />
+                <Building2 className="w-5 h-5 mr-3" />
+                {t.booths}
+              </Link>
+
+              <Link
+                href="/seller/products"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/seller/products') || pathname.startsWith('/seller/products/')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <StepBadge number={4} />
+                <Package className="w-5 h-5 mr-3" />
+                {t.products}
+              </Link>
+
+              <div className="pt-1 pb-1 px-4">
+                <div className="border-t border-gray-200" />
+              </div>
+
               <Link
                 href="/seller/brochures"
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
@@ -464,19 +542,7 @@ export default function SellerDashboardClientLayout({
                 <FileText className="w-5 h-5 mr-3" />
                 {t.brochures}
               </Link>
-              
-              <Link
-                href="/seller/booths"
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive('/seller/booths')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Building2 className="w-5 h-5 mr-3" />
-                {t.booths}
-              </Link>
-              
+
               <Link
                 href="/seller/ai-accounts"
                 className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
@@ -499,18 +565,6 @@ export default function SellerDashboardClientLayout({
                  language === 'th' ? 'บัญชี AI' :
                  language === 'vi' ? 'Tài khoản AI' :
                  'AI Accounts'}
-              </Link>
-              
-              <Link
-                href="/seller/settings"
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isActive('/seller/settings')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Settings className="w-5 h-5 mr-3" />
-                {t.settings}
               </Link>
               
               {/* Getting Started - re-open onboarding guide */}

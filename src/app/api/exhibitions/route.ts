@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
               whatsapp: true,
               wechat: true,
               telegram: true,
+              zangi: true,
               linkedin: true,
               facebook: true,
               instagram: true,

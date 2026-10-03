@@ -35,6 +35,12 @@ export async function GET(
                 emails: true,
                 phones: true,
                 websites: true,
+                // Instant messaging contacts
+                whatsapp: true,
+                wechat: true,
+                telegram: true,
+                qq: true,
+                zangi: true,
                 logoUrl: true
               }
             },

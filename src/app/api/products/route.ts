@@ -132,6 +132,15 @@ const productSchema = z.object({
   sourceLanguage: z.string().optional().default('en'),
   // 新增：关键词，用于产品搜索曝光（与 Booth.keywords 模式一致）
   keywords: z.array(z.string().min(1).max(100)).max(50).optional(),
+  // Content-differentiation fields
+  applications: z.string().optional(),
+  advantages: z.string().optional(),
+  targetMarket: z.string().optional(),
+  certifications: z.string().optional(),
+  customServices: z.string().optional(),
+  deliveryTime: z.string().optional(),
+  packaging: z.string().optional(),
+  caseStudy: z.string().optional(),
   boothId: z.string().optional(),
   // 新增：价格信息
   price: z.number().positive().optional(),
@@ -202,6 +211,14 @@ export async function POST(request: NextRequest) {
       youtubeUrl: data.youtubeUrl || null,
       isActive: true,
       keywords: data.keywords && data.keywords.length > 0 ? data.keywords : undefined,
+      applications: data.applications || null,
+      advantages: data.advantages || null,
+      targetMarket: data.targetMarket || null,
+      certifications: data.certifications || null,
+      customServices: data.customServices || null,
+      deliveryTime: data.deliveryTime || null,
+      packaging: data.packaging || null,
+      caseStudy: data.caseStudy || null,
       price: data.price ?? null,
       currency: data.currency || 'USD',
       unit: data.unit || 'piece',
@@ -335,8 +352,8 @@ export async function GET(request: NextRequest) {
         where: { sellerId: seller.id }
       }),
       prisma.booth.findMany({
-        where: { sellerId: seller.id, isPublished: true },
-        select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true }
+        where: { sellerId: seller.id },
+        select: { id: true, name: true, exhibitionName: true, theme: true, colorScheme: true, isPublished: true }
       })
     ])
 

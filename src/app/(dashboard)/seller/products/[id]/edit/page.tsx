@@ -39,6 +39,15 @@ export default function EditProductPage() {
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [description, setDescription] = useState('')
+  // Content-differentiation fields (B2B buyer decision info)
+  const [applications, setApplications] = useState('')
+  const [advantages, setAdvantages] = useState('')
+  const [targetMarket, setTargetMarket] = useState('')
+  const [certifications, setCertifications] = useState('')
+  const [customServices, setCustomServices] = useState('')
+  const [deliveryTime, setDeliveryTime] = useState('')
+  const [packaging, setPackaging] = useState('')
+  const [caseStudy, setCaseStudy] = useState('')
   const [minOrderQty, setMinOrderQty] = useState<number | ''>('')
   const [minOrderUnitId, setMinOrderUnitId] = useState<string>('')
   const [supplyCapacity, setSupplyCapacity] = useState('')
@@ -106,6 +115,14 @@ export default function EditProductPage() {
       setTitle(product.title)
       setCategoryId(product.categoryId)
       setDescription(product.description || '')
+      setApplications(product.applications || '')
+      setAdvantages(product.advantages || '')
+      setTargetMarket(product.targetMarket || '')
+      setCertifications(product.certifications || '')
+      setCustomServices(product.customServices || '')
+      setDeliveryTime(product.deliveryTime || '')
+      setPackaging(product.packaging || '')
+      setCaseStudy(product.caseStudy || '')
       setImages(product.images || [])
       setMainImageUrl((product.mainImageUrl || product.images?.[0] || '') as string)
       setMinOrderQty(product.minOrderQty || '')
@@ -257,6 +274,14 @@ export default function EditProductPage() {
         title,
         categoryId,
         description,
+        applications: applications || undefined,
+        advantages: advantages || undefined,
+        targetMarket: targetMarket || undefined,
+        certifications: certifications || undefined,
+        customServices: customServices || undefined,
+        deliveryTime: deliveryTime || undefined,
+        packaging: packaging || undefined,
+        caseStudy: caseStudy || undefined,
         minOrderQty: minOrderQty || undefined,
         minOrderUnitId: minOrderUnitId || undefined,
         supplyCapacity: supplyCapacity || undefined,
@@ -398,6 +423,68 @@ export default function EditProductPage() {
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Content Differentiation — helps buyers decide & improves SEO/AI visibility */}
+          <div className="border-t border-gray-200 pt-4 space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900">
+              内容差异化（提升买家决策与搜索曝光）
+            </h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">应用场景 Applications</label>
+              <textarea value={applications} onChange={(e) => setApplications(e.target.value)} rows={2}
+                placeholder="e.g. Used in automotive assembly lines, construction scaffolding..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">产品优势 Advantages</label>
+              <textarea value={advantages} onChange={(e) => setAdvantages(e.target.value)} rows={2}
+                placeholder="e.g. 30% longer service life; ISO 9001 factory; 15 years OEM experience..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">目标市场 Target Market</label>
+                <input type="text" value={targetMarket} onChange={(e) => setTargetMarket(e.target.value)}
+                  placeholder="e.g. Europe, Middle East, Southeast Asia"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">认证 Certifications</label>
+                <input type="text" value={certifications} onChange={(e) => setCertifications(e.target.value)}
+                  placeholder="e.g. CE, RoHS, ISO 9001, FDA"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">交期 Delivery Time</label>
+                <input type="text" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
+                  placeholder="e.g. 15-20 days after deposit"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">包装 Packaging</label>
+                <input type="text" value={packaging} onChange={(e) => setPackaging(e.target.value)}
+                  placeholder="e.g. Export carton on pallet, custom logo available"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">定制服务 Custom Services</label>
+              <textarea value={customServices} onChange={(e) => setCustomServices(e.target.value)} rows={2}
+                placeholder="e.g. OEM/ODM accepted, custom dimensions, private label..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">客户案例 Case Study</label>
+              <textarea value={caseStudy} onChange={(e) => setCaseStudy(e.target.value)} rows={2}
+                placeholder="e.g. Supplied 50,000 units to a German distributor in 2025..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
           </div>
         </div>
 

@@ -65,6 +65,7 @@ export default function StoreProfilePage() {
   const [whatsapp, setWhatsapp] = useState('')
   const [wechat, setWechat] = useState('')
   const [telegram, setTelegram] = useState('')
+  const [zangi, setZangi] = useState('')
   const [linkedin, setLinkedin] = useState('')
   const [facebook, setFacebook] = useState('')
   const [instagram, setInstagram] = useState('')
@@ -608,6 +609,10 @@ export default function StoreProfilePage() {
               language === 'ja' ? 'Telegram' :
               language === 'ko' ? '텔레그램' :
               'Telegram',
+    zangi: language === 'zh' ? 'Zangi' :
+           language === 'ja' ? 'Zangi' :
+           language === 'ko' ? 'Zangi' :
+           'Zangi',
     chatSystem: language === 'zh' ? '聊天系统账号' :
                 language === 'ja' ? 'チャットシステムアカウント' :
                 language === 'ko' ? '채팅 시스템 계정' :
@@ -1739,6 +1744,7 @@ export default function StoreProfilePage() {
         whatsapp: whatsapp.trim() || null,
         wechat: wechat.trim() || null,
         telegram: telegram.trim() || null,
+        zangi: zangi.trim() || null,
         chatSystem: chatSystem.trim() || null,
       }
 
@@ -1849,6 +1855,7 @@ export default function StoreProfilePage() {
         whatsapp: whatsapp.trim() || null,
         wechat: wechat.trim() || null,
         telegram: telegram.trim() || null,
+        zangi: zangi.trim() || null,
         chatSystem: chatSystem.trim() || null,
       }
 
@@ -2681,6 +2688,20 @@ export default function StoreProfilePage() {
                 value={telegram}
                 onChange={(e) => setTelegram(e.target.value)}
                 placeholder="@username"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Zangi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t.zangi}
+              </label>
+              <input
+                type="text"
+                value={zangi}
+                onChange={(e) => setZangi(e.target.value)}
+                placeholder="Zangi number"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

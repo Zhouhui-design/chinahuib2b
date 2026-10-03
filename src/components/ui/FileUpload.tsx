@@ -1,8 +1,20 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react'
 import { useSellerLanguage } from '@/hooks/useSellerLanguage'
+
+// 图片类上传接受的类型（用于客户端轻量校验提示；后端会做强校验 + sharp 重编码）
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.avif', '.heic']
+const IMAGE_MIME_PREFIXES = ['image/']
+
+// 判断文件是否为图片（扩展名或 MIME 任一匹配即可，尽量宽松）
+function isImageFile(file: File): boolean {
+  const name = file.name.toLowerCase()
+  if (IMAGE_EXTENSIONS.some((ext) => name.endsWith(ext))) return true
+  if (IMAGE_MIME_PREFIXES.some((p) => file.type.toLowerCase().startsWith(p))) return true
+  return false
+}
 
 interface FileUploadProps {
   type: 'product_image' | 'product_video' | 'product_document' | 'brochure' | 'store_brochure' | 'logo' | 'banner'
@@ -30,6 +42,7 @@ export default function FileUpload({
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Set default accept and max size based on type
@@ -43,7 +56,11 @@ export default function FileUpload({
       case 'product_document':
         return '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z'
       default:
-        return 'image/*'
+        // 图片类上传：不放 accept 限制，让文件选择器显示全部文件。
+        // Linux (GTK) 文件选择器会把不在 accept 列表里的文件隐藏，导致
+        // 「粘贴的图像 (2).png」这类文件“找不到”。类型合法性由客户端提示 +
+        // 后端（白名单 + sharp 重编码）双重校验，不会降低安全性。
+        return ''
     }
   }
   
@@ -60,10 +77,11 @@ export default function FileUpload({
     }
   }
   
-  const fileAccept = accept || getDefaultAccept()
+  // accept 为空字符串表示不限制，让文件选择器展示所有文件
+  const fileAccept = accept !== undefined ? accept : getDefaultAccept()
   const maxFileSize = maxSizeMB || getDefaultMaxSize()
 
-  const t = {
+  const t = useMemo(() => ({
     uploadPDFBrochure: language === 'zh' ? '上传PDF手册' :
                        language === 'ja' ? 'PDFパンフレットをアップロード' :
                        language === 'ar' ? 'رفع كتيب PDF' :
@@ -287,43 +305,49 @@ export default function FileUpload({
                                             language === 'th' ? `อัปโหลดไฟล์ ${count} ไฟล์สำเร็จ` :
                                             language === 'vi' ? `Tải thành công ${count} tệp` :
                                             `Successfully uploaded ${count} file(s)`,
-  }
+  }), [language])
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
+  // 统一上传入口：点击选择 / 拖拽 / 粘贴 都调用此函数
+  const uploadFiles = useCallback(async (files: File[]) => {
     if (!files || files.length === 0) return
+    if (uploading) return
 
     setError(null)
     setSuccess(null)
     setUploading(true)
     setProgress(0)
-    
-    // Call onUploadStart callback if provided
-    if (onUploadStart) {
-      onUploadStart()
-    }
+
+    if (onUploadStart) onUploadStart()
 
     try {
-      const results = []
-      
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        
-        // Validate file size
+      const results: Array<{ url: string; [key: string]: unknown }> = []
+
+      for (const file of files) {
+        // 客户端大小预检（仅提示，后端仍有强校验）
         if (file.size > maxFileSize * 1024 * 1024) {
           throw new Error(`File "${file.name}" is too large. Max size: ${maxFileSize}MB`)
         }
 
-        // Create form data
+        // 图片类型上传：宽松提示，不硬拦截（后端 + sharp 会强校验重编码）
+        if (
+          type === 'product_image' &&
+          !isImageFile(file) &&
+          file.size > 0
+        ) {
+          throw new Error(
+            `"${file.name}" 不是图片文件。支持的格式：PNG、JPG、JPEG、WebP、GIF、BMP、AVIF、HEIC`
+          )
+        }
+
         const formData = new FormData()
         formData.append('file', file)
         formData.append('type', type)
         if (productId) formData.append('productId', productId)
         if (title) formData.append('title', title)
 
-        // Simulate progress (since fetch doesn't support upload progress natively)
+        // 模拟进度（fetch 原生不支持上传进度）
         const progressInterval = setInterval(() => {
-          setProgress(prev => {
+          setProgress((prev) => {
             if (prev >= 90) {
               clearInterval(progressInterval)
               return prev
@@ -332,7 +356,6 @@ export default function FileUpload({
           })
         }, 200)
 
-        // Upload to API
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
@@ -342,35 +365,93 @@ export default function FileUpload({
         setProgress(100)
 
         const data = await response.json()
-
         if (!response.ok) {
           throw new Error(data.error || 'Upload failed')
         }
-
         results.push(data)
       }
 
-      setSuccess(t.successfullyUploaded(files.length))
+      setSuccess(t.successfullyUploaded(results.length))
       setUploading(false)
       setProgress(0)
 
-      // Call success callback
       if (onUploadSuccess) {
         onUploadSuccess(results.length === 1 ? results[0] : results)
       }
 
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-
+      if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err) {
       console.error('Upload error:', err)
       setError(err instanceof Error ? err.message : 'Upload failed')
       setUploading(false)
       setProgress(0)
     }
+  }, [uploading, maxFileSize, type, productId, title, onUploadStart, onUploadSuccess, t])
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+    const fileArray = Array.from(files)
+    if (multiple === false) {
+      const first = fileArray[0]
+      if (first) await uploadFiles([first])
+    } else {
+      await uploadFiles(fileArray)
+    }
   }
+
+  // ===== 拖拽上传 =====
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!uploading) setIsDragging(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    if (uploading) return
+    const droppedFiles = Array.from(e.dataTransfer.files || [])
+    if (droppedFiles.length === 0) return
+    if (multiple === false) {
+      const first = droppedFiles[0]
+      if (first) await uploadFiles([first])
+    } else {
+      await uploadFiles(droppedFiles)
+    }
+  }
+
+  // ===== 粘贴上传（支持从剪贴板粘贴图片/文件，或复制图片后粘贴）=====
+  useEffect(() => {
+    if (uploading) return
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+      const pastedFiles: File[] = []
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item && item.kind === 'file') {
+          const f = item.getAsFile()
+          if (f) pastedFiles.push(f)
+        }
+      }
+      if (pastedFiles.length === 0) return
+      e.preventDefault()
+      if (multiple === false) {
+        const first = pastedFiles[0]
+        if (first) uploadFiles([first])
+      } else {
+        uploadFiles(pastedFiles)
+      }
+    }
+    window.addEventListener('paste', handlePaste)
+    return () => window.removeEventListener('paste', handlePaste)
+  }, [uploading, multiple, uploadFiles])
 
   const getIcon = () => {
     switch (type) {
@@ -632,9 +713,12 @@ export default function FileUpload({
       {/* Upload Area */}
       <div
         onClick={() => !uploading && fileInputRef.current?.click()}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className={`
           border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all
-          ${uploading ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
+          ${isDragging ? 'border-blue-600 bg-blue-100 scale-[1.01]' : uploading ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'}
           ${error ? 'border-red-400 bg-red-50' : ''}
           ${success ? 'border-green-400 bg-green-50' : ''}
         `}
@@ -642,7 +726,7 @@ export default function FileUpload({
         <input
           ref={fileInputRef}
           type="file"
-          accept={fileAccept}
+          accept={fileAccept || undefined}
           multiple={multiple}
           onChange={handleFileSelect}
           disabled={uploading}
@@ -673,6 +757,11 @@ export default function FileUpload({
                                               'PDF, DOC, XLS, PPT, ZIP, RAR') :
                fileAccept.includes('pdf') ? t.pdfOnly : t.imageTypes} • {t.maxSize(maxFileSize)}
               {multiple && ' ' + t.multipleAllowed}
+            </p>
+            <p className="text-xs text-blue-600 mt-1 font-medium">
+              {language === 'zh' ? '点击选择 · 或直接拖拽图片到此处 · 或复制图片后按 Ctrl+V 粘贴' :
+               language === 'ja' ? 'クリック・ドラッグ＆ドロップ・Ctrl+Vで貼り付け' :
+               'Click to select · Drag & drop · Paste with Ctrl+V'}
             </p>
           </div>
         </div>

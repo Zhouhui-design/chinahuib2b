@@ -42,7 +42,9 @@ export async function GET(request: NextRequest) {
       internationalViews,
       countryBreakdown,
       cityBreakdown,
-      recentVisitors
+      viewTypeBreakdown,
+      recentVisitors,
+      loggedInViews,
     ] = await Promise.all([
       prisma.visitor.count({ where }),
       prisma.visitor.count({ where: { ...where, isSelfView: true } }),
@@ -63,21 +65,48 @@ export async function GET(request: NextRequest) {
         orderBy: { _count: { city: 'desc' } },
         take: 20
       }),
+      prisma.visitor.groupBy({
+        by: ['viewType'],
+        where,
+        _count: true,
+      }),
       prisma.visitor.findMany({
         where,
-        select: {
-          id: true,
-          country: true,
-          countryCode: true,
-          city: true,
-          isSelfView: true,
-          createdAt: true,
-          product: { select: { title: true, id: true } }
-        },
         orderBy: { createdAt: 'desc' },
-        take: 20
-      })
+        take: 50,
+        include: {
+          viewer: {
+            select: { id: true, username: true, displayName: true, email: true, avatarUrl: true },
+          },
+          product: { select: { title: true, id: true } },
+        },
+      }),
+      prisma.visitor.count({ where: { ...where, viewerId: { not: null } } }),
     ])
+
+    // 为每个登录访客查询是否下载过本卖家的文件
+    const viewerIds = Array.from(
+      new Set(recentVisitors.map((v) => v.viewerId).filter((id): id is string => !!id))
+    )
+
+    let downloadMap = new Map<string, number>()
+    if (viewerIds.length > 0) {
+      const downloads = await prisma.brochureDownload.findMany({
+        where: {
+          sellerId: seller.id,
+          userId: { in: viewerIds },
+        },
+        select: { userId: true },
+      })
+      for (const d of downloads) {
+        if (d.userId) downloadMap.set(d.userId, (downloadMap.get(d.userId) || 0) + 1)
+      }
+    }
+
+    const typeCountMap: Record<string, number> = {}
+    for (const t of viewTypeBreakdown) {
+      typeCountMap[t.viewType] = t._count
+    }
 
     return NextResponse.json({
       success: true,
@@ -87,8 +116,13 @@ export async function GET(request: NextRequest) {
         externalViews,
         domesticViews,
         internationalViews,
+        loggedInViews,
         selfViewPercentage: totalViews > 0 ? Math.round((selfViews / totalViews) * 100) : 0,
         domesticPercentage: totalViews > 0 ? Math.round((domesticViews / totalViews) * 100) : 0,
+        // 分维度访问量
+        storeViews: typeCountMap['STORE'] || 0,          // 公司信息访问
+        boothViews: typeCountMap['BOOTH'] || 0,          // 展会访问
+        productViews: typeCountMap['PRODUCT'] || 0,      // 产品访问
       },
       countryBreakdown: countryBreakdown.map(c => ({
         country: c.country,
@@ -107,8 +141,19 @@ export async function GET(request: NextRequest) {
         city: v.city,
         isSelfView: v.isSelfView,
         createdAt: v.createdAt,
-        productTitle: v.product?.title || 'Unknown Product',
-        productId: v.product?.id
+        viewType: v.viewType,
+        productTitle: v.product?.title || null,
+        productId: v.product?.id || null,
+        viewer: v.viewer
+          ? {
+              id: v.viewer.id,
+              name: v.viewer.displayName || v.viewer.username || v.viewer.email,
+              email: v.viewer.email,
+              avatarUrl: v.viewer.avatarUrl,
+            }
+          : null,
+        hasDownloaded: v.viewerId ? (downloadMap.get(v.viewerId) || 0) > 0 : false,
+        downloadCount: v.viewerId ? (downloadMap.get(v.viewerId) || 0) : 0,
       }))
     })
   } catch (error) {

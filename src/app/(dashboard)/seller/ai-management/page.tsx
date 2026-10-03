@@ -14,6 +14,19 @@ type Agent = {
   lastActiveAt: string | null
 }
 
+type AIUser = {
+  id: string
+  username: string
+  email: string
+  displayName?: string | null
+  role: string
+  isActive: boolean
+  isOnline: boolean
+  lastLoginAt: string | null
+  lastSeenAt: string | null
+  createdAt: string
+}
+
 type AuditLog = {
   id: string
   action: string
@@ -27,6 +40,7 @@ type AuditLog = {
 export default function AIManagementPage() {
   const { data: session } = useSession()
   const [agents, setAgents] = useState<Agent[]>([])
+  const [aiUsers, setAiUsers] = useState<AIUser[]>([])
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
@@ -64,6 +78,9 @@ export default function AIManagementPage() {
         const data = await res.json()
         if (data.success && data.data?.agents) {
           setAgents(data.data.agents)
+        }
+        if (data.success && data.data?.aiUsers) {
+          setAiUsers(data.data.aiUsers)
         }
       }
     } catch (error) {
@@ -517,6 +534,26 @@ export default function AIManagementPage() {
                      language === 'th' ? '🚫 ข้อจำกัดของ AI' :
                      language === 'vi' ? '🚫 Hạn chế của AI' :
                      '🚫 AI Restrictions',
+    aiAccountsStatus: language === 'zh' ? '📋 AI 账号状态' :
+                      language === 'ja' ? '📋 AI アカウントステータス' :
+                      language === 'de' ? '📋 AI-Kontostatus' :
+                      '📋 AI Account Status',
+    accountRegistered: language === 'zh' ? '已注册' : 'Registered',
+    accountNotRegistered: language === 'zh' ? '未注册' : 'Not Registered',
+    online: language === 'zh' ? '🟢 在线' : '🟢 Online',
+    offline: language === 'zh' ? '⚫ 离线' : '⚫ Offline',
+    lastLogin: language === 'zh' ? '最后登录' : 'Last Login',
+    lastSeen: language === 'zh' ? '最后活跃' : 'Last Seen',
+    never: language === 'zh' ? '从未' : 'Never',
+    noAIAccounts: language === 'zh' ? '暂无 AI 账号。AI 代理创建后，将在此显示账号注册状态和登录状态。' :
+                  language === 'ja' ? 'AI アカウントがありません。AI エージェントが作成されると、ここにアカウントステータスが表示されます。' :
+                  language === 'de' ? 'Keine AI-Konten. Nach der Erstellung von AI-Agenten werden hier Kontostatus angezeigt.' :
+                  'No AI accounts yet. Once AI agents register accounts, their status will appear here.',
+    username: language === 'zh' ? '用户名' : 'Username',
+    email: language === 'zh' ? '邮箱' : 'Email',
+    role: language === 'zh' ? '角色' : 'Role',
+    status: language === 'zh' ? '状态' : 'Status',
+    registeredAt: language === 'zh' ? '注册时间' : 'Registered At',
   }
 
   return (
@@ -642,6 +679,79 @@ Body:
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* AI Account Status Section */}
+        {!isCreating && !apiKey && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t.aiAccountsStatus}</h2>
+
+            {aiUsers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-3xl mb-3">📋</p>
+                <p className="text-sm">{t.noAIAccounts}</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.username}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.email}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.role}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.lastLogin}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.lastSeen}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {aiUsers.map((user) => (
+                      <tr key={user.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          <div className="font-medium">{user.displayName || user.username}</div>
+                          <div className="text-xs text-gray-500">{user.username}</div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div className="flex flex-col gap-1">
+                            <span className={`px-2 py-1 text-xs rounded-full inline-flex items-center gap-1 w-fit ${
+                              user.isActive
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {user.isActive ? `✓ ${t.accountRegistered}` : `✗ ${t.accountNotRegistered}`}
+                            </span>
+                            <span className={`px-2 py-1 text-xs rounded-full inline-flex items-center gap-1 w-fit ${
+                              user.isOnline
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {user.isOnline ? t.online : t.offline}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {user.lastLoginAt
+                            ? new Date(user.lastLoginAt).toLocaleString()
+                            : <span className="text-gray-400">{t.never}</span>}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {user.lastSeenAt
+                            ? new Date(user.lastSeenAt).toLocaleString()
+                            : <span className="text-gray-400">{t.never}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
