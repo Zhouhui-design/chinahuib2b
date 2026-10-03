@@ -49,6 +49,9 @@ export function middleware(request: any) {
     pathname === '/admin' || pathname.startsWith('/admin/')
   const isStoreRoute =
     pathname === '/store' || pathname.startsWith('/store/')
+  // Only the *unprefixed* /auction/<id> bypasses locale handling (it is a
+  // legacy/canonical URL form). Locale-prefixed /en/auction/<id> must fall
+  // through to the [locale] route so the sitemap URLs render with 200.
   const isAuctionRoute = pathname.startsWith('/auction/')
 
   if (isDashboardRoute || isStoreRoute || isAuctionRoute) {

@@ -12,7 +12,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider';
 import { MaintenanceBanner } from '@/components/MaintenanceBanner';
 import AdminDevToolsWrapper from '@/components/AdminDevToolsWrapper';
 import { useState, useEffect } from 'react';
-import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal } from 'lucide-react';
+import { User, LogOut, Settings, Store, MessageCircle, Bot, DollarSign, UserCircle, MessageSquare, ShoppingBag, Gavel, BookOpen, Key, History, Users, Terminal, Menu, X } from 'lucide-react';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -33,6 +33,7 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
   const [dict, setDict] = useState<Record<string, any> | null>(null);
   const [user, setUser] = useState<{ id?: string; name?: string; email?: string; role?: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,8 +109,8 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
               <span className="text-xl font-bold text-gray-800 hidden sm:block">SeaHeart Global</span>
             </Link>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-6">
+            {/* Navigation Links - desktop only (lg+), hidden below to prevent overflow */}
+            <div className="hidden lg:flex items-center space-x-6">
               <Link
                 href={`/${locale}`}
                 className={`text-sm font-medium transition-colors ${
@@ -180,7 +181,16 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
             </div>
 
             {/* Right side - Language Switcher & Auth */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Hamburger - mobile only */}
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                aria-label="Toggle menu"
+                className="lg:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 transition-colors"
+              >
+                {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+
               <LanguageSwitcher currentLocale={locale} />
 
               {user ? (
@@ -330,7 +340,7 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
               {!user && (
                 <Link
                   href="/seller"
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm"
+                  className="hidden md:inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm"
                 >
                   {dict.nav.sellerPortal}
                 </Link>
@@ -342,8 +352,9 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
 
       <MaintenanceBanner />
 
-      {/* Mobile Menu */}
-      <div className="md:hidden bg-white border-t">
+      {/* Mobile Menu - collapsible */}
+      {showMobileMenu && (
+      <div className="lg:hidden bg-white border-t">
         <div className="px-4 py-3 space-y-2">
           <Link href={`/${locale}`} className="block text-sm font-medium text-gray-700 hover:text-blue-600 py-2">
             {dict.nav.home}
@@ -399,6 +410,7 @@ function LocaleLayoutContent({ children, params }: LayoutProps) {
           )}
         </div>
       </div>
+      )}
 
       {/* Page Content */}
       {children}

@@ -1,5 +1,7 @@
+import { submitUrls, type SubmissionResult } from './indexnow'
+
 export interface SEOEvent {
-  type: 'product_create' | 'product_update' | 'booth_create' | 'booth_update' | 'store_update' | 'task_create' | 'task_update'
+  type: 'product_create' | 'product_update' | 'booth_create' | 'booth_update' | 'store_update' | 'task_create' | 'task_update' | 'auction_create' | 'auction_update' | 'exhibition_create' | 'exhibition_update' | 'topic_create' | 'topic_update'
   data: {
     id: string
     url: string
@@ -27,14 +29,20 @@ const CLOUDFLARE_AUTH_EMAIL = process.env.CLOUDFLARE_AUTH_EMAIL || ''
 const CLOUDFLARE_AUTH_KEY = process.env.CLOUDFLARE_AUTH_KEY || ''
 
 const SEARCH_ENGINES = [
-  { name: 'Google', pingUrl: 'https://www.google.com/ping?sitemap=https://x2xhub.com/sitemap.xml' },
-  { name: 'Bing', pingUrl: 'https://www.bing.com/webmaster/ping.aspx?siteMap=https://x2xhub.com/sitemap.xml' },
+  // NOTE: Only keep endpoints that still accept submissions.
+  //
+  // Removed on 2026-09-07 because they are dead and were silently wasting a
+  // round-trip on every product/booth/store save:
+  //   - Google  /ping?sitemap=       retired by Google in June 2023
+  //   - Bing    /webmaster/ping.aspx retired in favour of IndexNow
+  //   - Baidu   sitemap.xml?site=    not a submission endpoint
+  //   - DuckDuckGo / Seznam / Naver / Yahoo were plain SERP search URLs,
+  //     never submission APIs. DuckDuckGo, Seznam and Naver are covered by
+  //     IndexNow instead; Yahoo is served by the Bing index.
+  //
+  // Real submission now happens in src/lib/indexnow.ts (IndexNow + the
+  // authenticated Bing Webmaster API), which handleSEOEvent calls below.
   { name: 'Yandex', pingUrl: 'https://webmaster.yandex.ru/site/map.xml?url=https://x2xhub.com/sitemap.xml' },
-  { name: 'Baidu', pingUrl: 'https://www.baidu.com/sitemap.xml?site=https://x2xhub.com' },
-  { name: 'DuckDuckGo', pingUrl: 'https://duckduckgo.com/?q=site:x2xhub.com&ia=web' },
-  { name: 'Seznam', pingUrl: 'https://www.seznam.cz/search?q=x2xhub.com' },
-  { name: 'Naver', pingUrl: 'https://search.naver.com/search.naver?query=x2xhub.com' },
-  { name: 'Yahoo', pingUrl: 'https://search.yahoo.com/search?p=x2xhub.com' },
 ]
 
 export async function purgeCloudflareCache(urls?: string[]): Promise<CloudflarePurgeResult> {
@@ -176,6 +184,7 @@ export function generateSocialShareLinks(url: string, title: string, description
 export async function handleSEOEvent(event: SEOEvent): Promise<{
   cloudflare: CloudflarePurgeResult
   pingResults: SEOPingResult[]
+  submissions: SubmissionResult[]
   shareLinks: Record<string, string>
 }> {
   const shareLinks = generateSocialShareLinks(
@@ -185,12 +194,16 @@ export async function handleSEOEvent(event: SEOEvent): Promise<{
     event.data.imageUrl
   )
 
-  const [cloudflare, pingResults] = await Promise.all([
+  // submitUrls covers Bing/Yandex/Seznam/Naver/DuckDuckGo via IndexNow plus the
+  // authenticated Bing API. It resolves rather than throws, so a search-engine
+  // outage can never fail the caller's save.
+  const [cloudflare, pingResults, submissions] = await Promise.all([
     purgeCloudflareCache([event.data.url]),
     pingSearchEngines(event.data.url),
+    submitUrls([event.data.url]),
   ])
 
-  return { cloudflare, pingResults, shareLinks }
+  return { cloudflare, pingResults, submissions, shareLinks }
 }
 
 export async function generateDailySEOReport(): Promise<{

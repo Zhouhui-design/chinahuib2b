@@ -35,8 +35,29 @@ export async function generateMetadata(): Promise<Metadata> {
     'international exhibition', 'global trade', 'B2B e-commerce',
   ],
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || '',
-    bing: process.env.BING_SITE_VERIFICATION || '',
+    // Only emit the tags when a code is actually configured. Passing '' made
+    // Next render an empty <meta name="msvalidate.01" content="">, which Bing
+    // reads as a failed verification rather than as "not attempted".
+    ...(process.env['GOOGLE_SITE_VERIFICATION']
+      ? { google: process.env['GOOGLE_SITE_VERIFICATION'] }
+      : {}),
+    // Bing and Yandex both verify through `other`, so merge them into one
+    // object -- a second `other` key would silently overwrite the first.
+    // Yandex uses META_TAG rather than its HTML_FILE method on purpose: the
+    // [locale] catch-all route swallows /<name>.html and serves the homepage
+    // instead of the verification file, which Yandex rejects.
+    ...((process.env['BING_SITE_VERIFICATION'] || process.env['YANDEX_SITE_VERIFICATION'])
+      ? {
+          other: {
+            ...(process.env['BING_SITE_VERIFICATION']
+              ? { 'msvalidate.01': process.env['BING_SITE_VERIFICATION'] }
+              : {}),
+            ...(process.env['YANDEX_SITE_VERIFICATION']
+              ? { 'yandex-verification': process.env['YANDEX_SITE_VERIFICATION'] }
+              : {}),
+          },
+        }
+      : {}),
   },
   manifest: "/manifest.json",
   appleWebApp: {
@@ -85,6 +106,8 @@ export async function generateMetadata(): Promise<Metadata> {
     "theme-color": "#2563eb",
     "geo.region": "Global",
     "geo.placename": "International",
+    // Bing and Yahoo still read content-language to resolve page language.
+    "content-language": detectLocale(pathname),
   },
   };
 }

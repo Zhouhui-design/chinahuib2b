@@ -137,12 +137,12 @@ curl -sI https://x2xhub.com/en -w "Time: %{time_total}s\n" -o /dev/null
 
 2. **上传到服务器**
    ```bash
-   scp -r .next root@139.59.108.156:/var/www/x2xhub.com/
+   scp -r .next root@129.212.195.12:/var/www/x2xhub.com/
    ```
 
 3. **重启服务**
    ```bash
-   ssh root@139.59.108.156 "pm2 restart all"
+   ssh root@129.212.195.12 "pm2 restart all"
    ```
 
 4. **清理 Cloudflare 缓存**

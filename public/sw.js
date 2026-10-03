@@ -5,7 +5,7 @@
  *       - Don't cache 404/5xx error pages.
  */
 
-const CACHE_NAME = 'x2xhub-v14';
+const CACHE_NAME = 'x2xhub-v15';
 const OFFLINE_PAGE = '/offline.html';
 const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 
@@ -163,10 +163,10 @@ async function handleStaticAsset(request, pathname) {
         const cache = await caches.open(CACHE_NAME);
         await cache.put(request, clonedResponse);
       }
-      return networkResponse;
+      return networkResponse || fallbackNotFound();
     } catch (e) {
       const cached = await caches.match(request);
-      return cached || new Response('Not found', { status: 404 });
+      return cached || fallbackNotFound();
     }
   }
 
@@ -182,11 +182,17 @@ async function handleStaticAsset(request, pathname) {
         console.warn('[SW] Failed to cache static asset:', e);
       }
     }
-    return networkResponse || new Response('Not found', { status: 404 });
+    return networkResponse || fallbackNotFound();
   } catch (e) {
     const cached = await caches.match(request);
-    return cached || new Response('Not found', { status: 404 });
+    return cached || fallbackNotFound();
   }
+}
+
+// Guaranteed-valid Response fallback (never return undefined → prevents
+// "Failed to convert value to 'Response'" errors).
+function fallbackNotFound() {
+  return new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 }
 
 // API: network-first (never serve stale API data)

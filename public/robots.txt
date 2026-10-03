@@ -137,6 +137,12 @@ User-agent: DuckDuckBot
 Allow: /
 Crawl-delay: 1
 
+# Coc Coc (Vietnamese search engine)
+User-agent: coccocbot
+Allow: /
+Allow: /vi/
+Crawl-delay: 1
+
 # Twitter/X
 User-agent: Twitterbot
 Allow: /
@@ -149,4 +155,9 @@ Crawl-delay: 1
 
 # Sitemap
 Sitemap: https://x2xhub.com/sitemap.xml
-Sitemap: https://x2xhub.com/api/llms
+
+# AI/LLM documentation (Markdown, not a sitemap).
+# Previously declared with a Sitemap: directive, which made Google and Bing
+# try to parse it as XML and report a sitemap fetch error. It is discoverable
+# through the Allow: /llms.txt rules above; crawlers do not need a directive.
+# https://x2xhub.com/api/llms

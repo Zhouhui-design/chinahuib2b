@@ -9,7 +9,7 @@ echo ""
 
 PROJECT_DIR="/var/www/chinahuib2b"
 SSH_KEY="$HOME/.ssh/id_rsa_prod"
-SERVER_IP="167.99.134.217"
+SERVER_IP="129.212.195.12"
 SERVER_USER="sardenesy"
 
 echo "[1/3] Connecting to production server..."
