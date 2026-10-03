@@ -7,7 +7,7 @@ export async function POST() {
     const adminEmail = 'admin@chinahuib2b.top'
     const newPassword = 'Admin@2024Secure!'
 
-    const admin = await prisma.user.findUnique({
+    const admin = await prisma.user.findFirst({
       where: { email: adminEmail }
     })
 

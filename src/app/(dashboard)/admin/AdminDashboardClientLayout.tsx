@@ -7,7 +7,7 @@ import { signOut } from 'next-auth/react'
 import {
   Settings, BarChart3, LogOut, HelpCircle, Globe, FileText, Tag, Home,
   ChevronRight, Menu, Users, Folder, Building2, CreditCard,
-  Bell, AlertCircle, MessageSquare, X, Gavel, Truck, Share2
+  Bell, AlertCircle, AlertTriangle, MessageSquare, X, Gavel, Truck, Share2
 } from 'lucide-react'
 
 type NotificationItem = {
@@ -308,7 +308,12 @@ export default function AdminDashboardClientLayout({
                 查看公开网站
               </Link>
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={async () => {
+                  // 修复：signOut 默认用带 RSC header 的 fetch 跳 callbackUrl，会返回裸 RSC payload。
+                  // 改 redirect:false 先登出，再整页硬跳，强制完整 HTML 加载。
+                  try { await signOut({ redirect: false }) } catch {}
+                  window.location.replace(`/?logout=1&t=${Date.now()}`)
+                }}
                 className="flex items-center text-sm text-gray-600 hover:text-red-600"
                 title="退出登录"
               >
@@ -343,6 +348,7 @@ export default function AdminDashboardClientLayout({
                      pathname.includes('/users') ? t.users :
                      pathname.includes('/categories') ? '分类管理' :
                      pathname.includes('/seller-profiles') ? '组织信息审核' :
+                     pathname.includes('/download-records') ? '下载记录' :
                      pathname.split('/').pop()}
                   </span>
                 </>
@@ -585,6 +591,30 @@ export default function AdminDashboardClientLayout({
                 <Share2 className="w-5 h-5 mr-3" />
                 数据分配管理
               </Link>
+
+              <Link
+                href="/admin/download-records"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/admin/download-records')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FileText className="w-5 h-5 mr-3" />
+                下载记录
+              </Link>
+
+              <Link
+                href="/admin/unreplied-messages"
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/admin/unreplied-messages')
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <AlertTriangle className="w-5 h-5 mr-3" />
+                未回复告警
+              </Link>
             </nav>
           </aside>
 
@@ -791,6 +821,30 @@ export default function AdminDashboardClientLayout({
                   >
                     <Share2 className="w-5 h-5 mr-3" />
                     <span className="flex-1">数据分配管理</span>
+                  </Link>
+                  <Link
+                    href="/admin/download-records"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/download-records')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <FileText className="w-5 h-5 mr-3" />
+                    <span className="flex-1">下载记录</span>
+                  </Link>
+                  <Link
+                    href="/admin/unreplied-messages"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isActive('/admin/unreplied-messages')
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <AlertTriangle className="w-5 h-5 mr-3" />
+                    <span className="flex-1">未回复告警</span>
                   </Link>
                 </nav>
               </div>

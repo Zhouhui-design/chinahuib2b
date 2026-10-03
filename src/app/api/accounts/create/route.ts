@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     // Check if email already exists for human accounts
     // AI accounts can share the same email as their guardian
     if (!isAI) {
-      const existingEmail = await prisma.user.findUnique({
+      const existingEmail = await prisma.user.findFirst({
         where: { email }
       })
       if (existingEmail) {

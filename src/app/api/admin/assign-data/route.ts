@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const email = request.nextUrl.searchParams.get('email')
 
     if (email) {
-      const user = await prisma.user.findUnique({
+      const user = await prisma.user.findFirst({
         where: { email },
         include: {
           sellerProfile: {
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'targetEmail is required for assign actions' }, { status: 400 })
       }
 
-      user = await prisma.user.findUnique({
+      user = await prisma.user.findFirst({
         where: { email: targetEmail }
       })
 
@@ -236,6 +236,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'assign_tasks' && taskIds && taskIds.length > 0) {
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
       const result = await prisma.marketplaceTask.updateMany({
         where: { id: { in: taskIds } },
         data: { postedById: user.id }

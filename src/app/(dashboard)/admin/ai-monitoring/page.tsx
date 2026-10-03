@@ -96,7 +96,7 @@ export default function AIMonitoringPage() {
     try {
       const [permissionsRes, logsRes, usersRes] = await Promise.all([
         fetch('/api/admin/ai-permissions'),
-        fetch('/api/admin/users?role=AI_BUYER&role=AI_SELLER'),
+        fetch('/api/admin/users?includeAI=true&isAI=true'),
         fetch('/api/admin/ai-audit-logs')
       ])
 

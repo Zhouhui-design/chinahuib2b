@@ -106,6 +106,28 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       })
 
+      // Also fetch AI User accounts linked to this owner
+      // These are User records with isAI=true and ownerId matching the guardian
+      const aiUsers = await prisma.user.findMany({
+        where: {
+          ownerId,
+          isAI: true,
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+          isActive: true,
+          isOnline: true,
+          lastLoginAt: true,
+          lastSeenAt: true,
+          createdAt: true,
+          displayName: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
       return NextResponse.json({
         success: true,
         data: {
@@ -117,7 +139,19 @@ export async function GET(request: NextRequest) {
             status: agent.status,
             createdAt: agent.createdAt.toISOString(),
             lastActiveAt: agent.lastActiveAt?.toISOString() || null,
-          }))
+          })),
+          aiUsers: aiUsers.map(u => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+            displayName: u.displayName,
+            role: u.role,
+            isActive: u.isActive,
+            isOnline: u.isOnline,
+            lastLoginAt: u.lastLoginAt?.toISOString() || null,
+            lastSeenAt: u.lastSeenAt?.toISOString() || null,
+            createdAt: u.createdAt.toISOString(),
+          })),
         }
       })
     }

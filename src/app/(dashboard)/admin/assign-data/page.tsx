@@ -93,11 +93,14 @@ export default function AssignDataPage() {
     try {
       const res = await fetch(`/api/admin/assign-data?email=${encodeURIComponent(targetEmail)}`)
       const data = await res.json()
-      setUserProfile(data)
       if (!res.ok) {
+        setUserProfile(null)
         setMessage(data.error || 'User not found')
+      } else {
+        setUserProfile(data)
       }
     } catch (err) {
+      setUserProfile(null)
       setMessage('Failed to load user profile')
     }
     setLoading(false)
@@ -310,7 +313,7 @@ export default function AssignDataPage() {
           </button>
         </div>
 
-        {userProfile && (
+        {userProfile && userProfile.user && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold">用户信息</h3>
             <p>邮箱: {userProfile.user.email}</p>

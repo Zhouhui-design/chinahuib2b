@@ -4,27 +4,47 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Users, FileText, BarChart3, Settings, Tag, TrendingUp, AlertCircle } from 'lucide-react'
 
+type DashboardStats = {
+  totalUsers: number
+  totalAccounts: number
+  aiAccounts: number
+  totalProducts: number
+  totalSellers: number
+  activeUsers: number
+  totalBooths: number
+  totalExhibitions: number
+  pendingSellerApprovals: number
+  draftSellerApprovals: number
+}
+
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
+    totalAccounts: 0,
+    aiAccounts: 0,
     totalProducts: 0,
     totalSellers: 0,
     activeUsers: 0,
+    totalBooths: 0,
+    totalExhibitions: 0,
+    pendingSellerApprovals: 0,
+    draftSellerApprovals: 0,
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch dashboard statistics
+    // Fetch aggregated dashboard statistics
     async function fetchStats() {
       try {
-        // Fetch users count
-        const usersRes = await fetch('/api/admin/users?limit=1')
-        if (usersRes.ok) {
-          const data = await usersRes.json()
-          setStats(prev => ({ ...prev, totalUsers: data.pagination?.total || 0 }))
+        const res = await fetch('/api/admin/stats')
+        if (res.ok) {
+          const payload = await res.json()
+          if (payload.success && payload.data) {
+            setStats(payload.data)
+          }
         }
       } catch (error) {
-        console.error('Failed to fetch stats:', error)
+        console.error('Failed to fetch admin stats:', error)
       } finally {
         setLoading(false)
       }
@@ -84,7 +104,7 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">总用户数</p>
+              <p className="text-sm text-gray-600">总用户数（独立主体）</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {loading ? '-' : stats.totalUsers}
               </p>
@@ -93,9 +113,19 @@ export default function AdminDashboardPage() {
               <Users className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">活跃</span>
+          <div className="mt-4 space-y-1 text-xs text-gray-500">
+            <div className="flex items-center">
+              <TrendingUp className="w-3 h-3 text-green-600 mr-1" />
+              <span className="text-green-600">
+                24h 活跃 {loading ? '-' : stats.activeUsers}
+              </span>
+            </div>
+            <div>
+              AI 子账号：{loading ? '-' : stats.aiAccounts}（不算独立主体）
+            </div>
+            <div>
+              账号总数：{loading ? '-' : stats.totalAccounts}
+            </div>
           </div>
         </div>
 
@@ -113,14 +143,14 @@ export default function AdminDashboardPage() {
           </div>
           <div className="mt-4 flex items-center text-sm">
             <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">增长中</span>
+            <span className="text-green-600">全量产品（含下架）</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">卖家数量</p>
+              <p className="text-sm text-gray-600">卖家数量（已认证）</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">
                 {loading ? '-' : stats.totalSellers}
               </p>
@@ -129,18 +159,28 @@ export default function AdminDashboardPage() {
               <BarChart3 className="w-6 h-6 text-purple-600" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-            <span className="text-green-600">活跃</span>
+          <div className="mt-4 space-y-1 text-xs text-gray-500">
+            <div className="flex items-center">
+              <TrendingUp className="w-3 h-3 text-green-600 mr-1" />
+              <span className="text-green-600">
+                展会：{loading ? '-' : stats.totalExhibitions}
+              </span>
+            </div>
+            <div>
+              待审核卖家：{loading ? '-' : stats.pendingSellerApprovals}
+            </div>
+            <div>
+              草稿卖家：{loading ? '-' : stats.draftSellerApprovals}
+            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">系统状态</p>
+              <p className="text-sm text-gray-600">商铺 / 展位</p>
               <p className="text-3xl font-bold text-green-600 mt-2">
-                正常
+                {loading ? '-' : stats.totalBooths}
               </p>
             </div>
             <div className="bg-green-100 p-3 rounded-full">
@@ -148,7 +188,9 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <span className="text-gray-600">所有服务运行正常</span>
+            <span className="text-gray-600">
+              展会 {loading ? '-' : stats.totalExhibitions} 个上线
+            </span>
           </div>
         </div>
       </div>
