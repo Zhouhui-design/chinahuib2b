@@ -10,6 +10,7 @@ import { getSEOConfig } from '@/lib/seo'
 import { storeUrl } from '@/lib/store-slug'
 import type { Metadata } from 'next'
 import HomeClientWrapper from '@/components/HomeClientWrapper'
+import FaqSection from '@/components/seo/FaqSection'
 import BoothCard from '@/components/BoothCard'
 
 export const dynamic = 'force-dynamic'
@@ -286,6 +287,9 @@ export default async function Home({ params }: PageProps) {
           </Link>
         </div>
       </section>
+
+      {/* FAQ — answer-first content for GEO + FAQPage JSON-LD */}
+      <FaqSection locale={locale} />
 
       {/* AI Recommendations & Behavior Tracking */}
       <HomeClientWrapper userId={null} locale={locale} />
