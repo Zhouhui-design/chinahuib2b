@@ -13,6 +13,7 @@ interface MultilingualInputProps {
   sourceLanguage?: string
   className?: string
   showPreview?: boolean
+  maxLength?: number
 }
 
 const languages = [
@@ -38,7 +39,8 @@ export default function MultilingualInput({
   label,
   rows = 4,
   className = '',
-  showPreview = true
+  showPreview = true,
+  maxLength = 2000
 }: MultilingualInputProps) {
   const [activeLang, setActiveLang] = useState('en')
   const [isTranslating, setIsTranslating] = useState(false)
@@ -49,6 +51,8 @@ export default function MultilingualInput({
   const currentValue = value[activeLang] || ''
   const hasContent = Object.values(value).some(v => v && v.trim().length > 0)
   const filledLanguages = Object.keys(value).filter(k => value[k] && value[k].trim().length > 0)
+  const overLimitLanguages = Object.keys(value).filter(k => value[k] && value[k].length > maxLength)
+  const isCurrentOverLimit = currentValue.length > maxLength
   const hasTranslation = filledLanguages.length > 1
 
   const handleChange = (langCode: string, text: string) => {
@@ -79,9 +83,10 @@ export default function MultilingualInput({
       if (response.ok) {
         const data = await response.json()
         if (data.translations[targetLang]) {
+          const translated = data.translations[targetLang]
           onChange({
             ...value,
-            [targetLang]: data.translations[targetLang]
+            [targetLang]: translated.length > maxLength ? translated.slice(0, maxLength) : translated
           })
         }
       }
@@ -123,7 +128,8 @@ export default function MultilingualInput({
         
         languages.forEach(lang => {
           if (data.translations[lang.code]) {
-            newValue[lang.code] = data.translations[lang.code]
+            const translated = data.translations[lang.code]
+            newValue[lang.code] = translated.length > maxLength ? translated.slice(0, maxLength) : translated
             translatedCount++
             setTranslationProgress(Math.round((translatedCount / targetLangs.length) * 100))
           }
@@ -187,6 +193,7 @@ export default function MultilingualInput({
             <div className="flex items-center gap-1 overflow-x-auto flex-1">
               {languages.map(lang => {
                 const isFilled = value[lang.code] && value[lang.code].trim().length > 0
+                const isOverLimit = value[lang.code] && value[lang.code].length > maxLength
                 const isSource = getSourceLang() === lang.code
                 
                 return (
@@ -197,6 +204,8 @@ export default function MultilingualInput({
                       className={`px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-all ${
                         activeLang === lang.code
                           ? 'bg-blue-600 text-white shadow-md'
+                          : isOverLimit
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200 border border-red-300'
                           : isFilled
                           ? 'bg-green-100 text-green-800 hover:bg-green-200'
                           : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
@@ -280,7 +289,9 @@ export default function MultilingualInput({
           onChange={(e) => handleChange(activeLang, e.target.value)}
           placeholder={placeholder?.[activeLang] || `Enter ${languages.find(l => l.code === activeLang)?.name} content...`}
           rows={rows}
-          className="w-full px-4 py-3 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none bg-white text-gray-900 placeholder-gray-400"
+          className={`w-full px-4 py-3 border-0 focus:ring-2 focus:outline-none resize-none bg-white text-gray-900 placeholder-gray-400 ${
+            isCurrentOverLimit ? 'focus:ring-red-500 bg-red-50' : 'focus:ring-blue-500'
+          }`}
         />
 
         <div className="bg-gray-50 px-4 py-2 flex items-center justify-between text-sm">
@@ -295,8 +306,15 @@ export default function MultilingualInput({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-gray-400">
-            <span className="text-xs">Tip: Fill English or Chinese first, then auto-translate</span>
+          <div className="flex items-center gap-3">
+            {overLimitLanguages.length > 0 && (
+              <span className="text-xs text-red-600 font-medium">
+                ⚠ {overLimitLanguages.length} language{overLimitLanguages.length > 1 ? 's' : ''} over {maxLength} chars
+              </span>
+            )}
+            <span className={`text-xs ${isCurrentOverLimit ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
+              {currentValue.length} / {maxLength}
+            </span>
           </div>
         </div>
       </div>

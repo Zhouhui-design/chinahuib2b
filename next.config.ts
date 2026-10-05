@@ -145,7 +145,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://www.googleoptimize.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://www.googleoptimize.com https://static.cloudflareinsights.com",
               "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",

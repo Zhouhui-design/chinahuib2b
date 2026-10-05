@@ -661,6 +661,11 @@ export default function BoothsPage() {
     event.target.value = ''
     if (!file) return
 
+    if (!file.type.startsWith('image/')) {
+      setUploadError(language === 'zh' ? '这里只能上传图片（PNG / JPG / WebP）。文档（PDF、PPT、Word 等）请上传到下方的"上传文件"区域。' : 'This field accepts images only (PNG / JPG / WebP). Upload documents (PDF, PPT, Word, etc.) in the "Upload Files" section below.')
+      return
+    }
+
     const formData = new FormData()
     formData.append('file', file)
     formData.append('type', 'boothLogo')
@@ -695,6 +700,11 @@ export default function BoothsPage() {
     // 立即清空 input value，确保选择同一文件时也能再次触发 onChange
     event.target.value = ''
     if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError(language === 'zh' ? 'Banner 只能上传图片（PNG / JPG / WebP）。文档请上传到下方的"上传文件"区域。' : 'Banner accepts images only (PNG / JPG / WebP). Upload documents in the "Upload Files" section below.')
+      return
+    }
 
     const formData = new FormData()
     formData.append('file', file)
@@ -862,6 +872,52 @@ export default function BoothsPage() {
       } else {
         if (data.field === 'name') {
           setNameError(data.error || t.boothNameExists)
+        } else if (data.details && Array.isArray(data.details)) {
+          // 把 zod 校验错误转成可读的字段级提示
+          const fieldLabels: Record<string, string> = {
+            name: language === 'zh' ? '展位名称' : 'Booth Name',
+            exhibitionName: language === 'zh' ? '公司名称' : 'Company Name',
+            descriptions: language === 'zh' ? '展会介绍' : 'Exhibition Description',
+            keywords: language === 'zh' ? '关键词' : 'Keywords',
+            documents: language === 'zh' ? '上传文件' : 'Upload Files',
+          }
+          const langNames: Record<string, string> = {
+            en: 'English', zh: '中文', ja: '日本語', ko: '한국어', ar: 'العربية',
+            es: 'Español', fr: 'Français', de: 'Deutsch', ru: 'Русский',
+            pt: 'Português', hi: 'हिन्दी', th: 'ไทย', vi: 'Tiếng Việt',
+          }
+          const messages = data.details.map((iss: { path: (string | number)[]; message: string }) => {
+            const path = iss.path
+            if (path[0] === 'descriptions' && path[1]) {
+              const lang = langNames[String(path[1])] || String(path[1])
+              const field = fieldLabels['descriptions']
+              if (iss.message.includes('at most')) {
+                return language === 'zh'
+                  ? `${field}（${lang}）超出 2000 字符限制`
+                  : `${field} (${lang}) exceeds the 2000 character limit`
+              }
+              return `${field}（${lang}）：${iss.message}`
+            }
+            if (path[0] === 'keywords') {
+              if (iss.message.includes('too_big')) {
+                return language === 'zh'
+                  ? `${fieldLabels['keywords']}不能超过 50 个`
+                  : `${fieldLabels['keywords']} cannot exceed 50`
+              }
+              return `${fieldLabels['keywords']}：${iss.message}`
+            }
+            if (path[0] === 'documents') {
+              if (iss.message.includes('too_big')) {
+                return language === 'zh'
+                  ? `${fieldLabels['documents']}不能超过 10 个`
+                  : `${fieldLabels['documents']} cannot exceed 10`
+              }
+              return `${fieldLabels['documents']}：${iss.message}`
+            }
+            const f = fieldLabels[String(path[0])] || String(path[0])
+            return `${f}：${iss.message}`
+          })
+          setErrorMessage(messages.join('；'))
         } else {
           setErrorMessage(data.error || t.saveFailed)
         }
