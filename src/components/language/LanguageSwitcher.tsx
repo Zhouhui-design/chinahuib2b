@@ -50,8 +50,18 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: Lan
     // Dispatch custom event so useSellerLanguage hook can update without polling
     window.dispatchEvent(new Event('languagechange'))
 
-    // Check if current path is a dashboard route (no locale prefix)
-    const isDashboardRoute = pathname.startsWith('/seller') || pathname.startsWith('/admin')
+    // Check if current path is a seller dashboard route (no locale prefix).
+    // Seller pages render all labels client-side via useSellerLanguage / the
+    // languagechange event, so a full reload is unnecessary (it also refetched
+    // the whole profile and made switching feel very slow). Just close the menu.
+    const isSellerRoute = pathname.startsWith('/seller')
+    if (isSellerRoute) {
+      setIsOpen(false)
+      return
+    }
+
+    // Admin routes still rely on server-rendered language and need a reload.
+    const isDashboardRoute = pathname.startsWith('/admin')
     
     // Check if current path is a static route that doesn't need locale prefix
     const isStaticRoute = pathname.startsWith('/api-docs') || pathname.startsWith('/ai-audit') || pathname.startsWith('/ai-register') || pathname.startsWith('/api-keys') || pathname.startsWith('/auction') || pathname.startsWith('/marketplace') || pathname.startsWith('/team-chat')

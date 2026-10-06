@@ -125,6 +125,10 @@ export default function StoreProfilePage() {
   const [registeredCapital, setRegisteredCapital] = useState('')
   const [registeredAddress, setRegisteredAddress] = useState('')
   const [businessAddress, setBusinessAddress] = useState('')
+  // 地址联动：false = 未手动改过时跟随主 Full Address；手动编辑后置 true
+  const [mapAddressManual, setMapAddressManual] = useState(false)
+  const [registeredAddressManual, setRegisteredAddressManual] = useState(false)
+  const [businessAddressManual, setBusinessAddressManual] = useState(false)
   const [employeeCount, setEmployeeCount] = useState('')
   const [patents, setPatents] = useState<string>('')
   const [awards, setAwards] = useState<string>('')
@@ -361,6 +365,32 @@ export default function StoreProfilePage() {
                  language === 'th' ? 'ที่อยู่เต็ม' :
                  language === 'vi' ? 'Địa chỉ đầy đủ' :
                  'Full Address',
+    mapFullAddress: language === 'zh' ? '地图详细地址' :
+                    language === 'ja' ? '地図用の詳細住所' :
+                    language === 'ar' ? 'عنوان الخريطة الكامل' :
+                    language === 'es' ? 'Dirección completa en el mapa' :
+                    language === 'fr' ? 'Adresse complète sur la carte' :
+                    language === 'de' ? 'Vollständige Kartenadresse' :
+                    language === 'ko' ? '지도 전체 주소' :
+                    language === 'ru' ? 'Полный адрес на карте' :
+                    language === 'pt' ? 'Endereço completo no mapa' :
+                    language === 'hi' ? 'मानचित्र पूरा पता' :
+                    language === 'th' ? 'ที่อยู่เต็มบนแผนที่' :
+                    language === 'vi' ? 'Địa chỉ đầy đủ trên bản đồ' :
+                    'Map Full Address',
+    addressSyncedHint: language === 'zh' ? '默认与完整地址相同，可单独修改' :
+                       language === 'ja' ? 'デフォルトは完全住所と同じ。個別に変更できます' :
+                       language === 'ar' ? 'الافتراضي هو نفس العنوان الكامل، ويمكن تعديله بشكل منفصل' :
+                       language === 'es' ? 'Por defecto igual a la dirección completa; se puede editar por separado' :
+                       language === 'fr' ? "Identique à l'adresse complète par défaut ; modifiable séparément" :
+                       language === 'de' ? 'Standardmäßig mit der vollständigen Adresse identisch; einzeln änderbar' :
+                       language === 'ko' ? '기본값은 전체 주소와 동일하며 개별 수정할 수 있습니다' :
+                       language === 'ru' ? 'По умолчанию совпадает с полным адресом; можно изменить отдельно' :
+                       language === 'pt' ? 'Por padrão é igual ao endereço completo; pode ser editado separadamente' :
+                       language === 'hi' ? 'डिफ़ॉल्ट रूप से पूरे पते के समान; अलग से बदला जा सकता है' :
+                       language === 'th' ? 'ค่าเริ่มต้นเหมือนกับที่อยู่เต็ม สามารถแก้ไขแยกต่างหากได้' :
+                       language === 'vi' ? 'Mặc định giống địa chỉ đầy đủ; có thể chỉnh sửa riêng' :
+                       'Defaults to Full Address; you can edit it separately',
     addressPlaceholder: language === 'zh' ? '街道地址、区、邮政编码' :
                         language === 'ja' ? '番地、区、郵便番号' :
                         language === 'ar' ? 'عنوان الشارع، الحي، الرمز البريدي' :
@@ -1313,8 +1343,16 @@ export default function StoreProfilePage() {
       setBannerUrl(profile.bannerUrl || '')
       setOrganizationType(profile.organizationType || 'ENTERPRISE')
       setRegisteredCapital(profile.registeredCapital || '')
-      setRegisteredAddress(profile.registeredAddress || '')
-      setBusinessAddress(profile.businessAddress || '')
+      // 地址联动加载：库里为空或与主地址相同的字段默认跟随主 Full Address；
+      // 已有不同值的视为用户单独填写，保持不动（manual=true）
+      const mainAddr = profile.address || ''
+      const regAddr = profile.registeredAddress || ''
+      const bizAddr = profile.businessAddress || ''
+      const mapAddr = profile.mapAddress || ''
+      setRegisteredAddress(regAddr && regAddr !== mainAddr ? regAddr : mainAddr)
+      setRegisteredAddressManual(!!regAddr && regAddr !== mainAddr)
+      setBusinessAddress(bizAddr && bizAddr !== mainAddr ? bizAddr : mainAddr)
+      setBusinessAddressManual(!!bizAddr && bizAddr !== mainAddr)
       setEmployeeCount(profile.employeeCount || '')
       setPatents((profile.patents || []).join(', '))
       setAwards((profile.awards || []).join(', '))
@@ -1322,7 +1360,8 @@ export default function StoreProfilePage() {
       setTeamPhotos(profile.teamPhotos || [])
       setMapLatitude(profile.mapLatitude || null)
       setMapLongitude(profile.mapLongitude || null)
-      setMapAddress(profile.mapAddress || '')
+      setMapAddress(mapAddr && mapAddr !== mainAddr ? mapAddr : mainAddr)
+      setMapAddressManual(!!mapAddr && mapAddr !== mainAddr)
       setFoundingYear(profile.foundingYear || '')
       setBusinessScope(profile.businessScope || '')
       setLegalRepresentative(profile.legalRepresentative || '')
@@ -1350,6 +1389,7 @@ export default function StoreProfilePage() {
       setTumblr(profile.tumblr || '')
       setWhatsapp(profile.whatsapp || '')
       setWechat(profile.wechat || '')
+      setZangi(profile.zangi || '')
       setTelegram(profile.telegram || '')
       setChatSystem(profile.chatSystem || '')
 
@@ -2261,7 +2301,14 @@ export default function StoreProfilePage() {
             <input
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value
+                setAddress(v)
+                // 未手动改过的地址字段自动跟随主 Full Address
+                if (!registeredAddressManual) setRegisteredAddress(v)
+                if (!businessAddressManual) setBusinessAddress(v)
+                if (!mapAddressManual) setMapAddress(v)
+              }}
               placeholder={t.addressPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -2895,10 +2942,16 @@ export default function StoreProfilePage() {
               <input
                 type="text"
                 value={registeredAddress}
-                onChange={(e) => setRegisteredAddress(e.target.value)}
+                onChange={(e) => {
+                  setRegisteredAddress(e.target.value)
+                  setRegisteredAddressManual(true)
+                }}
                 placeholder={t.addressPlaceholder}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {!registeredAddressManual && (
+                <p className="mt-1 text-xs text-gray-400">{t.addressSyncedHint}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2907,10 +2960,16 @@ export default function StoreProfilePage() {
               <input
                 type="text"
                 value={businessAddress}
-                onChange={(e) => setBusinessAddress(e.target.value)}
+                onChange={(e) => {
+                  setBusinessAddress(e.target.value)
+                  setBusinessAddressManual(true)
+                }}
                 placeholder={t.addressPlaceholder}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {!businessAddressManual && (
+                <p className="mt-1 text-xs text-gray-400">{t.addressSyncedHint}</p>
+              )}
             </div>
           </div>
 
@@ -3192,15 +3251,21 @@ export default function StoreProfilePage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t.fullAddress}
+              {t.mapFullAddress}
             </label>
             <input
               type="text"
               value={mapAddress}
-              onChange={(e) => setMapAddress(e.target.value)}
+              onChange={(e) => {
+                setMapAddress(e.target.value)
+                setMapAddressManual(true)
+              }}
               placeholder={t.addressPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {!mapAddressManual && (
+              <p className="mt-1 text-xs text-gray-400">{t.addressSyncedHint}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

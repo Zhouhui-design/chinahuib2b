@@ -155,14 +155,19 @@ export default function SellerSettingsPage() {
     }
   }
   
-  // Get language from cookie
+  // Get language from cookie (also react to instant language switch events)
   useEffect(() => {
-    const cookies = document.cookie.split(';')
-    const langCookie = cookies.find(c => c.trim().startsWith('language='))
-    if (langCookie) {
-      const lang = langCookie.split('=')[1]
-      setLanguage(lang || 'en')
+    const syncLanguage = () => {
+      const cookies = document.cookie.split(';')
+      const langCookie = cookies.find(c => c.trim().startsWith('language='))
+      if (langCookie) {
+        const lang = langCookie.split('=')[1]
+        setLanguage(lang || 'en')
+      }
     }
+    syncLanguage()
+    window.addEventListener('languagechange', syncLanguage)
+    return () => window.removeEventListener('languagechange', syncLanguage)
   }, [])
   
   // Load verification files
