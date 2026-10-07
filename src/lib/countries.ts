@@ -43,6 +43,35 @@ export function findCountry(query: string): Country | undefined {
   );
 }
 
+/**
+ * Expand a selected country (canonical English name, code, or any localized
+ * name) into every spelling that may exist in SellerProfile.country.
+ *
+ * Production data mixes values like "China" and "中国" for the same country;
+ * filtering by the English name alone would miss all Chinese-spelled sellers.
+ * Returns [query] when the value cannot be mapped to a known country.
+ */
+export function getCountryAliases(query: string): string[] {
+  const q = query?.trim();
+  if (!q) return [];
+  const country = findCountry(q);
+  if (!country) return [q];
+  const aliases = new Set<string>([country.name]);
+  Object.values(country.translations).forEach((t) => {
+    if (t) aliases.add(t);
+  });
+  return Array.from(aliases);
+}
+
+/**
+ * Map any raw stored country value to its canonical English name + ISO code.
+ * Returns null for values that do not match a known country.
+ */
+export function normalizeCountryKey(raw: string): { name: string; code: string } | null {
+  const c = findCountry(raw);
+  return c ? { name: c.name, code: c.code } : null;
+}
+
 export const COUNTRIES: Country[] = [
   { code: 'CN', name: 'China', translations: { zh: '中国', es: 'China', fr: 'Chine', de: 'China', ja: '中国', ko: '중국', ar: 'الصين', ru: 'Китай', pt: 'China', hi: 'चीन', th: 'จีน', vi: 'Trung Quốc' } },
   { code: 'US', name: 'United States', translations: { zh: '美国', es: 'Estados Unidos', fr: 'États-Unis', de: 'USA', ja: 'アメリカ', ko: '미국', ar: 'الولايات المتحدة', ru: 'США', pt: 'Estados Unidos', hi: 'संयुक्त राज्य अमेरिका', th: 'สหรัฐอเมริกา', vi: 'Hoa Kỳ' } },

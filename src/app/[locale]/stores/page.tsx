@@ -2,17 +2,19 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Suspense } from 'react'
-import { Building2, MapPin, Package } from 'lucide-react'
+import { Building2, MapPin, Package, X } from 'lucide-react'
 import { getDictionary } from '@/locales/dictionary'
 import { storeUrl } from '@/lib/store-slug'
 import StoresSearchBar from '@/components/stores/StoresSearchBar'
 import { languages } from '@/lib/languages'
 import type { LanguageCode } from '@/lib/languages'
 import { localizeCountry, localizeCity } from '@/lib/seo-title'
+import { findCountry, getCountryName } from '@/lib/countries'
+import { getSellerCountryFacets } from '@/services/sellerService'
 
 type PageProps = {
   params: Promise<{ locale: LanguageCode }>
-  searchParams: Promise<{ page?: string; search?: string }>
+  searchParams: Promise<{ page?: string; search?: string; country?: string }>
 }
 
 const BASE_URL = 'https://x2xhub.com'
@@ -48,20 +50,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-function buildPageUrl(locale: string, page: number, search: string) {
+function buildPageUrl(locale: string, page: number, search: string, country?: string) {
   const qs = new URLSearchParams()
   qs.set('page', String(page))
   if (search) qs.set('search', search)
+  if (country) qs.set('country', country)
   return `/${locale}/stores?${qs.toString()}`
 }
 
-async function getSellers(page: number = 1, limit: number = 12, search?: string) {
+function buildClearUrl(locale: string, key: 'search' | 'country', search: string, country: string) {
+  const qs = new URLSearchParams()
+  if (search && key !== 'search') qs.set('search', search)
+  if (country && key !== 'country') qs.set('country', country)
+  const suffix = qs.toString()
+  return suffix ? `/${locale}/stores?${suffix}` : `/${locale}/stores`
+}
+
+async function getSellers(page: number = 1, limit: number = 12, search?: string, country?: string) {
   try {
     const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'
     const searchQuery = search ? `&search=${encodeURIComponent(search)}` : ''
+    const countryQuery = country ? `&country=${encodeURIComponent(country)}` : ''
     const res = await fetch(
-      `${baseUrl}/api/sellers/public?page=${page}&limit=${limit}${searchQuery}`,
-      { 
+      `${baseUrl}/api/sellers/public?page=${page}&limit=${limit}${searchQuery}${countryQuery}`,
+      {
         cache: 'no-store',
         next: { revalidate: 60 }
       }
@@ -83,9 +95,16 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
   const sp = await searchParams
   const currentPage = parseInt(sp.page || '1')
   const search = sp.search || ''
+  const country = sp.country || ''
   const dict = await getDictionary(locale)
-  
-  const { sellers, pagination } = await getSellers(currentPage, 12, search)
+
+  const [{ sellers, pagination }, countryFacets] = await Promise.all([
+    getSellers(currentPage, 12, search, country),
+    getSellerCountryFacets('all'),
+  ])
+  const countryLabel = country
+    ? (findCountry(country) ? getCountryName(findCountry(country)!, locale) : country)
+    : ''
 
   return (
     <>
@@ -99,16 +118,49 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search / Filter */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <Suspense fallback={<div className="h-10 w-full max-w-2xl bg-gray-100 rounded-lg animate-pulse" />}>
-            <StoresSearchBar placeholder={dict.stores.searchPlaceholder || '搜索公司、产品、展会、关键词…'} buttonText={dict.stores.searchButton || '搜索'} />
+        <div className="mb-4">
+          <Suspense fallback={<div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />}>
+            <StoresSearchBar
+              locale={locale}
+              facets={countryFacets}
+              placeholder={dict.stores.searchPlaceholder || '搜索公司、产品、展会、关键词…'}
+              buttonText={dict.stores.searchButton || '搜索'}
+            />
           </Suspense>
-          {search && (
-            <div className="text-sm text-gray-500 whitespace-nowrap">
-              {'搜索'}：<span className="font-medium text-blue-600">“{search}”</span>
-            </div>
-          )}
         </div>
+
+        {/* Active filter chips (country + keyword), both independently clearable */}
+        {(country || search) && (
+          <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+            {country && (
+              <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full pl-3 pr-1.5 py-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{countryLabel}</span>
+                <Link
+                  href={buildClearUrl(locale, 'country', search, country)}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200"
+                  aria-label="Clear country"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Link>
+              </span>
+            )}
+            {search && (
+              <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 border border-gray-200 rounded-full pl-3 pr-1.5 py-1">
+                <span>
+                  {locale === 'zh' ? '搜索' : 'Search'}：“{search}”
+                </span>
+                <Link
+                  href={buildClearUrl(locale, 'search', search, country)}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-gray-200"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Link>
+              </span>
+            )}
+          </div>
+        )}
 
         {sellers.length > 0 ? (
           <>
@@ -240,7 +292,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
                   <nav className="flex items-center space-x-2">
                     {currentPage > 1 && (
                       <Link
-                        href={buildPageUrl(locale, currentPage - 1, search)}
+                        href={buildPageUrl(locale, currentPage - 1, search, country)}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                       >
                         {dict.pagination.previous}
@@ -262,7 +314,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
                       return (
                         <Link
                           key={pageNum}
-                          href={buildPageUrl(locale, pageNum, search)}
+                          href={buildPageUrl(locale, pageNum, search, country)}
                           className={`px-4 py-2 border rounded-md text-sm font-medium ${
                             currentPage === pageNum
                               ? 'bg-blue-600 text-white border-blue-600'
@@ -276,7 +328,7 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
                     
                     {currentPage < pagination.totalPages && (
                       <Link
-                        href={buildPageUrl(locale, currentPage + 1, search)}
+                        href={buildPageUrl(locale, currentPage + 1, search, country)}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                       >
                         {dict.pagination.next}
@@ -291,10 +343,10 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
             <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {search ? (dict.stores.noSearchResults || '未找到相关结果') : dict.stores.noExhibitors}
+              {(search || country) ? (dict.stores.noSearchResults || '未找到相关结果') : dict.stores.noExhibitors}
             </h3>
             <p className="text-gray-600">
-              {search ? (dict.stores.noSearchResultsDesc || '请尝试其他关键词') : dict.stores.noExhibitorsDesc}
+              {(search || country) ? (dict.stores.noSearchResultsDesc || '请尝试其他关键词') : dict.stores.noExhibitorsDesc}
             </p>
           </div>
         )}

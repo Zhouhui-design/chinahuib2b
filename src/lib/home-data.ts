@@ -20,6 +20,7 @@
 
 import { prisma } from '@/lib/db'
 import { unstable_cache } from 'next/cache'
+import { getSellerCountryFacets } from '@/services/sellerService'
 
 export const HOME_REVALIDATE_SECONDS = 300
 
@@ -135,16 +136,23 @@ const getBooths = unstable_cache(
   { revalidate: HOME_REVALIDATE_SECONDS, tags: ['home', 'booths'] },
 )
 
+const getCountryFacets = unstable_cache(
+  () => getSellerCountryFacets('all'),
+  ['home:country-facets'],
+  { revalidate: HOME_REVALIDATE_SECONDS, tags: ['home', 'sellers'] },
+)
+
 /**
  * Load every homepage section in parallel.
  * A failure in one section degrades that section only; it never takes the
  * page down and never blocks the other two.
  */
 export async function getHomePageData() {
-  const [products, sellers, booths] = await Promise.allSettled([
+  const [products, sellers, booths, facets] = await Promise.allSettled([
     getFeaturedProducts(),
     getExhibitors(),
     getBooths(),
+    getCountryFacets(),
   ])
 
   if (products.status === 'rejected') {
@@ -156,10 +164,14 @@ export async function getHomePageData() {
   if (booths.status === 'rejected') {
     console.error('[home] booths failed:', booths.reason)
   }
+  if (facets.status === 'rejected') {
+    console.error('[home] country facets failed:', facets.reason)
+  }
 
   return {
     featuredProducts: products.status === 'fulfilled' ? products.value : [],
     exhibitors: sellers.status === 'fulfilled' ? sellers.value : [],
     booths: booths.status === 'fulfilled' ? booths.value : [],
+    countryFacets: facets.status === 'fulfilled' ? facets.value : [],
   }
 }

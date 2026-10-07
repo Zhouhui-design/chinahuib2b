@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { SellerProfile, Product, Booth, SubscriptionStatus, ProfileStatus } from '@prisma/client';
 import { deriveSlugFromUsername, generateUniqueSlug, isValidSlug } from '@/lib/store-slug';
+import { getCountryAliases, normalizeCountryKey } from '@/lib/countries';
 
 /**
  * Generate a unique store slug derived from a username.
@@ -392,10 +393,63 @@ export async function getFeaturedSellers(limit: number = 10): Promise<SellerProf
 }
 
 // Get all approved sellers for public display
+export interface CountryFacet {
+  /** Canonical English name; raw unmapped value when the country is unknown */
+  name: string;
+  /** ISO alpha-2 when recognized, null for legacy/unmapped values */
+  code: string | null;
+  count: number;
+}
+
+/**
+ * Country facets for buyer-facing filters: only countries that have approved
+ * sellers, with counts. Raw stored spellings ("China" / "中国") are merged into
+ * one canonical facet via the country translation table.
+ *
+ * scope 'withProducts' additionally requires at least one active product (used
+ * by the products listing so a facet click never yields zero products).
+ */
+export async function getSellerCountryFacets(
+  scope: 'all' | 'withProducts' = 'all'
+): Promise<CountryFacet[]> {
+  const rows = await prisma.sellerProfile.groupBy({
+    by: ['country'],
+    where: {
+      isActive: true,
+      profileStatus: ProfileStatus.APPROVED,
+      ...(scope === 'withProducts' ? { products: { some: { isActive: true } } } : {}),
+    },
+    _count: { _all: true },
+  });
+
+  const facets = new Map<string, CountryFacet>();
+  for (const row of rows) {
+    const raw = (row.country || '').trim();
+    if (!raw) continue;
+    const normalized = normalizeCountryKey(raw);
+    const key = normalized ? normalized.name : raw;
+    const existing = facets.get(key);
+    if (existing) {
+      existing.count += row._count._all;
+    } else {
+      facets.set(key, {
+        name: key,
+        code: normalized?.code ?? null,
+        count: row._count._all,
+      });
+    }
+  }
+
+  return Array.from(facets.values()).sort(
+    (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+  );
+}
+
 export async function getApprovedSellers(
   page: number = 1,
   limit: number = 12,
-  search?: string
+  search?: string,
+  country?: string
 ): Promise<{ sellers: SellerProfile[]; total: number; totalPages: number }> {
   const skip = (page - 1) * limit;
   const keyword = search?.trim();
@@ -404,10 +458,20 @@ export async function getApprovedSellers(
   // - 公司信息：companyName / description / businessScope / registeredAddress / certifications / boothCategories / boothTags
   // - 产品：products.some(title / titleEn)
   // - 展会：booths.some(name / exhibitionName)
-  const baseWhere = {
+  const baseWhere: any = {
     isActive: true,
     profileStatus: ProfileStatus.APPROVED,
   };
+
+  // 国家筛选：别名归一化（"China" 同时匹配库存里的 "中国" 等写法）；
+  // 未识别值回退为大小写不敏感的包含匹配
+  if (country?.trim()) {
+    const aliases = getCountryAliases(country);
+    baseWhere.country =
+      aliases.length === 1
+        ? { contains: aliases[0], mode: 'insensitive' }
+        : { in: aliases };
+  }
 
   const where = keyword
     ? {

@@ -3,6 +3,8 @@
 import { useState, useTransition, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
+import CountryFilterCombobox from '@/components/common/CountryFilterCombobox';
+import type { CountryFacet } from '@/services/sellerService';
 
 const COMPANY_TYPES = [
   { value: 'MANUFACTURER', label: { zh: '制造商', en: 'Manufacturer', de: 'Hersteller', es: 'Fabricante', fr: 'Fabricant', ja: 'メーカー', ko: '제조업체', ru: 'Производитель', pt: 'Fabricante', ar: 'مُصنّع' } },
@@ -16,13 +18,14 @@ const T = {
     companyName: '公司名称',
     productName: '产品名称',
     keyword: '关键词',
-    country: '国家',
+    country: '原产地国家',
     companyType: '公司类型',
     allTypes: '全部类型',
+    allCountries: '全部国家',
     placeholderCompany: '输入公司名称...',
     placeholderProduct: '输入产品名称...',
     placeholderKeyword: '输入关键词...',
-    placeholderCountry: '输入国家（如 China / 中国）...',
+    placeholderCountry: '全部国家',
     search: '搜索',
     reset: '重置',
     results: '个结果',
@@ -32,13 +35,14 @@ const T = {
     companyName: 'Company',
     productName: 'Product',
     keyword: 'Keyword',
-    country: 'Country',
+    country: 'Country of Origin',
     companyType: 'Company Type',
     allTypes: 'All types',
+    allCountries: 'All countries',
     placeholderCompany: 'Enter company name...',
     placeholderProduct: 'Enter product name...',
     placeholderKeyword: 'Enter keyword...',
-    placeholderCountry: 'Country (e.g. China / 中国)...',
+    placeholderCountry: 'All countries',
     search: 'Search',
     reset: 'Reset',
     results: 'results',
@@ -52,7 +56,7 @@ function t(locale: string, key: keyof typeof T['en']): string {
   return dict[key] ?? T.en[key];
 }
 
-export default function ProductFilterBar({ locale }: { locale: string }) {
+export default function ProductFilterBar({ locale, facets }: { locale: string; facets: CountryFacet[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -167,12 +171,13 @@ export default function ProductFilterBar({ locale }: { locale: string }) {
             </div>
             <div className="sm:col-span-1">
               <label className="block text-xs font-medium text-gray-500 mb-1">{t(locale, 'country')}</label>
-              <input
-                type="text"
+              <CountryFilterCombobox
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
+                onChange={setCountry}
+                facets={facets}
+                language={locale}
                 placeholder={t(locale, 'placeholderCountry')}
-                className={inputCls}
+                allLabel={t(locale, 'allCountries')}
               />
             </div>
             <div className="sm:col-span-1">

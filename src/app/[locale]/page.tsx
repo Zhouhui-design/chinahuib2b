@@ -15,6 +15,7 @@ import BoothCard from '@/components/BoothCard'
 import AgentNoticeBanner from '@/components/AgentNoticeBanner'
 import { getHomePageData } from '@/lib/home-data'
 import { localizeCountry } from '@/lib/seo-title'
+import CountryFilterCombobox from '@/components/common/CountryFilterCombobox'
 
 // ISR: the homepage is public marketing content, not per-user content. Rendering
 // it on every request was pure cost. getHomePageData() caches on the same window.
@@ -67,7 +68,7 @@ export default async function Home({ params }: PageProps) {
 
   // Data comes straight from Prisma, in parallel and cached. See src/lib/home-data.ts
   // for why the previous self-fetch against NEXTAUTH_URL cost ~10.8s per render.
-  const { featuredProducts, exhibitors, booths } = await getHomePageData();
+  const { featuredProducts, exhibitors, booths, countryFacets } = await getHomePageData();
 
   return (
     <>
@@ -93,22 +94,32 @@ export default async function Home({ params }: PageProps) {
             {dict.home.hero.subtitle}
           </p>
           
-          {/* Search Box — 跳转到产品列表页 keyword 搜索 */}
+          {/* Search Box — 跳转到产品列表页 keyword + 原产地国家 搜索 */}
           <div className="max-w-2xl mx-auto">
             <form
               action={`/${locale}/products`}
               method="get"
-              className="bg-white rounded-lg shadow-lg p-2 flex gap-2"
+              className="bg-white rounded-lg shadow-lg p-2 flex flex-col sm:flex-row gap-2"
             >
               <input
                 type="text"
                 name="keyword"
                 placeholder={dict.home.hero.searchPlaceholder}
-                className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
+                className="flex-1 min-w-0 px-4 py-3 text-gray-800 focus:outline-none"
               />
+              <div className="w-full sm:w-52 flex-shrink-0">
+                <CountryFilterCombobox
+                  name="country"
+                  value=""
+                  facets={countryFacets}
+                  language={locale}
+                  placeholder={locale === 'zh' ? '全部国家' : 'All countries'}
+                  allLabel={locale === 'zh' ? '全部国家' : 'All countries'}
+                />
+              </div>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-md font-semibold transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-md font-semibold transition-colors flex-shrink-0"
               >
                 {dict.home.hero.searchButton}
               </button>

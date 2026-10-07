@@ -9,6 +9,8 @@ import type { Metadata } from 'next';
 import { languages } from '@/lib/languages';
 import Link from 'next/link';
 import ProductFilterBar from "@/components/product/ProductFilterBar";
+import { getCountryAliases } from "@/lib/countries";
+import { getSellerCountryFacets, type CountryFacet } from "@/services/sellerService";
 
 // ISR Configuration - Revalidate every 30 minutes
 export const revalidate = 1800;
@@ -130,7 +132,13 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
     sellerWhere.companyName = { contains: companyName as string, mode: 'insensitive' };
   }
   if (country) {
-    sellerWhere.country = { contains: country as string, mode: 'insensitive' };
+    // 别名归一化：选中 China 时同时匹配库存里的 "中国" 等所有写法；
+    // 未识别值回退为包含匹配
+    const aliases = getCountryAliases(country as string);
+    sellerWhere.country =
+      aliases.length === 1
+        ? { contains: aliases[0], mode: 'insensitive' }
+        : { in: aliases };
   }
   if (companyType) {
     const types = (companyType as string).split(',').map((t) => t.trim().toUpperCase()).filter(Boolean);
@@ -294,6 +302,9 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
 export default async function ProductsPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+
+  // 国家 facet（仅有在售产品的供应商国家 + 数量，合并中文/英文等存量写法）
+  const countryFacets = await getSellerCountryFacets('withProducts');
   
   // Prepare breadcrumb schema
   const breadcrumbs = [
@@ -328,7 +339,7 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
             <div className="flex-1 min-w-0">
               {/* 五维筛选栏（客户端交互，URL searchParams 驱动 SSR 查询） */}
               <Suspense fallback={null}>
-                <ProductFilterBar locale={locale} />
+                <ProductFilterBar locale={locale} facets={countryFacets} />
               </Suspense>
 
               <Suspense

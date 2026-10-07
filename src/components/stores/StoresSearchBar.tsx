@@ -3,39 +3,60 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X } from 'lucide-react'
+import CountryFilterCombobox from '@/components/common/CountryFilterCombobox'
+import type { CountryFacet } from '@/services/sellerService'
 
 interface StoresSearchBarProps {
+  locale: string
+  facets: CountryFacet[]
   placeholder?: string
   buttonText?: string
 }
 
-export default function StoresSearchBar({ placeholder = '搜索公司、产品、展会、关键词…', buttonText = '搜索' }: StoresSearchBarProps) {
+function buildHref(keyword: string, country: string) {
+  const qs = new URLSearchParams()
+  if (keyword) qs.set('search', keyword)
+  if (country) qs.set('country', country)
+  const s = qs.toString()
+  return s ? `?${s}` : '?'
+}
+
+export default function StoresSearchBar({
+  locale,
+  facets,
+  placeholder = '搜索公司、产品、展会、关键词…',
+  buttonText = '搜索',
+}: StoresSearchBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const initial = searchParams.get('search') || ''
-  const [value, setValue] = useState(initial)
+  const [value, setValue] = useState(searchParams.get('search') || '')
+  const [country, setCountry] = useState(searchParams.get('country') || '')
+  const keywordParam = searchParams.get('search') || ''
+  const countryParam = searchParams.get('country') || ''
 
+  // Keyword search: keep the active country filter, reset to page 1
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const keyword = value.trim()
-    // 搜索时重置到第 1 页
-    if (keyword) {
-      router.push(`?search=${encodeURIComponent(keyword)}`)
-    } else {
-      router.push('?')
-    }
+    router.push(buildHref(value.trim(), countryParam))
   }
 
+  // Clearing the keyword input keeps the country filter
   const clear = () => {
     setValue('')
-    router.push('?')
+    router.push(buildHref('', countryParam))
+  }
+
+  // Country applies immediately; keeps the keyword, resets to page 1
+  const handleCountryChange = (next: string) => {
+    setCountry(next)
+    router.push(buildHref(keywordParam, next))
   }
 
   return (
-    <form onSubmit={submit} className="relative w-full max-w-2xl">
-      <div className="flex items-center gap-2">
+    <form onSubmit={submit} className="w-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
           <input
             type="text"
             value={value}
@@ -54,9 +75,19 @@ export default function StoresSearchBar({ placeholder = '搜索公司、产品�
             </button>
           )}
         </div>
+        <div className="w-full sm:w-56 flex-shrink-0">
+          <CountryFilterCombobox
+            value={country}
+            onChange={handleCountryChange}
+            facets={facets}
+            language={locale}
+            placeholder={locale === 'zh' ? '全部国家' : 'All countries'}
+            allLabel={locale === 'zh' ? '全部国家' : 'All countries'}
+          />
+        </div>
         <button
           type="submit"
-          className="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
         >
           {buttonText}
         </button>
