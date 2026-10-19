@@ -186,7 +186,9 @@ export default function AdminDashboardClientLayout({
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <Link href="/" className="text-lg sm:text-xl font-bold text-blue-600">
+              {/* /zh avoids the Cloudflare Worker 302 on bare "/" which breaks
+                  RSC client navigation (raw payload page bug) */}
+              <Link href="/zh" className="text-lg sm:text-xl font-bold text-blue-600">
                 SeaHeart Global | 心海环球
               </Link>
               <span className="hidden sm:inline ml-4 text-sm text-gray-500">
@@ -301,7 +303,7 @@ export default function AdminDashboardClientLayout({
                 <span className="hidden sm:inline">帮助</span>
               </Link>
               <Link
-                href="/"
+                href="/zh"
                 className="text-sm text-gray-600 hover:text-blue-600 hidden md:inline"
                 title="查看公开网站"
               >
@@ -330,7 +332,7 @@ export default function AdminDashboardClientLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10">
             <div className="flex items-center space-x-1 overflow-x-auto">
-              <Link href="/" className="flex items-center text-blue-600 hover:text-blue-700 transition-colors shrink-0">
+              <Link href="/zh" className="flex items-center text-blue-600 hover:text-blue-700 transition-colors shrink-0">
                 <Home className="w-4 h-4" />
               </Link>
               <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
@@ -370,7 +372,7 @@ export default function AdminDashboardClientLayout({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowQuickMenu(false)} />
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
-                    <Link href="/" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <Link href="/zh" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       <Home className="w-4 h-4 mr-2" />
                       {t.home}
                     </Link>

@@ -341,6 +341,23 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // RSC flight responses MUST never be publicly cacheable. The public
+      // s-maxage rules above also match `RSC: 1` fetches (Content-Type:
+      // text/x-component), so browser/proxy/CDN caches can store flight
+      // payloads under the SAME URL as the HTML document and later serve
+      // them to document navigations — the page then renders the raw RSC
+      // stream (0:{"b":"build-..."}) instead of the app. Later rules
+      // override earlier ones, so this last rule wins for RSC requests.
+      {
+        source: '/:path*',
+        has: [{ type: 'header', key: 'RSC' }],
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store',
+          },
+        ],
+      },
     ]
   },
 };

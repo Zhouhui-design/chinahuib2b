@@ -1,11 +1,15 @@
 /**
  * Service Worker for PWA Offline Support
- * v14 - Fix hydration mismatch caused by SW returning non-Response objects.
- *       - Make handleHTMLRequest always return a valid Response (never undefined).
- *       - Don't cache 404/5xx error pages.
+ * v16 - Never intercept or cache RSC (React Server Component) requests.
+ *       - Skip requests carrying the RSC header / _rsc query / text/x-component
+ *         accept entirely; the Next.js router must always talk to the network.
+ *       - handleHTMLRequest only falls back to cached responses whose
+ *         Content-Type is text/html, so a flight payload can never be served
+ *         as a document (raw "0:{...}" page bug).
+ *       - Cache version bumped to wipe any poisoned entries from v15.
  */
 
-const CACHE_NAME = 'x2xhub-v15';
+const CACHE_NAME = 'x2xhub-v16';
 const OFFLINE_PAGE = '/offline.html';
 const SW_SELF_PATHS = ['/sw.js', '/sw-worker.js', '/service-worker.js'];
 
@@ -60,6 +64,17 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
+
+  // RSC / router-prefetch requests must NEVER be intercepted or cached by the
+  // SW: they return flight payloads (text/x-component) keyed by the same URL
+  // as HTML documents. Let them pass straight through to the network.
+  if (
+    request.headers.get('RSC') === '1' ||
+    url.searchParams.has('_rsc') ||
+    request.headers.get('accept')?.includes('text/x-component')
+  ) {
+    return;
+  }
 
   // Always serve sw.js from network to ensure updates are picked up
   if (SW_SELF_PATHS.some(p => url.pathname === p)) {
@@ -126,10 +141,12 @@ async function handleHTMLRequest(request) {
 
     return response;
   } catch (e) {
-    // Network failure: serve from cache, or offline page
+    // Network failure: serve from cache, or offline page.
+    // Only trust cached responses that are actual HTML documents — never a
+    // stale RSC flight payload that may have been cached under the same URL.
     console.warn('[SW] Network request failed, serving from cache:', request.url, e);
     const cached = await caches.match(request);
-    if (cached) {
+    if (cached && cached.headers.get('content-type')?.includes('text/html')) {
       return cached;
     }
     const offline = await caches.match(OFFLINE_PAGE);

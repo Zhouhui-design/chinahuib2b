@@ -32,6 +32,9 @@ export default function SellerDashboardClientLayout({
 }: SellerDashboardClientLayoutProps) {
   const language = useSellerLanguage()
   const pathname = usePathname()
+  // Locale-prefixed home: a bare "/" gets 302-redirected by the Cloudflare
+  // Worker even for RSC router requests, which breaks client navigation.
+  const homeHref = `/${language || 'en'}`
   // useSession may return undefined if SessionProvider is not yet loaded
   const sessionResult = useSession()
   const session = sessionResult?.data
@@ -249,7 +252,7 @@ export default function SellerDashboardClientLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold text-blue-600">
+              <Link href={homeHref} className="text-xl font-bold text-blue-600">
                 {language === 'zh' ? '心海环球' :
                  language === 'ja' ? '心海グローバル' :
                  language === 'ar' ? 'القلب البحري العالمي' :
@@ -299,7 +302,7 @@ export default function SellerDashboardClientLayout({
               </Link>
               
               <Link
-                href="/"
+                href={homeHref}
                 className="text-sm text-gray-600 hover:text-blue-600"
               >
                 {t.viewPublicSite}
@@ -323,7 +326,7 @@ export default function SellerDashboardClientLayout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10">
             <div className="flex items-center space-x-1 overflow-x-auto">
-              <Link href="/" className="flex items-center text-blue-600 hover:text-blue-700 transition-colors shrink-0">
+              <Link href={homeHref} className="flex items-center text-blue-600 hover:text-blue-700 transition-colors shrink-0">
                 <Home className="w-4 h-4" />
               </Link>
               <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
@@ -360,7 +363,7 @@ export default function SellerDashboardClientLayout({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowQuickMenu(false)} />
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
-                    <Link href="/" onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <Link href={homeHref} onClick={() => setShowQuickMenu(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       <Home className="w-4 h-4 mr-2" />
                       {t.home}
                     </Link>
