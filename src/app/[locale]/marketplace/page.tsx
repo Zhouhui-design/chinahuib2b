@@ -76,7 +76,10 @@ function toClientTask(task: any): Task {
     applications: task.applications,
     views: task.views,
     rating: task.rating != null ? Number(task.rating) : undefined,
-    postedBy: task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+    // B2B 买家更信任公司名而非用户名，优先展示卖家公司名
+    postedBy: task.postedBy?.sellerProfile?.companyName || task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+    sellerVerified: !!task.postedBy?.sellerProfile?.isVerified,
+    attachments: Array.isArray(task.attachments) ? task.attachments : [],
     postedById: task.postedById,
     countryCode: task.countryCode ?? undefined,
     countryName: task.countryName ?? undefined,
@@ -115,7 +118,14 @@ export default async function MarketplacePage({ params }: Props) {
       orderBy: { createdAt: 'desc' },
       take: INITIAL_LIMIT,
       include: {
-        postedBy: { select: { id: true, username: true, displayName: true } },
+        postedBy: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            sellerProfile: { select: { companyName: true, isVerified: true } },
+          },
+        },
       },
     }),
     prisma.marketplaceTask.count({ where: { status: TaskStatus.OPEN } }),
@@ -170,7 +180,12 @@ export default async function MarketplacePage({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(itemListSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumbSchema) }} />
-      <MarketplaceClient locale={locale} initialTasks={initialTasks} initialTopics={initialTopics} />
+      <MarketplaceClient
+        locale={locale}
+        initialTasks={initialTasks}
+        initialTopics={initialTopics}
+        initialTotalPages={Math.ceil(totalTasks / INITIAL_LIMIT)}
+      />
     </>
   )
 }

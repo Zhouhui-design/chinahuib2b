@@ -21,22 +21,51 @@ export interface Task {
   id: string
   // DB 返回大写枚举（PRODUCT_SALE 等），卡片渲染时用 normalizeType 归一化
   type: string
-  postedAt?: string
+  postedAt?: string | undefined
   title: string
   description: string
-  budget?: number
-  price?: number
-  currency?: string
-  unit?: string
-  minOrderQty?: number
-  deadline?: string
-  applications?: number
-  views?: number
-  rating?: number
-  postedBy?: string
-  postedById?: string
-  countryCode?: string
-  countryName?: string
+  budget?: number | undefined
+  price?: number | undefined
+  currency?: string | undefined
+  unit?: string | undefined
+  minOrderQty?: number | undefined
+  deadline?: string | undefined
+  applications?: number | undefined
+  views?: number | undefined
+  rating?: number | undefined
+  postedBy?: string | undefined
+  postedById?: string | undefined
+  sellerVerified?: boolean | undefined
+  attachments?: string[] | undefined
+  countryCode?: string | undefined
+  countryName?: string | undefined
+}
+
+/** 卡片缩略图：取第一张图片类附件（跳过视频/文档），无则返回 undefined。 */
+const firstImageUrl = (attachments?: string[]): string | undefined =>
+  (attachments || []).find((u) =>
+    /\.(png|jpe?g|webp|gif|avif|bmp)(\?.*)?$/i.test(u),
+  )
+
+/** 构造 /api/marketplace/tasks 查询串（筛选/排序/分页共用，避免逻辑分叉）。 */
+const buildTaskQuery = (
+  filters: { type: string; sortBy: string; country: string },
+  page: number,
+): string => {
+  const params = new URLSearchParams({ limit: '10', page: String(page) })
+  if (filters.type !== 'all') params.set('type', filters.type.toUpperCase())
+  if (filters.sortBy === 'budget_high') {
+    params.set('sortBy', 'budget')
+    params.set('order', 'desc')
+  } else if (filters.sortBy === 'budget_low') {
+    params.set('sortBy', 'budget')
+    params.set('order', 'asc')
+  } else if (filters.sortBy === 'applications') {
+    params.set('sortBy', 'applications')
+    params.set('order', 'desc')
+  }
+  if (filters.country !== 'all') params.set('country', filters.country)
+  return params.toString()
 }
 
 const taskTypes = [
@@ -97,10 +126,12 @@ export default function MarketplaceClient({
   locale,
   initialTasks,
   initialTopics,
+  initialTotalPages,
 }: {
   locale: LanguageCode
   initialTasks: Task[]
   initialTopics: Topic[]
+  initialTotalPages: number
 }) {
   const dict = dictionaries[locale] || dictionaries.en
 
@@ -114,6 +145,9 @@ export default function MarketplaceClient({
   const [activeTab, setActiveTab] = useState<'tasks' | 'topics' | 'financing' | 'investment'>('tasks')
   const [selectedTopicCategory, setSelectedTopicCategory] = useState('all')
   const [selectedCountry, setSelectedCountry] = useState('all')
+  // 分页：SSR 首屏为第 1 页，之后「加载更多」逐页追加
+  const [pageInfo, setPageInfo] = useState({ page: 1, totalPages: initialTotalPages })
+  const [loadingMore, setLoadingMore] = useState(false)
   // null until /api/marketplace/stats resolves, so no-JS crawlers never
   // receive hard-coded 0 / 0 / 0 / $0 counters.
   const [stats, setStats] = useState<{
@@ -205,34 +239,12 @@ export default function MarketplaceClient({
     const fetchTasks = async () => {
       try {
         setLoading(true)
-        const params = new URLSearchParams({
-          limit: '10',
-        })
-        
-        if (selectedType !== 'all') {
-          params.set('type', selectedType.toUpperCase())
-        }
-        
-        if (sortBy === 'budget_high') {
-          params.set('sortBy', 'budget')
-          params.set('order', 'desc')
-        } else if (sortBy === 'budget_low') {
-          params.set('sortBy', 'budget')
-          params.set('order', 'asc')
-        } else if (sortBy === 'applications') {
-          params.set('sortBy', 'applications')
-          params.set('order', 'desc')
-        }
-        
-        if (selectedCountry !== 'all') {
-          params.set('country', selectedCountry)
-        }
-        
-        const response = await fetch(`/api/marketplace/tasks?${params}`)
+        const response = await fetch(`/api/marketplace/tasks?${buildTaskQuery({ type: selectedType, sortBy, country: selectedCountry }, 1)}`)
         const data = await response.json()
-        
+
         if (data.success) {
           setTasks(data.data.tasks)
+          setPageInfo({ page: 1, totalPages: data.data.pagination?.totalPages ?? 1 })
         }
       } catch (error) {
         console.error('Error fetching tasks:', error)
@@ -243,6 +255,32 @@ export default function MarketplaceClient({
     
     fetchTasks()
   }, [selectedType, sortBy, selectedCountry])
+
+  // 加载更多：按当前筛选条件取下一页并追加（26 条发布此前只能看到前 10 条）
+  const handleLoadMore = async () => {
+    if (loadingMore || pageInfo.page >= pageInfo.totalPages) return
+    try {
+      setLoadingMore(true)
+      const nextPage = pageInfo.page + 1
+      const query = buildTaskQuery(
+        { type: selectedType, sortBy, country: selectedCountry },
+        nextPage,
+      )
+      const response = await fetch(`/api/marketplace/tasks?${query}`)
+      const data = await response.json()
+      if (data.success) {
+        setTasks((prev) => [...prev, ...data.data.tasks])
+        setPageInfo({
+          page: nextPage,
+          totalPages: data.data.pagination?.totalPages ?? pageInfo.totalPages,
+        })
+      }
+    } catch (error) {
+      console.error('Error loading more tasks:', error)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   // Fetch topics from API
   // 同上：首个 run 使用服务端注入的 initialTopics
@@ -431,10 +469,10 @@ export default function MarketplaceClient({
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
-                  <option value="newest">{dict.marketplace.sortBy}</option>
-                  <option value="budget_high">Budget: High to Low</option>
-                  <option value="budget_low">Budget: Low to High</option>
-                  <option value="applications">Most Applications</option>
+                  <option value="newest">{locale === 'zh' ? '最新发布' : 'Newest first'}</option>
+                  <option value="budget_high">{locale === 'zh' ? '预算从高到低' : 'Budget: high to low'}</option>
+                  <option value="budget_low">{locale === 'zh' ? '预算从低到高' : 'Budget: low to high'}</option>
+                  <option value="applications">{locale === 'zh' ? '申请最多' : 'Most applications'}</option>
                 </select>
                 <Link
                   href={`/${locale}/marketplace/post`}
@@ -486,15 +524,34 @@ export default function MarketplaceClient({
                 <p className="text-gray-600">{dict.marketplace.noTasksFound}</p>
               </div>
             ) : (
+              <>
               <div className="grid gap-6">
                 {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                  <div className="flex flex-col sm:flex-row">
+                    {/* 缩略图：B2B 买家先看图再判断，无图时不渲染占位 */}
+                    {(() => {
+                      const thumb = firstImageUrl(task.attachments)
+                      return thumb ? (
+                        <Link
+                          href={`/${locale}/marketplace/${task.id}`}
+                          className="sm:w-56 sm:flex-shrink-0"
+                        >
+                          <img
+                            src={thumb}
+                            alt={task.title}
+                            loading="lazy"
+                            className="w-full h-44 sm:h-full object-cover bg-gray-100"
+                          />
+                        </Link>
+                      ) : null
+                    })()}
+
+                    <div className="flex-1 p-6 min-w-0">
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
                         {(() => {
                           const t = normalizeType(task.type)
                           if (t === 'manufacturing') {
@@ -529,95 +586,122 @@ export default function MarketplaceClient({
                           </span>
                         )}
                       </div>
+
+                      {/* 标题即详情入口，整条标题可点 */}
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {task.title}
+                        <Link
+                          href={`/${locale}/marketplace/${task.id}`}
+                          className="hover:text-blue-700 hover:underline"
+                        >
+                          {task.title}
+                        </Link>
                       </h3>
-                      <p className="text-gray-600 mb-4">{task.description}</p>
-                    </div>
-                  </div>
+                      <p className="text-gray-600 mb-4 line-clamp-2">{task.description}</p>
 
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="flex items-center gap-6">
-                      {task.budget && (
-                        <div>
-                          <div className="text-sm text-gray-500">{dict.marketplace.budget}</div>
-                          <div className="text-lg font-semibold text-green-600">
-                            ${task.budget.toLocaleString()} {task.currency}
-                          </div>
-                        </div>
-                      )}
-                      {task.price && (
-                        <div>
-                          <div className="text-sm text-gray-500">{dict.marketplace.price}</div>
-                          <div className="text-lg font-semibold text-blue-600">
-                            ${task.price} {task.currency}
-                            {task.unit && <span className="text-sm text-gray-500">/{task.unit}</span>}
-                          </div>
-                        </div>
-                      )}
-                      {task.deadline && (
-                        <div>
-                          <div className="text-sm text-gray-500">{dict.marketplace.deadline}</div>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {task.deadline}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">{dict.marketplace.postedBy}</div>
-                        <div className="font-medium text-gray-900">{task.postedBy}</div>
+                      {/* 商务信息 chips：让买家不用点进详情就能判断是否对口 */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {task.budget ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-50 text-green-700 border border-green-100">
+                            💰 {dict.marketplace.budget}: ${task.budget.toLocaleString()} {task.currency}
+                          </span>
+                        ) : null}
+                        {task.price ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700 border border-blue-100">
+                            🏷️ {dict.marketplace.price}: ${task.price} {task.currency}
+                            {task.unit && <span className="text-gray-500">/{task.unit}</span>}
+                          </span>
+                        ) : null}
+                        {task.minOrderQty ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                            📦 {dict.marketplace.minOrder}: {task.minOrderQty}
+                          </span>
+                        ) : null}
+                        {task.deadline ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-orange-50 text-orange-700 border border-orange-100">
+                            ⏰ {dict.marketplace.deadline}: {new Date(task.deadline).toLocaleDateString(locale)}
+                          </span>
+                        ) : null}
+                        {task.applications !== undefined && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                            📝 {task.applications} {dict.marketplace.applications}
+                          </span>
+                        )}
+                        {task.views !== undefined && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                            👁️ {task.views} {dict.marketplace.views}
+                          </span>
+                        )}
+                        {task.rating && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-yellow-50 text-yellow-700 border border-yellow-100">
+                            ⭐ {task.rating} {dict.marketplace.rating}
+                          </span>
+                        )}
                       </div>
-                      <Link
-                        href={`/${locale}/marketplace/${task.id}`}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        {dict.marketplace.viewDetails}
-                      </Link>
-                      {/* 编辑/删除按钮 - 仅任务发布者可见 */}
-                      {session?.user?.id && task.postedById === session.user.id && (
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/${locale}/marketplace/${task.id}/edit`}
-                            className="flex items-center gap-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-semibold"
-                          >
-                            <Pencil className="w-4 h-4" />
-                            {actionT.edit}
-                          </Link>
-                          <button
-                            onClick={() => {
-                              setDeleteTarget(task.id)
-                              setDeleteError('')
-                            }}
-                            className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            {actionT.delete}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-                    {task.applications !== undefined && (
-                      <span>📝 {task.applications} {dict.marketplace.applications}</span>
-                    )}
-                    {task.views !== undefined && (
-                      <span>👁️ {task.views} {dict.marketplace.views}</span>
-                    )}
-                    {task.rating && (
-                      <span>⭐ {task.rating} {dict.marketplace.rating}</span>
-                    )}
-                    {task.minOrderQty && (
-                      <span>📦 {dict.marketplace.minOrder}: {task.minOrderQty} units</span>
-                    )}
+                      {/* 卖家信任背书 + 主 CTA */}
+                      <div className="flex items-center justify-between gap-4 pt-4 border-t flex-wrap">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Building2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="font-medium text-gray-900 truncate">{task.postedBy}</span>
+                          {task.sellerVerified && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 flex-shrink-0">
+                              <Shield className="w-3 h-3" />
+                              {locale === 'zh' ? '已认证' : 'Verified'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* 编辑/删除按钮 - 仅任务发布者可见 */}
+                          {session?.user?.id && task.postedById === session.user.id && (
+                            <div className="flex gap-2">
+                              <Link
+                                href={`/${locale}/marketplace/${task.id}/edit`}
+                                className="flex items-center gap-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-semibold"
+                              >
+                                <Pencil className="w-4 h-4" />
+                                {actionT.edit}
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  setDeleteTarget(task.id)
+                                  setDeleteError('')
+                                }}
+                                className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                {actionT.delete}
+                              </button>
+                            </div>
+                          )}
+                          <Link
+                            href={`/${locale}/marketplace/${task.id}`}
+                            className="inline-flex items-center gap-1 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                          >
+                            {dict.marketplace.viewDetails}
+                            <ArrowUpRight className="w-4 h-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
               </div>
+              {pageInfo.page < pageInfo.totalPages && (
+                <div className="text-center mt-8">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="inline-flex items-center gap-2 px-8 py-3 rounded-lg border border-blue-600 text-blue-700 font-semibold hover:bg-blue-50 transition-colors disabled:opacity-60"
+                  >
+                    {loadingMore
+                      ? (locale === 'zh' ? '加载中...' : 'Loading...')
+                      : (locale === 'zh' ? '加载更多' : 'Load more')}
+                  </button>
+                </div>
+              )}
+              </>
             )
           ) : (
             topics.length === 0 ? (

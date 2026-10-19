@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
             id: true,
             username: true,
             displayName: true,
+            sellerProfile: { select: { companyName: true, isVerified: true } },
           },
         },
         taskApplications: {
@@ -94,7 +95,8 @@ export async function GET(request: NextRequest) {
       minOrderQty: task.minOrderQty,
       deadline: task.deadline?.toISOString(),
       status: task.status,
-      postedBy: task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+      postedBy: task.postedBy?.sellerProfile?.companyName || task.postedBy?.displayName || task.postedBy?.username || 'Unknown',
+      sellerVerified: !!task.postedBy?.sellerProfile?.isVerified,
       postedById: task.postedById,
       contactInfo: task.contactInfo,
       applications: task.applications,
