@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
       views: task.views,
       rating: task.rating ? Number(task.rating) : null,
       attachments: task.attachments,
+      postedAt: task.createdAt.toISOString(),
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
     }))

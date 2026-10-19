@@ -75,6 +75,16 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   const task = await prisma.marketplaceTask.findUnique({
     where: { id: params.id },
+    include: {
+      postedBy: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+          sellerProfile: { select: { companyName: true, isVerified: true } },
+        },
+      },
+    },
   })
 
   if (!task) {
@@ -130,8 +140,97 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
     return statuses[status]?.[params.locale as keyof typeof statuses.OPEN] || status
   }
   
+  // ---- 结构化数据（GEO）：把该条发布标注为可被搜索引擎 / AI 答案引擎识别的实体 ----
+  const t = task as any
+  const taskUrl = `https://x2xhub.com/${params.locale}/marketplace/${task.id}`
+  const seller = t.postedBy
+  const sellerName = seller?.sellerProfile?.companyName || seller?.displayName || seller?.username || 'SeaHeart Global'
+  const sellerOrg = { '@type': 'Organization', name: sellerName }
+  const postedAt = t.createdAt ? new Date(t.createdAt).toISOString() : undefined
+  const validThrough = t.deadline ? new Date(t.deadline).toISOString() : undefined
+  const areaServed = t.countryName || undefined
+
+  const baseEntity = {
+    name: task.title,
+    description: task.description,
+    url: taskUrl,
+    ...(postedAt ? { datePosted: postedAt } : {}),
+    ...(validThrough ? { validThrough } : {}),
+    ...(areaServed ? { areaServed } : {}),
+  }
+
+  let entity: Record<string, unknown>
+  if (t.type === 'PRODUCT_SALE') {
+    const images: string[] = Array.isArray(t.attachments)
+      ? (t.attachments as unknown[])
+          .filter((u): u is string => typeof u === 'string' && u.length > 0)
+          .map((u) => (u.startsWith('http') ? u : `https://x2xhub.com${u}`))
+      : []
+    entity = {
+      '@type': 'Product',
+      ...baseEntity,
+      sku: task.id,
+      ...(images.length ? { image: images } : {}),
+      brand: { '@type': 'Brand', name: sellerName },
+      ...(t.price != null
+        ? {
+            offers: {
+              '@type': 'Offer',
+              url: taskUrl,
+              price: Number(t.price),
+              priceCurrency: t.currency || 'USD',
+              availability: t.status === 'OPEN' ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
+              seller: sellerOrg,
+              ...(t.minOrderQty
+                ? { eligibleQuantity: { '@type': 'QuantitativeValue', minValue: Number(t.minOrderQty) } }
+                : {}),
+              ...(validThrough ? { priceValidUntil: validThrough } : {}),
+            },
+          }
+        : {}),
+    }
+  } else if (t.type === 'MANUFACTURING') {
+    // 求购/寻源需求（买家发起）→ schema.org Demand
+    entity = {
+      '@type': 'Demand',
+      ...baseEntity,
+      seller: sellerOrg,
+      availability: 'https://schema.org/InStock',
+      ...(t.budget != null
+        ? { priceSpecification: { '@type': 'PriceSpecification', price: Number(t.budget), priceCurrency: t.currency || 'USD' } }
+        : {}),
+    }
+  } else {
+    entity = {
+      '@type': 'Service',
+      ...baseEntity,
+      provider: sellerOrg,
+      ...(t.price != null
+        ? { offers: { '@type': 'Offer', url: taskUrl, price: Number(t.price), priceCurrency: t.currency || 'USD', seller: sellerOrg } }
+        : {}),
+    }
+  }
+
+  const breadcrumb = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `https://x2xhub.com/${params.locale}` },
+      { '@type': 'ListItem', position: 2, name: 'Marketplace', item: `https://x2xhub.com/${params.locale}/marketplace` },
+      { '@type': 'ListItem', position: 3, name: task.title, item: taskUrl },
+    ],
+  }
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [entity, breadcrumb],
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
+      />
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link

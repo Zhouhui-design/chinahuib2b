@@ -9,14 +9,14 @@ import { prisma } from '@/lib/db'
 export async function GET() {
   try {
     // Count active tasks
-    const activeTasks = await prisma.task.count({
+    const activeTasks = await prisma.marketplaceTask.count({
       where: {
         status: 'OPEN'
       }
     })
 
     // Count completed tasks
-    const completedTasks = await prisma.task.count({
+    const completedTasks = await prisma.marketplaceTask.count({
       where: {
         status: 'COMPLETED'
       }
@@ -26,14 +26,14 @@ export async function GET() {
     const activeUsers = await prisma.user.count({
       where: {
         OR: [
-          { tasks: { some: {} } },
+          { marketplaceTasks: { some: {} } },
           { taskApplications: { some: {} } }
         ]
       }
     })
 
     // Calculate total value of all tasks
-    const totalValueResult = await prisma.task.aggregate({
+    const totalValueResult = await prisma.marketplaceTask.aggregate({
       _sum: {
         budget: true
       },
