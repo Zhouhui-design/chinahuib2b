@@ -31,25 +31,17 @@ export default function StoresSearchBar({
   const searchParams = useSearchParams()
   const [value, setValue] = useState(searchParams.get('search') || '')
   const [country, setCountry] = useState(searchParams.get('country') || '')
-  const keywordParam = searchParams.get('search') || ''
-  const countryParam = searchParams.get('country') || ''
 
-  // Keyword search: keep the active country filter, reset to page 1
+  // Keyword and country are a single draft form: both apply on submit, reset to page 1
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    router.push(buildHref(value.trim(), countryParam))
+    router.push(buildHref(value.trim(), country))
   }
 
-  // Clearing the keyword input keeps the country filter
+  // Clearing the keyword input keeps the selected country
   const clear = () => {
     setValue('')
-    router.push(buildHref('', countryParam))
-  }
-
-  // Country applies immediately; keeps the keyword, resets to page 1
-  const handleCountryChange = (next: string) => {
-    setCountry(next)
-    router.push(buildHref(keywordParam, next))
+    router.push(buildHref('', country))
   }
 
   return (
@@ -78,7 +70,7 @@ export default function StoresSearchBar({
         <div className="w-full sm:w-56 flex-shrink-0">
           <CountryFilterCombobox
             value={country}
-            onChange={handleCountryChange}
+            onChange={setCountry}
             facets={facets}
             language={locale}
             placeholder={locale === 'zh' ? '全部国家' : 'All countries'}
