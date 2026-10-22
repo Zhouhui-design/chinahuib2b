@@ -658,9 +658,9 @@ export default function EditTaskPage() {
                 const isDisabled = isUploading || isFull || attachments.length >= MAX_TOTAL_ATTACHMENTS
 
                 return (
-                  <div
+                  <label
                     key={area.type}
-                    onClick={() => !isDisabled && area.inputRef.current?.click()}
+                    htmlFor={`upload-${area.type}`}
                     className={`
                       border-2 border-dashed rounded-lg p-4 text-center transition-all
                       ${isDisabled
@@ -672,12 +672,13 @@ export default function EditTaskPage() {
                   >
                     <input
                       ref={area.inputRef}
+                      id={`upload-${area.type}`}
                       type="file"
                       accept={area.accept}
                       multiple
                       onChange={(e) => handleFileUpload(e.target.files, area.type)}
                       disabled={isDisabled}
-                      className="hidden"
+                      className="sr-only"
                     />
                     <div className="flex flex-col items-center space-y-2">
                       {isUploading ? (
@@ -697,7 +698,7 @@ export default function EditTaskPage() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </label>
                 )
               })}
             </div>
