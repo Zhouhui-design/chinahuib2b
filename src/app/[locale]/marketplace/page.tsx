@@ -16,6 +16,7 @@ import MarketplaceClient, { type Task, type Topic } from './MarketplaceClient'
 
 type Props = {
   params: Promise<{ locale: LanguageCode }>
+  searchParams: Promise<{ search?: string }>
 }
 
 /** 首屏条数：与客户端筛选请求的 limit 保持一致。 */
@@ -109,12 +110,35 @@ function toClientTopic(topic: any): Topic {
   }
 }
 
-export default async function MarketplacePage({ params }: Props) {
+export default async function MarketplacePage({ params, searchParams }: Props) {
   const { locale } = await params
+  const sp = await searchParams
+  const search = (sp.search || '').trim().slice(0, 100)
+
+  // ?search= 时服务端同条件过滤首屏（与 /api/marketplace/tasks 的 search 逻辑一致，
+  // 保证无 JS 爬虫访问带搜索词的 URL 也能看到过滤后的列表）
+  let taskWhere: Record<string, unknown> = { status: TaskStatus.OPEN }
+  if (search) {
+    const kwRows = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM "MarketplaceTask"
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(COALESCE("keywords", '[]'::jsonb)) AS k
+        WHERE k ILIKE ${'%' + search + '%'}
+      )
+    `
+    taskWhere = {
+      status: TaskStatus.OPEN,
+      OR: [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        ...(kwRows.length > 0 ? [{ id: { in: kwRows.map((r) => r.id) } }] : []),
+      ],
+    }
+  }
 
   const [tasksRaw, totalTasks, topicsRaw] = await Promise.all([
     prisma.marketplaceTask.findMany({
-      where: { status: TaskStatus.OPEN },
+      where: taskWhere,
       orderBy: { createdAt: 'desc' },
       take: INITIAL_LIMIT,
       include: {
@@ -128,7 +152,7 @@ export default async function MarketplacePage({ params }: Props) {
         },
       },
     }),
-    prisma.marketplaceTask.count({ where: { status: TaskStatus.OPEN } }),
+    prisma.marketplaceTask.count({ where: taskWhere }),
     prisma.topic.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
@@ -185,6 +209,7 @@ export default async function MarketplacePage({ params }: Props) {
         initialTasks={initialTasks}
         initialTopics={initialTopics}
         initialTotalPages={Math.ceil(totalTasks / INITIAL_LIMIT)}
+        initialSearch={search}
       />
     </>
   )

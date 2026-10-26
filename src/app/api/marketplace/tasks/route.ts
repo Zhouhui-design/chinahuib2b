@@ -41,10 +41,19 @@ export async function GET(request: NextRequest) {
     }
     
     if (search) {
+      // keywords 是 JSON string[]，Prisma 无法对其做子串 ILIKE，
+      // 用原生 SQL 拿命中 id（与 products 页同款模式）
+      const kwRows = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "MarketplaceTask"
+        WHERE EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(COALESCE("keywords", '[]'::jsonb)) AS k
+          WHERE k ILIKE ${'%' + search + '%'}
+        )
+      `
       where.OR = [
-        { title: { contains: search } },
-        { description: { contains: search } },
-        { keywords: { has: search } },
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        ...(kwRows.length > 0 ? [{ id: { in: kwRows.map((r) => r.id) } }] : []),
       ]
     }
     

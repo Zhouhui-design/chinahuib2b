@@ -9,6 +9,7 @@ import type { Metadata } from 'next';
 import { languages } from '@/lib/languages';
 import Link from 'next/link';
 import ProductFilterBar from "@/components/product/ProductFilterBar";
+import UniversalSearchBar, { type SearchCategoryOption } from "@/components/search/UniversalSearchBar";
 import { getCountryAliases } from "@/lib/countries";
 import { getSellerCountryFacets, type CountryFacet } from "@/services/sellerService";
 
@@ -301,10 +302,25 @@ async function ProductList({ searchParams, locale }: { searchParams: Promise<any
 
 export default async function ProductsPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const sp = await searchParams;
   const dict = await getDictionary(locale);
 
   // 国家 facet（仅有在售产品的供应商国家 + 数量，合并中文/英文等存量写法）
   const countryFacets = await getSellerCountryFacets('withProducts');
+
+  // 一级类目：搜索栏前缀下拉（与 CategorySidebar 同源）
+  const topCategories = await prisma.category.findMany({
+    where: { level: 1 },
+    select: { slug: true, name: true, nameEn: true, translations: true },
+    orderBy: { name: 'asc' },
+  });
+  const categoryOptions: SearchCategoryOption[] = topCategories.map((c: any) => {
+    const translations = c.translations as Record<string, string> | null;
+    const label =
+      (translations && (translations[locale] || translations['en'])) ||
+      (locale === 'zh' ? c.name : c.nameEn || c.name);
+    return { value: c.slug, label };
+  });
   
   // Prepare breadcrumb schema
   const breadcrumbs = [
@@ -332,6 +348,29 @@ export default async function ProductsPage({ params, searchParams }: PageProps) 
             </h1>
             <p className="text-gray-600">浏览来自全球制造商的精选产品</p>
           </div>
+
+          {/* 1688 式大搜索条：无 JS 也可用（原生 GET 表单），类目/国家/关键词一次提交 */}
+          <UniversalSearchBar
+            locale={locale}
+            actionPath={`/${locale}/products`}
+            keywordParam="keyword"
+            initialKeyword={(sp.keyword as string) || ''}
+            categories={categoryOptions}
+            initialCategory={(sp.category as string) || ''}
+            countryFacets={countryFacets}
+            countryParam="country"
+            initialCountry={(sp.country as string) || ''}
+            hiddenParams={{
+              companyName: (sp.companyName as string) || '',
+              productName: (sp.productName as string) || '',
+              companyType: (sp.companyType as string) || '',
+            }}
+            hotKeywords={
+              locale === 'zh'
+                ? ['阀门', '机器人', '轴承', '水泵', '传感器']
+                : ['valve', 'robot', 'bearing', 'pump', 'sensor']
+            }
+          />
 
           {/* Product List with Category Filter */}
           <div className="flex gap-8">

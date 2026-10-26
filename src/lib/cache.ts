@@ -90,10 +90,15 @@ export async function cacheGetOrSet<T>(
 
   // Fetch fresh data
   const data = await fetchFn()
-  
+
+  // null/undefined 结果只缓存 60 秒：数据库查不到的 slug（如 seller:slug:*）
+  // 若按完整 TTL 缓存 null，新建/改名后的店铺会最长 1 小时打不开
+  const effectiveTtl =
+    data === null || data === undefined ? Math.min(ttl, 60) : ttl
+
   // Cache the result
-  await cacheSet(key, data, ttl)
-  
+  await cacheSet(key, data, effectiveTtl)
+
   return data
 }
 

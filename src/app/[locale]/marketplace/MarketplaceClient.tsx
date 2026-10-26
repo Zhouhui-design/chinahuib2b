@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from 'react'
   import { useSession } from 'next-auth/react'
   import type { LanguageCode } from '@/lib/languages'
   import { dictionaries } from '@/locales/dictionary'
-  import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone, Globe, MapPin, TrendingUp, Building2, DollarSign, ArrowUpRight, Shield, Pencil, Trash2, AlertTriangle, Loader2, Rocket } from 'lucide-react'
+  import { MessageCircle, Heart, Eye, Image, Video, FileText, Link2, Phone, Globe, MapPin, TrendingUp, Building2, DollarSign, ArrowUpRight, Shield, Pencil, Trash2, AlertTriangle, Loader2, Rocket, Search, X } from 'lucide-react'
   import { COUNTRIES, getCountryFlag, getCountryName } from '@/lib/geo-location'
 
 /**
@@ -49,7 +49,7 @@ const firstImageUrl = (attachments?: string[]): string | undefined =>
 
 /** 构造 /api/marketplace/tasks 查询串（筛选/排序/分页共用，避免逻辑分叉）。 */
 const buildTaskQuery = (
-  filters: { type: string; sortBy: string; country: string },
+  filters: { type: string; sortBy: string; country: string; search: string },
   page: number,
 ): string => {
   const params = new URLSearchParams({ limit: '10', page: String(page) })
@@ -65,6 +65,7 @@ const buildTaskQuery = (
     params.set('order', 'desc')
   }
   if (filters.country !== 'all') params.set('country', filters.country)
+  if (filters.search) params.set('search', filters.search)
   return params.toString()
 }
 
@@ -127,16 +128,21 @@ export default function MarketplaceClient({
   initialTasks,
   initialTopics,
   initialTotalPages,
+  initialSearch = '',
 }: {
   locale: LanguageCode
   initialTasks: Task[]
   initialTopics: Topic[]
   initialTotalPages: number
+  initialSearch?: string
 }) {
   const dict = dictionaries[locale] || dictionaries.en
 
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [topics, setTopics] = useState<Topic[]>(initialTopics)
+  // 搜索：searchInput 是输入框草稿，appliedSearch 才驱动请求（提交后生效，回第 1 页）
+  const [searchInput, setSearchInput] = useState(initialSearch)
+  const [appliedSearch, setAppliedSearch] = useState(initialSearch)
   // 首屏数据由服务端 page.tsx 注入，因此初始不显示 loading 骨架，
   // 保证无 JS 抓取时 HTML 里是真实列表而不是「加载中」占位。
   const [loading, setLoading] = useState(false)
@@ -239,7 +245,7 @@ export default function MarketplaceClient({
     const fetchTasks = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/marketplace/tasks?${buildTaskQuery({ type: selectedType, sortBy, country: selectedCountry }, 1)}`)
+        const response = await fetch(`/api/marketplace/tasks?${buildTaskQuery({ type: selectedType, sortBy, country: selectedCountry, search: appliedSearch }, 1)}`)
         const data = await response.json()
 
         if (data.success) {
@@ -252,9 +258,25 @@ export default function MarketplaceClient({
         setLoading(false)
       }
     }
-    
+
     fetchTasks()
-  }, [selectedType, sortBy, selectedCountry])
+  }, [selectedType, sortBy, selectedCountry, appliedSearch])
+
+  // 搜索提交：appliedSearch 变化触发上方 effect 重新拉取（回第 1 页），
+  // 并把 ?search= 写进 URL 以便刷新/分享（不触发路由跳转）
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const kw = searchInput.trim()
+    setAppliedSearch(kw)
+    const qs = kw ? `?search=${encodeURIComponent(kw)}` : ''
+    window.history.replaceState(null, '', `${window.location.pathname}${qs}`)
+  }
+
+  const handleClearSearch = () => {
+    setSearchInput('')
+    setAppliedSearch('')
+    window.history.replaceState(null, '', window.location.pathname)
+  }
 
   // 加载更多：按当前筛选条件取下一页并追加（26 条发布此前只能看到前 10 条）
   const handleLoadMore = async () => {
@@ -263,7 +285,7 @@ export default function MarketplaceClient({
       setLoadingMore(true)
       const nextPage = pageInfo.page + 1
       const query = buildTaskQuery(
-        { type: selectedType, sortBy, country: selectedCountry },
+        { type: selectedType, sortBy, country: selectedCountry, search: appliedSearch },
         nextPage,
       )
       const response = await fetch(`/api/marketplace/tasks?${query}`)
@@ -434,7 +456,38 @@ export default function MarketplaceClient({
       <section className="py-8 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {activeTab === 'tasks' ? (
-            <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div>
+              {/* 1688 式搜索条：关键词 + 类型/国家/排序一次提交 */}
+              <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder={locale === 'zh' ? '搜索任务、产品、关键词…' : 'Search tasks, products, keywords…'}
+                    maxLength={100}
+                    className="w-full pl-10 pr-3 py-2.5 h-12 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="h-12 px-8 bg-orange-600 text-white text-base font-semibold rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 flex-shrink-0"
+                >
+                  <Search className="w-5 h-5" />
+                  {locale === 'zh' ? '搜索' : 'Search'}
+                </button>
+              </form>
+              {appliedSearch && (
+                <button
+                  onClick={handleClearSearch}
+                  className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  {locale === 'zh' ? '清除搜索' : 'Clear search'} “{appliedSearch}”
+                </button>
+              )}
+              <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex gap-2 overflow-x-auto">
                 {taskTypes.map((type) => (
                   <button
@@ -480,6 +533,7 @@ export default function MarketplaceClient({
                 >
                   {dict.marketplace.postTask}
                 </Link>
+              </div>
               </div>
             </div>
           ) : (

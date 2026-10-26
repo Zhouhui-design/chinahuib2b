@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Suspense } from 'react'
 import { Building2, MapPin, Package, X } from 'lucide-react'
 import { getDictionary } from '@/locales/dictionary'
 import { storeUrl } from '@/lib/store-slug'
-import StoresSearchBar from '@/components/stores/StoresSearchBar'
+import UniversalSearchBar from '@/components/search/UniversalSearchBar'
 import { languages } from '@/lib/languages'
 import type { LanguageCode } from '@/lib/languages'
 import { localizeCountry, localizeCity } from '@/lib/seo-title'
@@ -119,14 +118,22 @@ export default async function StoresPage({ params, searchParams }: PageProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search / Filter */}
         <div className="mb-4">
-          <Suspense fallback={<div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />}>
-            <StoresSearchBar
-              locale={locale}
-              facets={countryFacets}
-              placeholder={dict.stores.searchPlaceholder || '搜索公司、产品、展会、关键词…'}
-              buttonText={dict.stores.searchButton || '搜索'}
-            />
-          </Suspense>
+          <UniversalSearchBar
+            locale={locale}
+            actionPath={`/${locale}/stores`}
+            keywordParam="search"
+            initialKeyword={search}
+            countryFacets={countryFacets}
+            countryParam="country"
+            initialCountry={country}
+            placeholder={dict.stores.searchPlaceholder || '搜索公司、产品、展会、关键词…'}
+            buttonText={dict.stores.searchButton || '搜索'}
+            hotKeywords={
+              locale === 'zh'
+                ? ['机器人', '阀门', '机械', '轴承']
+                : ['robotics', 'valve', 'machinery', 'bearing']
+            }
+          />
         </div>
 
         {/* Active filter chips (country + keyword), both independently clearable */}
