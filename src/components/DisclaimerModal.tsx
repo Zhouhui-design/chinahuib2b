@@ -34,7 +34,7 @@ export default function DisclaimerModal({ locale = 'en' }: DisclaimerModalProps)
 
 预设增值收费细则（仅为预案，当前全程免费）：
 • 展会展位入驻订阅：1 美元 / 月；
-• 商品置顶挂卖服务费：按货品申报货值的万分之一收取单次挂卖费用；
+• 成交服务费：成交金额的 0.01%（最低 $0.1），上架免费；
 • 全站全域喊话、面向全部用户批量公告推送：0.1 美元 / 单次。
 
 收费变更公示承诺：任何新增收费项目、调整收费标准，正式生效前提前 100 天，通过网站首页公告、全体用户邮件、站内通知三重渠道全员公示，充分留给用户选择、适应、账号迁出的缓冲周期，绝不会临时突击收费、暗地加价。
@@ -64,7 +64,7 @@ As the platform's user base continues to expand, hard costs such as server renta
 
 Preset value-added fee schedule (preliminary plan only, currently entirely free):
 • Exhibition booth subscription: $1 per month;
-• Featured product listing service: 0.01% of the declared product value per single listing;
+• Transaction service fee: 0.01% of the transaction amount (minimum $0.1). Listing is free;
 • Site-wide broadcast / batch announcement push to all users: $0.1 per dispatch.
 
 Fee change commitment: Any new fee items or fee adjustments will be publicly announced to all users 100 days before the effective date through three channels: homepage notice, user email, and in-site notification, providing ample buffer period for users to choose, adapt, or migrate their accounts. No sudden surprise charges or hidden price increases will ever occur.
@@ -184,7 +184,7 @@ Die Plattform wird kontinuierlich die Systemarchitektur, Risikoprüfungsmechanis
 
 予定されている付加価値料金表（現時点では全額無料、予備計画のみ）:
 • 展示会ブースサブスクリプション: 月額1ドル;
-• 商品固定掲載サービス: 1回の掲載につき申告商品金額の0.01%;
+• 取引サービス料: 取引金額の0.01%（最低 $0.1）。出品は無料;
 • サイト全域一斉送信 / 全ユーザー一括告知: 1回につき0.1ドル.
 
 料金変更のコミットメント: 新規料金項目または料金調整は、効力発生日の100日前までに、ホームページ告知、ユーザーメール、サイト内通知の3つのチャネルを通じてすべてのユーザーに公開告知し、ユーザーが選択、適応、アカウント移行を行うための十分な猶予期間を提供します。突発的な料金請求や隠れた値上げは一切行いません。
@@ -214,7 +214,7 @@ Die Plattform wird kontinuierlich die Systemarchitektur, Risikoprüfungsmechanis
 
 사전 설정된 부가 가치 요금표 (현재 전체 무료, 예비 계획만):
 • 전시회 부스 구독: 월 $1;
-• 주요 제품 목록 서비스: 단일 목록당 신고된 제품 가치의 0.01%;
+• 거래 서비스 수수료: 거래 금액의 0.01%(최소 $0.1). 등록은 무료;
 • 사이트 전체 방송 / 모든 사용자에게 일괄 공지: 발송당 $0.1.
 
 요금 변경 약속: 새로운 요금 항목이나 요금 조정은 발효일 100일 전에 메인 페이지 공지, 사용자 이메일, 사이트 내 알림의 세 가지 채널을 통해 모든 사용자에게 공식 발표하여 사용자가 선택, 적응 또는 계정 이전을 할 수 있는 충분한 완충 기간을 제공합니다. 갑작스러운 요금 인상이나 숨은 가격 인상은 결코 없을 것입니다.
@@ -244,7 +244,7 @@ Die Plattform wird kontinuierlich die Systemarchitektur, Risikoprüfungsmechanis
 
 جدول الرسوم المضافة مسبقاً (خطة أولية فقط، مجانية بالكامل حالياً):
 • اشتراك جناح المعرض: 1 دولار شهرياً;
-• خدمة إدراج المنتج البارز: 0.01% من قيمة المنتج المعلنة لكل إدراج;
+• رسوم خدمة المعاملة: 0.01% من مبلغ المعاملة (بحد أدنى 0.1 دولار). الإدراج مجاني;
 • البث على مستوى الموقع / إعلان مجمع لجميع المستخدمين: 0.1 دولار لكل إرسال.
 
 التزام بتغيير الرسوم: سيتم الإعلان علناً عن أي عناصر رسوم جديدة أو تعديلات رسوم لجميع المستخدمين قبل 100 يوم من تاريخ السريان الفعلي عبر ثلاث قنوات: إشعار على الصفحة الرئيسية، بريد إلكتروني للمستخدم، وإشعار داخل الموقع، مما يوفر فترة عازلة كافية للمستخدمين للاختيار والتكيف أو ترحيل حساباتهم. لن تكون هناك رسوم مفاجئة فورية أو زيادات أسعار مخفية أبداً.
@@ -334,7 +334,7 @@ A plataforma iterará continuamente na arquitetura do sistema, mecanismos de rev
 
 पूर्व-निर्धारित मूल्यवर्धित शुल्क अनुसूची (केवल प्रारंभिक योजना, वर्तमान में पूरी तरह से मुफ्त):
 • प्रदर्शनी बूस सदस्यता: $1 प्रति माह;
-• विशेष उत्पाद सूचीकरण सेवा: एक सूचीकरण per घोषित उत्पाद मूल्य का 0.01%;
+• लेनदेन सेवा शुल्क: लेनदेन राशि का 0.01% (न्यूनतम $0.1)। सूचीकरण निःशुल्क है;
 • साइट-विस्तृत प्रसारण / सभी उपयोगकर्ताओं को बैच घोषणा: $0.1 प्रति प्रेषण।
 
 शुल्क परिवर्तन प्रतिबद्धता: कोई भी नई शुल्क मद या शुल्क समायोजन प्रभावी तिथि से 100 दिन पहले तीन चैनलों के माध्यम से सभी उपयोगकर्ताओं को सार्वजनिक रूप से घोषित किया जाएगा: होमपेज नोटिस, उपयोगकर्ता ईमेल, और साइट में अधिसूचना, उपयोगकर्ताओं को चुनने, अनुकूलित करने या अपने खातों को माइग्रेट करने के लिए पर्याप्त बफर अवधि प्रदान करेगा। कभी भी अचानक आश्चर्यजनक शुल्क या छिपी कीमत वृद्धि नहीं होगी।
@@ -364,7 +364,7 @@ A plataforma iterará continuamente na arquitetura do sistema, mecanismos de rev
 
 ตารางค่าบริการมูลค่าเพิ่มที่กำหนดไว้ล่วงหน้า (เฉพาะแผนเบื้องต้น ปัจจุบันฟรีทั้งหมด):
 • การสมัครสมาชิกบูธแสดงงาน: $1 ต่อเดือน;
-• บริการรายการผลิตภัณฑ์แนะนำ: 0.01% ของมูลค่าผลิตภัณฑ์ที่ประกาศต่อรายการเดียว;
+• ค่าบริการธุรกรรม: 0.01% ของจำนวนธุรกรรม (ขั้นต่ำ $0.1) การลงรายการฟรี;
 • การส่งข้อความทั่วทั้งเว็บไซต์ / การประกาศชุดให้ผู้ใช้ทุกคน: $0.1 ต่อการส่ง
 
 คำมั่นสัญญาเรื่องการเปลี่ยนแปลงค่าใช้จ่าย: รายการค่าใช้จ่ายใหม่หรือการปรับค่าใช้จ่ายใดๆ จะได้รับการประกาศสาธารณะให้ผู้ใช้ทุกคนทราบล่วงหน้า 100 วันก่อนวันมีผลบังคับใช้ ผ่านช่องทาง 3 ช่องทาง: แจ้งบนหน้าแรก อีเมลผู้ใช้ และการแจ้งเตือนในเว็บไซต์ ซึ่งให้ระยะเวลาบัฟเฟอร์เพียงพอสำหรับผู้ใช้ในการเลือก ปรับตัว หรือย้ายบัญชี จะไม่มีการเรียกเก็บค่าใช้จ่ายอย่างกะทันหันหรือการเพิ่มราคาที่ซ่อนเร้น
@@ -394,7 +394,7 @@ Khi cơ sở người dùng của nền tảng tiếp tục mở rộng, các ch
 
 Lịch phí dịch vụ giá trị gia tăng đặt trước (chỉ là kế hoạch sơ bộ, hiện tại hoàn toàn miễn phí):
 • Đăng ký gian hàng triển lãm: $1 mỗi tháng;
-• Dịch vụ liệt kê sản phẩm nổi bật: 0.01% giá trị sản phẩm khai báo cho mỗi lần liệt kê;
+• Phí dịch vụ giao dịch: 0.01% giá trị giao dịch (tối thiểu $0.1). Đăng bán miễn phí;
 • Phát sóng toàn trang web / thông báo hàng loạt cho tất cả người dùng: $0.1 mỗi lần gửi.
 
 Cam kết thay đổi phí: Bất kỳ mặt hàng phí mới hoặc điều chỉnh phí nào sẽ được thông báo công khai cho tất cả người dùng 100 ngày trước ngày hiệu lực thực tế qua ba kênh: thông báo trên trang chủ, email người dùng và thông báo trong trang web, cung cấp đủ thời gian đệm để người dùng lựa chọn, thích ứng hoặc di chuyển tài khoản. Sẽ không bao giờ có phí bất ngờ đột ngột hoặc tăng giá ẩn.

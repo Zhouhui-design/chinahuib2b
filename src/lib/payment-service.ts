@@ -24,7 +24,7 @@ export interface ServiceFeeResult {
 const DEFAULT_CONFIG: PaymentConfig = {
   enabled: true,
   feeRate: 0.0001,
-  minFee: 0.01,
+  minFee: 0.1,
   qrCodeWeChat: '',
   qrCodeAlipay: '',
   qrCodePaypal: '',

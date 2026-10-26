@@ -192,49 +192,30 @@ export default function AuctionScreenPage() {
   }, [locale])
 
   const handleSubmitFee = async (listingData: any) => {
+    // 上架免费：不再收取上架 / 挂卖费，直接发布
     setPendingListingData(listingData)
-    try {
-      const res = await fetch('/api/auction/calculate-fee', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: listingData.price, currency: listingData.currency })
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setFeeData(data)
-        setShowFeeModal(true)
-      } else {
-        setFeeData({
-          enabled: false,
-          fee: { baseAmount: 0, feeRate: 0, calculatedFee: 0, finalFee: 0, minFee: 0, currency: listingData.currency },
-          paymentMethods: []
-        })
-        setShowFeeModal(true)
-      }
-    } catch (error) {
-      console.error('Error calculating fee:', error)
-      setFeeData({
-        enabled: false,
-        fee: { baseAmount: 0, feeRate: 0, calculatedFee: 0, finalFee: 0, minFee: 0, currency: listingData.currency },
-        paymentMethods: []
-      })
-      setShowFeeModal(true)
-    }
+    await createListing(listingData)
   }
 
   const createListing = async (listingData: any) => {
     try {
-      const res = await fetch('/api/listings', {
+      const res = await fetch('/api/auction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(listingData)
       })
       if (res.ok) {
-        const listing = await res.json()
+        const data = await res.json()
+        const listing = data?.data?.listing || data
         setListings(prev => [listing, ...prev])
         setShowFeeModal(false)
         setShowPaymentModal(false)
         setPendingListingData(null)
+        setShowCreateModal(false)
+        alert(dict.auctionScreen.listingCreated)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.message || data.error || dict.common.error)
       }
     } catch (error) {
       console.error('Error creating listing:', error)
