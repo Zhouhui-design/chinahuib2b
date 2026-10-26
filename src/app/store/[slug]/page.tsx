@@ -60,8 +60,9 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
-// ISR - revalidate every hour
-export const revalidate = 3600
+// Force dynamic rendering to ensure notFound() returns 404 status
+export const dynamic = 'force-dynamic'
+
 
 // ─── Data fetching ──────────────────────────────────────────────────────────
 
