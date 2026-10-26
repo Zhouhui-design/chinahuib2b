@@ -758,17 +758,20 @@ model WorldChatMessage {
 }
 
 model Notice {
-  id        String    @id @default(cuid())
-  title     String
-  content   String
-  senderId  String
-  priority  String    @default("medium")
-  isGlobal  Boolean   @default(true)
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  senderId    String
+  recipientId String?  // null = global notice; set = directed to specific user
+  isRead      Boolean  @default(false)
+  priority    String   @default("medium")
+  isGlobal    Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
+  @@index([recipientId])
   @@index([createdAt])
   @@index([priority])
 }

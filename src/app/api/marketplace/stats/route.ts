@@ -5,20 +5,21 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { TaskStatus } from '@prisma/client'
 
 export async function GET() {
   try {
     // Count active tasks
     const activeTasks = await prisma.marketplaceTask.count({
       where: {
-        status: 'OPEN'
+        status: TaskStatus.OPEN
       }
     })
 
     // Count completed tasks
     const completedTasks = await prisma.marketplaceTask.count({
       where: {
-        status: 'COMPLETED'
+        status: TaskStatus.COMPLETED
       }
     })
 
@@ -38,11 +39,11 @@ export async function GET() {
         budget: true
       },
       where: {
-        status: 'OPEN'
+        status: TaskStatus.OPEN
       }
     })
 
-    const totalValue = totalValueResult._sum.budget || 0
+    const totalValue = Number(totalValueResult._sum.budget) || 0
 
     // Format total value
     let formattedValue: string
